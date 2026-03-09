@@ -1,0 +1,514 @@
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { ProjectService } from '@/services/ProjectService';
+import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
+import { Project, Employee, ProjectStage } from '@/types';
+import { useTasks, useUpdateTask } from '@/hooks/useTasks';
+import { useBiddingPackages } from '@/hooks/useBiddingPackages';
+import { supabase } from '@/lib/supabase';
+import { ProjectHeader } from './components/ProjectHeader';
+import { ProjectInfoTab } from './components/tabs/ProjectInfoTab';
+import { ProjectPlanTab } from './components/tabs/ProjectPlanTab';
+const ProjectBimTab = React.lazy(() => import('./components/tabs/ProjectBimTab').then(m => ({ default: m.ProjectBimTab })));
+import { ProjectPackagesTab } from './components/tabs/ProjectPackagesTab';
+import { ProjectCapitalTab } from './components/tabs/ProjectCapitalTab';
+import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
+import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
+import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
+import { CreateProjectModal } from './components/CreateProjectModal';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { Info, CalendarCheck, Briefcase, FolderOpen, Layers, Landmark, Database, Settings2, Sparkles } from 'lucide-react';
+import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
+import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
+import { AIForecastChart } from '@/components/ai/AIForecastChart';
+import { AIDocumentDrafter } from '@/components/ai/AIDocumentDrafter';
+
+// ─────── Skeleton Loading ───────
+const ProjectDetailSkeleton: React.FC = () => (
+    <div className="flex flex-col h-[calc(100vh-120px)] bg-[#F8FAFC] dark:bg-slate-900 animate-pulse">
+        <div className="shrink-0 px-4 pt-4 space-y-4">
+            {/* Header skeleton */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-slate-700 rounded-xl" />
+                    <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                            <div className="h-7 bg-gray-200 dark:bg-slate-700 rounded-lg w-2/3" />
+                            <div className="h-6 bg-amber-100 dark:bg-amber-900/20 rounded-md w-28" />
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-24" />
+                            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-32" />
+                            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-20" />
+                            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-16" />
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="h-9 w-24 bg-blue-100 dark:bg-blue-900/20 rounded-xl" />
+                        <div className="h-9 w-9 bg-gray-100 dark:bg-slate-700 rounded-xl" />
+                    </div>
+                </div>
+            </div>
+            {/* Tab skeleton */}
+            <div className="flex gap-8 border-b border-gray-200 dark:border-slate-700 pb-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                    <div key={i} className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-20" />
+                ))}
+            </div>
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 px-4 py-6 space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-6 h-28 border border-gray-200 dark:border-slate-700" />
+                ))}
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2 bg-white dark:bg-slate-800 rounded-xl p-6 h-64 border border-gray-200 dark:border-slate-700" />
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 h-64 border border-gray-200 dark:border-slate-700" />
+            </div>
+        </div>
+    </div>
+);
+
+// ─────── BIM Error Boundary ───────
+interface BimErrorBoundaryProps {
+    children: React.ReactNode;
+}
+interface BimErrorBoundaryState {
+    hasError: boolean;
+    error: Error | null;
+}
+class BimErrorBoundary extends React.Component<BimErrorBoundaryProps, BimErrorBoundaryState> {
+    constructor(props: BimErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error: Error): BimErrorBoundaryState {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error('BIM Tab Error:', error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8">
+                    <div className="text-red-500 dark:text-red-400 text-lg font-bold">⚠️ BIM Viewer Error</div>
+                    <div className="text-gray-600 dark:text-slate-400 text-sm max-w-lg">
+                        {this.state.error?.message || 'Unknown error'}
+                    </div>
+                    <pre className="text-xs bg-gray-100 dark:bg-slate-800 p-4 rounded-lg max-w-2xl overflow-auto max-h-48 text-left text-gray-500 dark:text-slate-400">
+                        {this.state.error?.stack}
+                    </pre>
+                    <button
+                        onClick={() => this.setState({ hasError: false, error: null })}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+// ─────── Main Component ───────
+const ProjectDetail: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
+    // State
+    const [project, setProject] = useState<Project | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Read initial tab from navigation state (e.g. from TaskDetail breadcrumb)
+    const initialTab = (location.state as any)?.activeTab || 'info';
+    const [activeTab, setActiveTab] = useState<'info' | 'plan' | 'packages' | 'capital' | 'documents' | 'bim' | 'tt24' | 'operations'>(initialTab);
+
+    // Module 1: National Gateway State
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+    // Delete confirmation modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Edit modal
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    // AI Document Drafter modal
+    const [showDrafter, setShowDrafter] = useState(false);
+
+    // Lazy-mount flags: once mounted, stay mounted to preserve 3D engine state
+    const [bimMounted, setBimMounted] = useState(initialTab === 'bim');
+    const [opsMounted, setOpsMounted] = useState(initialTab === 'operations');
+
+    // Mount BIM/Operations on first visit
+    useEffect(() => {
+        if (activeTab === 'bim' && !bimMounted) setBimMounted(true);
+        if (activeTab === 'operations' && !opsMounted) setOpsMounted(true);
+    }, [activeTab, bimMounted, opsMounted]);
+
+    // Refetch project when switching to info tab (picks up DB-trigger stage/progress changes)
+    useEffect(() => {
+        if (activeTab === 'info' && id && !loading) {
+            ProjectService.getById(id).then(data => {
+                if (data) setProject(data);
+            }).catch(() => { });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, id]);
+
+    // Initial Data Fetch
+    useEffect(() => {
+        const fetchProject = async () => {
+            if (!id) return;
+            setLoading(true);
+            try {
+                const data = await ProjectService.getById(id);
+                setProject(data || null);
+            } catch (error) {
+                console.error("Failed to fetch project", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProject();
+    }, [id]);
+
+    // Derived Data
+    const { data: tasks = [] } = useTasks({ projectId: project?.ProjectID });
+    const { mutate: saveTask } = useUpdateTask();
+
+    // Get bidding packages for this project
+    const { data: packages = [] } = useBiddingPackages(project?.ProjectID || '');
+
+    // Get project members from project_members table
+    const [projectMembers, setProjectMembers] = useState<Employee[]>([]);
+    useEffect(() => {
+        if (!project?.ProjectID) return;
+        const loadMembers = async () => {
+            try {
+                const { data: memberRows, error } = await supabase
+                    .from('project_members')
+                    .select('employee_id, role')
+                    .eq('project_id', project.ProjectID);
+                if (error || !memberRows || memberRows.length === 0) {
+                    setProjectMembers([]);
+                    return;
+                }
+                const empIds = memberRows.map((m: any) => m.employee_id);
+                const { data: empData } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .in('employee_id', empIds);
+                if (empData && empData.length > 0) {
+                    const members: Employee[] = empData.map((e: any) => ({
+                        EmployeeID: e.employee_id,
+                        FullName: e.full_name || '',
+                        Department: e.department || '',
+                        Position: e.position || '',
+                        Role: (memberRows.find((m: any) => m.employee_id === e.employee_id)?.role || 'Thành viên') as any,
+                        Email: e.email || '',
+                        Phone: e.phone || '',
+                        JoinDate: e.join_date || '',
+                        Status: e.status || 'active',
+                        AvatarUrl: e.avatar_url || '',
+                        Username: e.username || e.full_name || '',
+                    }));
+                    setProjectMembers(members);
+                } else {
+                    setProjectMembers([]);
+                }
+            } catch (err) {
+                console.error('Failed to load project members:', err);
+                setProjectMembers([]);
+            }
+        };
+        loadMembers();
+    }, [project?.ProjectID]);
+
+    // ─── Handlers ───
+    const handleSync = useCallback(async () => {
+        if (!project) return;
+        setIsSyncing(true);
+        try {
+            const result = await NationalGatewayService.syncProject(project);
+            setSyncResult(result);
+            if (result.success) alert(result.message);
+            else alert(`Lỗi: ${result.message}`);
+        } catch (error) {
+            console.error(error);
+            alert('Có lỗi xảy ra khi đồng bộ.');
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [project]);
+
+    const handleGenerateReport = useCallback(async (type: 'Monitoring' | 'Settlement') => {
+        if (!project) return;
+        setIsGeneratingReport(true);
+        try {
+            const report = type === 'Monitoring'
+                ? await NationalGatewayService.generateMonitoringReport(project.ProjectID)
+                : await NationalGatewayService.generateSettlementReport(project.ProjectID);
+            const link = document.createElement('a');
+            link.href = report.url;
+            link.download = `${type}_Report_${project.ProjectID}.pdf`;
+            document.body.appendChild(link);
+            document.body.removeChild(link);
+            alert(`Đã trích xuất báo cáo: ${report.id} thành công!`);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    }, [project]);
+
+    const handleDeleteProject = useCallback(async () => {
+        if (!project) return;
+        setIsDeleting(true);
+        try {
+            await ProjectService.delete(project.ProjectID);
+            await queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.removeQueries({ queryKey: ['project-capital', project.ProjectID] });
+            queryClient.removeQueries({ queryKey: ['capital-plans', project.ProjectID] });
+            queryClient.removeQueries({ queryKey: ['disbursements', project.ProjectID] });
+            navigate('/projects');
+        } catch (err) {
+            console.error('Delete project failed:', err);
+            alert('Xoá dự án thất bại. Vui lòng thử lại.');
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteModal(false);
+        }
+    }, [project, queryClient, navigate]);
+
+    const handleEditSave = useCallback(async (data: Partial<Project>) => {
+        if (!project) return;
+        try {
+            await ProjectService.update(project.ProjectID, data);
+            // Refresh project data
+            const updated = await ProjectService.getById(project.ProjectID);
+            if (updated) setProject(updated);
+            // Invalidate caches
+            await queryClient.invalidateQueries({ queryKey: ['projects'] });
+        } catch (err) {
+            console.error('Update project failed:', err);
+            throw err;
+        }
+    }, [project, queryClient]);
+
+    // ─── Render ───
+    if (loading) return <ProjectDetailSkeleton />;
+    if (!project) return <div className="flex h-screen items-center justify-center font-bold text-gray-500 dark:text-slate-400">Dự án không tồn tại.</div>;
+
+    return (
+        <div className="flex flex-col relative h-[calc(100vh-120px)] bg-[#F8FAFC] dark:bg-slate-900">
+            {/* Fixed Header + Tabs — does NOT scroll */}
+            <div className={`shrink-0 px-4 ${activeTab === 'bim' || activeTab === 'operations' ? 'pt-2' : 'pt-4'}`}>
+                {/* 1. Header */}
+                <ProjectHeader
+                    project={project}
+                    onSync={handleSync}
+                    isSyncing={isSyncing}
+                    syncResult={syncResult}
+                    onDelete={() => setShowDeleteModal(true)}
+                    onEdit={() => setShowEditModal(true)}
+                    compact={activeTab === 'bim' || activeTab === 'operations'}
+                />
+
+                {/* 2. Tab Navigation */}
+                <div className={`border-b border-gray-200 dark:border-slate-700 flex gap-8 ${activeTab === 'bim' || activeTab === 'operations' ? 'mt-2' : 'mt-4'} overflow-x-auto`}>
+                    {[
+                        { id: 'info', label: 'TỔNG QUAN', icon: Info },
+                        { id: 'plan', label: 'KẾ HOẠCH/TIẾN ĐỘ', icon: CalendarCheck },
+                        { id: 'packages', label: 'GÓI THẦU', icon: Briefcase },
+                        { id: 'capital', label: 'VỐN & GIẢI NGÂN', icon: Landmark },
+                        { id: 'tt24', label: 'DỮ LIỆU TT24', icon: Database },
+                        { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
+                        { id: 'bim', label: 'MÔ HÌNH BIM', icon: Layers },
+                        { id: 'operations', label: 'VẬN HÀNH', icon: Settings2 },
+                    ].map(t => (
+                        <button
+                            key={t.id} onClick={() => setActiveTab(t.id as any)}
+                            className={`${activeTab === 'bim' || activeTab === 'operations' ? 'py-2' : 'py-3'} px-1 text-xs font-black border-b-2 transition-all flex items-center gap-2 tracking-widest whitespace-nowrap ${activeTab === t.id ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                        >
+                            <t.icon className="w-4 h-4" />
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* 3. Tab Content — BIM & Operations stay mounted to avoid re-init */}
+            {activeTab !== 'bim' && activeTab !== 'operations' && (
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+                    {activeTab === 'info' && (
+                        <div className="space-y-4">
+                            <AISummaryWidget projectId={project.ProjectID} />
+                            <ProjectInfoTab
+                                project={project}
+                                projectMembers={projectMembers}
+                                projectPackages={packages}
+                                isSyncing={isSyncing}
+                                syncResult={syncResult}
+                                isGeneratingReport={isGeneratingReport}
+                                onGenerateReport={handleGenerateReport}
+                                onViewMember={(employeeId) => {
+                                    console.log('View member:', employeeId);
+                                }}
+                                onViewPackage={(packageId) => {
+                                    setActiveTab('packages');
+                                }}
+                                onStageChange={async (newStage, entry) => {
+                                    const stageToStatus: Record<string, number> = {
+                                        'Preparation': 1,
+                                        'Execution': 2,
+                                        'Completion': 3,
+                                    };
+                                    const newStatus = stageToStatus[newStage] || 1;
+                                    setProject(prev => prev ? {
+                                        ...prev,
+                                        Stage: newStage,
+                                        Status: newStatus as any,
+                                        StageHistory: [...(prev.StageHistory || []), entry]
+                                    } : null);
+                                    try {
+                                        await ProjectService.update(project.ProjectID, {
+                                            Stage: newStage,
+                                            Status: newStatus as any,
+                                        } as any);
+                                    } catch (err) {
+                                        console.error('Failed to persist stage change:', err);
+                                    }
+                                }}
+                                onHistoryUpdate={(history) => {
+                                    setProject(prev => prev ? { ...prev, StageHistory: history } : null);
+                                }}
+                                canEditLifecycle={true}
+                                onEditProject={() => setShowEditModal(true)}
+                            />
+                        </div>
+                    )}
+                    {activeTab === 'plan' && (
+                        <ProjectPlanTab
+                            tasks={tasks}
+                            projectID={project.ProjectID}
+                            onSaveTask={(t) => saveTask(t)}
+                            groupCode={project.GroupCode}
+                            isODA={project.IsODA}
+                            project={project}
+                        />
+                    )}
+                    {activeTab === 'packages' && (
+                        <ProjectPackagesTab projectID={project.ProjectID} project={project} />
+                    )}
+                    {activeTab === 'capital' && (
+                        <div className="space-y-4">
+                            <AIForecastChart
+                                projectId={project.ProjectID}
+                                currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}
+                            />
+                            <ProjectCapitalTab projectID={project.ProjectID} />
+                        </div>
+                    )}
+                    {activeTab === 'documents' && (
+                        <div className="space-y-4">
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setShowDrafter(true)}
+                                    className="flex items-center gap-2 px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all"
+                                    style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                                >
+                                    <Sparkles className="w-4 h-4" /> Soạn văn bản AI
+                                </button>
+                            </div>
+                            <ProjectDocumentsTab
+                                projectID={project.ProjectID}
+                                projectStage={project.Stage || ProjectStage.Execution}
+                                investmentPolicy={(project as any).InvestmentPolicy}
+                                feasibilityStudy={(project as any).FeasibilityStudy}
+                            />
+                        </div>
+                    )}
+                    {activeTab === 'tt24' && (
+                        <div className="space-y-4">
+                            <AICompliancePanel projectId={project.ProjectID} />
+                            <ProjectComplianceTab
+                                project={project}
+                                onUpdate={(updated) => {
+                                    setProject(prev => prev ? { ...prev, ...updated } : null);
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* BIM tab: always mounted after first visit, hidden via visibility */}
+            {bimMounted && (
+                <div
+                    className={`flex-1 min-h-0 ${activeTab === 'bim' ? 'relative' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'bim' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <BimErrorBoundary>
+                        <Suspense fallback={<div className="flex items-center justify-center h-96 text-blue-500 dark:text-blue-400">Đang tải BIM Viewer...</div>}>
+                            <ProjectBimTab projectID={project.ProjectID} />
+                        </Suspense>
+                    </BimErrorBoundary>
+                </div>
+            )}
+
+            {/* Operations tab: always mounted after first visit, hidden via visibility */}
+            {opsMounted && (
+                <div
+                    className={`flex-1 min-h-0 ${activeTab === 'operations' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'operations' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <ProjectOperationsTab projectID={project.ProjectID} />
+                </div>
+            )}
+
+            {/* ─── Delete Confirmation Modal ─── */}
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteProject}
+                title="Xoá dự án"
+                message={`Bạn có chắc muốn xoá dự án "${project.ProjectName}"?\n\nHành động này không thể hoàn tác. Tất cả dữ liệu liên quan (công việc, tài liệu, gói thầu, hợp đồng, vốn, giải ngân...) sẽ bị xoá.`}
+                confirmText="Xoá dự án"
+                cancelText="Hủy"
+                variant="danger"
+                isLoading={isDeleting}
+            />
+
+            {/* ─── Edit Project Modal (reuse CreateProjectModal in edit mode) ─── */}
+            <CreateProjectModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={async (data, members) => {
+                    await handleEditSave(data as Partial<Project>);
+                    setShowEditModal(false);
+                }}
+                editProject={project}
+            />
+
+            {/* ─── AI Document Drafter Modal ─── */}
+            <AIDocumentDrafter
+                projectId={project.ProjectID}
+                projectName={project.ProjectName}
+                isOpen={showDrafter}
+                onClose={() => setShowDrafter(false)}
+            />
+        </div>
+    );
+};
+
+export default ProjectDetail;
