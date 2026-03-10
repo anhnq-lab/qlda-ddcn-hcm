@@ -27,6 +27,10 @@ import {
 interface ProjectPackagesTabProps {
     projectID: string;
     project?: Project | null;
+    /** Auto-open this package's detail (from PaymentList deep-link) */
+    openPackageId?: string | null;
+    /** Initial tab for BiddingPackageDetail ('settlement' for payments deep-link) */
+    initialDetailTab?: 'khlcnt' | 'selection' | 'contract' | 'settlement';
 }
 
 interface PlanGroup {
@@ -38,7 +42,7 @@ interface PlanGroup {
     packages: BiddingPackage[];
 }
 
-export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectID, project }) => {
+export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectID, project, openPackageId, initialDetailTab }) => {
     const queryClient = useQueryClient();
 
     const { data: packages, isLoading, error } = useQuery({
@@ -64,6 +68,20 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState<BiddingPackage | null>(null);
+
+    // Auto-open package detail when deep-linked from PaymentList
+    const [autoOpenProcessed, setAutoOpenProcessed] = useState<string | null>(null);
+    React.useEffect(() => {
+        if (openPackageId && packages && packages.length > 0 && autoOpenProcessed !== openPackageId) {
+            // Find the package by ID, or find via contract's PackageID
+            const targetPkg = packages.find(p => p.PackageID === openPackageId);
+            if (targetPkg) {
+                setSelectedPackage(targetPkg);
+                setIsDetailModalOpen(true);
+                setAutoOpenProcessed(openPackageId);
+            }
+        }
+    }, [openPackageId, packages, autoOpenProcessed]);
 
     // Dropdown state
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -929,6 +947,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                     setIsDetailModalOpen(false);
                     handleEdit(pkg);
                 }}
+                initialTab={initialDetailTab}
             />
 
             {/* Delete Confirmation */}

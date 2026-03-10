@@ -8,6 +8,8 @@ interface AuthContextType {
     currentUser: Employee | null;
     supabaseUser: User | null;
     session: Session | null;
+    userType: 'employee' | 'contractor';
+    contractorId: string | null;
     login: (identifier: string, pass: string) => Promise<boolean>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
@@ -41,6 +43,16 @@ async function resolveEmail(identifier: string): Promise<string | null> {
             .single();
         return emp?.email || null;
     }
+
+    // Try contractor_accounts lookup
+    const { data: contractorAccount } = await supabase
+        .from('contractor_accounts')
+        .select('email')
+        .eq('username', identifier)
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+    if (contractorAccount?.email) return contractorAccount.email;
 
     // Try phone lookup
     const { data: phoneData } = await supabase
@@ -93,6 +105,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [currentUser, setCurrentUser] = useState<Employee | null>(null);
     const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
+    const [userType, setUserType] = useState<'employee' | 'contractor'>('employee');
+    const [contractorId, setContractorId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const handleAuthUser = useCallback(async (authUser: User | null) => {
@@ -106,23 +120,54 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const employee = await fetchEmployeeByAuthId(authUser.id);
         if (employee) {
             setCurrentUser(employee);
+            setUserType('employee');
+            setContractorId(null);
         } else {
-            // Fallback: user exists in Auth but not linked to employee
-            // Use auth metadata instead
-            setCurrentUser({
-                EmployeeID: authUser.id,
-                FullName: authUser.email || 'User',
-                Role: 'Staff' as any,
-                Department: '',
-                Position: '',
-                Email: authUser.email || '',
-                Phone: '',
-                AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.email || 'U')}&background=0D8ABC&color=fff`,
-                JoinDate: '',
-                Status: 'Active' as any,
-                Username: authUser.email || '',
-                Password: '',
-            });
+            // Check if this is a contractor login
+            const { data: contractorAccount } = await supabase
+                .from('contractor_accounts')
+                .select('*, contractors(contractor_name)')
+                .eq('auth_user_id', authUser.id)
+                .eq('is_active', true)
+                .single();
+
+            if (contractorAccount) {
+                const contractorName = (contractorAccount as any).contractors?.contractor_name || contractorAccount.contact_name || 'Nhà thầu';
+                setUserType('contractor');
+                setContractorId(contractorAccount.contractor_id);
+                setCurrentUser({
+                    EmployeeID: authUser.id,
+                    FullName: contractorName,
+                    Role: 'contractor' as any,
+                    Department: contractorAccount.contact_name || '',
+                    Position: 'Nhà thầu',
+                    Email: contractorAccount.email || '',
+                    Phone: contractorAccount.phone || '',
+                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
+                    JoinDate: '',
+                    Status: 'Active' as any,
+                    Username: contractorAccount.username,
+                    Password: '',
+                });
+            } else {
+                // Fallback: user exists in Auth but not linked to employee or contractor
+                setUserType('employee');
+                setContractorId(null);
+                setCurrentUser({
+                    EmployeeID: authUser.id,
+                    FullName: authUser.email || 'User',
+                    Role: 'Staff' as any,
+                    Department: '',
+                    Position: '',
+                    Email: authUser.email || '',
+                    Phone: '',
+                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.email || 'U')}&background=0D8ABC&color=fff`,
+                    JoinDate: '',
+                    Status: 'Active' as any,
+                    Username: authUser.email || '',
+                    Password: '',
+                });
+            }
         }
     }, []);
 
@@ -244,6 +289,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             currentUser,
             supabaseUser,
             session,
+            userType,
+            contractorId,
             login,
             logout,
             isAuthenticated: !!currentUser,

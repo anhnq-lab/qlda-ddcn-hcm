@@ -130,6 +130,16 @@ const ProjectDetail: React.FC = () => {
     const initialTab = (location.state as any)?.activeTab || 'info';
     const [activeTab, setActiveTab] = useState<'info' | 'plan' | 'packages' | 'capital' | 'documents' | 'bim' | 'tt24' | 'operations'>(initialTab);
 
+    // Sync activeTab when navigating from another page (e.g., PaymentList → Gói thầu tab)
+    const openPackageId = (location.state as any)?.openPackageId || null;
+    const initialDetailTab = (location.state as any)?.initialDetailTab || undefined;
+    useEffect(() => {
+        const stateTab = (location.state as any)?.activeTab;
+        if (stateTab && stateTab !== activeTab) {
+            setActiveTab(stateTab);
+        }
+    }, [location.state]);
+
     // Module 1: National Gateway State
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
@@ -408,7 +418,12 @@ const ProjectDetail: React.FC = () => {
                         />
                     )}
                     {activeTab === 'packages' && (
-                        <ProjectPackagesTab projectID={project.ProjectID} project={project} />
+                        <ProjectPackagesTab
+                            projectID={project.ProjectID}
+                            project={project}
+                            openPackageId={openPackageId}
+                            initialDetailTab={initialDetailTab}
+                        />
                     )}
                     {activeTab === 'capital' && (
                         <div className="space-y-4">

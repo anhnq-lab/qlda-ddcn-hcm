@@ -518,8 +518,9 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         <button
                             onClick={() => { setEditingDisb(null); setDisbModalOpen(true); }}
                             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                            title="Nhập thanh toán tại tab Gói thầu → Thanh quyết toán, dữ liệu sẽ tự đồng bộ về đây"
                         >
-                            <Plus className="w-3.5 h-3.5" /> Đề nghị thanh toán
+                            <Plus className="w-3.5 h-3.5" /> Thêm bút toán
                         </button>
                     </div>
                 </div>

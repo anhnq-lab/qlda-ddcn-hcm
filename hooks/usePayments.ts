@@ -48,3 +48,65 @@ export const useDeletePayment = () => {
         },
     });
 };
+
+// ============================================================
+// APPROVAL WORKFLOW HOOKS
+// ============================================================
+
+export const useSubmitPayment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => PaymentService.submitForApproval(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+        },
+    });
+};
+
+export const useApprovePayment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, approvedBy }: { id: number; approvedBy: string }) =>
+            PaymentService.approve(id, approvedBy),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+        },
+    });
+};
+
+export const useTransferPayment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, treasuryRef }: { id: number; treasuryRef?: string }) =>
+            PaymentService.markTransferred(id, treasuryRef),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+        },
+    });
+};
+
+export const useRejectPayment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, rejectedBy, reason }: { id: number; rejectedBy: string; reason: string }) =>
+            PaymentService.reject(id, rejectedBy, reason),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+        },
+    });
+};
+
+export const useRevertPaymentToDraft = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => PaymentService.revertToDraft(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+        },
+    });
+};

@@ -82,21 +82,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* ── Logo & Brand ── */}
       <div>
         <div
-          className={`flex items-center gap-3 px-4 h-14 shrink-0 ${isCollapsed ? 'justify-center px-2' : ''}`}
+          className={`flex items-center gap-3 px-4 h-16 shrink-0 ${isCollapsed ? 'justify-center px-2' : ''}`}
           style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
         >
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, #FFD700 0%, #D4A017 100%)',
-              boxShadow: '0 2px 8px rgba(212, 160, 23, 0.35)',
-            }}
-          >
-            <span className="font-extrabold text-sm" style={{ color: '#2D2D2D' }}>DC</span>
+          <div className="w-14 h-14 bg-white rounded-md p-1 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(255,255,255,0.15)] overflow-hidden">
+            <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           {!isCollapsed && (
-            <div className="animate-fade-in overflow-hidden">
-              <h1 className="text-[13px] font-bold text-white leading-tight truncate">Ban QLDA ĐTXD DDCN</h1>
+            <div className="animate-fade-in overflow-hidden pl-1 flex flex-col justify-center">
+              <h1 className="text-[13px] font-bold text-white leading-tight truncate">Ban QLDA ĐTXD ĐDCN</h1>
               <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.55)' }}>UBND TP.HCM</p>
             </div>
           )}

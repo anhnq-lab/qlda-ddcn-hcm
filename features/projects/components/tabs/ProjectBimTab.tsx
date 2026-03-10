@@ -1020,7 +1020,7 @@ export const ProjectBimTab: React.FC<ProjectBimTabProps> = ({ projectID }) => {
     }, []);
 
     return (
-        <div data-bim-viewer>
+        <div data-bim-viewer className="h-full">
             <BimProvider
                 projectID={projectID}
                 isDarkMode={isDark}

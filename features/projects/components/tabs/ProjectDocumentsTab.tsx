@@ -21,7 +21,7 @@ import { formatCurrency } from '@/utils/format';
 import { useProjectDocuments } from '../../hooks/useProjectDocuments';
 import { VersionHistoryModal } from '../documents/VersionHistoryModal';
 import { DocMetadataPanel } from '../documents/DocMetadataPanel';
-import { CdeExplorer } from '../documents/CdeExplorer';
+// CdeExplorer removed — CDE now has dedicated /cde page
 
 interface ProjectDocumentsTabProps {
     projectID: string;
@@ -586,21 +586,24 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
                 </div>
             )}
 
-            {/* ═══ CDE VIEW — Extracted to CdeExplorer ═══ */}
+            {/* ═══ CDE VIEW — Now redirects to dedicated /cde page ═══ */}
             {activeView === 'cde' && (
-                <CdeExplorer
-                    folders={folders}
-                    documents={documents}
-                    filteredDocuments={filteredDocuments}
-                    isLoading={isLoading}
-                    activeFolderId={activeFolderId}
-                    setActiveFolderId={setActiveFolderId}
-                    searchQuery={searchQuery}
-                    folderDocCount={folderDocCount}
-                    onPreview={(doc) => setPreviewFile(doc)}
-                    onHistory={(doc) => setHistoryDoc(doc)}
-                    onUpload={() => handleUpload()}
-                />
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+                        <FolderOpen className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-black text-gray-800 dark:text-slate-100 mb-2">Quản lý CDE chuyên nghiệp</h3>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 max-w-md mx-auto">
+                        Module CDE đã được nâng cấp với cấu trúc thư mục ISO 19650, quy trình phê duyệt 5 bước, và cổng nộp hồ sơ nhà thầu.
+                    </p>
+                    <a
+                        href="/cde"
+                        className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all"
+                        style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                    >
+                        <FolderOpen className="w-4 h-4" /> Mở CDE Module
+                    </a>
+                </div>
             )}
 
             {/* MODALS */}

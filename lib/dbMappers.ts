@@ -306,6 +306,9 @@ export const dbToPayment = (row: any): Payment => ({
     ApprovedDate: row.approved_date || '',
     PaidDate: row.paid_date || '',
     ApprovedBy: row.approved_by || '',
+    RejectedReason: row.rejected_reason || '',
+    RejectedBy: row.rejected_by || '',
+    RejectedDate: row.rejected_date || '',
 });
 
 export const paymentToDb = (p: Partial<Payment>) => ({
@@ -321,6 +324,9 @@ export const paymentToDb = (p: Partial<Payment>) => ({
     ...(p.ApprovedDate !== undefined && { approved_date: p.ApprovedDate }),
     ...(p.PaidDate !== undefined && { paid_date: p.PaidDate }),
     ...(p.ApprovedBy !== undefined && { approved_by: p.ApprovedBy }),
+    ...(p.RejectedReason !== undefined && { rejected_reason: p.RejectedReason }),
+    ...(p.RejectedBy !== undefined && { rejected_by: p.RejectedBy }),
+    ...(p.RejectedDate !== undefined && { rejected_date: p.RejectedDate }),
 });
 
 // ============================================================

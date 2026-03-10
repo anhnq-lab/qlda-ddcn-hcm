@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { PaymentType, PaymentStatus, Payment } from '../../types';
-import { PaymentForm } from './PaymentForm';
-import { usePayments, useCreatePayment } from '../../hooks/usePayments';
+import { usePayments } from '../../hooks/usePayments';
+import { PaymentService } from '../../services/PaymentService';
 import { useContracts } from '../../hooks/useContracts';
 import { useContractors } from '../../hooks/useContractors';
 import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
@@ -21,12 +21,10 @@ import { Skeleton } from '../../components/ui/Skeleton';
 const PaymentList: React.FC = () => {
     const navigate = useNavigate();
     const { payments, isLoading } = usePayments();
-    const createPaymentMutation = useCreatePayment();
     const { contracts } = useContracts();
     const { projects } = useProjects();
     const { contractors } = useContractors();
     const { biddingPackages } = useAllBiddingPackages();
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<'all' | PaymentStatus>('all');
     const [filterType, setFilterType] = useState<'all' | PaymentType>('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +46,14 @@ const PaymentList: React.FC = () => {
         return project?.ProjectName || '—';
     };
 
+    const getProjectId = (contractId: string): string | null => {
+        const contract = contracts.find(c => c.ContractID === contractId);
+        if (!contract) return null;
+        const pkg = biddingPackages.find(p => p.PackageID === contract.PackageID);
+        if (!pkg) return null;
+        return pkg.ProjectID || null;
+    };
+
     const getContractValue = (contractId: string): number => {
         const contract = contracts.find(c => c.ContractID === contractId);
         return contract?.Value || 0;
@@ -56,26 +62,26 @@ const PaymentList: React.FC = () => {
     // === Stats ===
     const stats = useMemo(() => {
         const totalAmount = payments.reduce((sum, p) => sum + p.Amount, 0);
-        const transferred = payments.filter(p => p.Status === PaymentStatus.Transferred);
-        const transferredAmount = transferred.reduce((sum, p) => sum + p.Amount, 0);
-        const pending = payments.filter(p => p.Status === PaymentStatus.Pending);
-        const pendingAmount = pending.reduce((sum, p) => sum + p.Amount, 0);
+        const byStatus = (s: PaymentStatus) => payments.filter(p => p.Status === s);
+        const sumAmount = (arr: Payment[]) => arr.reduce((sum, p) => sum + p.Amount, 0);
+        const draft = byStatus(PaymentStatus.Draft);
+        const pending = byStatus(PaymentStatus.Pending);
+        const approved = byStatus(PaymentStatus.Approved);
+        const transferred = byStatus(PaymentStatus.Transferred);
+        const rejected = byStatus(PaymentStatus.Rejected);
         const advancePayments = payments.filter(p => p.Type === PaymentType.Advance);
-        const advanceAmount = advancePayments.reduce((sum, p) => sum + p.Amount, 0);
         const volumePayments = payments.filter(p => p.Type === PaymentType.Volume);
-        const volumeAmount = volumePayments.reduce((sum, p) => sum + p.Amount, 0);
         const uniqueContracts = new Set(payments.map(p => p.ContractID)).size;
         return {
             total: payments.length,
             totalAmount,
-            transferredCount: transferred.length,
-            transferredAmount,
-            pendingCount: pending.length,
-            pendingAmount,
-            advanceAmount,
-            advanceCount: advancePayments.length,
-            volumeAmount,
-            volumeCount: volumePayments.length,
+            draftCount: draft.length, draftAmount: sumAmount(draft),
+            pendingCount: pending.length, pendingAmount: sumAmount(pending),
+            approvedCount: approved.length, approvedAmount: sumAmount(approved),
+            transferredCount: transferred.length, transferredAmount: sumAmount(transferred),
+            rejectedCount: rejected.length, rejectedAmount: sumAmount(rejected),
+            advanceAmount: sumAmount(advancePayments), advanceCount: advancePayments.length,
+            volumeAmount: sumAmount(volumePayments), volumeCount: volumePayments.length,
             uniqueContracts,
         };
     }, [payments]);
@@ -96,8 +102,22 @@ const PaymentList: React.FC = () => {
         });
     }, [payments, searchQuery, filterStatus, filterType, contracts]);
 
-    const handleCreatePayment = (newPayment: Payment) => {
-        createPaymentMutation.mutate(newPayment);
+    const handleNavigateToSource = (contractId: string) => {
+        const projectId = getProjectId(contractId);
+        const contract = contracts.find(c => c.ContractID === contractId);
+        const packageId = contract?.PackageID || null;
+        if (projectId) {
+            // Navigate directly to Thanh quyết toán tab of the specific bidding package
+            navigate(`/projects/${encodeURIComponent(projectId)}`, {
+                state: {
+                    activeTab: 'packages',
+                    openPackageId: packageId,
+                    initialDetailTab: 'settlement',
+                }
+            });
+        } else {
+            navigate(`/contracts/${encodeURIComponent(contractId)}`);
+        }
     };
 
     if (isLoading) {
@@ -134,9 +154,9 @@ const PaymentList: React.FC = () => {
             progressPercent: stats.total > 0 ? (stats.transferredCount / stats.total) * 100 : 0,
         },
         {
-            label: 'Đang chờ duyệt',
-            value: formatCurrency(stats.pendingAmount),
-            sub: `${stats.pendingCount} phiếu cần xử lý`,
+            label: 'Chờ xử lý',
+            value: formatCurrency(stats.pendingAmount + stats.draftAmount),
+            sub: `${stats.draftCount} nháp · ${stats.pendingCount} chờ duyệt · ${stats.approvedCount} đã duyệt`,
             icon: Clock,
             highlight: stats.pendingCount > 0,
         },
@@ -205,13 +225,16 @@ const PaymentList: React.FC = () => {
                         <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-xl p-1 gap-0.5">
                             {[
                                 { value: 'all' as const, label: 'Tất cả', count: stats.total },
-                                { value: PaymentStatus.Transferred, label: 'Đã chuyển', count: stats.transferredCount },
+                                { value: PaymentStatus.Draft, label: 'Nháp', count: stats.draftCount },
                                 { value: PaymentStatus.Pending, label: 'Chờ duyệt', count: stats.pendingCount },
-                            ].map(opt => (
+                                { value: PaymentStatus.Approved, label: 'Đã duyệt', count: stats.approvedCount },
+                                { value: PaymentStatus.Transferred, label: 'Đã chuyển', count: stats.transferredCount },
+                                { value: PaymentStatus.Rejected, label: 'Từ chối', count: stats.rejectedCount },
+                            ].filter(opt => opt.value === 'all' || opt.count > 0).map(opt => (
                                 <button
                                     key={opt.value}
                                     onClick={() => setFilterStatus(opt.value)}
-                                    className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${filterStatus === opt.value
+                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${filterStatus === opt.value
                                         ? 'bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 shadow-sm'
                                         : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                                         }`}
@@ -250,14 +273,6 @@ const PaymentList: React.FC = () => {
                                 <Download className="w-4 h-4" />
                                 Xuất Excel
                             </button>
-                            <button
-                                onClick={() => setIsFormOpen(true)}
-                                className="text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2"
-                                style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
-                            >
-                                <CreditCard className="w-4 h-4" />
-                                Tạo phiếu thanh toán
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -292,7 +307,7 @@ const PaymentList: React.FC = () => {
                                         <tr
                                             key={payment.PaymentID}
                                             className={`group cursor-pointer transition-all duration-200 hover:bg-blue-50/60 hover:shadow-sm ${isEven ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/30 dark:bg-slate-900/30'} border-b border-gray-50 dark:border-slate-700`}
-                                            onClick={() => navigate(`/contracts/${encodeURIComponent(payment.ContractID)}`)}
+                                            onClick={() => handleNavigateToSource(payment.ContractID)}
                                         >
                                             {/* STT */}
                                             <td className="px-3 py-4 text-center text-xs text-gray-500 dark:text-slate-400 font-medium">{rowIdx + 1}</td>
@@ -367,17 +382,16 @@ const PaymentList: React.FC = () => {
 
                                             {/* Status */}
                                             <td className="px-5 py-4 text-center">
-                                                {payment.Status === PaymentStatus.Transferred ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-900">
-                                                        <CheckCircle2 className="w-3 h-3" />
-                                                        Đã chuyển
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap bg-amber-50 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-900">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                        Chờ duyệt
-                                                    </span>
-                                                )}
+                                                {(() => {
+                                                    const sc = PaymentService.getStatusColor(payment.Status);
+                                                    return (
+                                                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap ring-1 ${sc.bg} ${sc.text} ${sc.ring} ${sc.darkBg} ${sc.darkText} ${sc.darkRing}`}>
+                                                            {payment.Status === PaymentStatus.Pending && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>}
+                                                            {payment.Status === PaymentStatus.Transferred && <CheckCircle2 className="w-3 h-3" />}
+                                                            {PaymentService.getStatusLabel(payment.Status)}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </td>
 
                                             {/* Arrow */}
@@ -424,11 +438,6 @@ const PaymentList: React.FC = () => {
                 </Card >
             </div >
 
-            <PaymentForm
-                isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
-                onSubmit={handleCreatePayment}
-            />
         </>
     );
 };

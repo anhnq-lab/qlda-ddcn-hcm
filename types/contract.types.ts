@@ -13,11 +13,18 @@ export interface Contract {
     ContractorID: string;
     ProjectID: string;
     ContractName: string;
+    ContractType?: string;
     SignDate: string;
     Value: number;
     AdvanceRate: number;
     Warranty: number;
     Status: ContractStatus;
+    HasVAT?: boolean;
+    Scope?: string;
+    DurationMonths?: number;
+    StartDate?: string;
+    EndDate?: string;
+    PaymentTerms?: string;
     VariationOrders?: VariationOrder[];
 }
 
@@ -28,18 +35,30 @@ export enum PaymentType {
 }
 
 export enum PaymentStatus {
+    Draft = 'Draft',
     Pending = 'Pending',
-    Transferred = 'Transferred'
+    Approved = 'Approved',
+    Transferred = 'Transferred',
+    Rejected = 'Rejected'
 }
 
 export interface Payment {
     PaymentID: number;
     ContractID: string;
+    ProjectID?: string;
     BatchNo: number;
     Type: PaymentType;
     Amount: number;
     TreasuryRef: string;
     Status: PaymentStatus;
+    Description?: string;
+    RequestDate?: string;
+    ApprovedDate?: string;
+    PaidDate?: string;
+    ApprovedBy?: string;
+    RejectedReason?: string;
+    RejectedBy?: string;
+    RejectedDate?: string;
 }
 
 // Module 4: Contracts & Bidding Enhancements

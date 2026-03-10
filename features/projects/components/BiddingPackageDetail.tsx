@@ -3,17 +3,26 @@ import {
     X, ExternalLink, Calendar, FileText, Building2, Banknote, Clock, Award,
     TrendingDown, CreditCard, Receipt, Edit, ArrowLeft, BarChart3, Users,
     AlertTriangle, CheckCircle2, Phone, Mail, MapPin, Target, DollarSign,
-    ClipboardList, Gavel, FileSignature, Calculator, Shield, Percent, Package
+    ClipboardList, Gavel, FileSignature, Calculator, Shield, Percent, Package, UserCheck
 } from 'lucide-react';
 import { BiddingPackage, PackageStatus, ContractStatus, PaymentStatus } from '../../../types';
 import { formatCurrency, formatDate } from '../../../utils/format';
 import { useContracts } from '../../../hooks/useContracts';
-import { usePayments } from '../../../hooks/usePayments';
+import { usePayments, useSubmitPayment, useApprovePayment, useTransferPayment, useRejectPayment, useRevertPaymentToDraft, useDeletePayment } from '../../../hooks/usePayments';
 import { useContractors } from '../../../hooks/useContractors';
+import { PaymentService } from '../../../services/PaymentService';
+import { useAuth } from '../../../context/AuthContext';
 import { getMSCRequirements, getMSCPlanLink, getMSCPackageLink } from '../../../utils/mscCompliance';
 import { LegalReferenceLink } from '../../../components/common/LegalReferenceLink';
 import { WinningContractorSelector } from './WinningContractorSelector';
 import { BidderListSection, EvaluationSection } from './BidderEvaluationSection';
+import { DirectAppointmentSection } from './DirectAppointmentSection';
+import { SelfExecutionSection } from './SelfExecutionSection';
+import { ContractFormInline } from './ContractFormInline';
+import { PaymentFormInline } from './PaymentFormInline';
+import { AcceptanceSection } from './AcceptanceSection';
+import { DocumentAttachments } from '../../../components/common/DocumentAttachments';
+import { SettlementSection } from './SettlementSection';
 
 // ========================================
 // BIDDING PACKAGE DETAIL - Full Lifecycle Management
@@ -28,9 +37,30 @@ interface BiddingPackageDetailProps {
     onClose: () => void;
     package_data: BiddingPackage | null;
     onEdit?: (pkg: BiddingPackage) => void;
+    initialTab?: TabType;
 }
 
 type TabType = 'khlcnt' | 'selection' | 'contract' | 'settlement';
+
+// Helper: Categorize selection method (handles both English enum and Vietnamese DB text)
+type MethodCategory = 'competitive' | 'appointed' | 'self_execution' | 'direct_procurement' | 'competitive_shopping';
+
+function getMethodCategory(method?: string): MethodCategory {
+    if (!method) return 'competitive';
+    const m = method.toLowerCase();
+    // Vietnamese text matching
+    if (m.includes('chỉ định') || m.includes('chi dinh')) return 'appointed';
+    if (m.includes('tự thực hiện') || m.includes('tu thuc hien')) return 'self_execution';
+    if (m.includes('mua sắm trực tiếp') || m.includes('mua sam truc tiep')) return 'direct_procurement';
+    if (m.includes('chào hàng') || m.includes('chao hang')) return 'competitive_shopping';
+    // English enum matching
+    if (m === 'appointed') return 'appointed';
+    if (m === 'selfexecution') return 'self_execution';
+    if (m === 'directprocurement') return 'direct_procurement';
+    if (m === 'competitiveshopping') return 'competitive_shopping';
+    // Default: competitive (OpenBidding, LimitedBidding, CommunityParticipation)
+    return 'competitive';
+}
 
 // Helper: Get lifecycle stages based on package field
 const getLifecycleStages = (field?: string) => {
@@ -95,8 +125,17 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     onClose,
     package_data: pkg,
     onEdit,
+    initialTab,
 }) => {
-    const [activeTab, setActiveTab] = useState<TabType>('khlcnt');
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'khlcnt');
+    const [isCreatingContract, setIsCreatingContract] = useState(false);
+    const [isEditingContract, setIsEditingContract] = useState(false);
+    const [isAddingPayment, setIsAddingPayment] = useState(false);
+
+    // Sync activeTab when initialTab prop changes (deep-link from PaymentList)
+    React.useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
 
     // Hooks MUST be called before any conditional return (React Rules of Hooks)
     const { contracts } = useContracts();
@@ -134,12 +173,11 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
         : currentStage;
 
     // Dynamic tabs based on package field type
-    const hasWarranty = pkg.Field === 'Construction' || pkg.Field === 'Goods';
     const tabs = [
         { id: 'khlcnt', label: 'KHLCNT & TBMT', icon: ClipboardList, stages: [1, 2] },
         { id: 'selection', label: 'Lựa chọn nhà thầu', icon: Users, stages: [3, 4] },
-        { id: 'contract', label: 'Hợp đồng & Thanh toán', icon: FileSignature, stages: [5, 6] },
-        { id: 'settlement', label: hasWarranty ? 'Nghiệm thu & Quyết toán' : 'Quyết toán', icon: Calculator, stages: hasWarranty ? [7, 8, 9] : [7] },
+        { id: 'contract', label: 'Hợp đồng', icon: FileSignature, stages: [5, 6] },
+        { id: 'settlement', label: 'Thanh quyết toán', icon: Calculator, stages: [7, 8, 9] },
     ] as const;
 
     return (
@@ -409,37 +447,74 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                         </div>
                     )}
 
-                    {/* Tab 2: Lựa chọn nhà thầu */}
-                    {activeTab === 'selection' && (
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Left: Bidders + Result */}
-                            <div className="space-y-4">
-                                <SectionCard title="Nhà thầu tham gia" icon={Users} color="blue">
-                                    <BidderListSection packageId={pkg.PackageID} />
-                                </SectionCard>
+                    {/* Tab 2: Lựa chọn nhà thầu — branched by SelectionMethod */}
+                    {activeTab === 'selection' && (() => {
+                        const methodCat = getMethodCategory(pkg.SelectionMethod);
 
-                                <SectionCard title="Kết quả lựa chọn nhà thầu" icon={Award} color="green">
-                                    <WinningContractorSelector packageId={pkg.PackageID} />
-                                    {pkg.WinningPrice ? (
-                                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
-                                            <InfoRow label="Giá trúng thầu" value={<span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(pkg.WinningPrice)}</span>} />
-                                            <InfoRow label="Tiết kiệm" value={savings > 0 ? <span className="text-blue-600 dark:text-blue-400">{formatCurrency(savings)} ({savingsPercent}%)</span> : '-'} />
-                                            <InfoRow label="Ngày phê duyệt KQLCNT" value={pkg.ApprovalDate_Result ? formatDate(pkg.ApprovalDate_Result) : '-'} />
-                                        </div>
-                                    ) : null}
-                                </SectionCard>
+                        // Mode: Chỉ định thầu / Mua sắm trực tiếp
+                        if (methodCat === 'appointed' || methodCat === 'direct_procurement') {
+                            return (
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <SectionCard title="Nhà thầu được chỉ định" icon={UserCheck} color="blue">
+                                            <DirectAppointmentSection packageId={pkg.PackageID} packagePrice={pkg.Price} />
+                                        </SectionCard>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <SectionCard title="Kết quả lựa chọn nhà thầu" icon={Award} color="green">
+                                            <WinningContractorSelector packageId={pkg.PackageID} />
+                                            {pkg.WinningPrice ? (
+                                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
+                                                    <InfoRow label="Giá trúng thầu" value={<span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(pkg.WinningPrice)}</span>} />
+                                                    <InfoRow label="Tiết kiệm" value={savings > 0 ? <span className="text-blue-600 dark:text-blue-400">{formatCurrency(savings)} ({savingsPercent}%)</span> : '-'} />
+                                                    <InfoRow label="Ngày phê duyệt KQLCNT" value={pkg.ApprovalDate_Result ? formatDate(pkg.ApprovalDate_Result) : '-'} />
+                                                </div>
+                                            ) : null}
+                                        </SectionCard>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        // Mode: Tự thực hiện
+                        if (methodCat === 'self_execution') {
+                            return (
+                                <SelfExecutionSection packageId={pkg.PackageID} />
+                            );
+                        }
+
+                        // Mode: Đấu thầu cạnh tranh (OpenBidding, LimitedBidding, CompetitiveShopping, etc.)
+                        return (
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Left: Bidders + Result */}
+                                <div className="space-y-4">
+                                    <SectionCard title="Nhà thầu tham gia" icon={Users} color="blue">
+                                        <BidderListSection packageId={pkg.PackageID} />
+                                    </SectionCard>
+
+                                    <SectionCard title="Kết quả lựa chọn nhà thầu" icon={Award} color="green">
+                                        <WinningContractorSelector packageId={pkg.PackageID} />
+                                        {pkg.WinningPrice ? (
+                                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
+                                                <InfoRow label="Giá trúng thầu" value={<span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(pkg.WinningPrice)}</span>} />
+                                                <InfoRow label="Tiết kiệm" value={savings > 0 ? <span className="text-blue-600 dark:text-blue-400">{formatCurrency(savings)} ({savingsPercent}%)</span> : '-'} />
+                                                <InfoRow label="Ngày phê duyệt KQLCNT" value={pkg.ApprovalDate_Result ? formatDate(pkg.ApprovalDate_Result) : '-'} />
+                                            </div>
+                                        ) : null}
+                                    </SectionCard>
+                                </div>
+
+                                {/* Right: Evaluation */}
+                                <div className="space-y-4">
+                                    <SectionCard title="Đánh giá HSDT" icon={BarChart3} color="yellow">
+                                        <EvaluationSection packageId={pkg.PackageID} />
+                                    </SectionCard>
+                                </div>
                             </div>
+                        );
+                    })()}
 
-                            {/* Right: Evaluation */}
-                            <div className="space-y-4">
-                                <SectionCard title="Đánh giá HSDT" icon={BarChart3} color="yellow">
-                                    <EvaluationSection packageId={pkg.PackageID} />
-                                </SectionCard>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tab 3: Hợp đồng & Thanh toán */}
+                    {/* Tab 3: Hợp đồng */}
                     {activeTab === 'contract' && (
                         <div className="space-y-6">
                             {/* Contract & Contractor Overview */}
@@ -460,12 +535,15 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                 </SectionCard>
 
                                 <SectionCard title="Hợp đồng" icon={FileSignature} color="blue">
-                                    {relatedContract ? (
+                                    {relatedContract && !isEditingContract ? (
                                         <div className="space-y-2">
                                             <InfoRow label="Số hợp đồng" value={<span className="font-mono font-semibold">{relatedContract.ContractID}</span>} />
+                                            <InfoRow label="Tên HĐ" value={relatedContract.ContractName || '-'} />
                                             <InfoRow label="Giá trị HĐ" value={<span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(relatedContract.Value)}</span>} />
                                             <InfoRow label="Ngày ký" value={formatDate(relatedContract.SignDate)} />
                                             <InfoRow label="Thời gian thực hiện" value={pkg.Duration || '-'} />
+                                            <InfoRow label="Tỷ lệ tạm ứng" value={relatedContract.AdvanceRate ? `${relatedContract.AdvanceRate}%` : '-'} />
+                                            <InfoRow label="Bảo hành" value={relatedContract.Warranty ? `${relatedContract.Warranty} tháng` : '-'} />
                                             <InfoRow label="Trạng thái" value={
                                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${relatedContract.Status === ContractStatus.Executing ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' :
                                                     relatedContract.Status === ContractStatus.Liquidated ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300'
@@ -474,16 +552,97 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                                         relatedContract.Status === ContractStatus.Liquidated ? 'Đã thanh lý' : 'Tạm dừng'}
                                                 </span>
                                             } />
+                                            <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                                                <button
+                                                    onClick={() => setIsEditingContract(true)}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                                >
+                                                    <Edit className="w-3.5 h-3.5" />
+                                                    Sửa hợp đồng
+                                                </button>
+                                            </div>
+                                            <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                                                <DocumentAttachments relatedType="contract" relatedId={relatedContract.ContractID} />
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <EmptyState icon={FileSignature} message="Chưa ký hợp đồng" />
-                                    )}
+                                    ) : relatedContract && isEditingContract ? (
+                                        <ContractFormInline
+                                            packageData={pkg}
+                                            contractorName={winningContractor?.FullName}
+                                            existingContract={relatedContract}
+                                            onSaved={() => setIsEditingContract(false)}
+                                            onCancel={() => setIsEditingContract(false)}
+                                        />
+                                    ) : null}
                                 </SectionCard>
                             </div>
 
-                            {/* Payment Progress */}
+                            {/* Create contract form */}
+                            {!relatedContract && !isCreatingContract && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
+                                    <FileSignature className="w-12 h-12 text-yellow-400 dark:text-yellow-500 mx-auto mb-3" />
+                                    <p className="font-medium text-gray-700 dark:text-slate-200">Chưa có hợp đồng</p>
+                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Tạo hợp đồng để quản lý thực hiện gói thầu</p>
+                                    {pkg.WinningContractorID ? (
+                                        <button
+                                            onClick={() => setIsCreatingContract(true)}
+                                            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                        >
+                                            <FileSignature className="w-4 h-4" />
+                                            Tạo hợp đồng
+                                        </button>
+                                    ) : (
+                                        <p className="text-xs text-orange-500 dark:text-orange-400 mt-3">
+                                            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+                                            Cần chọn nhà thầu trúng thầu trước khi tạo hợp đồng
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {!relatedContract && isCreatingContract && (
+                                <SectionCard title="Tạo hợp đồng" icon={FileSignature} color="blue">
+                                    <ContractFormInline
+                                        packageData={pkg}
+                                        contractorName={winningContractor?.FullName}
+                                        onSaved={() => setIsCreatingContract(false)}
+                                        onCancel={() => setIsCreatingContract(false)}
+                                    />
+                                </SectionCard>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Tab 4: Thanh quyết toán */}
+                    {activeTab === 'settlement' && (
+                        <div className="space-y-6">
+                            {/* Tổng hợp giá trị */}
+                            <SectionCard title="Tổng hợp giá trị" icon={Package} color="slate">
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div className="text-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá gói thầu</p>
+                                        <p className="font-bold text-gray-800 dark:text-slate-100">{formatCurrency(pkg.Price)}</p>
+                                    </div>
+                                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá trúng thầu</p>
+                                        <p className="font-bold text-green-600 dark:text-green-400">{pkg.WinningPrice ? formatCurrency(pkg.WinningPrice) : '-'}</p>
+                                    </div>
+                                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá trị HĐ</p>
+                                        <p className="font-bold text-blue-600 dark:text-blue-400">{relatedContract ? formatCurrency(relatedContract.Value) : '-'}</p>
+                                    </div>
+                                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Tiết kiệm</p>
+                                        <p className="font-bold text-purple-600 dark:text-purple-400">
+                                            {savings > 0 ? `${formatCurrency(savings)} (${savingsPercent}%)` : '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </SectionCard>
+
                             {relatedContract ? (
                                 <>
+                                    {/* Tiến độ thanh toán */}
                                     <SectionCard title="Tiến độ thanh toán" icon={DollarSign} color="emerald">
                                         <div className="flex items-center justify-between mb-4">
                                             <div>
@@ -505,103 +664,108 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                         </div>
                                     </SectionCard>
 
-                                    {/* Payment List */}
+                                    {/* Danh sách đợt thanh toán */}
                                     <SectionCard title="Danh sách đợt thanh toán" icon={Receipt} color="gray" badge={`${relatedPayments.length} đợt`}>
                                         {relatedPayments.length > 0 ? (
                                             <div className="space-y-3">
-                                                {relatedPayments.map((payment, idx) => (
-                                                    <div key={payment.PaymentID} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${payment.Status === PaymentStatus.Transferred ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400'}`}>
-                                                                {payment.Status === PaymentStatus.Transferred ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                                                {relatedPayments.map((payment, idx) => {
+                                                    const sc = PaymentService.getStatusColor(payment.Status);
+                                                    const transitions = PaymentService.getAvailableTransitions(payment.Status);
+                                                    return (
+                                                        <div key={payment.PaymentID} className="p-3 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 space-y-2">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                                                                        <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-medium text-gray-800 dark:text-slate-200">Đợt {idx + 1}: {payment.Type === 'Advance' ? 'Tạm ứng' : 'Khối lượng'}</p>
+                                                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                                            {payment.RequestDate ? `Ngày ĐN: ${formatDate(payment.RequestDate)}` : 'Chưa gửi duyệt'}
+                                                                            {payment.TreasuryRef ? ` • KB: ${payment.TreasuryRef}` : ''}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="font-bold text-gray-800 dark:text-slate-100">{formatCurrency(payment.Amount)}</p>
+                                                                    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ring-1 ${sc.bg} ${sc.text} ${sc.ring} ${sc.darkBg} ${sc.darkText} ${sc.darkRing}`}>
+                                                                        {PaymentService.getStatusLabel(payment.Status)}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <p className="font-medium text-gray-800 dark:text-slate-200">Đợt {idx + 1}: {payment.Type}</p>
-                                                                <p className="text-xs text-gray-500 dark:text-slate-400">Mã KB: {payment.TreasuryRef || 'Chờ thanh toán'}</p>
+
+                                                            {/* Approval info */}
+                                                            {payment.ApprovedBy && (
+                                                                <p className="text-xs text-blue-600 dark:text-blue-400 ml-11">✓ Duyệt bởi: {payment.ApprovedBy} {payment.ApprovedDate ? `(${formatDate(payment.ApprovedDate)})` : ''}</p>
+                                                            )}
+                                                            {payment.PaidDate && (
+                                                                <p className="text-xs text-emerald-600 dark:text-emerald-400 ml-11">✓ Chuyển tiền: {formatDate(payment.PaidDate)}</p>
+                                                            )}
+                                                            {payment.Status === PaymentStatus.Rejected && payment.RejectedReason && (
+                                                                <div className="ml-11 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                                                                    <p className="text-xs text-red-600 dark:text-red-400">✗ Từ chối: {payment.RejectedReason}</p>
+                                                                    <p className="text-[10px] text-red-400 dark:text-red-500">{payment.RejectedBy} {payment.RejectedDate ? `— ${formatDate(payment.RejectedDate)}` : ''}</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Attachments */}
+                                                            <div className="ml-11">
+                                                                <DocumentAttachments relatedType="payment" relatedId={String(payment.PaymentID)} compact />
                                                             </div>
+
+                                                            {/* Action buttons */}
+                                                            {transitions.length > 0 && (
+                                                                <PaymentActions payment={payment} transitions={transitions} />
+                                                            )}
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="font-bold text-gray-800 dark:text-slate-100">{formatCurrency(payment.Amount)}</p>
-                                                            <span className={`text-xs px-2 py-0.5 rounded-full ${payment.Status === PaymentStatus.Transferred ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400'}`}>
-                                                                {payment.Status === PaymentStatus.Transferred ? 'Đã chuyển tiền' : 'Chờ duyệt'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
+                                        ) : null}
+
+                                        {/* Nút thêm đợt thanh toán */}
+                                        {isAddingPayment ? (
+                                            <PaymentFormInline
+                                                contractId={relatedContract.ContractID}
+                                                projectId={pkg.ProjectID}
+                                                contractValue={contractValue}
+                                                totalPaid={totalPaid}
+                                                onSaved={() => setIsAddingPayment(false)}
+                                                onCancel={() => setIsAddingPayment(false)}
+                                            />
                                         ) : (
-                                            <EmptyState icon={Receipt} message="Chưa có thanh toán" hint="Các đợt thanh toán sẽ hiển thị tại đây" />
+                                            <button
+                                                onClick={() => setIsAddingPayment(true)}
+                                                className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:border-green-400 hover:text-green-600 dark:hover:border-green-500 dark:hover:text-green-400 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <DollarSign className="w-4 h-4" />
+                                                + Thêm đợt thanh toán
+                                            </button>
                                         )}
+                                    </SectionCard>
+
+                                    {/* Nghiệm thu — component thật */}
+                                    <SectionCard title="" icon={CheckCircle2} color="green">
+                                        <AcceptanceSection contractId={relatedContract.ContractID} />
+                                    </SectionCard>
+
+                                    {/* Quyết toán + Bảo hành — component thật */}
+                                    <SectionCard title="" icon={Calculator} color="blue">
+                                        <SettlementSection
+                                            contractId={relatedContract.ContractID}
+                                            contractValue={contractValue}
+                                            totalPaid={totalPaid}
+                                            packageField={pkg.Field}
+                                        />
                                     </SectionCard>
                                 </>
                             ) : (
                                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
                                     <AlertTriangle className="w-12 h-12 text-yellow-400 dark:text-yellow-500 mx-auto mb-3" />
-                                    <p className="font-medium text-gray-700 dark:text-slate-200">Chưa có hợp đồng để quản lý</p>
-                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Gói thầu cần có kết quả trúng thầu và hợp đồng ký kết</p>
+                                    <p className="font-medium text-gray-700 dark:text-slate-200">Chưa có hợp đồng</p>
+                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Cần tạo hợp đồng ở tab "Hợp đồng" trước khi quản lý thanh quyết toán</p>
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* Tab 4: Quyết toán */}
-                    {activeTab === 'settlement' && (
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <SectionCard title="Nghiệm thu công trình" icon={CheckCircle2} color="green">
-                                    {relatedContract?.Status === ContractStatus.Liquidated ? (
-                                        <div className="space-y-2">
-                                            <InfoRow label="Trạng thái" value={<span className="text-green-600 dark:text-green-400 font-medium">Đã nghiệm thu</span>} />
-                                            <InfoRow label="Biên bản nghiệm thu" value="Đã ký" />
-                                            <InfoRow label="Chất lượng" value={<span className="text-green-600 dark:text-green-400 font-medium">Đạt yêu cầu</span>} />
-                                        </div>
-                                    ) : (
-                                        <EmptyState icon={CheckCircle2} message="Chưa nghiệm thu" hint="Hoàn thành hợp đồng để nghiệm thu" />
-                                    )}
-                                </SectionCard>
-
-                                <SectionCard title="Quyết toán hợp đồng" icon={Calculator} color="blue">
-                                    {relatedContract?.Status === ContractStatus.Liquidated ? (
-                                        <div className="space-y-2">
-                                            <InfoRow label="Giá trị quyết toán" value={<span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(contractValue)}</span>} />
-                                            <InfoRow label="Đã thanh toán" value={<span className="text-green-600 dark:text-green-400">{formatCurrency(totalPaid)}</span>} />
-                                            <InfoRow label="Còn giữ lại (BH)" value={<span className="text-orange-600 dark:text-orange-400">{formatCurrency(contractValue * 0.05)}</span>} />
-                                            <InfoRow label="Trạng thái" value={<span className="text-blue-600 dark:text-blue-400 font-medium">Đã thanh lý</span>} />
-                                        </div>
-                                    ) : (
-                                        <EmptyState icon={Calculator} message="Chưa quyết toán" hint="Hoàn thành nghiệm thu để quyết toán" />
-                                    )}
-                                </SectionCard>
-                            </div>
-
-                            <div className="space-y-4">
-                                <SectionCard title="Bảo hành công trình" icon={Shield} color="purple">
-                                    {relatedContract?.Status === ContractStatus.Liquidated ? (
-                                        <div className="space-y-2">
-                                            <InfoRow label="Thời gian bảo hành" value={pkg.Field === 'Construction' ? '24 tháng (theo NĐ 06/2021)' : '12 tháng'} />
-                                            <InfoRow label="Trạng thái" value={<span className="text-green-600 dark:text-green-400 font-medium">Đang trong bảo hành</span>} />
-                                            <InfoRow label="Giá trị bảo lãnh BH" value={<span className="font-medium">{formatCurrency(contractValue * 0.05)}</span>} />
-                                            <InfoRow label="Giá trị giữ lại (5%)" value={<span className="text-orange-600 dark:text-orange-400 font-medium">{formatCurrency(contractValue * 0.05)}</span>} />
-                                        </div>
-                                    ) : (
-                                        <EmptyState icon={Shield} message="Chưa có thông tin bảo hành" hint="Hoàn thành quyết toán để bắt đầu bảo hành" />
-                                    )}
-                                </SectionCard>
-
-                                <SectionCard title="Tổng hợp" icon={Package} color="slate">
-                                    <div className="space-y-2">
-                                        <InfoRow label="Giá gói thầu" value={formatCurrency(pkg.Price)} />
-                                        <InfoRow label="Giá trúng thầu" value={pkg.WinningPrice ? formatCurrency(pkg.WinningPrice) : '-'} />
-                                        <InfoRow label="Giá trị HĐ" value={relatedContract ? formatCurrency(relatedContract.Value) : '-'} />
-                                        <div className="border-t border-gray-200 my-2" />
-                                        <InfoRow label="Tiết kiệm so với dự toán" value={
-                                            savings > 0
-                                                ? <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(savings)} ({savingsPercent}%)</span>
-                                                : '-'
-                                        } />
-                                    </div>
-                                </SectionCard>
-                            </div>
                         </div>
                     )}
                 </div>
@@ -663,5 +827,137 @@ const EmptyState = ({ icon: Icon, message, hint }: { icon: React.ElementType; me
         {hint && <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{hint}</p>}
     </div>
 );
+
+// ========================================
+// PaymentActions — Status transition buttons
+// ========================================
+import { Payment as PaymentType2, PaymentStatus as PS } from '../../../types';
+
+const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; transitions: PS[] }) => {
+    const { user } = useAuth();
+    const submitMutation = useSubmitPayment();
+    const approveMutation = useApprovePayment();
+    const transferMutation = useTransferPayment();
+    const rejectMutation = useRejectPayment();
+    const revertMutation = useRevertPaymentToDraft();
+    const deleteMutation = useDeletePayment();
+    const [showRejectInput, setShowRejectInput] = React.useState(false);
+    const [rejectReason, setRejectReason] = React.useState('');
+    const [treasuryRef, setTreasuryRef] = React.useState('');
+    const [showTransferInput, setShowTransferInput] = React.useState(false);
+
+    const isPending = submitMutation.isPending || approveMutation.isPending || transferMutation.isPending || rejectMutation.isPending || revertMutation.isPending || deleteMutation.isPending;
+    const userName = user?.FullName || user?.Username || 'System';
+
+    const btnBase = 'px-2.5 py-1 text-xs font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-1';
+
+    return (
+        <div className="ml-11 space-y-2">
+            {/* Reject reason input */}
+            {showRejectInput && (
+                <div className="flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={rejectReason}
+                        onChange={e => setRejectReason(e.target.value)}
+                        placeholder="Lý do từ chối..."
+                        className="flex-1 px-2.5 py-1.5 text-xs border border-red-200 dark:border-red-800 rounded-lg bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500/20 outline-none"
+                        autoFocus
+                    />
+                    <button
+                        onClick={() => {
+                            if (rejectReason.trim()) {
+                                rejectMutation.mutate({ id: payment.PaymentID, rejectedBy: userName, reason: rejectReason });
+                                setShowRejectInput(false);
+                                setRejectReason('');
+                            }
+                        }}
+                        disabled={!rejectReason.trim() || isPending}
+                        className={`${btnBase} bg-red-600 hover:bg-red-700 text-white`}
+                    >Xác nhận</button>
+                    <button onClick={() => { setShowRejectInput(false); setRejectReason(''); }} className={`${btnBase} text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700`}>Hủy</button>
+                </div>
+            )}
+
+            {/* Transfer treasury ref input */}
+            {showTransferInput && (
+                <div className="flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={treasuryRef}
+                        onChange={e => setTreasuryRef(e.target.value)}
+                        placeholder="Mã giao dịch kho bạc (tùy chọn)..."
+                        className="flex-1 px-2.5 py-1.5 text-xs border border-emerald-200 dark:border-emerald-800 rounded-lg bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        autoFocus
+                    />
+                    <button
+                        onClick={() => {
+                            transferMutation.mutate({ id: payment.PaymentID, treasuryRef: treasuryRef || undefined });
+                            setShowTransferInput(false);
+                            setTreasuryRef('');
+                        }}
+                        disabled={isPending}
+                        className={`${btnBase} bg-emerald-600 hover:bg-emerald-700 text-white`}
+                    >Xác nhận</button>
+                    <button onClick={() => { setShowTransferInput(false); setTreasuryRef(''); }} className={`${btnBase} text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700`}>Hủy</button>
+                </div>
+            )}
+
+            {/* Action buttons row */}
+            {!showRejectInput && !showTransferInput && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Draft → Pending */}
+                    {transitions.includes(PaymentStatus.Pending) && (
+                        <button onClick={() => submitMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-amber-500 hover:bg-amber-600 text-white`}>
+                            <Clock className="w-3 h-3" /> Gửi duyệt
+                        </button>
+                    )}
+
+                    {/* Pending → Approved */}
+                    {transitions.includes(PaymentStatus.Approved) && (
+                        <button onClick={() => approveMutation.mutate({ id: payment.PaymentID, approvedBy: userName })} disabled={isPending} className={`${btnBase} bg-blue-600 hover:bg-blue-700 text-white`}>
+                            <CheckCircle2 className="w-3 h-3" /> Duyệt
+                        </button>
+                    )}
+
+                    {/* Approved → Transferred */}
+                    {transitions.includes(PaymentStatus.Transferred) && (
+                        <button onClick={() => setShowTransferInput(true)} disabled={isPending} className={`${btnBase} bg-emerald-600 hover:bg-emerald-700 text-white`}>
+                            <Banknote className="w-3 h-3" /> Chuyển tiền
+                        </button>
+                    )}
+
+                    {/* Rejected → Draft */}
+                    {transitions.includes(PaymentStatus.Draft) && (
+                        <button onClick={() => revertMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-slate-500 hover:bg-slate-600 text-white`}>
+                            <Edit className="w-3 h-3" /> Sửa lại
+                        </button>
+                    )}
+
+                    {/* Reject button (from Pending or Approved) */}
+                    {transitions.includes(PaymentStatus.Rejected) && (
+                        <button onClick={() => setShowRejectInput(true)} disabled={isPending} className={`${btnBase} text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800`}>
+                            <X className="w-3 h-3" /> Từ chối
+                        </button>
+                    )}
+
+                    {/* Delete (only Draft) */}
+                    {payment.Status === PaymentStatus.Draft && (
+                        <button
+                            onClick={() => { if (confirm('Xóa đợt thanh toán này?')) deleteMutation.mutate(payment.PaymentID); }}
+                            disabled={isPending}
+                            className={`${btnBase} text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20`}
+                        >
+                            <X className="w-3 h-3" /> Xóa
+                        </button>
+                    )}
+
+                    {/* Loading indicator */}
+                    {isPending && <span className="text-xs text-gray-400 animate-pulse">Đang xử lý...</span>}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default BiddingPackageDetail;

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    Search, Plus, X, Users, Loader2, Building2, Save, Upload,
-    FileText, Trophy, Medal, Hash, Banknote, BarChart3, AlertCircle, Check, Trash2
+    Search, Plus, X, Users, Loader2, Building2, Save, Upload, ArrowUpDown, AlertTriangle as AlertTriangleIcon,
+    FileText, Trophy, Medal, Hash, Banknote, BarChart3, AlertCircle, Check, Trash2, CheckCircle2
 } from 'lucide-react';
 import { Contractor } from '../../../types';
 import { useContractors } from '../../../hooks/useContractors';
@@ -280,6 +280,16 @@ const EditBidderRow: React.FC<{
         notes: bidder.notes ?? '',
     });
 
+    // Auto-calculate combined_score = KT * 0.4 + TC * 0.6
+    useEffect(() => {
+        const kt = Number(form.technical_score);
+        const tc = Number(form.financial_score);
+        if (kt > 0 && tc > 0) {
+            const combined = Math.round((kt * 0.4 + tc * 0.6) * 100) / 100;
+            setForm(p => ({ ...p, combined_score: combined }));
+        }
+    }, [form.technical_score, form.financial_score]);
+
     const handleSave = () => {
         onSave({
             bid_price: form.bid_price ? Number(form.bid_price) : undefined,
@@ -332,8 +342,8 @@ const EditBidderRow: React.FC<{
                     <input type="number" step="0.01" value={form.financial_score} onChange={e => setForm(p => ({ ...p, financial_score: e.target.value }))} placeholder="0" className={inputClass} />
                 </div>
                 <div>
-                    <label className={labelClass}>Điểm tổng hợp</label>
-                    <input type="number" step="0.01" value={form.combined_score} onChange={e => setForm(p => ({ ...p, combined_score: e.target.value }))} placeholder="0" className={inputClass} />
+                    <label className={labelClass}>Điểm TH (KT×0.4+TC×0.6)</label>
+                    <input type="number" step="0.01" value={form.combined_score} onChange={e => setForm(p => ({ ...p, combined_score: e.target.value }))} placeholder="Tự tính" className={`${inputClass} bg-blue-50 dark:bg-blue-950/20 font-bold text-blue-600 dark:text-blue-400`} />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -440,6 +450,46 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
 
     const scoredBidders = bidders.filter(b => b.technical_score || b.financial_score || b.combined_score);
     const hasAnyScores = scoredBidders.length > 0;
+    const unscoredBidders = bidders.filter(b => !b.combined_score);
+
+    // Auto-rank mutation: sorts by combined_score desc, assigns ranks, sets rank 1 = winner
+    const autoRankMutation = useMutation({
+        mutationFn: async () => {
+            const ranked = [...bidders]
+                .filter(b => b.combined_score && b.combined_score > 0)
+                .sort((a, b) => (b.combined_score || 0) - (a.combined_score || 0));
+
+            if (ranked.length === 0) throw new Error('Chưa có nhà thầu nào có điểm tổng hợp');
+
+            const updates = ranked.map((b, idx) => ({
+                id: b.id!,
+                rank: idx + 1,
+                status: idx === 0 ? 'winner' : (b.status === 'winner' ? 'valid' : b.status),
+            }));
+
+            // Also reset rank for unscored bidders
+            const unscored = bidders
+                .filter(b => !b.combined_score || b.combined_score <= 0)
+                .map(b => ({
+                    id: b.id!,
+                    rank: null as any,
+                    status: b.status === 'winner' ? 'valid' : b.status,
+                }));
+
+            const all = [...updates, ...unscored];
+            for (const item of all) {
+                // @ts-ignore
+                const { error } = await (supabase as any)
+                    .from('package_bidders')
+                    .update({ rank: item.rank, status: item.status })
+                    .eq('id', item.id);
+                if (error) throw error;
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['package-bidders', packageId] });
+        },
+    });
 
     if (isLoading) {
         return <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 text-blue-500 animate-spin" /></div>;
@@ -471,6 +521,46 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
     return (
         <div className="space-y-3">
             <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx,.xls,.xlsx" />
+
+            {/* Auto-rank button + validation */}
+            {bidders.length > 0 && (
+                <div className="flex items-center justify-between">
+                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                        {scoredBidders.length}/{bidders.length} nhà thầu đã có điểm
+                    </div>
+                    <button
+                        onClick={() => {
+                            if (scoredBidders.length === 0) {
+                                alert('Chưa có nhà thầu nào có điểm tổng hợp. Vui lòng nhập điểm trước.');
+                                return;
+                            }
+                            if (unscoredBidders.length > 0 && !confirm(`Có ${unscoredBidders.length} nhà thầu chưa có điểm. Vẫn xếp hạng?`)) return;
+                            autoRankMutation.mutate();
+                        }}
+                        disabled={autoRankMutation.isPending || scoredBidders.length === 0}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-lg border border-amber-200 dark:border-amber-800 transition-colors disabled:opacity-50"
+                    >
+                        {autoRankMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpDown className="w-3.5 h-3.5" />}
+                        Tự động xếp hạng
+                    </button>
+                </div>
+            )}
+
+            {/* Warning for unscored bidders */}
+            {unscoredBidders.length > 0 && bidders.length > 0 && hasAnyScores && (
+                <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+                    <AlertTriangleIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{unscoredBidders.length} nhà thầu chưa có điểm: {unscoredBidders.map(b => b.contractor?.FullName?.split(' ').slice(-2).join(' ') || b.contractor_id).join(', ')}</span>
+                </div>
+            )}
+
+            {/* Auto-rank success */}
+            {autoRankMutation.isSuccess && (
+                <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    Đã xếp hạng thành công! Nhà thầu hạng 1 được chọn làm nhà thầu trúng thầu.
+                </div>
+            )}
 
             {/* Score table */}
             {hasAnyScores ? (
