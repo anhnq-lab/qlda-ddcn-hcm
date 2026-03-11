@@ -135,14 +135,20 @@ const CDEPage: React.FC = () => {
 
     // Workflow handlers
     const getNextStep = useCallback(() => {
-        if (workflowHistory.length === 0) return CDE_WORKFLOW_STEPS[0];
-        const last = workflowHistory[workflowHistory.length - 1];
-        if (last.status === 'Rejected' || last.status === 'Returned') return CDE_WORKFLOW_STEPS[0];
-        if (last.status === 'Pending') return CDE_WORKFLOW_STEPS.find(s => s.name === last.step_name);
-        const idx = CDE_WORKFLOW_STEPS.findIndex(s => s.name === last.step_name);
-        if (idx === -1 || idx >= CDE_WORKFLOW_STEPS.length - 1) return null;
-        return CDE_WORKFLOW_STEPS[idx + 1];
-    }, [workflowHistory]);
+        const STATUS_ORDER = ['S0', 'S1', 'S2', 'S3', 'A1'];
+        const currentStatusIdx = STATUS_ORDER.indexOf(selectedDoc?.cde_status || 'S0');
+
+        if (workflowHistory.length === 0 && currentStatusIdx <= 0) return CDE_WORKFLOW_STEPS[0];
+        const last = workflowHistory.length > 0 ? workflowHistory[workflowHistory.length - 1] : null;
+        if (last?.status === 'Rejected' || last?.status === 'Returned') return CDE_WORKFLOW_STEPS[0];
+        if (last?.status === 'Pending') return CDE_WORKFLOW_STEPS.find(s => s.code === last.step_code || s.name === last.step_name);
+        // Find first non-completed step based on cde_status
+        const nextUncompleted = CDE_WORKFLOW_STEPS.find(s => {
+            const stepTargetIdx = STATUS_ORDER.indexOf(s.nextStatus);
+            return stepTargetIdx > currentStatusIdx;
+        });
+        return nextUncompleted || null;
+    }, [workflowHistory, selectedDoc]);
 
     const handleWorkflow = useCallback((status: 'Approved' | 'Rejected' | 'Returned') => {
         if (!selectedDoc) return;

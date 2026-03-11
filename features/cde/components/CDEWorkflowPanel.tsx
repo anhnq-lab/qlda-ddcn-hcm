@@ -19,15 +19,32 @@ const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
     doc, workflowHistory, isPending, onApprove, onReject, onReturn, onClose,
 }) => {
 
+    // Determine completed steps from cde_status
+    // Status progression: S0 -> S1 -> S2 -> S3 -> A1
+    const STATUS_ORDER = ['S0', 'S1', 'S2', 'S3', 'A1'];
+    const currentStatusIdx = STATUS_ORDER.indexOf(doc.cde_status || 'S0');
+
+    // A step is completed if its nextStatus is at or below the doc's current status
+    const isStepCompleted = (step: typeof CDE_WORKFLOW_STEPS[0]) => {
+        const stepTargetIdx = STATUS_ORDER.indexOf(step.nextStatus);
+        if (stepTargetIdx === -1) return false;
+        return stepTargetIdx <= currentStatusIdx;
+    };
+
+    // Also check workflow history for step completion (match by code)
+    const isStepInHistory = (step: typeof CDE_WORKFLOW_STEPS[0]) => {
+        return workflowHistory.some(h => h.step_code === step.code && h.status === 'Approved');
+    };
+
     // Find next workflow step
     const getNextStep = () => {
-        if (workflowHistory.length === 0) return CDE_WORKFLOW_STEPS[0];
-        const last = workflowHistory[workflowHistory.length - 1];
-        if (last.status === 'Rejected' || last.status === 'Returned') return CDE_WORKFLOW_STEPS[0];
-        if (last.status === 'Pending') return CDE_WORKFLOW_STEPS.find(s => s.name === last.step_name);
-        const idx = CDE_WORKFLOW_STEPS.findIndex(s => s.name === last.step_name);
-        if (idx === -1 || idx === CDE_WORKFLOW_STEPS.length - 1) return null;
-        return CDE_WORKFLOW_STEPS[idx + 1];
+        if (workflowHistory.length === 0 && currentStatusIdx <= 0) return CDE_WORKFLOW_STEPS[0];
+        const last = workflowHistory.length > 0 ? workflowHistory[workflowHistory.length - 1] : null;
+        if (last?.status === 'Rejected' || last?.status === 'Returned') return CDE_WORKFLOW_STEPS[0];
+        if (last?.status === 'Pending') return CDE_WORKFLOW_STEPS.find(s => s.code === last.step_code || s.name === last.step_name);
+        // Find first non-completed step
+        const nextUncompleted = CDE_WORKFLOW_STEPS.find(s => !isStepCompleted(s) && !isStepInHistory(s));
+        return nextUncompleted || null;
     };
 
     const nextStep = getNextStep();
@@ -68,7 +85,7 @@ const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
                     <h5 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">Tiến trình duyệt</h5>
                     <div className="flex justify-between mb-2">
                         {CDE_WORKFLOW_STEPS.map((step, idx) => {
-                            const isCompleted = workflowHistory.some(h => h.step_name === step.name && h.status === 'Approved');
+                            const isCompleted = isStepCompleted(step) || isStepInHistory(step);
                             const isCurrent = nextStep?.id === step.id;
                             return (
                                 <div key={idx} className="flex flex-col items-center gap-1.5 flex-1 relative">

@@ -62,60 +62,61 @@ export class CDEService {
      * Creates WIP/SHARED/PUBLISHED/ARCHIVED containers + subfolders.
      */
     static async seedPhaseFolders(projectId: string, phase: string, folderNames: string[]): Promise<void> {
-        const containers: { type: 'WIP' | 'SHARED' | 'PUBLISHED' | 'ARCHIVED'; name: string }[] = [
-            { type: 'WIP', name: 'WIP - Đang xử lý' },
-            { type: 'SHARED', name: 'SHARED - Đang xét duyệt' },
-            { type: 'PUBLISHED', name: 'PUBLISHED - Đã phê duyệt' },
-            { type: 'ARCHIVED', name: 'ARCHIVED - Lưu trữ' },
-        ];
+        // Guard: check if folders for this phase already exist
+        const { data: existing } = await supabase
+            .from('cde_folders')
+            .select('id')
+            .eq('project_id', projectId)
+            .eq('phase', phase)
+            .limit(1);
+        if (existing && existing.length > 0) return; // Already seeded
 
-        for (const container of containers) {
-            // Create root container
-            const { data: root, error: rootErr } = await supabase
-                .from('cde_folders')
-                .insert({
-                    project_id: projectId,
-                    name: container.name,
-                    container_type: container.type,
-                    path: `/${container.type}`,
-                    sort_order: 0,
-                    phase,
-                })
-                .select()
-                .single();
+        // Find existing root containers (phase=null) to attach subfolders to
+        const { data: roots } = await supabase
+            .from('cde_folders')
+            .select('id, container_type')
+            .eq('project_id', projectId)
+            .is('parent_id', null)
+            .is('phase', null);
 
-            if (rootErr || !root) continue;
+        if (!roots || roots.length === 0) return;
 
-            // Create subfolders under WIP (main upload area)
-            if (container.type === 'WIP') {
-                const subs = folderNames.map((name, i) => ({
-                    project_id: projectId,
-                    parent_id: root.id,
-                    name,
-                    container_type: 'WIP' as const,
-                    path: `/${container.type}/${name}`,
-                    sort_order: i + 1,
-                    phase,
-                }));
-                await supabase.from('cde_folders').insert(subs);
-            } else {
-                // Shared/Published/Archived get generic sub
-                const genericNames: Record<string, string[]> = {
-                    SHARED: ['Hồ sơ đang xét duyệt'],
-                    PUBLISHED: ['Hồ sơ đã phê duyệt'],
-                    ARCHIVED: ['Hồ sơ lưu trữ'],
-                };
-                const subs = (genericNames[container.type] || []).map((name, i) => ({
-                    project_id: projectId,
-                    parent_id: root.id,
-                    name,
-                    container_type: container.type as 'SHARED' | 'PUBLISHED' | 'ARCHIVED',
-                    path: `/${container.type}/${name}`,
-                    sort_order: i + 1,
-                    phase,
-                }));
-                await supabase.from('cde_folders').insert(subs);
-            }
+        const rootMap: Record<string, string> = {};
+        roots.forEach(r => { rootMap[r.container_type] = r.id; });
+
+        // Create WIP subfolders (main working folders from phase config)
+        if (rootMap['WIP']) {
+            const wipSubs = folderNames.map((name, i) => ({
+                project_id: projectId,
+                parent_id: rootMap['WIP'],
+                name,
+                container_type: 'WIP' as const,
+                path: `/WIP/${name}`,
+                sort_order: i + 1,
+                phase,
+            }));
+            await supabase.from('cde_folders').insert(wipSubs);
+        }
+
+        // Create generic subfolders for SHARED/PUBLISHED/ARCHIVED
+        const genericSubs: Record<string, string[]> = {
+            SHARED: ['Hồ sơ đang xét duyệt'],
+            PUBLISHED: ['Hồ sơ đã phê duyệt'],
+            ARCHIVED: ['Hồ sơ lưu trữ'],
+        };
+
+        for (const [containerType, names] of Object.entries(genericSubs)) {
+            if (!rootMap[containerType]) continue;
+            const subs = names.map((name, i) => ({
+                project_id: projectId,
+                parent_id: rootMap[containerType],
+                name,
+                container_type: containerType as 'SHARED' | 'PUBLISHED' | 'ARCHIVED',
+                path: `/${containerType}/${name}`,
+                sort_order: i + 1,
+                phase,
+            }));
+            await supabase.from('cde_folders').insert(subs);
         }
     }
 

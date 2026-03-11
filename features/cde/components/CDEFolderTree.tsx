@@ -37,7 +37,9 @@ const CDEFolderTree: React.FC<CDEFolderTreeProps> = ({ folders, activeFolderId, 
     };
 
     const renderSubfolders = (parentId: string) => {
-        const subs = folders.filter(f => f.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
+        const subs = folders
+            .filter(f => f.parent_id === parentId && (!activePhase || (f as any).phase === activePhase))
+            .sort((a, b) => a.sort_order - b.sort_order);
         if (subs.length === 0) return null;
         return (
             <div className="ml-5 pl-3 border-l-2 border-gray-200 dark:border-slate-700 space-y-0.5">
@@ -64,12 +66,20 @@ const CDEFolderTree: React.FC<CDEFolderTreeProps> = ({ folders, activeFolderId, 
     };
 
     const renderContainers = () => {
-        const roots = folders.filter(f => f.parent_id === null).sort((a, b) => a.sort_order - b.sort_order);
+        // Only show the 4 main root containers (phase=null), NOT phase-specific roots
+        const roots = folders
+            .filter(f => f.parent_id === null && !(f as any).phase)
+            .sort((a, b) => a.sort_order - b.sort_order);
         return roots.map(root => {
             const colors = CONTAINER_COLORS[root.container_type];
             const ContainerIcon = containerIcons[root.container_type];
             const isCollapsed = collapsedContainers.has(root.id);
-            const subCount = folders.filter(f => f.parent_id === root.id).reduce((sum, f) => sum + (f.doc_count || 0), 0);
+            // Count only phase-matching subfolders
+            const phaseSubs = folders.filter(f => f.parent_id === root.id && (!activePhase || (f as any).phase === activePhase));
+            const subCount = phaseSubs.reduce((sum, f) => sum + (f.doc_count || 0), 0);
+
+            // Skip containers with no matching phase subfolders
+            if (phaseSubs.length === 0) return null;
 
             return (
                 <div key={root.id} className="mb-1">

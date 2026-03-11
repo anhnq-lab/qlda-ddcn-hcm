@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Document, ProjectStage } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { DocumentService } from '@/services';
 import { useDocuments, useFolders } from '@/hooks/useDocuments';
 
 // Cross-reference mapping: legal doc keywords ↔ TT24 stt/labels
@@ -66,22 +65,21 @@ export function useProjectDocuments(projectID: string, projectStage: ProjectStag
         loadDocs();
     }, [projectID]);
 
-    // All project documents (mock + real from DB + uploaded)
+    // All project documents (real from DB + uploaded)
     const projectDocuments = useMemo(() => {
-        return [...DocumentService.getDocumentsByProject(projectID), ...uploadedDocs, ...dbDocs];
-    }, [projectID, uploadedDocs, dbDocs]);
+        return [...uploadedDocs, ...dbDocs];
+    }, [uploadedDocs, dbDocs]);
 
     // Dynamic stats
     const stats = useMemo(() => {
-        const base = DocumentService.getDocumentStats(projectID);
-        const extraCount = uploadedDocs.length + dbDocs.length;
+        const total = projectDocuments.length;
         return {
-            total: base.total + extraCount,
-            approved: base.approved,
-            inProgress: base.inProgress,
-            wip: base.wip + extraCount,
+            total,
+            approved: projectDocuments.filter((d: any) => d.ISOStatus === 'A1' || d.ISOStatus === 'A2').length,
+            inProgress: projectDocuments.filter((d: any) => ['S1', 'S2', 'S3'].includes(d.ISOStatus)).length,
+            wip: projectDocuments.filter((d: any) => d.ISOStatus === 'S0' || !d.ISOStatus).length,
         };
-    }, [projectID, uploadedDocs, dbDocs]);
+    }, [projectDocuments]);
 
     // Match documents to legal categories — enhanced with cross-ref mapping
     const matchDocToCategory = useCallback((keywords: string[]): (Document & { source?: string }) | undefined => {
