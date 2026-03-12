@@ -4,7 +4,7 @@ import {
     Download, Eye, ShieldCheck, PenTool, HardDrive, Box, X, Check, Loader2, Clock, Printer, Upload, Image as ImageIcon, History, Search
 } from 'lucide-react';
 
-import { useProjects } from '../../hooks/useProjects';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { DocCategory } from '../../types';
 
 // --- COMPONENT: REUSABLE FILE PREVIEW (ACTUAL + MOCK) ---
@@ -219,7 +219,7 @@ const FilterChip: React.FC<{ label: string, active: boolean, onClick: () => void
 );
 
 const DocumentManager: React.FC = () => {
-    const { projects } = useProjects();
+    const { scopedProjects: projects } = useScopedProjects();
     // Default to the first project or standard project
     const defaultProject = projects.find(p => p.ProjectID === 'PR2400031160') || projects[0];
     const [selectedProject, setSelectedProject] = useState<string>(defaultProject?.ProjectID || "");

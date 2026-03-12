@@ -10,6 +10,7 @@ export type ActiveTool =
     | 'clip-x' | 'clip-y' | 'clip-z' | 'section-box' | 'section-plane'
     | 'measure-length' | 'measure-area'
     | 'isolate' | 'hide-selected'
+    | 'orbit-point'
     | null;
 
 export type RenderMode = 'shading' | 'wireframe' | 'xray' | 'ghosting';

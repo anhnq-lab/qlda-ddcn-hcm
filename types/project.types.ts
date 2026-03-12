@@ -1,5 +1,14 @@
 // Project-related types — Luật Đầu tư công 58/2024/QH15
 
+/** Ban Quản Lý Dự Án (1–5) */
+export const MANAGEMENT_BOARDS = [
+    { value: 1, label: 'Ban QLDA 1', color: 'bg-blue-500', hex: '#3B82F6' },
+    { value: 2, label: 'Ban QLDA 2', color: 'bg-emerald-500', hex: '#10B981' },
+    { value: 3, label: 'Ban QLDA 3', color: 'bg-violet-500', hex: '#8B5CF6' },
+    { value: 4, label: 'Ban QLDA 4', color: 'bg-orange-500', hex: '#F97316' },
+    { value: 5, label: 'Ban QLDA 5', color: 'bg-rose-500', hex: '#EF4444' },
+] as const;
+
 // 3.1. Bảng dữ liệu: Projects (Dự án Đầu tư)
 export enum ProjectGroup {
     QN = 'QN', // Quan trọng quốc gia
@@ -20,6 +29,13 @@ export enum ProjectStatus {
     Execution = 2,   // GĐ Thực hiện dự án
     Completion = 3   // GĐ Kết thúc xây dựng, đưa CT vào khai thác sử dụng
 }
+
+/** Bảng màu giai đoạn dự án — Nguồn chân lý duy nhất */
+export const PROJECT_PHASE_COLORS: Record<ProjectStatus, { label: string; hex: string; hexDark: string }> = {
+    [ProjectStatus.Preparation]: { label: 'Chuẩn bị dự án', hex: '#3B82F6', hexDark: '#2563EB' },   // Blue
+    [ProjectStatus.Execution]:   { label: 'Thực hiện dự án', hex: '#F97316', hexDark: '#EA580C' },   // Orange
+    [ProjectStatus.Completion]:  { label: 'Kết thúc xây dựng', hex: '#10B981', hexDark: '#059669' }, // Emerald
+};
 
 /** Giai đoạn dự án theo NĐ 175/2024 (3 giai đoạn) */
 export enum ProjectStage {
@@ -176,6 +192,7 @@ export interface Project {
     StartDate?: string;
     ExpectedEndDate?: string;
     ActualEndDate?: string;
+    ManagementBoard?: number; // Ban QLDA (1–5)
 }
 
 /** Chi tiết tổng mức đầu tư — TT24 A.II.7.4 */

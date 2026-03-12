@@ -260,8 +260,8 @@ const PersonalDashboard: React.FC = () => {
                                     onClick={() => navigate(`/projects/${project.ProjectID}`)}
                                     className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors flex items-center gap-4"
                                 >
-                                    <div className={`w-2 h-12 rounded-full ${project.Status === ProjectStatus.Preparation ? 'bg-slate-500' :
-                                        project.Status === ProjectStatus.Execution ? 'bg-amber-500' :
+                                    <div className={`w-2 h-12 rounded-full ${project.Status === ProjectStatus.Preparation ? 'bg-blue-500' :
+                                        project.Status === ProjectStatus.Execution ? 'bg-orange-500' :
                                             project.Status === ProjectStatus.Completion ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-slate-600'
                                         }`}></div>
                                     <div className="flex-1 min-w-0">
@@ -282,8 +282,8 @@ const PersonalDashboard: React.FC = () => {
                                             </div>
                                             <span className="text-xs font-bold text-gray-600 dark:text-slate-300">{project.Progress || 0}%</span>
                                         </div>
-                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${project.Status === ProjectStatus.Preparation ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' :
-                                            project.Status === ProjectStatus.Execution ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${project.Status === ProjectStatus.Preparation ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                            project.Status === ProjectStatus.Execution ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
                                                 project.Status === ProjectStatus.Completion ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400'
                                             }`}>
                                             {project.Status === ProjectStatus.Execution ? 'Thực hiện DA' :

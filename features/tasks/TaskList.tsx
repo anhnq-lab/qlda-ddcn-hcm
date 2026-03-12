@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
-import { useProjects } from '../../hooks/useProjects';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Task, TaskStatus, TaskPriority } from '../../types';
 import { getTimelineStepLabel, getPhaseColor, getTimelineStepOptions } from '../../utils/timelineStepUtils';
@@ -59,7 +59,7 @@ const TaskList: React.FC = () => {
 
     // Data
     const { data: tasks = [], isLoading } = useTasks();
-    const { projects = [] } = useProjects();
+    const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
     const { data: employees = [] } = useEmployees();
 
     // Mutations
@@ -69,12 +69,14 @@ const TaskList: React.FC = () => {
 
     // ── Filter ──
     const filteredTasks = useMemo(() => tasks.filter(task => {
+        // First: scope filter — only show tasks for scoped projects
+        if (!scopedProjectIds.has(task.ProjectID)) return false;
         const matchSearch = task.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             task.Description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchStatus = filterStatus === 'All' || task.Status === filterStatus;
         const matchProject = filterProject === 'All' || task.ProjectID === filterProject;
         return matchSearch && matchStatus && matchProject;
-    }), [tasks, searchTerm, filterStatus, filterProject]);
+    }), [tasks, searchTerm, filterStatus, filterProject, scopedProjectIds]);
 
     // ── Group by project ──
     const tasksByProject = useMemo(() =>

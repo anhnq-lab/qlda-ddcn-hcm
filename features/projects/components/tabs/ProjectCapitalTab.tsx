@@ -8,7 +8,7 @@ import {
     Coins, TrendingUp, Wallet, AlertTriangle,
     Calendar, FileText, Landmark, DollarSign, FileDown,
     ArrowDownUp, Receipt, RefreshCcw, RotateCcw,
-    Plus, Pencil, Trash2
+    Plus, Pencil, Trash2, CalendarRange
 } from 'lucide-react';
 import { CapitalPlanModal } from '../CapitalPlanModal';
 import { DisbursementModal } from '../DisbursementModal';
@@ -16,10 +16,12 @@ import {
     useCapitalPlans,
     useCreateCapitalPlan, useUpdateCapitalPlan, useDeleteCapitalPlan,
     useCreateDisbursement, useUpdateDisbursement, useDeleteDisbursement,
+    useDisbursementPlans,
 } from '../../../../hooks/useCapital';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, Cell, PieChart, Pie, Legend
+    ResponsiveContainer, Cell, PieChart, Pie, Legend,
+    ComposedChart, Line, Area
 } from 'recharts';
 
 interface ProjectCapitalTabProps {
@@ -65,8 +67,10 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
 
     // Capital plans for linking in DisbursementModal
     const { data: capitalPlans = [] } = useCapitalPlans(projectID);
+    const { data: disbursementPlanData = [] } = useDisbursementPlans(projectID);
 
     const [disbursementFilter, setDisbursementFilter] = useState<DisbursementFilter>('all');
+    const [planYearFilter, setPlanYearFilter] = useState<number>(new Date().getFullYear());
 
     // ── CRUD State ──
     const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -219,6 +223,46 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
         });
     }, [allocations, disbursements]);
 
+    // ── Monthly Disbursement Plan Data ──
+    const planYears = useMemo(() => {
+        const years = [...new Set(disbursementPlanData.map(d => d.Year))];
+        return years.sort((a, b) => a - b);
+    }, [disbursementPlanData]);
+
+    // Auto-select current year or nearest available year on first load
+    useMemo(() => {
+        if (planYears.length > 0 && !planYears.includes(planYearFilter)) {
+            const currentYear = new Date().getFullYear();
+            const nearest = planYears.includes(currentYear) ? currentYear : planYears[0];
+            setPlanYearFilter(nearest);
+        }
+    }, [planYears]);
+
+    const filteredPlanData = useMemo(() => {
+        return disbursementPlanData.filter(d => d.Year === planYearFilter);
+    }, [disbursementPlanData, planYearFilter]);
+
+    const planChartData = useMemo(() => {
+        return filteredPlanData.map(d => ({
+            label: `T${d.Month}`,
+            planned: d.PlannedAmount,
+            actual: d.ActualAmount,
+            diff: d.PlannedAmount - d.ActualAmount,
+            notes: d.Notes,
+        }));
+    }, [filteredPlanData]);
+
+    const planSummary = useMemo(() => {
+        const totalPlanned = filteredPlanData.reduce((s, d) => s + d.PlannedAmount, 0);
+        const totalActual = filteredPlanData.reduce((s, d) => s + d.ActualAmount, 0);
+        return {
+            totalPlanned,
+            totalActual,
+            rate: totalPlanned > 0 ? (totalActual / totalPlanned * 100) : 0,
+            months: filteredPlanData.length,
+        };
+    }, [filteredPlanData]);
+
     // Early returns AFTER all hooks
     if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Đang tải dữ liệu vốn...</div>;
     if (!data) return <div className="p-8 text-center text-red-500 dark:text-red-400">Không có dữ liệu vốn</div>;
@@ -280,47 +324,111 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             </div>
 
             {/* ════════════════════════════════════════════
-                SECTION B — Charts (Stacked bar + Donut)
+                SECTION B — Kế hoạch vốn + Donut
                ════════════════════════════════════════════ */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Stacked Bar Chart */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                        Giải ngân theo tháng (NĐ 99/2021/NĐ-CP)
-                    </h3>
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthlyChartData} barCategoryGap="20%">
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="month" axisLine={false} tickLine={false} fontSize={11} />
-                                <YAxis hide />
-                                <Tooltip
-                                    cursor={{ fill: '#f3f4f6' }}
-                                    formatter={(value: number, name: string) => {
-                                        const labels: Record<string, string> = {
-                                            tamUng: 'Tạm ứng',
-                                            klht: 'TT KLHT',
-                                            thuHoi: 'Thu hồi TƯ',
-                                        };
-                                        return [formatCurrency(value), labels[name] || name];
-                                    }}
-                                />
-                                <Legend
-                                    formatter={(value: string) => {
-                                        const labels: Record<string, string> = {
-                                            tamUng: 'Tạm ứng (Mẫu 04a)',
-                                            klht: 'TT KLHT (Mẫu 03a)',
-                                            thuHoi: 'Thu hồi TƯ (Mẫu 04b)',
-                                        };
-                                        return <span className="text-xs">{labels[value] || value}</span>;
-                                    }}
-                                />
-                                <Bar dataKey="tamUng" stackId="a" fill={COLORS.tamUng} radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="klht" stackId="a" fill={COLORS.klht} radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="thuHoi" stackId="a" fill={COLORS.thuHoi} radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                {/* Capital Plan Table */}
+                <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-700/50">
+                        <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-blue-600" />
+                            Kế hoạch vốn (Luật ĐTC 2024 - 58/2024/QH15)
+                        </h3>
+                        <button
+                            onClick={() => { setEditingPlan(null); setPlanModalOpen(true); }}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                        >
+                            <Plus className="w-3.5 h-3.5" /> Bổ sung vốn
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 font-semibold text-xs uppercase border-b border-gray-200 dark:border-slate-600">
+                                <tr>
+                                    <th className="px-4 py-2.5">Năm</th>
+                                    <th className="px-4 py-2.5">QĐ giao vốn</th>
+                                    <th className="px-4 py-2.5 text-right">Vốn giao</th>
+                                    <th className="px-4 py-2.5 text-right">Đã giải ngân</th>
+                                    <th className="px-4 py-2.5">Tỷ lệ</th>
+                                    <th className="px-4 py-2.5 text-center w-20">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
+                                {allocationWithRate.map(a => (
+                                    <tr key={a.AllocationID} className="hover:bg-blue-50/30 dark:hover:bg-slate-700 transition-colors">
+                                        <td className="px-4 py-2.5">
+                                            <span className="font-bold text-gray-800 dark:text-slate-100">Năm {a.Year}</span>
+                                        </td>
+                                        <td className="px-4 py-2.5">
+                                            <span className="text-gray-700 dark:text-slate-300 font-medium text-xs">{a.DecisionNumber}</span>
+                                            <p className="text-[10px] text-gray-400 dark:text-slate-500 italic">{a.DateAssigned}</p>
+                                        </td>
+                                        <td className="px-4 py-2.5 text-right font-mono font-bold text-blue-700 dark:text-blue-400 text-xs">
+                                            {formatCurrency(a.Amount)}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400 text-xs">
+                                            {formatCurrency(a.disbursed)}
+                                        </td>
+                                        <td className="px-4 py-2.5">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-16 h-1.5 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full ${a.rate >= 90 ? 'bg-emerald-500' : a.rate >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`}
+                                                        style={{ width: `${Math.min(a.rate, 100)}%` }}
+                                                    />
+                                                </div>
+                                                <span className={`text-[10px] font-bold ${a.rate >= 90 ? 'text-emerald-600 dark:text-emerald-400' : a.rate >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                                    {a.rate.toFixed(0)}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={() => handleEditPlan({
+                                                        PlanID: a.AllocationID,
+                                                        ProjectID: projectID,
+                                                        Year: a.Year,
+                                                        Amount: a.Amount,
+                                                        Source: a.Source,
+                                                        DecisionNumber: a.DecisionNumber,
+                                                        DateAssigned: a.DateAssigned,
+                                                        DisbursedAmount: a.disbursed,
+                                                    })}
+                                                    className="p-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-400 hover:text-blue-600 rounded-lg transition-colors"
+                                                    title="Sửa"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteConfirm({ type: 'plan', id: a.AllocationID })}
+                                                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+                                                    title="Xóa"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {/* Tổng cộng */}
+                                <tr className="bg-blue-50/50 dark:bg-blue-900/20 font-bold border-t border-blue-200 dark:border-blue-800">
+                                    <td className="px-4 py-2.5 text-gray-800 dark:text-slate-100" colSpan={2}>Tổng cộng</td>
+                                    <td className="px-4 py-2.5 text-right font-mono text-blue-800 dark:text-blue-400 text-xs">
+                                        {formatCurrency(summary.totalAllocated)}
+                                    </td>
+                                    <td className="px-4 py-2.5 text-right font-mono text-emerald-700 dark:text-emerald-400 text-xs">
+                                        {formatCurrency(summary.totalDisbursed)}
+                                    </td>
+                                    <td className="px-4 py-2.5">
+                                        <span className={`text-xs font-bold ${summary.disbursementRate >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                            {summary.disbursementRate}%
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-2.5"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -368,123 +476,93 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             </div>
 
             {/* ════════════════════════════════════════════
-                SECTION C — Kế hoạch vốn theo năm (Allocations)
+                SECTION C — Kế hoạch giải ngân theo tháng
                ════════════════════════════════════════════ */}
+            {disbursementPlanData.length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-700/50">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-3 bg-gray-50/50 dark:bg-slate-700/50">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-600" />
-                        Kế hoạch vốn (Luật ĐTC 2024 - 58/2024/QH15)
+                        <CalendarRange className="w-4 h-4 text-violet-600" />
+                        Kế hoạch giải ngân theo tháng
                     </h3>
-                    <button
-                        onClick={() => { setEditingPlan(null); setPlanModalOpen(true); }}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
-                    >
-                        <Plus className="w-3.5 h-3.5" /> Bổ sung vốn
-                    </button>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 font-semibold text-xs uppercase border-b border-gray-200 dark:border-slate-600">
-                            <tr>
-                                <th className="px-6 py-3">Năm</th>
-                                <th className="px-6 py-3">QĐ giao vốn</th>
-                                <th className="px-6 py-3 text-right">Vốn giao</th>
-                                <th className="px-6 py-3 text-right">Đã giải ngân</th>
-                                <th className="px-6 py-3">Tỷ lệ</th>
-                                <th className="px-6 py-3">Nguồn</th>
-                                <th className="px-6 py-3 text-center w-24">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
-                            {allocationWithRate.map(a => (
-                                <tr key={a.AllocationID} className="hover:bg-blue-50/30 dark:hover:bg-slate-700 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <span className="font-bold text-gray-800 dark:text-slate-100">Năm {a.Year}</span>
-                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-mono mt-0.5">{a.AllocationID}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-gray-700 dark:text-slate-300 font-medium">{a.DecisionNumber}</span>
-                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 italic mt-0.5">{a.DateAssigned}</p>
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-mono font-bold text-blue-700 dark:text-blue-400">
-                                        {formatCurrency(a.Amount)}
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                                        {formatCurrency(a.disbursed)}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-20 h-1.5 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full ${a.rate >= 90 ? 'bg-emerald-500' : a.rate >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`}
-                                                    style={{ width: `${Math.min(a.rate, 100)}%` }}
-                                                />
-                                            </div>
-                                            <span className={`text-xs font-bold ${a.rate >= 90 ? 'text-emerald-600 dark:text-emerald-400' : a.rate >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                                {a.rate.toFixed(0)}%
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${a.Source === 'NganSachTrungUong' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' :
-                                            a.Source === 'NganSachDiaPhuong' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' :
-                                                a.Source === 'ODA' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' :
-                                                    'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300'
-                                            }`}>
-                                            {SOURCE_LABELS[a.Source] || a.Source}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <button
-                                                onClick={() => handleEditPlan({
-                                                    PlanID: a.AllocationID,
-                                                    ProjectID: projectID,
-                                                    Year: a.Year,
-                                                    Amount: a.Amount,
-                                                    Source: a.Source,
-                                                    DecisionNumber: a.DecisionNumber,
-                                                    DateAssigned: a.DateAssigned,
-                                                    DisbursedAmount: a.disbursed,
-                                                })}
-                                                className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-400 hover:text-blue-600 rounded-lg transition-colors"
-                                                title="Sửa"
-                                            >
-                                                <Pencil className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                                onClick={() => setDeleteConfirm({ type: 'plan', id: a.AllocationID })}
-                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
-                                                title="Xóa"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                    <div className="flex items-center gap-2">
+                        <div className="flex bg-gray-100 dark:bg-slate-700 rounded-lg p-0.5">
+                            {planYears.map(year => (
+                                <button
+                                    key={year}
+                                    onClick={() => setPlanYearFilter(year)}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${planYearFilter === year
+                                        ? 'bg-white dark:bg-slate-600 text-gray-800 dark:text-slate-100 shadow-sm'
+                                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
+                                    }`}
+                                >
+                                    {year}
+                                </button>
                             ))}
-                            {/* Tổng cộng */}
-                            <tr className="bg-blue-50/50 dark:bg-blue-900/20 font-bold border-t border-blue-200 dark:border-blue-800">
-                                <td className="px-6 py-3 text-gray-800 dark:text-slate-100" colSpan={2}>Tổng cộng</td>
-                                <td className="px-6 py-3 text-right font-mono text-blue-800 dark:text-blue-400">
-                                    {formatCurrency(summary.totalAllocated)}
-                                </td>
-                                <td className="px-6 py-3 text-right font-mono text-emerald-700 dark:text-emerald-400">
-                                    {formatCurrency(summary.totalDisbursed)}
-                                </td>
-                                <td className="px-6 py-3">
-                                    <span className={`text-sm font-bold ${summary.disbursementRate >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                        {summary.disbursementRate}%
-                                    </span>
-                                </td>
-                                <td className="px-6 py-3"></td>
-                                <td className="px-6 py-3"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        </div>
+                        {/* Mini summary badges */}
+                        <div className="hidden md:flex items-center gap-2 text-xs">
+                            <span className="px-2 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-bold">
+                                KH: {formatCurrency(planSummary.totalPlanned)}
+                            </span>
+                            <span className="px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold">
+                                TT: {formatCurrency(planSummary.totalActual)} ({planSummary.rate.toFixed(1)}%)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Chart — Planned vs Actual */}
+                <div className="px-6 pt-4 pb-2">
+                    <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={planChartData} barCategoryGap="15%">
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <XAxis
+                                    dataKey="label"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    fontSize={10}
+                                    tick={{ fill: '#9ca3af' }}
+                                    interval={0}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    fontSize={10}
+                                    tick={{ fill: '#9ca3af' }}
+                                    tickFormatter={(v: number) => v >= 1e9 ? `${(v / 1e9).toFixed(0)} tỷ` : `${(v / 1e6).toFixed(0)} tr`}
+                                    width={55}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(139, 92, 246, 0.05)' }}
+                                    contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }}
+                                    formatter={(value: number, name: string) => {
+                                        const labels: Record<string, string> = {
+                                            planned: 'Kế hoạch',
+                                            actual: 'Thực tế',
+                                        };
+                                        return [formatCurrency(value), labels[name] || name];
+                                    }}
+                                    labelFormatter={(label: string) => `Tháng ${label}`}
+                                />
+                                <Legend
+                                    formatter={(value: string) => {
+                                        const labels: Record<string, string> = {
+                                            planned: 'Kế hoạch giải ngân',
+                                            actual: 'Giải ngân thực tế',
+                                        };
+                                        return <span className="text-xs">{labels[value] || value}</span>;
+                                    }}
+                                />
+                                <Bar dataKey="planned" fill="#8b5cf6" radius={[4, 4, 0, 0]} opacity={0.7} name="planned" />
+                                <Bar dataKey="actual" fill="#10b981" radius={[4, 4, 0, 0]} name="actual" />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
+            )}
 
             {/* ════════════════════════════════════════════
                 SECTION D — Lịch sử giải ngân chi tiết

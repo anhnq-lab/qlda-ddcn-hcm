@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useProjects } from '../../hooks';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useCDEFolders, useCDEDocuments, useCDEStats, useCDEWorkflowHistory, useUploadCDE, useProcessWorkflowStep } from '../../hooks/useCDE';
 import { CDE_WORKFLOW_STEPS, CDE_PROJECT_PHASES } from './constants';
 import type { CDEDocument } from './types';
@@ -30,7 +30,7 @@ const EMPTY_FILTERS: CDEFilters = { status: [], discipline: [], docType: [], dat
 
 const CDEPage: React.FC = () => {
     const { currentUser, userType, contractorId } = useAuth();
-    const { projects } = useProjects();
+    const { scopedProjects: projects } = useScopedProjects();
 
     // State
     const [selectedProjectId, setSelectedProjectId] = useState('');

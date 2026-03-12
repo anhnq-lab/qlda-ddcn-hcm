@@ -32,13 +32,8 @@ const STAGES = [
         icon: Settings,
         description: 'Lập chủ trương, BCNCKT, phê duyệt dự án',
         requiredDocs: ['QĐ phê duyệt chủ trương', 'Báo cáo NCKT', 'QĐ phê duyệt dự án'],
-        color: {
-            bg: 'bg-gradient-to-br from-gray-500 to-gray-600',
-            ring: 'ring-gray-300 dark:ring-gray-700',
-            text: 'text-gray-600 dark:text-gray-400',
-            dot: 'bg-gray-500',
-            line: 'bg-gray-500',
-        }
+        hex: '#3B82F6',
+        hexDark: '#2563EB',
     },
     {
         key: ProjectStage.Execution,
@@ -46,13 +41,8 @@ const STAGES = [
         icon: PlayCircle,
         description: 'Thiết kế, đấu thầu, thi công, giám sát',
         requiredDocs: ['QĐ phê duyệt TKKT', 'Hợp đồng thi công'],
-        color: {
-            bg: 'bg-gradient-to-br from-yellow-600 to-yellow-700',
-            ring: 'ring-yellow-300 dark:ring-yellow-800',
-            text: 'text-yellow-700 dark:text-yellow-400',
-            dot: 'bg-yellow-600',
-            line: 'bg-yellow-600',
-        }
+        hex: '#F97316',
+        hexDark: '#EA580C',
     },
     {
         key: ProjectStage.Completion,
@@ -60,13 +50,8 @@ const STAGES = [
         icon: Flag,
         description: 'Nghiệm thu, quyết toán, bàn giao, đưa vào khai thác',
         requiredDocs: ['BB nghiệm thu', 'QĐ quyết toán', 'Biên bản bàn giao'],
-        color: {
-            bg: 'bg-gradient-to-br from-yellow-500 to-amber-600',
-            ring: 'ring-amber-200 dark:ring-amber-800',
-            text: 'text-amber-600 dark:text-amber-400',
-            dot: 'bg-amber-500',
-            line: 'bg-amber-500',
-        }
+        hex: '#10B981',
+        hexDark: '#059669',
     }
 ];
 
@@ -166,11 +151,12 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                     return (
                         <React.Fragment key={stage.key}>
                             <div
-                                className={`w-2 h-2 rounded-full transition-all ${stage.color.dot} ${status === 'current' ? `ring-2 ${stage.color.ring}` : ''} ${status === 'upcoming' ? 'opacity-40' : ''}`}
+                                className={`w-2 h-2 rounded-full transition-all ${status === 'current' ? 'ring-2' : ''} ${status === 'upcoming' ? 'opacity-40' : ''}`}
+                                style={{ backgroundColor: stage.hex, ...(status === 'current' ? { boxShadow: `0 0 0 2px ${stage.hex}40` } : {}) }}
                                 title={stage.label}
                             />
                             {index < STAGES.length - 1 && (
-                                <div className={`w-2 h-0.5 ${index < currentIndex ? stage.color.line : 'bg-gray-200 dark:bg-slate-600'}`} />
+                                <div className="w-2 h-0.5" style={{ backgroundColor: index < currentIndex ? stage.hex : '#E5E7EB' }} />
                             )}
                         </React.Fragment>
                     );
@@ -232,7 +218,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                     <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 dark:bg-slate-600 rounded-full" style={{ margin: '0 40px' }}>
                         <div
                             className="h-full rounded-full transition-all duration-500"
-                            style={{ background: 'linear-gradient(90deg, #6B6B6B, #C4A035, #D4A017)', width: `${Math.max(0, (currentIndex / (STAGES.length - 1)) * 100)}%` }}
+                            style={{ background: 'linear-gradient(90deg, #3B82F6, #F97316, #10B981)', width: `${Math.max(0, (currentIndex / (STAGES.length - 1)) * 100)}%` }}
                         />
                     </div>
 
@@ -249,10 +235,10 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                 {/* Circle/Icon — mỗi giai đoạn giữ màu riêng */}
                                 <div
                                     className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
-                                        ${stage.color.bg}
-                                        ${status === 'current' ? `ring-4 ${stage.color.ring} scale-110` : ''}
+                                        ${status === 'current' ? 'ring-4 scale-110' : ''}
                                         ${status === 'upcoming' ? 'opacity-40' : ''}
                                     `}
+                                    style={{ background: `linear-gradient(135deg, ${stage.hex}, ${stage.hexDark})`, ...(status === 'current' ? { boxShadow: `0 0 0 4px ${stage.hex}30` } : {}) }}
                                     title={stage.description}
                                 >
                                     {status === 'completed' ? (
@@ -264,7 +250,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 
                                 {/* Label */}
                                 <div className="mt-3 text-center">
-                                    <span className={`text-xs font-bold ${stage.color.text} ${status === 'upcoming' ? 'opacity-40' : ''}`}>
+                                    <span className={`text-xs font-bold ${status === 'upcoming' ? 'opacity-40' : ''}`} style={{ color: stage.hex }}>
                                         {stage.label}
                                     </span>
                                 </div>

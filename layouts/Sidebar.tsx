@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -19,9 +19,11 @@ import {
   Scale,
   FolderTree,
   ShieldCheck,
-
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usePermissionCheck } from '../hooks/usePermissionCheck';
+import type { PermissionResource } from '../types/permission.types';
 
 // ========================================
 // SIDEBAR COMPONENT — Ban DDCN TP.HCM Theme
@@ -38,22 +40,29 @@ interface NavItem {
   path: string;
   icon: React.ElementType;
   badge?: number;
+  /** Permission resource needed to see this item */
+  resource?: PermissionResource;
 }
 
 const navItems: NavItem[] = [
-  { name: 'Tổng quan', path: '/', icon: LayoutDashboard },
+  { name: 'Tổng quan', path: '/', icon: LayoutDashboard, resource: 'dashboard' },
   { name: 'Dashboard cá nhân', path: '/my-dashboard', icon: User },
-  { name: 'Dự án đầu tư', path: '/projects', icon: Briefcase },
-  { name: 'Công việc', path: '/tasks', icon: CheckSquare, badge: 5 },
-  { name: 'Nhân sự', path: '/employees', icon: UserCircle },
-  { name: 'Nhà thầu', path: '/contractors', icon: Users },
-  { name: 'Hợp đồng', path: '/contracts', icon: FileText },
-  { name: 'Thanh toán', path: '/payments', icon: CreditCard },
-  { name: 'Hồ sơ tài liệu', path: '/documents', icon: FileBox },
-  { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree },
-  { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale },
-  { name: 'Báo cáo', path: '/reports', icon: BarChart2 },
-  { name: 'Quy chế làm việc', path: '/regulations', icon: BookOpen },
+  { name: 'Dự án đầu tư', path: '/projects', icon: Briefcase, resource: 'projects' },
+  { name: 'Công việc', path: '/tasks', icon: CheckSquare, badge: 5, resource: 'tasks' },
+  { name: 'Nhân sự', path: '/employees', icon: UserCircle, resource: 'employees' },
+  { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
+  { name: 'Hợp đồng', path: '/contracts', icon: FileText, resource: 'contracts' },
+  { name: 'Thanh toán', path: '/payments', icon: CreditCard, resource: 'payments' },
+  { name: 'Hồ sơ tài liệu', path: '/documents', icon: FileBox, resource: 'documents' },
+  { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
+  { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },
+  { name: 'Báo cáo', path: '/reports', icon: BarChart2, resource: 'reports' },
+  { name: 'Quy chế làm việc', path: '/regulations', icon: BookOpen, resource: 'regulations' },
+];
+
+const adminItems: NavItem[] = [
+  { name: 'Quản lý tài khoản', path: '/user-accounts', icon: ShieldCheck, resource: 'admin_accounts' },
+  { name: 'Phân quyền', path: '/permissions', icon: Shield, resource: 'admin_roles' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -62,11 +71,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose
 }) => {
   const { currentUser, logout } = useAuth();
-  const isAdmin = currentUser?.Role === 'Admin';
+  const { can } = usePermissionCheck();
 
-  const adminItems: NavItem[] = isAdmin ? [
-    { name: 'Quản lý tài khoản', path: '/user-accounts', icon: ShieldCheck },
-  ] : [];
+  // Filter nav items based on permissions
+  const visibleNavItems = useMemo(() => {
+    return navItems.filter(item => {
+      if (!item.resource) return true; // No resource = always visible  
+      return can(item.resource, 'view');
+    });
+  }, [can]);
+
+  const visibleAdminItems = useMemo(() => {
+    return adminItems.filter(item => {
+      if (!item.resource) return true;
+      return can(item.resource, 'view');
+    });
+  }, [can]);
 
   return (
     <div
@@ -98,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* ── Navigation ── */}
         <nav className="mt-2 px-2 space-y-0.5 overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-          {[...navItems, ...adminItems].map((item) => (
+          {[...visibleNavItems, ...visibleAdminItems].map((item) => (
             <NavLink
               key={item.path}
               to={item.path}

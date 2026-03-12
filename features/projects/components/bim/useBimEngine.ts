@@ -61,6 +61,9 @@ export interface BimEngineAPI {
     isolateByExpressId: (expressId: number) => Promise<void>;
     resetIsolation: () => Promise<void>;
     orbit: (deltaAzimuth: number, deltaPolar: number) => void;
+    // Orbit point — click to set orbit center
+    setOrbitPoint: (point: THREE.Vector3) => void;
+    raycastFromMouse: (event: MouseEvent) => THREE.Vector3 | null;
     // Postproduction
     edgeOutlineEnabled: boolean;
     aoEnabled: boolean;
@@ -475,6 +478,99 @@ export function useBimEngine(
         camera.controls.rotate(deltaAzimuthDeg * deg2rad, deltaPolarDeg * deg2rad, true);
     }, []);
 
+    // ── Click to set orbit center ──────────────────
+    const orbitIndicatorRef = useRef<THREE.Mesh | null>(null);
+    const orbitIndicatorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const setOrbitPoint = useCallback((point: THREE.Vector3) => {
+        const camera = worldRef.current?.camera as OBC.SimpleCamera | undefined;
+        const scene = worldRef.current?.scene;
+        if (!camera || !scene) return;
+
+        // Set the orbit pivot
+        camera.controls.setOrbitPoint(point.x, point.y, point.z);
+
+        // ── Visual indicator: small glowing sphere at the orbit point ──
+        // Remove previous indicator
+        if (orbitIndicatorRef.current) {
+            scene.three.remove(orbitIndicatorRef.current);
+            orbitIndicatorRef.current.geometry.dispose();
+            (orbitIndicatorRef.current.material as THREE.Material).dispose();
+            orbitIndicatorRef.current = null;
+        }
+        if (orbitIndicatorTimerRef.current) {
+            clearTimeout(orbitIndicatorTimerRef.current);
+        }
+
+        // Create indicator sphere
+        const geo = new THREE.SphereGeometry(0.15, 16, 16);
+        const mat = new THREE.MeshBasicMaterial({
+            color: 0x22d3ee, // cyan-400
+            transparent: true,
+            opacity: 0.85,
+            depthTest: false,
+        });
+        const sphere = new THREE.Mesh(geo, mat);
+        sphere.position.copy(point);
+        sphere.renderOrder = 9999;
+        scene.three.add(sphere);
+        orbitIndicatorRef.current = sphere;
+
+        // Fade out and remove after 2 seconds
+        const startTime = performance.now();
+        const FADE_DURATION = 2000;
+        const fadeOut = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / FADE_DURATION, 1);
+            if (sphere.parent) {
+                mat.opacity = 0.85 * (1 - progress);
+                if (progress < 1) {
+                    requestAnimationFrame(fadeOut);
+                } else {
+                    scene.three.remove(sphere);
+                    geo.dispose();
+                    mat.dispose();
+                    if (orbitIndicatorRef.current === sphere) {
+                        orbitIndicatorRef.current = null;
+                    }
+                }
+            }
+        };
+        requestAnimationFrame(fadeOut);
+
+        console.log(`[BimEngine] Orbit point set to (${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)})`);
+    }, []);
+
+    const raycastFromMouse = useCallback((event: MouseEvent): THREE.Vector3 | null => {
+        const container = containerRef.current;
+        const camera = worldRef.current?.camera as OBC.SimpleCamera | undefined;
+        const scene = worldRef.current?.scene;
+        if (!container || !camera || !scene) return null;
+
+        const rect = container.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((event.clientX - rect.left) / rect.width) * 2 - 1,
+            -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera.three);
+
+        // Raycast against all meshes in the scene (excluding indicator spheres)
+        const meshes: THREE.Object3D[] = [];
+        scene.three.traverse((obj: any) => {
+            if (obj.isMesh && obj !== orbitIndicatorRef.current) {
+                meshes.push(obj);
+            }
+        });
+
+        const intersections = raycaster.intersectObjects(meshes, false);
+        if (intersections.length > 0) {
+            return intersections[0].point.clone();
+        }
+        return null;
+    }, []);
+
     const zoomToExpressId = useCallback(async (expressId: number) => {
         try {
             const fragments = componentsRef.current?.get(OBC.FragmentsManager);
@@ -796,6 +892,8 @@ export function useBimEngine(
         isolateByExpressId,
         resetIsolation,
         orbit,
+        setOrbitPoint,
+        raycastFromMouse,
         edgeOutlineEnabled,
         aoEnabled,
         toggleEdgeOutline,

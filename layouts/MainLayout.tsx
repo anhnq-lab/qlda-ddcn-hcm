@@ -7,6 +7,8 @@ import { GlobalSearch } from '../components/common/GlobalSearch';
 import { Breadcrumb } from '../components/common/Breadcrumb';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { useAuth } from '../context/AuthContext';
+import { useImpersonation } from '../context/ImpersonationContext';
+import { UserCheck, X } from 'lucide-react';
 
 // Loading skeleton for lazy-loaded pages
 const PageLoadingSkeleton: React.FC = () => (
@@ -28,6 +30,7 @@ const PageLoadingSkeleton: React.FC = () => (
 
 const MainLayout: React.FC = () => {
     const { isAuthenticated, isLoading } = useAuth();
+    const { impersonatedUser, isImpersonating, stopImpersonation } = useImpersonation();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -97,7 +100,7 @@ const MainLayout: React.FC = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="px-3 sm:px-4 lg:px-6 pb-6 sm:pb-8">
+                    <div className={`px-3 sm:px-4 lg:px-6 ${isImpersonating ? 'pb-20' : 'pb-6 sm:pb-8'}`}>
                         <ErrorBoundary>
                             <Suspense fallback={<PageLoadingSkeleton />}>
                                 <Outlet />
@@ -109,6 +112,38 @@ const MainLayout: React.FC = () => {
                 {/* AI Chatbot */}
                 <AIChatbot />
             </div>
+
+            {/* Floating Impersonation Bar */}
+            {isImpersonating && impersonatedUser && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xl">
+                    <div className="max-w-screen-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
+                                {impersonatedUser.FullName?.charAt(0) || 'U'}
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <UserCheck size={14} />
+                                    <span className="text-xs font-bold uppercase tracking-wide">Đang giả làm</span>
+                                </div>
+                                <p className="text-sm font-bold">
+                                    {impersonatedUser.FullName}
+                                    <span className="font-normal opacity-80 ml-2">
+                                        {impersonatedUser.Position} • {impersonatedUser.Department}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={stopImpersonation}
+                            className="flex items-center gap-1.5 px-4 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-bold transition-colors"
+                        >
+                            <X size={16} />
+                            Dừng giả làm
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Global Search Modal */}
             <GlobalSearch

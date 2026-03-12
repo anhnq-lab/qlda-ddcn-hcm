@@ -383,23 +383,21 @@ export const FacilityManagementPanel: React.FC = () => {
                                             ) : '—'}
                                         </td>
                                         <td className={`px-3 py-1.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                                            {asset.location ? (
-                                                asset.bim_element_id && onLocationClick ? (
-                                                    <button
-                                                        onClick={() => onLocationClick(asset)}
-                                                        className={`flex items-center gap-1 hover:underline transition-colors ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                                                            }`}
-                                                        title="Xem vị trí trên mô hình BIM"
-                                                    >
-                                                        <MapPin className="w-3 h-3" />
-                                                        {asset.location}
-                                                    </button>
-                                                ) : (
-                                                    <span className="flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        {asset.location}
-                                                    </span>
-                                                )
+                                            {asset.bim_element_id && onLocationClick ? (
+                                                <button
+                                                    onClick={() => onLocationClick(asset)}
+                                                    className={`flex items-center gap-1 hover:underline transition-colors ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                                                        }`}
+                                                    title="Xem vị trí trên mô hình BIM"
+                                                >
+                                                    <MapPin className="w-3 h-3" />
+                                                    {asset.location || 'Xem trên BIM'}
+                                                </button>
+                                            ) : asset.location ? (
+                                                <span className="flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" />
+                                                    {asset.location}
+                                                </span>
                                             ) : '—'}
                                         </td>
                                         <td className="px-3 py-1.5">

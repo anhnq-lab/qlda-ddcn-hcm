@@ -208,6 +208,11 @@ export function useBimKeyboard({
                     setView('iso');
                     flashShortcut('7 — Isometric');
                     return;
+                case 'KeyO':
+                    e.preventDefault();
+                    activateTool('orbit-point');
+                    flashShortcut('O — Orbit Point');
+                    return;
             }
 
             // ── Continuous keys (WASD, arrows, Q, E, +, -) ──

@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ImpersonationProvider } from './context/ImpersonationContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import MainLayout from './layouts/MainLayout';
 
@@ -32,6 +33,8 @@ const LegalDocumentSearch = React.lazy(() => import('./features/legal-documents/
 const Settings = React.lazy(() => import('./features/settings/Settings'));
 const AuditLogViewer = React.lazy(() => import('./features/admin/AuditLogViewer'));
 const UserAccountManager = React.lazy(() => import('./features/admin/UserAccountManager'));
+const PermissionManager = React.lazy(() => import('./features/settings/PermissionManager'));
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 import { ToastProvider } from './components/ui/Toast';
@@ -60,6 +63,7 @@ const App: React.FC = () => {
             <QueryClientProvider client={queryClient}>
                 <ThemeProvider>
                     <AuthProvider>
+                        <ImpersonationProvider>
                         <ToastProvider>
                             <Router>
                                 <Routes>
@@ -104,7 +108,16 @@ const App: React.FC = () => {
 
                                         {/* Admin */}
                                         <Route path="audit-log" element={<AuditLogViewer />} />
-                                        <Route path="user-accounts" element={<UserAccountManager />} />
+                                        <Route path="user-accounts" element={
+                                            <ProtectedRoute resource="admin_accounts">
+                                                <UserAccountManager />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="permissions" element={
+                                            <ProtectedRoute resource="admin_roles">
+                                                <PermissionManager />
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* Settings */}
                                         <Route path="settings" element={<Settings />} />
@@ -115,6 +128,7 @@ const App: React.FC = () => {
                                 </Routes>
                             </Router>
                         </ToastProvider>
+                        </ImpersonationProvider>
                     </AuthProvider>
                 </ThemeProvider>
             </QueryClientProvider>

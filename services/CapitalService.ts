@@ -9,7 +9,36 @@ export interface DisbursementAlert {
     Deadline?: string;
 }
 
+export interface DisbursementPlanItem {
+    Id: string;
+    ProjectID: string;
+    Year: number;
+    Month: number;
+    PlannedAmount: number;
+    ActualAmount: number;
+    Notes: string;
+}
+
 export class CapitalService {
+
+    // ═══════════════════════════════════════════════════════════
+    // MONTHLY DISBURSEMENT PLANS
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Get Monthly Disbursement Plans for Project
+     */
+    static async getDisbursementPlans(projectId: string): Promise<DisbursementPlanItem[]> {
+        const { data, error } = await (supabase as any)
+            .from('disbursement_plans')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('year', { ascending: true })
+            .order('month', { ascending: true });
+
+        if (error) throw new Error(`Failed to fetch disbursement plans: ${error.message}`);
+        return (data || []).map(this.mapDisbursementPlan);
+    }
 
     // ═══════════════════════════════════════════════════════════
     // CAPITAL PLANS — CRUD
@@ -233,6 +262,18 @@ export class CapitalService {
             DateAssigned: row.date_assigned || '',
             DisbursedAmount: Number(row.disbursed_amount) || 0,
             Status: row.status || 'Approved',
+        };
+    }
+
+    private static mapDisbursementPlan(row: any): DisbursementPlanItem {
+        return {
+            Id: row.id,
+            ProjectID: row.project_id,
+            Year: row.year,
+            Month: row.month,
+            PlannedAmount: Number(row.planned_amount) || 0,
+            ActualAmount: Number(row.actual_amount) || 0,
+            Notes: row.notes || '',
         };
     }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Project, ProjectStatus, ProjectGroup } from '../../types';
+import { Project, ProjectStatus, ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { MapPin, Building, Layers } from 'lucide-react';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { getGroupGradient, requiresBIM } from '../../utils/projectCompliance';
@@ -19,12 +19,12 @@ const getStatusLabel = (status: ProjectStatus) => {
     }
 };
 
-const getStatusColor = (status: ProjectStatus) => {
+const getStatusStyle = (status: ProjectStatus) => {
     switch (status) {
-        case ProjectStatus.Preparation: return 'bg-gradient-to-r from-yellow-500 to-amber-600';
-        case ProjectStatus.Execution: return 'bg-gradient-to-r from-amber-500 to-amber-700';
-        case ProjectStatus.Completion: return 'bg-gradient-to-r from-gray-600 to-gray-700';
-        default: return 'bg-gray-400';
+        case ProjectStatus.Preparation: return '#3B82F6';
+        case ProjectStatus.Execution: return '#F97316';
+        case ProjectStatus.Completion: return '#10B981';
+        default: return '#9CA3AF';
     }
 };
 
@@ -38,7 +38,7 @@ const ProgressBar: React.FC<{ value: number; colorClass: string }> = ({ value, c
 );
 
 export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, onClick, layout = 'grid' }) => {
-    const badgeColor = getStatusColor(project.Status);
+    const statusHex = getStatusStyle(project.Status);
 
     if (layout === 'list') {
         return (
@@ -56,7 +56,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                         <span className={`${getGroupGradient(project.GroupCode)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase`}>
                             Nhóm {project.GroupCode}
                         </span>
-                        <span className={`${badgeColor} text-white text-[9px] font-bold px-2 py-0.5 rounded-full`}>
+                        <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: statusHex }}>
                             {getStatusLabel(project.Status)}
                         </span>
                     </div>
@@ -72,6 +72,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                                 <MapPin className="w-3 h-3" /> {project.LocationCode}
                             </span>
                             <span className="font-mono">#{(project.ProjectID || '').slice(-5)}</span>
+                            {project.ManagementBoard && (() => {
+                                const board = MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard);
+                                return board ? (
+                                    <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: board.hex }}>
+                                        Ban {board.value}
+                                    </span>
+                                ) : null;
+                            })()}
                         </div>
                     </div>
 
@@ -119,7 +127,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                     <span className={`${getGroupGradient(project.GroupCode)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase shadow`}>
                         Nhóm {project.GroupCode}
                     </span>
-                    <span className={`${badgeColor} text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow`}>
+                    <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow" style={{ backgroundColor: statusHex }}>
                         {getStatusLabel(project.Status)}
                     </span>
                 </div>
@@ -152,6 +160,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                     <span className="font-mono text-[10px] bg-gray-50 dark:bg-slate-700 px-1.5 py-0.5 rounded">
                         #{(project.ProjectID || '').slice(-5)}
                     </span>
+                    {project.ManagementBoard && (() => {
+                        const board = MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard);
+                        return board ? (
+                            <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: board.hex }}>
+                                Ban {board.value}
+                            </span>
+                        ) : null;
+                    })()}
                 </div>
 
                 {/* Progress */}
@@ -161,14 +177,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                             <span className="text-gray-500 dark:text-slate-400">Tiến độ</span>
                             <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{project.Progress || 0}%</span>
                         </div>
-                        <ProgressBar value={project.Progress || 0} colorClass="bg-gradient-to-r from-yellow-500 to-amber-600" />
+                        <ProgressBar value={project.Progress || 0} colorClass="bg-blue-500" />
                     </div>
                     <div>
                         <div className="flex justify-between text-[11px] mb-1">
                             <span className="text-gray-500 dark:text-slate-400">Giải ngân</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{project.PaymentProgress || 0}%</span>
                         </div>
-                        <ProgressBar value={project.PaymentProgress || 0} colorClass="bg-gradient-to-r from-amber-400 to-yellow-600" />
+                        <ProgressBar value={project.PaymentProgress || 0} colorClass="bg-emerald-500" />
                     </div>
                 </div>
 

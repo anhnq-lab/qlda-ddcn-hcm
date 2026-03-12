@@ -11,21 +11,21 @@ import {
 // ═══════════════════════════════════════════════════
 
 // Department color map
-const DEPT_COLORS: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
-    'Văn phòng': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradient: 'from-blue-500 to-blue-600' },
-    'Phòng Kế hoạch – Đầu tư': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradient: 'from-emerald-500 to-emerald-600' },
-    'Phòng Tài chính – Kế toán': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradient: 'from-violet-500 to-violet-600' },
-    'Phòng Chính sách – Pháp chế': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradient: 'from-rose-500 to-rose-600' },
-    'Phòng Kỹ thuật – Chất lượng': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', gradient: 'from-purple-500 to-purple-600' },
-    'Ban Điều hành dự án 1': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', gradient: 'from-amber-500 to-amber-600' },
-    'Ban Điều hành dự án 2': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', gradient: 'from-orange-500 to-orange-600' },
-    'Ban Điều hành dự án 3': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', gradient: 'from-teal-500 to-teal-600' },
-    'Ban Điều hành dự án 4': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', gradient: 'from-cyan-500 to-cyan-600' },
-    'Ban Điều hành dự án 5': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', gradient: 'from-indigo-500 to-indigo-600' },
-    'Trung tâm Dịch vụ tư vấn': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', gradient: 'from-sky-500 to-sky-600' },
+const DEPT_COLORS: Record<string, { bg: string; text: string; border: string; gradientStyle: string }> = {
+    'Văn phòng': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'linear-gradient(to right, #3B82F6, #2563EB)' },
+    'Phòng Kế hoạch – Đầu tư': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'linear-gradient(to right, #10B981, #059669)' },
+    'Phòng Tài chính – Kế toán': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'linear-gradient(to right, #8B5CF6, #7C3AED)' },
+    'Phòng Chính sách – Pháp chế': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'linear-gradient(to right, #F43F5E, #E11D48)' },
+    'Phòng Kỹ thuật – Chất lượng': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', gradientStyle: 'linear-gradient(to right, #A855F7, #9333EA)' },
+    'Ban Điều hành dự án 1': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'linear-gradient(to right, #3B82F6, #2563EB)' },
+    'Ban Điều hành dự án 2': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'linear-gradient(to right, #10B981, #059669)' },
+    'Ban Điều hành dự án 3': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'linear-gradient(to right, #8B5CF6, #7C3AED)' },
+    'Ban Điều hành dự án 4': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', gradientStyle: 'linear-gradient(to right, #F97316, #EA580C)' },
+    'Ban Điều hành dự án 5': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'linear-gradient(to right, #EF4444, #DC2626)' },
+    'Trung tâm Dịch vụ tư vấn': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', gradientStyle: 'linear-gradient(to right, #0EA5E9, #0284C7)' },
 };
 
-const defaultColor = { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', gradient: 'from-slate-500 to-slate-600' };
+const defaultColor = { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', gradientStyle: 'linear-gradient(to right, #64748B, #475569)' };
 
 const OrgChartPage: React.FC = () => {
     const navigate = useNavigate();
@@ -215,7 +215,7 @@ const OrgChartPage: React.FC = () => {
                         return (
                             <div key={dept} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-all">
                                 {/* Dept Header */}
-                                <div className={`bg-gradient-to-r ${color.gradient} px-5 py-3 text-white`}>
+                                <div className="px-5 py-3 text-white" style={{ background: color.gradientStyle }}>
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-bold text-sm">{dept}</h3>

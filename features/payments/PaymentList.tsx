@@ -7,7 +7,7 @@ import { PaymentService } from '../../services/PaymentService';
 import { useContracts } from '../../hooks/useContracts';
 import { useContractors } from '../../hooks/useContractors';
 import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
-import { useProjects } from '../../hooks/useProjects';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
 import {
     CreditCard, Download, Search, Plus,
     DollarSign, Clock, CheckCircle2, FileText,
@@ -22,7 +22,7 @@ const PaymentList: React.FC = () => {
     const navigate = useNavigate();
     const { payments, isLoading } = usePayments();
     const { contracts } = useContracts();
-    const { projects } = useProjects();
+    const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
     const { contractors } = useContractors();
     const { biddingPackages } = useAllBiddingPackages();
     const [filterStatus, setFilterStatus] = useState<'all' | PaymentStatus>('all');
@@ -59,21 +59,31 @@ const PaymentList: React.FC = () => {
         return contract?.Value || 0;
     };
 
+    // === Scope filter: only payments for scoped projects ===
+    const scopedPayments = useMemo(() => {
+        return payments.filter(p => {
+            const contract = contracts.find(c => c.ContractID === p.ContractID);
+            if (!contract) return false;
+            const pkg = biddingPackages.find(bp => bp.PackageID === contract.PackageID);
+            return pkg ? scopedProjectIds.has(pkg.ProjectID) : false;
+        });
+    }, [payments, contracts, biddingPackages, scopedProjectIds]);
+
     // === Stats ===
     const stats = useMemo(() => {
-        const totalAmount = payments.reduce((sum, p) => sum + p.Amount, 0);
-        const byStatus = (s: PaymentStatus) => payments.filter(p => p.Status === s);
+        const totalAmount = scopedPayments.reduce((sum, p) => sum + p.Amount, 0);
+        const byStatus = (s: PaymentStatus) => scopedPayments.filter(p => p.Status === s);
         const sumAmount = (arr: Payment[]) => arr.reduce((sum, p) => sum + p.Amount, 0);
         const draft = byStatus(PaymentStatus.Draft);
         const pending = byStatus(PaymentStatus.Pending);
         const approved = byStatus(PaymentStatus.Approved);
         const transferred = byStatus(PaymentStatus.Transferred);
         const rejected = byStatus(PaymentStatus.Rejected);
-        const advancePayments = payments.filter(p => p.Type === PaymentType.Advance);
-        const volumePayments = payments.filter(p => p.Type === PaymentType.Volume);
-        const uniqueContracts = new Set(payments.map(p => p.ContractID)).size;
+        const advancePayments = scopedPayments.filter(p => p.Type === PaymentType.Advance);
+        const volumePayments = scopedPayments.filter(p => p.Type === PaymentType.Volume);
+        const uniqueContracts = new Set(scopedPayments.map(p => p.ContractID)).size;
         return {
-            total: payments.length,
+            total: scopedPayments.length,
             totalAmount,
             draftCount: draft.length, draftAmount: sumAmount(draft),
             pendingCount: pending.length, pendingAmount: sumAmount(pending),
@@ -84,11 +94,11 @@ const PaymentList: React.FC = () => {
             volumeAmount: sumAmount(volumePayments), volumeCount: volumePayments.length,
             uniqueContracts,
         };
-    }, [payments]);
+    }, [scopedPayments]);
 
     // === Filtering ===
     const filteredPayments = useMemo(() => {
-        return payments.filter(p => {
+        return scopedPayments.filter(p => {
             const qLower = searchQuery.toLowerCase();
             const contractorName = getContractorName(p.ContractID).toLowerCase();
             const matchesSearch = !searchQuery ||
@@ -100,7 +110,7 @@ const PaymentList: React.FC = () => {
             const matchesType = filterType === 'all' || p.Type === filterType;
             return matchesSearch && matchesStatus && matchesType;
         });
-    }, [payments, searchQuery, filterStatus, filterType, contracts]);
+    }, [scopedPayments, searchQuery, filterStatus, filterType, contracts]);
 
     const handleNavigateToSource = (contractId: string) => {
         const projectId = getProjectId(contractId);

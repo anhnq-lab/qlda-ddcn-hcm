@@ -10,6 +10,7 @@ import { useBimMeasure, BimMeasureAPI } from '../useBimMeasure';
 import { useBimOperations, BimOperationsAPI } from '../useBimOperations';
 import { useBimKeyboard, BimKeyboardResult } from '../useBimKeyboard';
 import { extractFacilityAssetsFromIFC } from '../utils/autoExtractor';
+import * as OBCF from '@thatopen/components-front';
 
 export interface BimContextMenuState {
     visible: boolean;
@@ -194,6 +195,54 @@ export const BimProvider: React.FC<BimProviderProps> = ({
             selection.cleanupModelCache();
         };
     }, []);
+
+    // ── Orbit Point: click on model to set orbit center ──
+    React.useEffect(() => {
+        const container = containerRef.current;
+        const components = engine.componentsRef.current;
+        if (!container || tools.activeTool !== 'orbit-point') {
+            // Remove crosshair cursor if tool is not active
+            if (container) container.style.cursor = '';
+            return;
+        }
+
+        container.style.cursor = 'crosshair';
+
+        // Disable Highlighter to prevent element selection on click
+        let highlighterWasEnabled = true;
+        try {
+            const highlighter = components?.get(OBCF.Highlighter);
+            if (highlighter) {
+                highlighterWasEnabled = highlighter.enabled;
+                highlighter.enabled = false;
+            }
+        } catch { /* ignore */ }
+
+        const handleClick = (e: MouseEvent) => {
+            // Ignore if clicking toolbar or UI elements
+            const target = e.target as HTMLElement;
+            if (target.closest('button') || target.closest('[role="button"]') || target.closest('label')) return;
+
+            const point = engine.raycastFromMouse(e);
+            if (point) {
+                engine.setOrbitPoint(point);
+                tools.activateTool('select');
+            }
+        };
+
+        container.addEventListener('click', handleClick);
+        return () => {
+            container.removeEventListener('click', handleClick);
+            container.style.cursor = '';
+            // Re-enable Highlighter
+            try {
+                const highlighter = components?.get(OBCF.Highlighter);
+                if (highlighter) {
+                    highlighter.enabled = highlighterWasEnabled;
+                }
+            } catch { /* ignore */ }
+        };
+    }, [tools.activeTool, engine.raycastFromMouse, engine.setOrbitPoint, tools.activateTool, engine.componentsRef]);
 
     return (
         <BimContext.Provider value={value}>

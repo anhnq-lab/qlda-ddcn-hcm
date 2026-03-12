@@ -162,6 +162,7 @@ export const dbToProject = (row: any): Project => ({
     AcceptanceDate: row.acceptance_date || '',
     HandoverDate: row.handover_date || '',
     TT24CompletionPct: row.tt24_completion_pct || 0,
+    ManagementBoard: row.management_board || undefined,
 });
 
 export const projectToDb = (p: Partial<Project>) => {
@@ -241,6 +242,7 @@ export const projectToDb = (p: Partial<Project>) => {
     if (p.AcceptanceDate !== undefined) result.acceptance_date = p.AcceptanceDate;
     if (p.HandoverDate !== undefined) result.handover_date = p.HandoverDate;
     if (p.TT24CompletionPct !== undefined) result.tt24_completion_pct = p.TT24CompletionPct;
+    if (p.ManagementBoard !== undefined) result.management_board = p.ManagementBoard;
     return result;
 };
 

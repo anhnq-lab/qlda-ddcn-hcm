@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useContracts } from '../../hooks/useContracts';
 import { usePayments } from '../../hooks/usePayments';
-import { useProjects } from '../../hooks/useProjects';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useContractors } from '../../hooks/useContractors';
 import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { Card } from '../../components/ui/Card';
@@ -22,7 +22,7 @@ const ContractList: React.FC = () => {
     const navigate = useNavigate();
     const { contracts, isLoading } = useContracts();
     const { payments } = usePayments();
-    const { projects } = useProjects();
+    const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
     const { contractors } = useContractors();
     const { biddingPackages } = useAllBiddingPackages();
     const [searchQuery, setSearchQuery] = useState('');
@@ -53,27 +53,41 @@ const ContractList: React.FC = () => {
         return { paid, pending, percent, count: contractPayments.length };
     };
 
+    // === Scope filter: only contracts for scoped projects ===
+    const scopedContracts = useMemo(() => {
+        return contracts.filter(c => {
+            const pkg = biddingPackages.find(p => p.PackageID === c.PackageID);
+            return pkg ? scopedProjectIds.has(pkg.ProjectID) : false;
+        });
+    }, [contracts, biddingPackages, scopedProjectIds]);
+
+    // === Scoped payments ===
+    const scopedPayments = useMemo(() => {
+        const scopedContractIds = new Set(scopedContracts.map(c => c.ContractID));
+        return payments.filter(p => scopedContractIds.has(p.ContractID));
+    }, [payments, scopedContracts]);
+
     // === Stats ===
     const stats = useMemo(() => {
-        const totalValue = contracts.reduce((sum, c) => sum + c.Value, 0);
-        const executingContracts = contracts.filter(c => c.Status === ContractStatus.Executing);
+        const totalValue = scopedContracts.reduce((sum, c) => sum + c.Value, 0);
+        const executingContracts = scopedContracts.filter(c => c.Status === ContractStatus.Executing);
         const executingCount = executingContracts.length;
         const executingValue = executingContracts.reduce((sum, c) => sum + c.Value, 0);
-        const liquidatedCount = contracts.filter(c => c.Status === ContractStatus.Liquidated).length;
-        const totalPaid = payments
+        const liquidatedCount = scopedContracts.filter(c => c.Status === ContractStatus.Liquidated).length;
+        const totalPaid = scopedPayments
             .filter(p => p.Status === PaymentStatus.Transferred)
             .reduce((sum, p) => sum + p.Amount, 0);
-        const totalPending = payments
+        const totalPending = scopedPayments
             .filter(p => p.Status === PaymentStatus.Pending)
             .reduce((sum, p) => sum + p.Amount, 0);
         const disbursementRate = totalValue > 0 ? (totalPaid / totalValue) * 100 : 0;
-        const uniqueContractors = new Set(contracts.map(c => c.ContractorID)).size;
-        return { total: contracts.length, totalValue, executingCount, executingValue, liquidatedCount, totalPaid, totalPending, disbursementRate, uniqueContractors };
-    }, [contracts, payments]);
+        const uniqueContractors = new Set(scopedContracts.map(c => c.ContractorID)).size;
+        return { total: scopedContracts.length, totalValue, executingCount, executingValue, liquidatedCount, totalPaid, totalPending, disbursementRate, uniqueContractors };
+    }, [scopedContracts, scopedPayments]);
 
     // === Filtering ===
     const filteredContracts = useMemo(() => {
-        return contracts.filter(c => {
+        return scopedContracts.filter(c => {
             const contractorName = getContractorName(c.ContractorID).toLowerCase();
             const projectName = getProjectName(c).toLowerCase();
             const qLower = searchQuery.toLowerCase();
@@ -84,7 +98,7 @@ const ContractList: React.FC = () => {
             const matchesStatus = statusFilter === 'all' || c.Status === statusFilter;
             return matchesSearch && matchesStatus;
         });
-    }, [contracts, searchQuery, statusFilter, projects]);
+    }, [scopedContracts, searchQuery, statusFilter, projects]);
 
     if (isLoading) {
         return (

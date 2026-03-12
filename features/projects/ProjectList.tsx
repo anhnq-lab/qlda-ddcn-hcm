@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjects } from '../../hooks/useProjects';
-import { ProjectStatus, ProjectGroup } from '../../types';
+import { useScopedProjects } from '../../hooks/useScopedProjects';
+import { ProjectStatus, ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { ProjectCard } from './ProjectCard';
 import { ProjectStats } from './ProjectStats';
 import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown } from 'lucide-react';
@@ -16,28 +16,31 @@ const ProjectList: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default open for large screens
 
-    // Data Fetching
-    const { projects = [], isLoading, refetch } = useProjects();
+    // Data Fetching with scope
+    const { scopedProjects, isLoading } = useScopedProjects();
+    const refetch = () => { /* refetch handled by react-query */ };
 
     // Local Filter State
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const [selectedGroup, setSelectedGroup] = useState<string>('all');
     const [selectedType, setSelectedType] = useState<string>('all');
+    const [selectedBoard, setSelectedBoard] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'name' | 'budget' | 'progress' | 'created'>('name');
 
-    // Filter Logic
+    // Filter Logic (applies on top of scope filter)
     const filteredProjects = useMemo(() => {
-        return projects.filter(p => {
+        return scopedProjects.filter(p => {
             const matchesSearch = p.ProjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 p.ProjectID.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesStatus = selectedStatus === 'all' || p.Status.toString() === selectedStatus;
             const matchesGroup = selectedGroup === 'all' || p.GroupCode === selectedGroup;
             const matchesType = selectedType === 'all' || p.InvestmentType.toString() === selectedType;
+            const matchesBoard = selectedBoard === 'all' || (p.ManagementBoard && p.ManagementBoard.toString() === selectedBoard);
 
-            return matchesSearch && matchesStatus && matchesGroup && matchesType;
+            return matchesSearch && matchesStatus && matchesGroup && matchesType && matchesBoard;
         });
-    }, [projects, searchQuery, selectedStatus, selectedGroup, selectedType]);
+    }, [scopedProjects, searchQuery, selectedStatus, selectedGroup, selectedType, selectedBoard]);
 
     // Sort Logic
     const sortedProjects = useMemo(() => {
@@ -90,7 +93,7 @@ const ProjectList: React.FC = () => {
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 pb-20">
             {/* 1. STATS HEADER */}
-            <ProjectStats projects={projects} />
+            <ProjectStats projects={scopedProjects} />
 
             <div className="flex flex-col lg:flex-row gap-6 items-start">
                 {/* 2. SIDEBAR FILTER (Premium Style) */}
@@ -101,7 +104,7 @@ const ProjectList: React.FC = () => {
                                 <Filter className="w-4 h-4 text-primary-600 dark:text-primary-400" /> Bộ lọc dự án
                             </h3>
                             <button onClick={() => {
-                                setSelectedStatus('all'); setSelectedGroup('all'); setSelectedType('all'); setSearchQuery('');
+                                setSelectedStatus('all'); setSelectedGroup('all'); setSelectedType('all'); setSelectedBoard('all'); setSearchQuery('');
                             }} className="text-xs text-red-500 dark:text-red-400 hover:underline">Xóa lọc</button>
                         </div>
 
@@ -111,10 +114,10 @@ const ProjectList: React.FC = () => {
                                 <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Giai đoạn</label>
                                 <div className="space-y-1">
                                     {[
-                                        { val: 'all', label: 'Tất cả', color: 'bg-gray-400' },
-                                        { val: ProjectStatus.Preparation.toString(), label: 'Chuẩn bị dự án', color: 'bg-gradient-to-r from-yellow-500 to-amber-600' },
-                                        { val: ProjectStatus.Execution.toString(), label: 'Thực hiện dự án', color: 'bg-gradient-to-r from-amber-500 to-amber-700' },
-                                        { val: ProjectStatus.Completion.toString(), label: 'Kết thúc xây dựng', color: 'bg-gradient-to-r from-gray-600 to-gray-700' },
+                                        { val: 'all', label: 'Tất cả', hex: '#9CA3AF' },
+                                        { val: ProjectStatus.Preparation.toString(), label: 'Chuẩn bị dự án', hex: '#3B82F6' },
+                                        { val: ProjectStatus.Execution.toString(), label: 'Thực hiện dự án', hex: '#F97316' },
+                                        { val: ProjectStatus.Completion.toString(), label: 'Kết thúc xây dựng', hex: '#10B981' },
                                     ].map(opt => (
                                         <label
                                             key={opt.val}
@@ -130,7 +133,7 @@ const ProjectList: React.FC = () => {
                                                 onChange={() => setSelectedStatus(opt.val)}
                                                 className="sr-only"
                                             />
-                                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${opt.color} ring-2 ring-white dark:ring-slate-800 shadow-sm`}></span>
+                                            <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-sm" style={{ backgroundColor: opt.hex }}></span>
                                             <span className={`text-sm ${selectedStatus === opt.val ? 'font-bold text-gray-800 dark:text-slate-100' : 'text-gray-600 dark:text-slate-300 font-medium'}`}>{opt.label}</span>
                                         </label>
                                     ))}
@@ -152,6 +155,32 @@ const ProjectList: React.FC = () => {
                                         >
                                             {g === 'all' ? 'Tất cả nhóm' : `Nhóm ${g}`}
                                             {selectedGroup === g && <Filter className="w-3 h-3" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="w-full h-px bg-gray-100 dark:bg-slate-700"></div>
+
+                            {/* Management Board Filter */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Ban QLDA</label>
+                                <div className="space-y-1">
+                                    <button
+                                        onClick={() => setSelectedBoard('all')}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50'}`}
+                                    >
+                                        Tất cả ban
+                                        {selectedBoard === 'all' && <Filter className="w-3 h-3" />}
+                                    </button>
+                                    {MANAGEMENT_BOARDS.map(board => (
+                                        <button
+                                            key={board.value}
+                                            onClick={() => setSelectedBoard(board.value.toString())}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedBoard === board.value.toString() ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50'}`}
+                                        >
+                                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: board.hex }}></span>
+                                            {board.label}
                                         </button>
                                     ))}
                                 </div>

@@ -22,6 +22,14 @@ export const useDisbursements = (projectId: string) => {
     });
 };
 
+export const useDisbursementPlans = (projectId: string) => {
+    return useQuery({
+        queryKey: ['disbursementPlans', projectId],
+        queryFn: () => CapitalService.getDisbursementPlans(projectId),
+        enabled: !!projectId
+    });
+};
+
 export const useCapitalStats = (projectId: string) => {
     return useQuery({
         queryKey: ['capitalStats', projectId],

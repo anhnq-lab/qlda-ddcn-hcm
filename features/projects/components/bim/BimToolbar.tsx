@@ -408,6 +408,9 @@ export const BimToolbar: React.FC<BimToolbarProps> = ({
             <ToolBtn isDark={isDarkMode} onClick={onFitAll} title="Fit All" shortcut="F" disabled={disabled}>
                 <Maximize className="w-5 h-5" />
             </ToolBtn>
+            <ToolBtn isDark={isDarkMode} active={activeTool === 'orbit-point'} onClick={() => tools.activateTool('orbit-point')} title="Orbit Point (Click to set pivot)" shortcut="O" disabled={disabled}>
+                <Crosshair className="w-5 h-5" />
+            </ToolBtn>
 
             <ToolDropdown
                 isDark={isDarkMode}

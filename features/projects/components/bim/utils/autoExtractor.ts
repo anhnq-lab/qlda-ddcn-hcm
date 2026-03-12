@@ -147,6 +147,41 @@ function extractCicFmProps(
 }
 
 /**
+ * Extract spatial location (building storey name) for an element.
+ * Traverses IfcRelContainedInSpatialStructure to find the containing storey.
+ */
+function extractSpatialLocation(
+    ifcApi: WEBIFC.IfcAPI, modelID: number, expressID: number
+): string | null {
+    try {
+        // IFCRELCONTAINEDINSPATIALSTRUCTURE = 3242617779
+        const relIds = ifcApi.GetLineIDsWithType(modelID, 3242617779);
+        for (let i = 0; i < relIds.size(); i++) {
+            const relId = relIds.get(i);
+            try {
+                const rel = ifcApi.GetLine(modelID, relId, false);
+                if (!rel?.RelatedElements) continue;
+                const elements = Array.isArray(rel.RelatedElements) ? rel.RelatedElements : [rel.RelatedElements];
+                const found = elements.some((e: any) => (e?.value ?? e) === expressID);
+                if (!found) continue;
+
+                // Found the spatial container — get its name
+                const structureId = rel.RelatingStructure?.value;
+                if (!structureId) continue;
+                const structure = ifcApi.GetLine(modelID, structureId, false);
+                if (structure?.Name?.value) {
+                    return structure.Name.value as string;
+                }
+                if (structure?.LongName?.value) {
+                    return structure.LongName.value as string;
+                }
+            } catch { /* skip this rel */ }
+        }
+    } catch { /* skip */ }
+    return null;
+}
+
+/**
  * Tự động tìm và lưu Tài sản / Thiết bị từ mô hình IFC.
  * 
  * Chiến lược 2 lớp:
@@ -214,7 +249,7 @@ export async function extractFacilityAssetsFromIFC(
                                 asset_name: name,
                                 asset_code: cicFm['CIC_FM_AssetCode'] || tag || `BIM-${id}`,
                                 category: cicFm['CIC_FM_Category'] || category,
-                                location: cicFm['CIC_FM_Location'] || null,
+                                location: cicFm['CIC_FM_Location'] || extractSpatialLocation(ifcApi, modelID, id) || null,
                                 manufacturer: cicFm['CIC_FM_Manufacturer'] || null,
                                 model: cicFm['CIC_FM_Model'] || null,
                                 install_date: null,
@@ -267,7 +302,7 @@ export async function extractFacilityAssetsFromIFC(
                                 asset_name: name || `${objectType} #${id}`,
                                 asset_code: cicFm['CIC_FM_AssetCode'] || tag || `BIM-${id}`,
                                 category: cicFm['CIC_FM_Category'] || category,
-                                location: cicFm['CIC_FM_Location'] || null,
+                                location: cicFm['CIC_FM_Location'] || extractSpatialLocation(ifcApi, modelID, id) || null,
                                 manufacturer: cicFm['CIC_FM_Manufacturer'] || null,
                                 model: cicFm['CIC_FM_Model'] || null,
                                 install_date: null,

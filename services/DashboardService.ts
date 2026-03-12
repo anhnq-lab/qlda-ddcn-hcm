@@ -76,10 +76,8 @@ export const DashboardService = {
         const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
         const currentMonth = new Date().getMonth();
 
-        // Only show months up to current month + 2 (for planning ahead)
-        const maxMonth = Math.min(currentMonth + 2, 11);
-
-        return monthNames.slice(0, maxMonth + 1).map((name, idx) => ({
+        // Show all 12 months
+        return monthNames.map((name, idx) => ({
             name,
             // Convert to billions for chart display (value / 1_000_000_000)
             disbursement: Math.round((monthlyDisbursement[idx] || 0) / 1_000_000_000 * 1000) / 1000,

@@ -8,7 +8,7 @@ import InteractiveMap from '../../components/common/InteractiveMap';
 import { DashboardService } from '../../services/DashboardService';
 import { ProjectService } from '../../services/ProjectService';
 import { useTheme } from '../../context/ThemeContext';
-import { ProjectStatus } from '../../types';
+import { ProjectStatus, MANAGEMENT_BOARDS } from '../../types';
 import { AISummaryWidget } from '../../components/ai/AISummaryWidget';
 import { AIRiskDashboard } from '../../components/ai/AIRiskDashboard';
 import { AIContractorScoring } from '../../components/ai/AIContractorScoring';
@@ -116,6 +116,7 @@ const Dashboard: React.FC = () => {
     // --- FILTER STATE ---
     const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [selectedBoard, setSelectedBoard] = useState<string>('all');
 
     // --- DATA FETCHING ---
     const { data: metrics, isLoading: loadingMetrics } = useQuery({
@@ -189,8 +190,15 @@ const Dashboard: React.FC = () => {
             filtered = filtered.filter(p => p.ProjectID === selectedProjectId);
         }
 
+        // Filter by management board
+        if (selectedBoard !== 'all') {
+            filtered = filtered.filter(p => p.ManagementBoard && p.ManagementBoard.toString() === selectedBoard);
+        }
+
         // Filter by year: include projects active in the selected year
+        // Always include Completion projects (already finished, still part of portfolio)
         filtered = filtered.filter(p => {
+            if (p.Status === ProjectStatus.Completion) return true;
             const startYear = p.StartDate ? new Date(p.StartDate).getFullYear() : null;
             const endYear = p.ExpectedEndDate ? new Date(p.ExpectedEndDate).getFullYear() : null;
             const approvalYear = p.ApprovalDate ? new Date(p.ApprovalDate).getFullYear() : null;
@@ -202,14 +210,100 @@ const Dashboard: React.FC = () => {
         });
 
         return filtered;
+    }, [projects, selectedProjectId, selectedYear, selectedBoard]);
+
+    // --- BOARD CHART DATA (all projects, NOT filtered by board) ---
+    const boardChartData = useMemo(() => {
+        if (!projects) return [];
+        // Apply project + year filters but NOT board filter
+        let base = [...projects];
+        if (selectedProjectId !== 'all') {
+            base = base.filter(p => p.ProjectID === selectedProjectId);
+        }
+        base = base.filter(p => {
+            const startYear = p.StartDate ? new Date(p.StartDate).getFullYear() : null;
+            const endYear = p.ExpectedEndDate ? new Date(p.ExpectedEndDate).getFullYear() : null;
+            const approvalYear = p.ApprovalDate ? new Date(p.ApprovalDate).getFullYear() : null;
+            if (startYear && endYear) return startYear <= selectedYear && endYear >= selectedYear;
+            if (startYear) return startYear <= selectedYear;
+            if (approvalYear) return approvalYear <= selectedYear;
+            return true;
+        });
+
+        return MANAGEMENT_BOARDS.map(board => {
+            const boardProjects = base.filter(p => p.ManagementBoard === board.value);
+            return {
+                name: `Ban ${board.value}`,
+                preparation: boardProjects.filter(p => p.Status === ProjectStatus.Preparation).length,
+                execution: boardProjects.filter(p => p.Status === ProjectStatus.Execution).length,
+                completion: boardProjects.filter(p => p.Status === ProjectStatus.Completion).length,
+                total: boardProjects.length,
+                color: board.hex,
+            };
+        });
+    }, [projects, selectedProjectId, selectedYear]);
+
+    // --- BOARD INVESTMENT PIE DATA (for donut chart) ---
+    const boardInvestmentData = useMemo(() => {
+        if (!projects) return [];
+        let base = [...projects];
+        if (selectedProjectId !== 'all') {
+            base = base.filter(p => p.ProjectID === selectedProjectId);
+        }
+        base = base.filter(p => {
+            const startYear = p.StartDate ? new Date(p.StartDate).getFullYear() : null;
+            const endYear = p.ExpectedEndDate ? new Date(p.ExpectedEndDate).getFullYear() : null;
+            const approvalYear = p.ApprovalDate ? new Date(p.ApprovalDate).getFullYear() : null;
+            if (startYear && endYear) return startYear <= selectedYear && endYear >= selectedYear;
+            if (startYear) return startYear <= selectedYear;
+            if (approvalYear) return approvalYear <= selectedYear;
+            return true;
+        });
+        return MANAGEMENT_BOARDS.map((board) => {
+            const total = base.filter(p => p.ManagementBoard === board.value)
+                .reduce((s, p) => s + (p.TotalInvestment || 0), 0);
+            return { name: board.label, value: total, color: board.hex };
+        }).filter(b => b.value > 0);
+    }, [projects, selectedProjectId, selectedYear]);
+
+    // --- BOARD DISBURSEMENT BAR DATA ---
+    const boardDisbursementData = useMemo(() => {
+        if (!projects) return [];
+        let base = [...projects];
+        if (selectedProjectId !== 'all') {
+            base = base.filter(p => p.ProjectID === selectedProjectId);
+        }
+        base = base.filter(p => {
+            const startYear = p.StartDate ? new Date(p.StartDate).getFullYear() : null;
+            const endYear = p.ExpectedEndDate ? new Date(p.ExpectedEndDate).getFullYear() : null;
+            const approvalYear = p.ApprovalDate ? new Date(p.ApprovalDate).getFullYear() : null;
+            if (startYear && endYear) return startYear <= selectedYear && endYear >= selectedYear;
+            if (startYear) return startYear <= selectedYear;
+            if (approvalYear) return approvalYear <= selectedYear;
+            return true;
+        });
+        return MANAGEMENT_BOARDS.map((board) => {
+            const boardProjects = base.filter(p => p.ManagementBoard === board.value);
+            const totalInvest = boardProjects.reduce((s, p) => s + (p.TotalInvestment || 0), 0);
+            const totalDisbursed = boardProjects.reduce((s, p) => {
+                const rate = (p.PaymentProgress || 0) / 100;
+                return s + (p.TotalInvestment || 0) * rate;
+            }, 0);
+            return {
+                name: board.label,
+                value: Math.round(totalDisbursed / 1e9 * 10) / 10,
+                investment: Math.round(totalInvest / 1e9 * 10) / 10,
+                color: board.hex,
+            };
+        });
     }, [projects, selectedProjectId, selectedYear]);
 
     // --- FILTERED STATS ---
     const filteredStatusData = useMemo(() => {
         const phaseStats = [
-            { name: 'Chuẩn bị dự án', value: 0, color: '#E4C45A' }, // Gold 300
-            { name: 'Thực hiện dự án', value: 0, color: '#D4A017' }, // Gold 500
-            { name: 'Kết thúc xây dựng', value: 0, color: '#B8860B' }, // Gold 600
+            { name: 'Chuẩn bị dự án', value: 0, color: '#3B82F6' },   // Blue
+            { name: 'Thực hiện dự án', value: 0, color: '#F97316' },   // Orange
+            { name: 'Kết thúc xây dựng', value: 0, color: '#10B981' }, // Emerald
         ];
         filteredProjects.forEach(p => {
             if (p.Status === ProjectStatus.Preparation) phaseStats[0].value++;
@@ -280,6 +374,22 @@ const Dashboard: React.FC = () => {
                         <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
                     </div>
 
+                    {/* FILTER: Ban QLDA */}
+                    <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                        <select
+                            value={selectedBoard}
+                            onChange={e => setSelectedBoard(e.target.value)}
+                            className="pl-9 pr-8 py-2 filter-primary min-w-[140px]"
+                        >
+                            <option value="all">Tất cả ban</option>
+                            {MANAGEMENT_BOARDS.map(b => (
+                                <option key={b.value} value={b.value}>{b.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                    </div>
+
                     {/* Export button */}
                     <button onClick={() => navigate('/reports')} className="px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)', boxShadow: '0 4px 14px rgba(184, 134, 11, 0.3)' }}>
                         <FileBox className="w-4 h-4" /> Xuất báo cáo
@@ -288,16 +398,17 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Active filter indicator */}
-            {(selectedProjectId !== 'all' || selectedYear !== new Date().getFullYear()) && (
+            {(selectedProjectId !== 'all' || selectedYear !== new Date().getFullYear() || selectedBoard !== 'all') && (
                 <div className="flex items-center gap-2 -mt-4">
                     <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 px-3 py-1 rounded-full border border-primary-200 dark:border-primary-800 flex items-center gap-1.5">
                         <Filter className="w-3 h-3" />
                         Đang lọc: {filteredProjects.length} dự án
                         {selectedProjectId !== 'all' && ' (1 dự án)'}
                         {selectedYear !== new Date().getFullYear() && ` • Năm ${selectedYear}`}
+                        {selectedBoard !== 'all' && ` • Ban QLDA ${selectedBoard}`}
                     </span>
                     <button
-                        onClick={() => { setSelectedProjectId('all'); setSelectedYear(new Date().getFullYear()); }}
+                        onClick={() => { setSelectedProjectId('all'); setSelectedYear(new Date().getFullYear()); setSelectedBoard('all'); }}
                         className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                     >
                         ✕ Xóa bộ lọc
@@ -360,12 +471,166 @@ const Dashboard: React.FC = () => {
                 />
             </div>
 
+            {/* AI Summary — standalone, self-hides when API unavailable */}
+            <AISummaryWidget />
 
-            {/* 2. AI SUMMARY + DEADLINES ROW */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-                {/* AI Summary (chiếm 2/3) */}
-                <div className="xl:col-span-2">
-                    <AISummaryWidget />
+            {/* 2. BAN QLDA CHARTS + DEADLINES ROW */}
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-3">
+                {/* 3 charts side by side (chiếm 3/4) */}
+
+                {/* CHART 1: Stacked Bar — DA theo Ban × Phase */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="section-header text-[11px]">
+                            <div className="section-icon p-1"><Building2 className="w-3.5 h-3.5" /></div>
+                            DA theo Ban
+                        </h3>
+                        <div className="flex gap-1.5 flex-wrap">
+                            <span className="flex items-center gap-0.5 text-[8px] font-bold text-gray-500 dark:text-slate-400"><div className="w-1.5 h-1.5 rounded" style={{ background: '#E4C45A' }}></div>CB</span>
+                            <span className="flex items-center gap-0.5 text-[8px] font-bold text-gray-500 dark:text-slate-400"><div className="w-1.5 h-1.5 rounded" style={{ background: '#D4A017' }}></div>TH</span>
+                            <span className="flex items-center gap-0.5 text-[8px] font-bold text-gray-500 dark:text-slate-400"><div className="w-1.5 h-1.5 rounded" style={{ background: '#B8860B' }}></div>KT</span>
+                        </div>
+                    </div>
+                    <div className="h-40">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={boardChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={0}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#E5E7EB'} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 10, fontWeight: 700 }} dy={4} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 9, fontWeight: 600 }} allowDecimals={false} />
+                                <RechartsTooltip
+                                    content={({ active, payload, label }: any) => {
+                                        if (!active || !payload) return null;
+                                        const total = payload.reduce((s: number, e: any) => s + (e.value || 0), 0);
+                                        return (
+                                            <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
+                                                <p className="text-[10px] font-black text-gray-700 dark:text-slate-200 mb-0.5">{label} — {total} DA</p>
+                                                {payload.map((entry: any, idx: number) => (
+                                                    entry.value > 0 && (
+                                                        <p key={idx} className="text-[9px] text-gray-600 dark:text-slate-300 flex items-center gap-1">
+                                                            <span className="inline-block w-1.5 h-1.5 rounded-sm" style={{ backgroundColor: entry.fill }}></span>
+                                                            {entry.name === 'preparation' ? 'Chuẩn bị' : entry.name === 'execution' ? 'Thực hiện' : 'Kết thúc'}: <strong>{entry.value}</strong>
+                                                        </p>
+                                                    )
+                                                ))}
+                                            </div>
+                                        );
+                                    }}
+                                    cursor={{ fill: theme === 'dark' ? '#1E293B' : '#F3F4F6' }}
+                                />
+                                <Bar dataKey="preparation" name="preparation" stackId="phase" fill="#3B82F6" radius={[0, 0, 0, 0]} maxBarSize={28}>
+                                    {boardChartData.map((entry, idx) => (
+                                        <Cell key={idx} fill={entry.color} fillOpacity={0.45} />
+                                    ))}
+                                </Bar>
+                                <Bar dataKey="execution" name="execution" stackId="phase" fill="#F97316" radius={[0, 0, 0, 0]} maxBarSize={28}>
+                                    {boardChartData.map((entry, idx) => (
+                                        <Cell key={idx} fill={entry.color} fillOpacity={0.7} />
+                                    ))}
+                                </Bar>
+                                <Bar dataKey="completion" name="completion" stackId="phase" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                                    {boardChartData.map((entry, idx) => (
+                                        <Cell key={idx} fill={entry.color} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* CHART 2: Donut Pie — Cơ cấu vốn đầu tư */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                    <h3 className="section-header text-[11px] mb-1">
+                        <div className="section-icon p-1"><Wallet className="w-3.5 h-3.5" /></div>
+                        Cơ cấu vốn đầu tư
+                    </h3>
+                    <div className="h-36 flex items-center">
+                        {boardInvestmentData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={boardInvestmentData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={38}
+                                        outerRadius={62}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        stroke="none"
+                                    >
+                                        {boardInvestmentData.map((entry, idx) => (
+                                            <Cell key={idx} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <RechartsTooltip
+                                        content={({ active, payload }: any) => {
+                                            if (!active || !payload?.[0]) return null;
+                                            const d = payload[0];
+                                            const totalAll = boardInvestmentData.reduce((s, b) => s + b.value, 0);
+                                            const pct = totalAll > 0 ? ((d.value / totalAll) * 100).toFixed(1) : '0';
+                                            return (
+                                                <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
+                                                    <p className="text-[10px] font-black text-gray-700 dark:text-slate-200">{d.name}</p>
+                                                    <p className="text-[10px] text-gray-600 dark:text-slate-300">{formatCurrency(d.value)} ({pct}%)</p>
+                                                </div>
+                                            );
+                                        }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="w-full text-center text-xs text-gray-400 dark:text-slate-500">Chưa có dữ liệu</div>
+                        )}
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-x-2 gap-y-0.5">
+                        {boardInvestmentData.map((b, idx) => {
+                            const totalAll = boardInvestmentData.reduce((s, x) => s + x.value, 0);
+                            const pct = totalAll > 0 ? ((b.value / totalAll) * 100).toFixed(0) : '0';
+                            return (
+                                <span key={idx} className="flex items-center gap-0.5 text-[9px] font-bold text-gray-600 dark:text-slate-400">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }}></div>
+                                    Ban {idx + 1} ({pct}%)
+                                </span>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* CHART 3: Bar — Giải ngân theo Ban */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                    <h3 className="section-header text-[11px] mb-2">
+                        <div className="section-icon p-1"><Activity className="w-3.5 h-3.5" /></div>
+                        Giải ngân theo Ban
+                    </h3>
+                    <div className="h-40">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={boardDisbursementData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#E5E7EB'} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 10, fontWeight: 700 }} dy={4} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 9, fontWeight: 600 }} unit=" Tỷ" />
+                                <RechartsTooltip
+                                    content={({ active, payload, label }: any) => {
+                                        if (!active || !payload?.[0]) return null;
+                                        const d = payload[0].payload;
+                                        return (
+                                            <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
+                                                <p className="text-[10px] font-black text-gray-700 dark:text-slate-200 mb-0.5">{label}</p>
+                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Giải ngân: <strong>{d.value} Tỷ</strong></p>
+                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Tổng vốn: {d.investment} Tỷ</p>
+                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Tỷ lệ: {d.investment > 0 ? ((d.value / d.investment) * 100).toFixed(0) : 0}%</p>
+                                            </div>
+                                        );
+                                    }}
+                                    cursor={{ fill: theme === 'dark' ? '#1E293B' : '#F3F4F6' }}
+                                />
+                                <Bar dataKey="value" fill="#D4A017" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                                    {boardDisbursementData.map((b, idx) => (
+                                        <Cell key={idx} fill={b.color} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* UPCOMING DEADLINES */}

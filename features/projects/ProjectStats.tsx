@@ -43,7 +43,7 @@ export const ProjectStats: React.FC<ProjectStatsProps> = ({ projects }) => {
                 label="Chuẩn bị dự án"
                 value={preparingProjects}
                 icon={<AlertCircle className="w-6 h-6" />}
-                color="amber"
+                color="blue"
                 sublabel="dự án"
             />
         </div>

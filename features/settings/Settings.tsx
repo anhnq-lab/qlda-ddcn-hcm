@@ -1,9 +1,15 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, Monitor, ChevronRight, Palette, Bell, Shield, User } from 'lucide-react';
+import { Sun, Moon, ChevronRight, Palette, Bell, Shield, User, Users } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import UserImpersonator from './UserImpersonator';
 
 const Settings: React.FC = () => {
     const { theme, setTheme } = useTheme();
+    const { currentUser } = useAuth();
+
+    // Only admin can impersonate
+    const isAdmin = currentUser?.Role === 'Admin';
 
     const themeOptions = [
         {
@@ -50,6 +56,24 @@ const Settings: React.FC = () => {
                 <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Tùy chỉnh giao diện và cấu hình hệ thống</p>
             </div>
 
+            {/* User Impersonation — Admin Only */}
+            {isAdmin && (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                        <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
+                            <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Giả làm người dùng</h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">Test phân quyền bằng cách đăng nhập với vai trò khác</p>
+                        </div>
+                    </div>
+                    <div className="p-5">
+                        <UserImpersonator />
+                    </div>
+                </div>
+            )}
+
             {/* Appearance Section */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
@@ -77,13 +101,11 @@ const Settings: React.FC = () => {
                                 >
                                     {/* Mini Preview */}
                                     <div className={`${opt.preview.bg} rounded-lg border border-gray-200 dark:border-slate-600 p-2 mb-3 flex gap-1.5 h-20 overflow-hidden`}>
-                                        {/* Sidebar Preview */}
                                         <div className={`${opt.preview.sidebar} rounded w-6 flex flex-col gap-1 p-1`}>
                                             <div className={`${opt.preview.accent} rounded-sm h-1`}></div>
                                             <div className={`${opt.preview.text} rounded-sm h-1`}></div>
                                             <div className={`${opt.preview.text} rounded-sm h-1`}></div>
                                         </div>
-                                        {/* Content Preview */}
                                         <div className="flex-1 flex flex-col gap-1">
                                             <div className={`${opt.preview.header} rounded h-3`}></div>
                                             <div className="flex gap-1 flex-1">

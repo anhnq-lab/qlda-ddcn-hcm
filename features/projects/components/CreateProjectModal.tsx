@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Building2, Calendar, DollarSign, MapPin, User, Clock, FileText, HardHat, Search, Shield, Users, Check, ChevronDown, Sparkles, ImagePlus, Loader2, CheckCircle2 } from 'lucide-react';
-import { ProjectGroup, InvestmentType, Project, Employee } from '../../../types';
+import { ProjectGroup, InvestmentType, Project, Employee, MANAGEMENT_BOARDS } from '../../../types';
 import { generateProjectCode, ConstructionType, PermitType } from '../../../utils/projectCodeGenerator';
 import EmployeeService from '../../../services/EmployeeService';
 import { extractProjectFromImage, fileToBase64, ExtractedProjectData } from '../../../services/ai/aiImageExtractor';
@@ -103,6 +103,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         CompetentAuthority: 'Giám đốc Học viện Chính trị quốc gia Hồ Chí Minh',
         InvestorName: 'Ban QLDA ĐTXD CN',
         Duration: '',
+        ManagementBoard: 0,
         // Section 3 - Nhà thầu & Tiêu chuẩn
         ApplicableStandards: '',
         FeasibilityContractor: '',
@@ -128,6 +129,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 CompetentAuthority: editProject.CompetentAuthority || 'Giám đốc Học viện Chính trị quốc gia Hồ Chí Minh',
                 InvestorName: editProject.InvestorName || 'Ban QLDA ĐTXD CN',
                 Duration: editProject.Duration || '',
+                ManagementBoard: editProject.ManagementBoard || 0,
                 ApplicableStandards: editProject.ApplicableStandards || '',
                 FeasibilityContractor: editProject.FeasibilityContractor || '',
                 SurveyContractor: editProject.SurveyContractor || '',
@@ -565,6 +567,27 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                         <option key={g.value} value={g.value}>{g.label}</option>
                                     ))}
                                 </select>
+                            </div>
+                        </div>
+
+                        {/* Ban QLDA */}
+                        <div className="mt-4">
+                            <label className={labelClass}>Ban Quản Lý Dự Án</label>
+                            <div className="grid grid-cols-5 gap-2">
+                                {MANAGEMENT_BOARDS.map(board => (
+                                    <button
+                                        key={board.value}
+                                        type="button"
+                                        onClick={() => updateField('ManagementBoard', board.value)}
+                                        className={`py-2 rounded-xl text-sm font-bold transition-all border-2 ${
+                                            formData.ManagementBoard === board.value
+                                                ? `${board.color} text-white border-transparent shadow-lg scale-105`
+                                                : 'bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500/50'
+                                        }`}
+                                    >
+                                        Ban {board.value}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
