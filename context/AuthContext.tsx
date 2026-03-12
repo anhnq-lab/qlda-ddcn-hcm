@@ -26,11 +26,11 @@ async function resolveEmail(identifier: string): Promise<string | null> {
     // If already an email, return as-is
     if (identifier.includes('@')) return identifier;
 
-    // Lookup username from user_accounts (case-sensitive)
+    // Lookup username from user_accounts (case-insensitive)
     const { data: account } = await supabase
         .from('user_accounts')
         .select('employee_id')
-        .eq('username', identifier)
+        .ilike('username', identifier)
         .limit(1)
         .single();
 
