@@ -32,8 +32,7 @@ const Regulations = React.lazy(() => import('./features/regulations/Regulations'
 const LegalDocumentSearch = React.lazy(() => import('./features/legal-documents/LegalDocumentSearch'));
 const Settings = React.lazy(() => import('./features/settings/Settings'));
 const AuditLogViewer = React.lazy(() => import('./features/admin/AuditLogViewer'));
-const UserAccountManager = React.lazy(() => import('./features/admin/UserAccountManager'));
-const PermissionManager = React.lazy(() => import('./features/settings/PermissionManager'));
+const AdminUserManagement = React.lazy(() => import('./features/admin/AdminUserManagement'));
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -108,16 +107,14 @@ const App: React.FC = () => {
 
                                         {/* Admin */}
                                         <Route path="audit-log" element={<AuditLogViewer />} />
-                                        <Route path="user-accounts" element={
+                                        <Route path="admin" element={
                                             <ProtectedRoute resource="admin_accounts">
-                                                <UserAccountManager />
+                                                <AdminUserManagement />
                                             </ProtectedRoute>
                                         } />
-                                        <Route path="permissions" element={
-                                            <ProtectedRoute resource="admin_roles">
-                                                <PermissionManager />
-                                            </ProtectedRoute>
-                                        } />
+                                        {/* Backward-compatible redirects */}
+                                        <Route path="user-accounts" element={<Navigate to="/admin?tab=accounts" replace />} />
+                                        <Route path="permissions" element={<Navigate to="/admin?tab=permissions" replace />} />
 
                                         {/* Settings */}
                                         <Route path="settings" element={<Settings />} />

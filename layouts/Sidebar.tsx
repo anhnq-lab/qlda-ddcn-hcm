@@ -19,7 +19,7 @@ import {
   Scale,
   FolderTree,
   ShieldCheck,
-  Shield,
+
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissionCheck } from '../hooks/usePermissionCheck';
@@ -61,8 +61,7 @@ const navItems: NavItem[] = [
 ];
 
 const adminItems: NavItem[] = [
-  { name: 'Quản lý tài khoản', path: '/user-accounts', icon: ShieldCheck, resource: 'admin_accounts' },
-  { name: 'Phân quyền', path: '/permissions', icon: Shield, resource: 'admin_roles' },
+  { name: 'Quản trị HT', path: '/admin', icon: ShieldCheck, resource: 'admin_accounts' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({

@@ -130,13 +130,14 @@ const CDEPermissionManager: React.FC<{ projectId: string }> = ({ projectId }) =>
                 authUserId = signUpData?.user?.id || null;
             }
 
-            // Create contractor_account
+            // Create contractor_account — store email used for auth
             await supabase.from('contractor_accounts').insert({
                 contractor_id: contractorId, username: staffForm.username,
-                display_name: staffForm.display_name, email: staffForm.email || null,
+                display_name: staffForm.display_name, email: email,
                 phone: staffForm.phone || null, auth_user_id: authUserId,
                 is_active: true, allowed_project_ids: [projectId],
-            });
+                current_password: staffForm.password,
+            } as any);
 
             // Add CDE permission for this person
             const org = contractors.find(c => c.contractor_id === contractorId);

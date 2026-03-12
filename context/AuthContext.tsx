@@ -47,12 +47,18 @@ async function resolveEmail(identifier: string): Promise<string | null> {
     // Try contractor_accounts lookup
     const { data: contractorAccount } = await supabase
         .from('contractor_accounts')
-        .select('email')
-        .eq('username', identifier)
+        .select('email, username, auth_user_id')
+        .ilike('username', identifier)
         .eq('is_active', true)
         .limit(1)
         .single();
-    if (contractorAccount?.email) return contractorAccount.email;
+    if (contractorAccount) {
+        // Use stored email if available
+        if (contractorAccount.email) return contractorAccount.email;
+        // Fallback: try known patterns used during creation
+        // CDEPermissionManager uses @cde.local, ContractorAccountManager uses @contractor.local
+        return `${contractorAccount.username}@cde.local`;
+    }
 
     // Try phone lookup
     const { data: phoneData } = await supabase
@@ -126,20 +132,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // Check if this is a contractor login
             const { data: contractorAccount } = await supabase
                 .from('contractor_accounts')
-                .select('*, contractors(contractor_name)')
+                .select('*, contractors(full_name)')
                 .eq('auth_user_id', authUser.id)
                 .eq('is_active', true)
                 .single();
 
             if (contractorAccount) {
-                const contractorName = (contractorAccount as any).contractors?.contractor_name || contractorAccount.contact_name || 'Nhà thầu';
+                const contractorName = (contractorAccount as any).contractors?.full_name || contractorAccount.display_name || 'Nhà thầu';
                 setUserType('contractor');
                 setContractorId(contractorAccount.contractor_id);
                 setCurrentUser({
                     EmployeeID: authUser.id,
                     FullName: contractorName,
                     Role: 'contractor' as any,
-                    Department: contractorAccount.contact_name || '',
+                    Department: contractorAccount.display_name || '',
                     Position: 'Nhà thầu',
                     Email: contractorAccount.email || '',
                     Phone: contractorAccount.phone || '',
@@ -266,9 +272,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return false;
         }
 
-        // Update last_login in user_accounts
+        // Update last_login in user_accounts or contractor_accounts
         supabase
             .from('user_accounts')
+            .update({ last_login: new Date().toISOString() })
+            .eq('auth_user_id', data.user.id)
+            .then(() => { }); // fire-and-forget
+
+        // Also try contractor_accounts
+        supabase
+            .from('contractor_accounts')
             .update({ last_login: new Date().toISOString() })
             .eq('auth_user_id', data.user.id)
             .then(() => { }); // fire-and-forget
