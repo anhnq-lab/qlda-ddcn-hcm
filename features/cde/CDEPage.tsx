@@ -16,7 +16,7 @@ import CDEFolderTree from './components/CDEFolderTree';
 import CDEDocumentTable from './components/CDEDocumentTable';
 import CDEWorkflowPanel from './components/CDEWorkflowPanel';
 import CDESubmitModal from './components/CDESubmitModal';
-import CDEContractorDashboard from './components/CDEContractorDashboard';
+
 import CDEFilterBar, { type CDEFilters } from './components/CDEFilterBar';
 import CDEBatchActions from './components/CDEBatchActions';
 import CDEDashboard from './components/CDEDashboard';
@@ -26,11 +26,29 @@ import CDEAuditLog from './components/CDEAuditLog';
 import { supabase } from '../../lib/supabase';
 import { FolderOpen, BarChart3, Shield, ClipboardList, ScrollText } from 'lucide-react';
 
+import { useContracts } from '../../hooks/useContracts';
+import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
+
 const EMPTY_FILTERS: CDEFilters = { status: [], discipline: [], docType: [], dateFrom: '', dateTo: '' };
 
 const CDEPage: React.FC = () => {
     const { currentUser, userType, contractorId } = useAuth();
-    const { scopedProjects: projects } = useScopedProjects();
+    const { scopedProjects: allProjects } = useScopedProjects();
+    const { contracts } = useContracts();
+    const { biddingPackages } = useAllBiddingPackages();
+
+    // Contractors: only show projects where they have contracts
+    const projects = useMemo(() => {
+        if (userType !== 'contractor' || !contractorId) return allProjects;
+        // Find project IDs from contractor's contracts
+        const contractorContracts = contracts.filter(c => c.ContractorID === contractorId);
+        const projectIds = new Set<string>();
+        contractorContracts.forEach(c => {
+            const pkg = biddingPackages.find(p => p.PackageID === c.PackageID);
+            if (pkg?.ProjectID) projectIds.add(pkg.ProjectID);
+        });
+        return allProjects.filter(p => projectIds.has(p.ProjectID));
+    }, [allProjects, contracts, biddingPackages, userType, contractorId]);
 
     // State
     const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -41,9 +59,9 @@ const CDEPage: React.FC = () => {
     const [showTransmittal, setShowTransmittal] = useState(false);
     const [filters, setFilters] = useState<CDEFilters>(EMPTY_FILTERS);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [viewMode, setViewMode] = useState<'explorer' | 'dashboard'>('explorer');
     const [activeTab, setActiveTab] = useState<'explorer' | 'analytics' | 'permissions' | 'transmittals' | 'audit'>('explorer');
     const [activePhase, setActivePhase] = useState('implementation');
+
     // Set default project
     React.useEffect(() => {
         if (projects.length > 0 && !selectedProjectId) {
@@ -51,10 +69,7 @@ const CDEPage: React.FC = () => {
         }
     }, [projects, selectedProjectId]);
 
-    // Auto-show contractor dashboard
-    React.useEffect(() => {
-        if (userType === 'contractor') setViewMode('dashboard');
-    }, [userType]);
+
 
     // Queries
     const { data: folders = [], isLoading: foldersLoading } = useCDEFolders(selectedProjectId);
@@ -214,8 +229,9 @@ const CDEPage: React.FC = () => {
                 stats={stats}
                 onUpload={() => setShowSubmitModal(true)}
                 isUploading={uploadMutation.isPending}
-                canUpload={!!activeFolderId}
+                canUpload={true}
                 userRole={currentUser?.Role}
+                hideStats={userType === 'contractor'}
             />
 
             {/* Tab Navigation */}
@@ -244,18 +260,10 @@ const CDEPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Contractor Dashboard */}
-            {userType === 'contractor' && viewMode === 'dashboard' && (
-                <CDEContractorDashboard
-                    docs={docs}
-                    contractorName={currentUser?.FullName || 'Nhà thầu'}
-                    onViewDoc={(doc) => { setSelectedDoc(doc); setViewMode('explorer'); }}
-                    onSubmitNew={() => setShowSubmitModal(true)}
-                />
-            )}
+
 
             {/* Tab: Explorer */}
-            {activeTab === 'explorer' && (userType !== 'contractor' || viewMode === 'explorer') && (
+            {activeTab === 'explorer' && (
                 <>
                     <CDEBatchActions
                         selectedIds={selectedIds}

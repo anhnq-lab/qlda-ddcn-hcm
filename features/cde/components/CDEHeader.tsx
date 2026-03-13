@@ -11,10 +11,11 @@ interface CDEHeaderProps {
     isUploading: boolean;
     canUpload: boolean;
     userRole?: string;
+    hideStats?: boolean;
 }
 
 const CDEHeader: React.FC<CDEHeaderProps> = ({
-    projects, selectedProjectId, onProjectChange, stats, onUpload, isUploading, canUpload, userRole,
+    projects, selectedProjectId, onProjectChange, stats, onUpload, isUploading, canUpload, userRole, hideStats,
 }) => {
     const statCards = [
         { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, gradient: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
@@ -63,22 +64,24 @@ const CDEHeader: React.FC<CDEHeaderProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-                {statCards.map((stat, idx) => (
-                    <div key={idx} className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: stat.gradient, borderTop: `3px solid ${stat.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <stat.icon className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10 flex items-center justify-between">
-                            <div>
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">{stat.label}</p>
-                                <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stat.value}</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                                <stat.icon className="w-5 h-5 text-white" />
+            {!hideStats && (
+                <div className="grid grid-cols-4 gap-4">
+                    {statCards.map((stat, idx) => (
+                        <div key={idx} className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: stat.gradient, borderTop: `3px solid ${stat.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+                            <stat.icon className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
+                            <div className="relative z-10 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">{stat.label}</p>
+                                    <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stat.value}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <stat.icon className="w-5 h-5 text-white" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

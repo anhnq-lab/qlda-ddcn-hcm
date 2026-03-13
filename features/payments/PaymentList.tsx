@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { PaymentType, PaymentStatus, Payment } from '../../types';
 import { usePayments } from '../../hooks/usePayments';
+import { useAuth } from '../../context/AuthContext';
 import { PaymentService } from '../../services/PaymentService';
 import { useContracts } from '../../hooks/useContracts';
 import { useContractors } from '../../hooks/useContractors';
@@ -59,15 +60,19 @@ const PaymentList: React.FC = () => {
         return contract?.Value || 0;
     };
 
+    const { userType, contractorId } = useAuth();
+
     // === Scope filter: only payments for scoped projects ===
     const scopedPayments = useMemo(() => {
         return payments.filter(p => {
             const contract = contracts.find(c => c.ContractID === p.ContractID);
             if (!contract) return false;
+            // Contractors only see payments for their own contracts
+            if (userType === 'contractor' && contractorId && contract.ContractorID !== contractorId) return false;
             const pkg = biddingPackages.find(bp => bp.PackageID === contract.PackageID);
             return pkg ? scopedProjectIds.has(pkg.ProjectID) : false;
         });
-    }, [payments, contracts, biddingPackages, scopedProjectIds]);
+    }, [payments, contracts, biddingPackages, scopedProjectIds, userType, contractorId]);
 
     // === Stats ===
     const stats = useMemo(() => {

@@ -88,15 +88,20 @@ Quy tắc:
  */
 export const SUMMARY_PROMPT = `Bạn là trợ lý tóm tắt dữ liệu dự án đầu tư công cho lãnh đạo Ban QLDA.
 
-Dựa trên dữ liệu được cung cấp, hãy tóm tắt thành 3-5 bullet points ngắn gọn, bao gồm:
+Dựa trên dữ liệu được cung cấp, hãy tóm tắt thành 5-7 bullet points ngắn gọn, bao gồm:
 1. Tình hình chung (tổng dự án, tổng vốn)
 2. Tiến độ giải ngân so với kế hoạch
 3. Các vấn đề nổi bật cần chú ý
-4. So sánh với kỳ trước (nếu có dữ liệu)
-5. Hành động cần thực hiện
+4. **CẬP NHẬT TUẦN**: Nếu có dữ liệu weeklyActivities, hãy liệt kê:
+   - Hợp đồng nào vừa được ký, với nhà thầu nào, giá trị bao nhiêu
+   - Thanh toán nào vừa được phê duyệt hoặc chuyển tiền, giá trị bao nhiêu
+   - Bao nhiêu công việc vừa hoàn thành trong tuần
+   - Nếu không có hoạt động mới, ghi "Không có cập nhật mới trong tuần"
+5. Hành động cần thực hiện tiếp theo
 
-Format mỗi bullet bắt đầu bằng emoji phù hợp: 📊 📈 ⚠️ ✅ 🔔
-Trả lời ngắn gọn, mỗi bullet tối đa 1-2 câu.`;
+Format mỗi bullet bắt đầu bằng emoji phù hợp: 📊 📈 ⚠️ ✅ 🔔 📋 💰
+Trả lời ngắn gọn, mỗi bullet tối đa 1-2 câu.
+Ưu tiên thông tin cập nhật tuần lên trước nếu có.`;
 
 /**
  * Prompt kiểm tra tuân thủ pháp lý

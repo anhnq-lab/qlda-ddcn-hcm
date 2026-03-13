@@ -20,54 +20,83 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
  * Resolve identifier → email for Supabase Auth login.
- * Supports: username, email, or phone.
+ * Supports: username (employee or contractor), email, or phone.
+ * Has a 10s timeout to avoid hanging.
  */
 async function resolveEmail(identifier: string): Promise<string | null> {
     // If already an email, return as-is
     if (identifier.includes('@')) return identifier;
 
-    // Lookup username from user_accounts (case-insensitive)
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('employee_id')
-        .ilike('username', identifier)
-        .limit(1)
-        .single();
+    console.log('[resolveEmail] Looking up:', identifier);
 
-    if (account) {
-        // Get email from employees table
-        const { data: emp } = await supabase
-            .from('employees')
-            .select('email')
-            .eq('employee_id', account.employee_id)
-            .single();
-        return emp?.email || null;
-    }
+    // Wrap in a timeout to avoid hanging
+    const resolveWithTimeout = async (): Promise<string | null> => {
+        try {
+            // 1) Lookup username from user_accounts (employee login)
+            const { data: account, error: accErr } = await supabase
+                .from('user_accounts')
+                .select('employee_id')
+                .ilike('username', identifier)
+                .limit(1)
+                .maybeSingle();
 
-    // Try contractor_accounts lookup
-    const { data: contractorAccount } = await supabase
-        .from('contractor_accounts')
-        .select('email, username, auth_user_id')
-        .ilike('username', identifier)
-        .eq('is_active', true)
-        .limit(1)
-        .single();
-    if (contractorAccount) {
-        // Use stored email if available
-        if (contractorAccount.email) return contractorAccount.email;
-        // Fallback: try known patterns used during creation
-        // CDEPermissionManager uses @cde.local, ContractorAccountManager uses @contractor.local
-        return `${contractorAccount.username}@cde.local`;
-    }
+            if (accErr) console.warn('[resolveEmail] user_accounts error:', accErr.message);
 
-    // Try phone lookup
-    const { data: phoneData } = await supabase
-        .from('employees')
-        .select('email')
-        .eq('phone', identifier)
-        .limit(1)
-        .single();
-    return phoneData?.email || null;
+            if (account) {
+                const { data: emp } = await supabase
+                    .from('employees')
+                    .select('email')
+                    .eq('employee_id', account.employee_id)
+                    .maybeSingle();
+                console.log('[resolveEmail] Found employee email:', emp?.email);
+                return emp?.email || null;
+            }
+
+            // 2) Try contractor_accounts lookup
+            const { data: contractorAccount, error: ctrErr } = await supabase
+                .from('contractor_accounts')
+                .select('email, username, auth_user_id')
+                .ilike('username', identifier)
+                .eq('is_active', true)
+                .limit(1)
+                .maybeSingle();
+
+            if (ctrErr) console.error('[resolveEmail] contractor_accounts error:', ctrErr.message, ctrErr);
+
+            if (contractorAccount) {
+                const email = contractorAccount.email || `${contractorAccount.username}@cde.local`;
+                console.log('[resolveEmail] Found contractor email:', email);
+                return email;
+            }
+
+            // 3) Try phone lookup
+            const { data: phoneData } = await supabase
+                .from('employees')
+                .select('email')
+                .eq('phone', identifier)
+                .limit(1)
+                .maybeSingle();
+
+            console.log('[resolveEmail] No match found for:', identifier);
+            return phoneData?.email || null;
+        } catch (err) {
+            console.error('[resolveEmail] Exception:', err);
+            return null;
+        }
+    };
+
+    // Race against timeout
+    const result = await Promise.race([
+        resolveWithTimeout(),
+        new Promise<null>((resolve) => {
+            setTimeout(() => {
+                console.error('[resolveEmail] Timed out after 10s');
+                resolve(null);
+            }, 10000);
+        }),
+    ]);
+
+    return result;
 }
 
 /**
@@ -79,7 +108,7 @@ async function fetchEmployeeByAuthId(authUserId: string): Promise<Employee | nul
         .from('user_accounts')
         .select('employee_id, username')
         .eq('auth_user_id', authUserId)
-        .single();
+        .maybeSingle();
 
     if (!account) return null;
 
@@ -87,7 +116,7 @@ async function fetchEmployeeByAuthId(authUserId: string): Promise<Employee | nul
         .from('employees')
         .select('*')
         .eq('employee_id', account.employee_id)
-        .single();
+        .maybeSingle();
 
     if (!emp) return null;
 
@@ -119,127 +148,103 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!authUser) {
             setCurrentUser(null);
             setSupabaseUser(null);
+            setUserType('employee');
+            setContractorId(null);
             return;
         }
 
         setSupabaseUser(authUser);
+
+        // Try employee first
         const employee = await fetchEmployeeByAuthId(authUser.id);
         if (employee) {
             setCurrentUser(employee);
             setUserType('employee');
             setContractorId(null);
-        } else {
-            // Check if this is a contractor login
-            const { data: contractorAccount } = await supabase
-                .from('contractor_accounts')
-                .select('*, contractors(full_name)')
-                .eq('auth_user_id', authUser.id)
-                .eq('is_active', true)
-                .single();
-
-            if (contractorAccount) {
-                const contractorName = (contractorAccount as any).contractors?.full_name || contractorAccount.display_name || 'Nhà thầu';
-                setUserType('contractor');
-                setContractorId(contractorAccount.contractor_id);
-                setCurrentUser({
-                    EmployeeID: authUser.id,
-                    FullName: contractorName,
-                    Role: 'contractor' as any,
-                    Department: contractorAccount.display_name || '',
-                    Position: 'Nhà thầu',
-                    Email: contractorAccount.email || '',
-                    Phone: contractorAccount.phone || '',
-                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
-                    JoinDate: '',
-                    Status: 'Active' as any,
-                    Username: contractorAccount.username,
-                    Password: '',
-                });
-            } else {
-                // Fallback: user exists in Auth but not linked to employee or contractor
-                setUserType('employee');
-                setContractorId(null);
-                setCurrentUser({
-                    EmployeeID: authUser.id,
-                    FullName: authUser.email || 'User',
-                    Role: 'Staff' as any,
-                    Department: '',
-                    Position: '',
-                    Email: authUser.email || '',
-                    Phone: '',
-                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.email || 'U')}&background=0D8ABC&color=fff`,
-                    JoinDate: '',
-                    Status: 'Active' as any,
-                    Username: authUser.email || '',
-                    Password: '',
-                });
-            }
+            console.log('[Auth] Logged in as employee:', employee.FullName);
+            return;
         }
-    }, []);
 
-    // === DEV AUTO-LOGIN: Set to false to disable ===
-    const DEV_AUTO_LOGIN = import.meta.env.DEV;
+        // Try contractor
+        const { data: contractorAccount } = await supabase
+            .from('contractor_accounts')
+            .select('*, contractors(full_name)')
+            .eq('auth_user_id', authUser.id)
+            .eq('is_active', true)
+            .maybeSingle();
+
+        if (contractorAccount) {
+            const contractorName = (contractorAccount as any).contractors?.full_name || contractorAccount.display_name || 'Nhà thầu';
+            setUserType('contractor');
+            setContractorId(contractorAccount.contractor_id);
+            setCurrentUser({
+                EmployeeID: authUser.id,
+                FullName: contractorName,
+                Role: 'contractor' as any,
+                Department: contractorAccount.display_name || '',
+                Position: 'Nhà thầu',
+                Email: contractorAccount.email || '',
+                Phone: contractorAccount.phone || '',
+                AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
+                JoinDate: '',
+                Status: 'Active' as any,
+                Username: contractorAccount.username,
+                Password: '',
+            });
+            console.log('[Auth] Logged in as contractor:', contractorName);
+            return;
+        }
+
+        // Fallback: user exists in Auth but not linked
+        setUserType('employee');
+        setContractorId(null);
+        setCurrentUser({
+            EmployeeID: authUser.id,
+            FullName: authUser.email || 'User',
+            Role: 'Staff' as any,
+            Department: '',
+            Position: '',
+            Email: authUser.email || '',
+            Phone: '',
+            AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.email || 'U')}&background=0D8ABC&color=fff`,
+            JoinDate: '',
+            Status: 'Active' as any,
+            Username: authUser.email || '',
+            Password: '',
+        });
+    }, []);
 
     // Initialize: restore session + setup auth listener
     useEffect(() => {
         let mounted = true;
 
-        // DEV MODE: Auto-login as Admin without Supabase Auth
-        if (DEV_AUTO_LOGIN) {
-            (async () => {
-                try {
-                    // Fetch Admin user from database directly
-                    const { data: account } = await supabase
-                        .from('user_accounts')
-                        .select('employee_id, username')
-                        .eq('username', 'Admin')
-                        .single();
+        // Safety timeout: if auth check takes too long, stop loading
+        const timeout = setTimeout(() => {
+            if (mounted && isLoading) {
+                console.warn('[Auth] Session check timed out after 8s, redirecting to login');
+                setIsLoading(false);
+            }
+        }, 8000);
 
-                    if (account) {
-                        const { data: emp } = await supabase
-                            .from('employees')
-                            .select('*')
-                            .eq('employee_id', account.employee_id)
-                            .single();
-
-                        if (emp && mounted) {
-                            console.log('[Auth] 🚀 DEV auto-login as:', emp.full_name);
-                            setCurrentUser({
-                                EmployeeID: emp.employee_id,
-                                FullName: emp.full_name,
-                                Role: emp.role as any,
-                                Department: emp.department || '',
-                                Position: emp.position || '',
-                                Email: emp.email || '',
-                                Phone: emp.phone || '',
-                                AvatarUrl: emp.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.full_name)}&background=0D8ABC&color=fff`,
-                                JoinDate: emp.join_date || '',
-                                Status: emp.status as any || 'Active',
-                                Username: account.username,
-                                Password: '',
-                            });
-                        }
-                    }
-                } catch (err) {
-                    console.warn('[Auth] DEV auto-login failed, falling back to normal auth:', err);
-                } finally {
-                    if (mounted) setIsLoading(false);
-                }
-            })();
-            return;
-        }
-
-        // PRODUCTION: Normal Supabase Auth flow
-        // 1) Restore existing session
+        // Restore existing session
         supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
             if (!mounted) return;
             setSession(existingSession);
             handleAuthUser(existingSession?.user ?? null).finally(() => {
-                if (mounted) setIsLoading(false);
+                if (mounted) {
+                    setIsLoading(false);
+                    clearTimeout(timeout);
+                }
             });
+        }).catch((err) => {
+            console.error('[Auth] getSession failed:', err);
+            if (mounted) {
+                setIsLoading(false);
+                clearTimeout(timeout);
+            }
         });
 
-        // 2) Listen for auth changes (login/logout/token refresh)
+        // Listen for auth changes (login/logout/token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (_event, newSession) => {
                 if (!mounted) return;
@@ -250,13 +255,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         return () => {
             mounted = false;
+            clearTimeout(timeout);
             subscription.unsubscribe();
         };
     }, [handleAuthUser]);
 
     const login = async (identifier: string, pass: string): Promise<boolean> => {
+        console.log('[Auth] Login attempt for:', identifier);
+
+        // Clear any stale session that might block Supabase queries
+        try {
+            await supabase.auth.signOut({ scope: 'local' });
+        } catch (e) {
+            // Ignore signOut errors
+        }
+
         // Resolve username/phone to email for Supabase Auth
         const email = await resolveEmail(identifier);
+        console.log('[Auth] Resolved email:', email);
         if (!email) {
             console.error('[Auth] Could not resolve email for:', identifier);
             return false;
@@ -268,23 +284,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         if (error || !data.user) {
-            console.error('[Auth] Login failed:', error?.message);
+            console.error('[Auth] Login failed:', error?.message, error?.status);
             return false;
         }
 
-        // Update last_login in user_accounts or contractor_accounts
+        console.log('[Auth] Login success for:', email);
+
+        // Update last_login (fire-and-forget)
         supabase
             .from('user_accounts')
-            .update({ last_login: new Date().toISOString() })
+            .update({ last_login: new Date().toISOString() } as any)
             .eq('auth_user_id', data.user.id)
-            .then(() => { }); // fire-and-forget
+            .then(() => { });
 
-        // Also try contractor_accounts
         supabase
             .from('contractor_accounts')
-            .update({ last_login: new Date().toISOString() })
+            .update({ last_login: new Date().toISOString() } as any)
             .eq('auth_user_id', data.user.id)
-            .then(() => { }); // fire-and-forget
+            .then(() => { });
 
         return true;
     };
@@ -294,7 +311,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentUser(null);
         setSupabaseUser(null);
         setSession(null);
-        localStorage.removeItem('currentUser'); // Clean up legacy storage
+        setUserType('employee');
+        setContractorId(null);
+        localStorage.removeItem('currentUser');
     };
 
     return (

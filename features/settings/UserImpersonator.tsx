@@ -1,13 +1,13 @@
 /**
  * UserImpersonator — QLDA ĐDCN TP.HCM
  *
- * Admin UI to select an employee and impersonate them.
+ * Admin UI to select an employee OR contractor and impersonate them.
  * Shows active impersonation banner + permission preview.
  *
  * Pattern follows cic-erp-contract/components/settings/UserImpersonator.tsx
  */
-import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, X, Search, Shield, ChevronDown, Check } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Users, UserCheck, X, Search, Shield, ChevronDown, Check, Building2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Employee, Role } from '../../types';
 import { useImpersonation } from '../../context/ImpersonationContext';
@@ -22,32 +22,42 @@ import {
     type PermissionAction,
 } from '../../types/permission.types';
 
+type UserTab = 'employees' | 'contractors';
+
+interface ContractorAccountItem {
+    id: string;
+    contractor_id: string;
+    username: string;
+    display_name: string;
+    email: string | null;
+    contractor_name: string;
+}
+
 const UserImpersonator: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [contractorAccounts, setContractorAccounts] = useState<ContractorAccountItem[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<UserTab>('employees');
     const { impersonatedUser, isImpersonating, startImpersonation, stopImpersonation } = useImpersonation();
 
     useEffect(() => {
-        const fetchEmployees = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const { data, error } = await supabase
+                // Fetch employees
+                const { data: empData, error: empErr } = await supabase
                     .from('employees')
                     .select('*')
                     .eq('status', 1)
                     .order('department')
                     .order('full_name');
 
-                if (error) {
-                    console.error('[UserImpersonator] Error:', error);
-                    setLoading(false);
-                    return;
-                }
+                if (empErr) console.error('[UserImpersonator] Employee error:', empErr);
 
-                if (data) {
-                    setEmployees(data.map((e: any) => ({
+                if (empData) {
+                    setEmployees(empData.map((e: any) => ({
                         EmployeeID: e.employee_id,
                         FullName: e.full_name,
                         Department: e.department || '',
@@ -61,22 +71,69 @@ const UserImpersonator: React.FC = () => {
                         Role: e.role as Role,
                     })));
                 }
+
+                // Fetch contractor accounts with contractor names
+                const { data: ctrData, error: ctrErr } = await supabase
+                    .from('contractor_accounts')
+                    .select('id, contractor_id, username, display_name, email, contractors(full_name)')
+                    .eq('is_active', true)
+                    .order('display_name');
+
+                if (ctrErr) console.error('[UserImpersonator] Contractor error:', ctrErr);
+
+                if (ctrData) {
+                    setContractorAccounts(ctrData.map((c: any) => ({
+                        id: c.id,
+                        contractor_id: c.contractor_id,
+                        username: c.username,
+                        display_name: c.display_name,
+                        email: c.email,
+                        contractor_name: c.contractors?.full_name || c.contractor_id,
+                    })));
+                }
             } catch (err) {
                 console.error('[UserImpersonator] Unexpected error:', err);
             }
             setLoading(false);
         };
-        fetchEmployees();
+        fetchData();
     }, []);
 
-    const filteredEmployees = employees.filter(emp =>
+    const filteredEmployees = useMemo(() => employees.filter(emp =>
         emp.FullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.Position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.Department?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ), [employees, searchTerm]);
 
-    const handleSelectUser = (emp: Employee) => {
+    const filteredContractors = useMemo(() => contractorAccounts.filter(c =>
+        c.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.contractor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.username.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [contractorAccounts, searchTerm]);
+
+    const handleSelectEmployee = (emp: Employee) => {
         startImpersonation(emp);
+        setIsDropdownOpen(false);
+        setSearchTerm('');
+    };
+
+    const handleSelectContractor = (ctr: ContractorAccountItem) => {
+        // Map contractor to Employee shape for impersonation
+        const fakeEmployee: Employee = {
+            EmployeeID: ctr.id,
+            FullName: ctr.display_name,
+            Role: 'contractor' as any,
+            Department: ctr.contractor_name,
+            Position: 'Nhà thầu',
+            Email: ctr.email || '',
+            Phone: '',
+            AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(ctr.display_name)}&background=D4A017&color=fff`,
+            JoinDate: '',
+            Status: 'Active' as any,
+            Username: ctr.username,
+            Password: '',
+        };
+        startImpersonation(fakeEmployee);
         setIsDropdownOpen(false);
         setSearchTerm('');
     };
@@ -91,6 +148,8 @@ const UserImpersonator: React.FC = () => {
         : null;
     const permissions = systemRole ? DEFAULT_ROLE_PERMISSIONS[systemRole] || {} : null;
 
+    const totalCount = employees.length + contractorAccounts.length;
+
     return (
         <div className="space-y-6">
             {/* Active Impersonation Banner */}
@@ -98,8 +157,15 @@ const UserImpersonator: React.FC = () => {
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-400 rounded-lg p-5">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                {impersonatedUser.FullName?.charAt(0) || 'U'}
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg ${
+                                impersonatedUser.Role === 'contractor'
+                                    ? 'bg-gradient-to-br from-amber-500 to-yellow-600'
+                                    : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                            }`}>
+                                {impersonatedUser.Role === 'contractor'
+                                    ? <Building2 className="w-7 h-7" />
+                                    : (impersonatedUser.FullName?.charAt(0) || 'U')
+                                }
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
@@ -107,6 +173,12 @@ const UserImpersonator: React.FC = () => {
                                         <UserCheck size={12} />
                                         ĐANG GIẢ LÀM
                                     </span>
+                                    {impersonatedUser.Role === 'contractor' && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-600 text-white text-xs font-bold">
+                                            <Building2 size={12} />
+                                            NHÀ THẦU
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="font-bold text-lg text-slate-800 dark:text-slate-200">{impersonatedUser.FullName}</p>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -164,7 +236,7 @@ const UserImpersonator: React.FC = () => {
                     className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer"
                 >
                     <span className={loading ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}>
-                        {loading ? 'Đang tải danh sách...' : `${employees.length} nhân viên có sẵn`}
+                        {loading ? 'Đang tải danh sách...' : `${totalCount} người dùng có sẵn (${employees.length} NV + ${contractorAccounts.length} NT)`}
                     </span>
                     <ChevronDown size={20} className={`text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -172,6 +244,32 @@ const UserImpersonator: React.FC = () => {
                 {/* Dropdown Content */}
                 {isDropdownOpen && !loading && (
                     <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
+                        {/* Tab Switcher */}
+                        <div className="flex border-b border-slate-100 dark:border-slate-700">
+                            <button
+                                onClick={() => setActiveTab('employees')}
+                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors ${
+                                    activeTab === 'employees'
+                                        ? 'text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10 border-b-2 border-amber-500'
+                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                }`}
+                            >
+                                <Users size={14} />
+                                Nhân viên ({employees.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('contractors')}
+                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors ${
+                                    activeTab === 'contractors'
+                                        ? 'text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10 border-b-2 border-amber-500'
+                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                }`}
+                            >
+                                <Building2 size={14} />
+                                Nhà thầu ({contractorAccounts.length})
+                            </button>
+                        </div>
+
                         {/* Search */}
                         <div className="p-3 border-b border-slate-100 dark:border-slate-700">
                             <div className="relative">
@@ -180,39 +278,71 @@ const UserImpersonator: React.FC = () => {
                                     type="text"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    placeholder="Tìm theo tên, chức vụ, phòng ban..."
+                                    placeholder={activeTab === 'employees' ? 'Tìm theo tên, chức vụ, phòng ban...' : 'Tìm theo tên, đơn vị, username...'}
                                     className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200"
                                     autoFocus
                                 />
                             </div>
                         </div>
 
-                        {/* Employee List */}
+                        {/* List */}
                         <div className="max-h-80 overflow-y-auto">
-                            {filteredEmployees.length === 0 ? (
-                                <div className="p-4 text-center text-slate-400">Không tìm thấy nhân viên</div>
+                            {activeTab === 'employees' ? (
+                                // Employee list
+                                filteredEmployees.length === 0 ? (
+                                    <div className="p-4 text-center text-slate-400">Không tìm thấy nhân viên</div>
+                                ) : (
+                                    filteredEmployees.map(emp => (
+                                        <button
+                                            key={emp.EmployeeID}
+                                            onClick={() => handleSelectEmployee(emp)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-b-0"
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                {emp.FullName?.charAt(0) || 'U'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{emp.FullName}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                    {emp.Position || emp.Role}
+                                                    {emp.Department && ` • ${emp.Department}`}
+                                                </p>
+                                            </div>
+                                            {impersonatedUser?.EmployeeID === emp.EmployeeID && (
+                                                <Check size={18} className="text-green-500 flex-shrink-0" />
+                                            )}
+                                        </button>
+                                    ))
+                                )
                             ) : (
-                                filteredEmployees.map(emp => (
-                                    <button
-                                        key={emp.EmployeeID}
-                                        onClick={() => handleSelectUser(emp)}
-                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-b-0"
-                                    >
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                                            {emp.FullName?.charAt(0) || 'U'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{emp.FullName}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                {emp.Position || emp.Role}
-                                                {emp.Department && ` • ${emp.Department}`}
-                                            </p>
-                                        </div>
-                                        {impersonatedUser?.EmployeeID === emp.EmployeeID && (
-                                            <Check size={18} className="text-green-500 flex-shrink-0" />
-                                        )}
-                                    </button>
-                                ))
+                                // Contractor list
+                                filteredContractors.length === 0 ? (
+                                    <div className="p-4 text-center text-slate-400">Không tìm thấy nhà thầu</div>
+                                ) : (
+                                    filteredContractors.map(ctr => (
+                                        <button
+                                            key={ctr.id}
+                                            onClick={() => handleSelectContractor(ctr)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-b-0"
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-white flex-shrink-0">
+                                                <Building2 size={18} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{ctr.display_name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                    {ctr.contractor_name} • @{ctr.username}
+                                                </p>
+                                            </div>
+                                            <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-bold shrink-0">
+                                                Nhà thầu
+                                            </span>
+                                            {impersonatedUser?.EmployeeID === ctr.id && (
+                                                <Check size={18} className="text-green-500 flex-shrink-0" />
+                                            )}
+                                        </button>
+                                    ))
+                                )
                             )}
                         </div>
                     </div>
@@ -231,9 +361,10 @@ const UserImpersonator: React.FC = () => {
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-sm">
                 <p className="font-semibold text-blue-700 dark:text-blue-400 mb-2">💡 Hướng dẫn:</p>
                 <ol className="text-blue-600 dark:text-blue-300 space-y-1 text-xs list-decimal list-inside">
-                    <li>Click vào dropdown để mở danh sách nhân viên</li>
-                    <li>Tìm kiếm theo tên, chức vụ hoặc phòng ban</li>
-                    <li>Click chọn nhân viên → Hệ thống sẽ thông báo xác nhận</li>
+                    <li>Click vào dropdown để mở danh sách</li>
+                    <li>Chuyển tab <strong>Nhân viên</strong> hoặc <strong>Nhà thầu</strong> để chọn loại tài khoản</li>
+                    <li>Tìm kiếm theo tên, chức vụ, phòng ban hoặc đơn vị nhà thầu</li>
+                    <li>Click chọn → Hệ thống sẽ thông báo xác nhận</li>
                     <li>Điều hướng qua các trang để xem quyền của họ</li>
                     <li>Click "Dừng giả làm" để quay về Admin</li>
                 </ol>

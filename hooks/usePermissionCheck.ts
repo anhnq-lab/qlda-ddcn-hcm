@@ -17,6 +17,7 @@ import {
     SystemRole,
     GLOBAL_VIEW_DEPARTMENTS,
     PROJECT_SCOPED_DEPARTMENTS,
+    DEFAULT_ROLE_PERMISSIONS,
     resolveSystemRole,
 } from '../types/permission.types';
 
@@ -52,7 +53,9 @@ export function usePermissionCheck(): PermissionCheckResult {
 
     // Effective user: impersonated or real
     const effectiveUser = isImpersonating && impersonatedUser ? impersonatedUser : currentUser;
-    const effectiveUserType = isImpersonating ? 'employee' : userType;
+    const effectiveUserType = isImpersonating
+        ? (impersonatedUser?.Role === 'contractor' ? 'contractor' : 'employee')
+        : userType;
 
     const [state, setState] = useState<PermissionState>({
         permissions: new Map(),
@@ -131,10 +134,17 @@ export function usePermissionCheck(): PermissionCheckResult {
             // Not loaded yet → deny
             if (!state.loaded) return false;
 
-            const actions = state.permissions.get(resource);
-            if (!actions) return false;
+            // 1) If user has DB-level overrides, use those
+            if (state.permissions.size > 0) {
+                const actions = state.permissions.get(resource);
+                return actions ? actions.includes(action) : false;
+            }
 
-            return actions.includes(action);
+            // 2) Fallback: DEFAULT_ROLE_PERMISSIONS based on systemRole
+            const defaults = DEFAULT_ROLE_PERMISSIONS[systemRole];
+            if (!defaults) return false;
+            const defaultActions = defaults[resource];
+            return defaultActions ? defaultActions.includes(action) : false;
         },
         [state.permissions, state.loaded, systemRole]
     );

@@ -197,14 +197,13 @@ const PermissionManager: React.FC = () => {
         }
     }, [selectedEmployee, editedPermissions]);
 
-    // Bulk apply defaults for ALL employees
+    // Bulk apply defaults for employees that DON'T have DB records yet
     const applyDefaultsForAll = useCallback(async () => {
-        if (!window.confirm('Áp dụng quyền mặc định cho TẤT CẢ nhân viên?\nĐiều này sẽ ghi đè quyền hiện tại.')) return;
+        if (!window.confirm('Khởi tạo quyền mặc định cho nhân viên CHƯA CÓ quyền trong DB?\n(Nhân viên đã có quyền sẽ KHÔNG bị ghi đè)')) return;
         setSaving(true);
         try {
-            for (const emp of employees) {
-                await PermissionService.initializeForUser(emp.employeeId, emp.systemRole);
-            }
+            const users = employees.map(e => ({ id: e.employeeId, role: e.systemRole }));
+            const count = await PermissionService.initializeAllUsers(users);
             // Refresh
             const refreshed = await PermissionService.getAll();
             setAllPermissions(refreshed);
@@ -216,10 +215,10 @@ const PermissionManager: React.FC = () => {
                     .forEach(p => { empPerms[p.resource] = [...p.actions]; });
                 setEditedPermissions(empPerms);
             }
-            alert(`Đã áp dụng quyền mặc định cho ${employees.length} nhân viên!`);
+            alert(`Đã khởi tạo quyền cho ${count}/${employees.length} nhân viên!`);
         } catch (err) {
             console.error('Bulk apply failed:', err);
-            alert('Có lỗi xảy ra khi áp dụng quyền mặc định');
+            alert('Có lỗi xảy ra khi khởi tạo quyền');
         } finally {
             setSaving(false);
         }

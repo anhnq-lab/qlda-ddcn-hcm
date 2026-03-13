@@ -124,4 +124,29 @@ export const PermissionService = {
     getDefaultPermissions(role: SystemRole): Partial<Record<PermissionResource, PermissionAction[]>> {
         return DEFAULT_ROLE_PERMISSIONS[role] || {};
     },
+
+    /**
+     * Initialize default permissions for ALL users in bulk.
+     * Only initializes users that don't already have DB records.
+     */
+    async initializeAllUsers(users: { id: string; role: SystemRole }[]): Promise<number> {
+        let count = 0;
+        for (const user of users) {
+            try {
+                // Check if user already has permissions
+                const { data } = await db()
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .limit(1);
+
+                if (!data || data.length === 0) {
+                    await this.initializeForUser(user.id, user.role);
+                    count++;
+                }
+            } catch (err) {
+                console.warn(`[PermService] Failed to init for ${user.id}:`, err);
+            }
+        }
+        return count;
+    },
 };

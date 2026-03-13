@@ -60,6 +60,14 @@ const navItems: NavItem[] = [
   { name: 'Quy chế làm việc', path: '/regulations', icon: BookOpen, resource: 'regulations' },
 ];
 
+// Contractor-only: limited menu
+const contractorNavItems: NavItem[] = [
+  { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree },
+  { name: 'Hợp đồng', path: '/contracts', icon: FileText },
+  { name: 'Thanh toán', path: '/payments', icon: CreditCard },
+  { name: 'Hồ sơ tài liệu', path: '/documents', icon: FileBox },
+];
+
 const adminItems: NavItem[] = [
   { name: 'Quản trị HT', path: '/admin', icon: ShieldCheck, resource: 'admin_accounts' },
 ];
@@ -69,23 +77,27 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   onClose
 }) => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, userType } = useAuth();
   const { can } = usePermissionCheck();
+  const isContractor = userType === 'contractor';
 
   // Filter nav items based on permissions
   const visibleNavItems = useMemo(() => {
+    // Contractors get a limited menu
+    if (isContractor) return contractorNavItems;
     return navItems.filter(item => {
       if (!item.resource) return true; // No resource = always visible  
       return can(item.resource, 'view');
     });
-  }, [can]);
+  }, [can, isContractor]);
 
   const visibleAdminItems = useMemo(() => {
+    if (isContractor) return []; // Contractors never see admin
     return adminItems.filter(item => {
       if (!item.resource) return true;
       return can(item.resource, 'view');
     });
-  }, [can]);
+  }, [can, isContractor]);
 
   return (
     <div

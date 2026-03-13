@@ -22,8 +22,8 @@ interface TabDef {
 
 const TABS: TabDef[] = [
     { key: 'accounts', label: 'Tài khoản', icon: Users },
-    { key: 'permissions', label: 'Phân quyền', icon: Shield },
     { key: 'contractors', label: 'Nhà thầu', icon: Building2 },
+    { key: 'permissions', label: 'Phân quyền', icon: Shield },
 ];
 
 const AdminUserManagement: React.FC = () => {

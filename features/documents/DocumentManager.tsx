@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 
 import { useScopedProjects } from '../../hooks/useScopedProjects';
+import { useAuth } from '../../context/AuthContext';
+import { useContracts } from '../../hooks/useContracts';
+import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { DocCategory } from '../../types';
 
 // --- COMPONENT: REUSABLE FILE PREVIEW (ACTUAL + MOCK) ---
@@ -219,7 +222,23 @@ const FilterChip: React.FC<{ label: string, active: boolean, onClick: () => void
 );
 
 const DocumentManager: React.FC = () => {
-    const { scopedProjects: projects } = useScopedProjects();
+    const { userType, contractorId } = useAuth();
+    const { scopedProjects: allProjects } = useScopedProjects();
+    const { contracts } = useContracts();
+    const { biddingPackages } = useAllBiddingPackages();
+
+    // Contractors: only show projects where they have contracts
+    const projects = useMemo(() => {
+        if (userType !== 'contractor' || !contractorId) return allProjects;
+        const contractorContracts = contracts.filter(c => c.ContractorID === contractorId);
+        const projectIds = new Set<string>();
+        contractorContracts.forEach(c => {
+            const pkg = biddingPackages.find(p => p.PackageID === c.PackageID);
+            if (pkg?.ProjectID) projectIds.add(pkg.ProjectID);
+        });
+        return allProjects.filter(p => projectIds.has(p.ProjectID));
+    }, [allProjects, contracts, biddingPackages, userType, contractorId]);
+
     // Default to the first project or standard project
     const defaultProject = projects.find(p => p.ProjectID === 'PR2400031160') || projects[0];
     const [selectedProject, setSelectedProject] = useState<string>(defaultProject?.ProjectID || "");

@@ -5,7 +5,7 @@ const path = require('path');
 
 const pres = new pptxgen();
 pres.layout = 'LAYOUT_16x9';
-pres.author = 'CIC — Construction Information Center';
+pres.author = 'CIC Technology and Consultancy JSC';
 pres.title = 'Giới thiệu Phần mềm QLDA ĐTXD DDCN — TP. Hồ Chí Minh';
 
 // ── Color Palette — Midnight Gold ──
@@ -91,9 +91,10 @@ s.addText('Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp\nUBND
 });
 s.addText([
   { text: 'Phiên bản 1.0  •  12/03/2026', options: { fontSize: 12, color: C.muted } },
-  { text: '  •  CIC — Construction Information Center', options: { fontSize: 12, color: C.muted } },
+  { text: '  •  CIC Technology and Consultancy JSC', options: { fontSize: 12, color: C.muted } },
 ], { x: 0.6, y: 4.6, w: 8.8, h: 0.4, fontFace: 'Arial' });
 s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 5.565, w: 10, h: 0.06, fill: { color: C.gold } });
+s.addNotes('Kính thưa quý Ban lãnh đạo, các đồng chí.\nHôm nay, thay mặt đơn vị phát triển CIC — Công ty Cổ phần Công nghệ và Tư vấn CIC, tôi xin trân trọng giới thiệu Hệ thống Quản lý Dự án Đầu tư Xây dựng — giải pháp số hóa toàn diện được thiết kế riêng cho Ban Quản lý dự án Đầu tư xây dựng các công trình Dân dụng và Công nghiệp trực thuộc UBND Thành phố Hồ Chí Minh.\nXin phép được trình bày nội dung chi tiết để quý Ban xem xét.');
 
 // ══════════════════════════════════════════
 // SLIDE 2: MỤC LỤC
@@ -121,6 +122,7 @@ tocItems.forEach((item, i) => {
     valign: 'middle',
   });
 });
+s.addNotes('Bài thuyết trình được cấu trúc thành 7 phần chính. Trước tiên, tôi sẽ trình bày bối cảnh và căn cứ pháp lý — vì sao tại thời điểm này chúng ta cần triển khai hệ thống quản lý dự án số hóa. Tiếp theo là tổng quan hệ thống, chi tiết 13 module chức năng, nền tảng công nghệ, cơ chế bảo mật, và cuối cùng là lợi ích cùng lộ trình triển khai cụ thể.');
 
 // ══════════════════════════════════════════
 // SLIDE 3: CÁCH MẠNG CÔNG NGHIỆP 4.0
@@ -173,6 +175,7 @@ s.addText([
   { text: '💡  ', options: { fontSize: 16 } },
   { text: 'Tổ chức nào làm chủ dữ liệu sớm — tổ chức đó sẽ quản lý hiệu quả hơn, minh bạch hơn và tiết kiệm nguồn lực hơn.', options: { fontSize: 13, color: C.goldLight, italic: true } },
 ], { x: 0.7, y: 4.35, w: 8.7, h: 0.7, fontFace: 'Arial', valign: 'middle' });
+s.addNotes('Kính thưa quý Ban, trước khi đi vào chi tiết phần mềm, xin phép trình bày bối cảnh chung.\nNhìn lại lịch sử phát triển, nhân loại đã trải qua 4 cuộc cách mạng công nghiệp. Cuộc Cách mạng 1.0 thay thế sức lao động thủ công bằng máy móc. Cách mạng 2.0 đưa sản xuất lên quy mô hàng loạt nhờ điện khí hóa. Cách mạng 3.0 mang đến tự động hóa qua máy tính và Internet.\nHiện nay chúng ta đang ở giữa Cách mạng Công nghiệp lần thứ 4, nơi dữ liệu trở thành tài sản cốt lõi. Đối với ngành xây dựng và quản lý dự án đầu tư công, tổ chức nào làm chủ được dữ liệu sớm sẽ quản lý hiệu quả hơn, minh bạch hơn và tiết kiệm nguồn lực hơn.');
 
 // ══════════════════════════════════════════
 // SLIDE 4: CĂN CỨ PHÁP LÝ
@@ -196,8 +199,8 @@ s.addText([
   { text: 'QLDA ĐTXD, chuyển đổi số và BIM', options: { breakLine: true, fontSize: 10, color: C.muted, paraSpaceAfter: 6 } },
   { text: 'Luật Đấu thầu 22/2023/QH15', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
   { text: 'Lựa chọn nhà thầu, nhà đầu tư', options: { breakLine: true, fontSize: 10, color: C.muted, paraSpaceAfter: 6 } },
-  { text: 'NĐ 175/2024 • NĐ 214/2025 • TT 24/2025', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
-  { text: 'Hướng dẫn thi hành, biểu mẫu QLDA', options: { breakLine: true, fontSize: 10, color: C.muted } },
+  { text: 'NĐ 175/2024 • NĐ 214/2025', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
+  { text: 'Hướng dẫn thi hành Luật XD, Luật Đấu thầu', options: { breakLine: true, fontSize: 10, color: C.muted } },
 ], { x: 0.6, y: 2.1, w: 4.0, h: 2.8, fontFace: 'Arial', valign: 'top' });
 
 // Right column — CĐS
@@ -213,9 +216,12 @@ s.addText([
   { text: 'CSDL quốc gia về hoạt động xây dựng', options: { breakLine: true, fontSize: 10, color: C.muted, paraSpaceAfter: 6 } },
   { text: 'Nghị quyết 57-NQ/TW (22/12/2024)', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
   { text: 'Đột phá KHCN, đổi mới sáng tạo & CĐS quốc gia', options: { breakLine: true, fontSize: 10, color: C.muted, paraSpaceAfter: 6 } },
-  { text: 'QĐ 749/QĐ-TTg • QĐ 2289 • NQ 52', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
+  { text: 'TT 24/2025/TT-BXD', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
+  { text: 'HD khoản 4 Điều 8 NĐ 111: CSDL quốc gia XD', options: { breakLine: true, fontSize: 10, color: C.muted, paraSpaceAfter: 6 } },
+  { text: 'QĐ 749 • QĐ 2289 • NQ 52', options: { bullet: true, breakLine: true, fontSize: 11, color: C.light, bold: true, paraSpaceAfter: 3 } },
   { text: 'CĐS quốc gia, chiến lược CMCN 4.0', options: { breakLine: true, fontSize: 10, color: C.muted } },
 ], { x: 5.4, y: 2.1, w: 4.0, h: 2.8, fontFace: 'Arial', valign: 'top' });
+s.addNotes('Trong bối cảnh Cách mạng 4.0, Đảng và Nhà nước đã ban hành hàng loạt chính sách, pháp luật tạo nền tảng pháp lý cho chuyển đổi số.\nVề quản lý dự án: Luật Đầu tư công 58/2024 thay thế Luật 39; Luật Xây dựng 135/2025 lần đầu quy định về chuyển đổi số và BIM; Luật Đấu thầu 22/2023 cùng các nghị định hướng dẫn.\nVề chuyển đổi số: đặc biệt quan trọng là Nghị định 111/2024 về CSDL quốc gia xây dựng, Thông tư 24/2025 hướng dẫn chi tiết khoản 4 Điều 8 NĐ 111 về thông tin trong hệ thống CSDL quốc gia, và Nghị quyết 57 của Bộ Chính trị về đột phá chuyển đổi số quốc gia.');
 
 // ══════════════════════════════════════════
 // SLIDE 5: THÁCH THỨC & GIẢI PHÁP
@@ -263,6 +269,7 @@ s.addText([
   { text: 'Sẵn sàng cho 4.0', options: { bullet: true, breakLine: true, fontSize: 12, color: C.light, paraSpaceAfter: 4 } },
   { text: 'BIM, AI, CDE, CSDL quốc gia (NĐ 111)', options: { breakLine: true, fontSize: 10, color: C.muted } },
 ], { x: 5.4, y: 2.05, w: 4.0, h: 2.9, fontFace: 'Arial', valign: 'top' });
+s.addNotes('Pháp luật đã có, định hướng đã rõ ràng. Vậy thực trạng quản lý dự án hiện nay đang gặp những thách thức gì?\nXin thẳng thắn nhìn nhận 5 vấn đề cốt lõi: Thứ nhất, dữ liệu quản lý phân tán trên Excel, email, giấy tờ. Thứ hai, lãnh đạo thiếu công cụ theo dõi tiến độ theo thời gian thực. Thứ ba, việc tổng hợp báo cáo thủ công tốn thời gian và dễ sai sót. Thứ tư, nhiều văn bản pháp luật mới ban hành, khó đảm bảo tuân thủ đầy đủ. Thứ năm, chưa đáp ứng yêu cầu chuyển đổi số — chưa kết nối CSDL quốc gia, chưa ứng dụng BIM, AI, chưa có Môi trường dữ liệu chung CDE theo ISO 19650.\nĐứng trước các thách thức đó, hệ thống QLDA ĐTXD được xây dựng với 5 trụ cột giải pháp toàn diện như quý Ban thấy bên phải.');
 
 // ══════════════════════════════════════════
 // SLIDE 6: TỔNG QUAN HỆ THỐNG — KPI Cards
@@ -308,6 +315,7 @@ features.forEach((f, i) => {
     fontSize: 11.5, fontFace: 'Arial', color: C.light, valign: 'middle',
   });
 });
+s.addNotes('Xin trình bày tổng quan về hệ thống. Đây là nền tảng web, cán bộ chỉ cần mở trình duyệt là sử dụng được, không cần cài đặt phần mềm.\nHệ thống gồm hơn 13 module chức năng, phục vụ toàn bộ 5 Ban QLDA trực thuộc. Tích hợp BIM 3D Viewer để xem mô hình công trình dạng IFC trực tiếp trên trình duyệt. AI Gemini hỗ trợ tóm tắt tình hình và phát hiện bất thường. Bảo mật theo cơ chế RBAC kết hợp Row Level Security, đảm bảo mỗi người chỉ truy cập được dữ liệu thuộc phạm vi quản lý của mình.');
 
 // ══════════════════════════════════════════
 // SLIDE 7: CÁC MODULE — Grid Layout (1/2)
@@ -342,6 +350,7 @@ mods1.forEach((m, i) => {
     fontSize: 10, fontFace: 'Arial', color: C.muted, valign: 'top', lineSpacingMultiple: 1.3,
   });
 });
+s.addNotes('Xin phép trình bày chi tiết các module chức năng — phần này là nội dung trọng tâm của bài thuyết trình.\nNhóm đầu tiên gồm 6 module: Dashboard tổng quan với KPI thời gian thực và AI tóm tắt; Module Quản lý Dự án với 8 tab chi tiết theo Luật ĐTC; BIM 3D Viewer xem mô hình IFC trực tiếp; CDE — Môi trường dữ liệu chung theo chuẩn ISO 19650 với workflow duyệt tài liệu; Quản lý Hợp đồng theo dõi toàn bộ vòng đời; và Quản lý Thanh toán giải ngân.');
 
 // ══════════════════════════════════════════
 // SLIDE 8: CÁC MODULE — Grid Layout (2/2)
@@ -375,6 +384,7 @@ mods2.forEach((m, i) => {
     fontSize: 10, fontFace: 'Arial', color: C.muted, valign: 'top', lineSpacingMultiple: 1.3,
   });
 });
+s.addNotes('Tiếp theo là 6 module còn lại: Quản lý Công việc theo phương pháp Kanban với 17 mẫu quy trình ĐTXD; Quản lý Nhân sự cán bộ 5 Ban QLDA; Quản lý Nhà thầu tích hợp AI chấm điểm tự động; Hồ sơ Tài liệu dự án; Tra cứu Văn bản pháp luật liên kết trực tiếp vào dự án; và Báo cáo kết hợp Quản trị hệ thống với audit log đầy đủ.');
 
 // ══════════════════════════════════════════
 // SLIDE 9: BIM 3D VIEWER — Highlight
@@ -414,6 +424,7 @@ bimFeatures.forEach((f, i) => {
     fontSize: 10, fontFace: 'Arial', color: C.muted, valign: 'top',
   });
 });
+s.addNotes('Đây là một trong những tính năng đột phá của hệ thống. Lần đầu tiên, cán bộ Ban QLDA có thể xem trực tiếp mô hình 3D công trình ngay trên trình duyệt web, không cần cài bất kỳ phần mềm chuyên dụng nào.\nHệ thống hỗ trợ upload file IFC, tự động render 3D với các công cụ: ViewCube điều hướng, chế độ Walkthrough đi bộ trong mô hình, cây Model Tree phân cấp theo tầng, bảng thuộc tính Properties kỹ thuật, Section Plane cắt mặt cắt, công cụ đo lường, và quản lý tài sản Facility Management theo vị trí trong mô hình BIM.');
 
 // ══════════════════════════════════════════
 // SLIDE 10: CÔNG NGHỆ & KIẾN TRÚC
@@ -448,6 +459,7 @@ layers.forEach(l => {
     fontSize: 10, fontFace: 'Arial', color: C.muted, valign: 'top',
   });
 });
+s.addNotes('Quý Ban có thể quan tâm: hệ thống được xây dựng trên nền tảng công nghệ nào?\nKiến trúc gồm 4 tầng: Frontend sử dụng React 18 với TypeScript, đảm bảo hiệu suất và bảo trì dài hạn. Giao diện UI/UX responsive, hỗ trợ Dark/Light mode, biểu đồ Recharts và bản đồ Leaflet. Backend dựa trên Supabase — nền tảng PostgreSQL với xác thực, lưu trữ file và cơ chế bảo mật Row Level Security. Tầng AI và BIM tích hợp Gemini API cho phân tích thông minh, Three.js và IFC.js cho mô hình 3D.\nĐặc biệt, hệ thống là Single Page Application — tải một lần, điều hướng tức thì, dữ liệu cập nhật realtime.');
 
 // ══════════════════════════════════════════
 // SLIDE 11: BẢO MẬT & PHÂN QUYỀN
@@ -482,6 +494,7 @@ secItems.forEach((item, i) => {
     fontSize: 10, fontFace: 'Arial', color: C.muted, valign: 'top', lineSpacingMultiple: 1.2,
   });
 });
+s.addNotes('Với dữ liệu dự án đầu tư công, bảo mật là yếu tố hết sức quan trọng. Hệ thống được thiết kế với 6 lớp bảo mật.\nThứ nhất, xác thực người dùng qua Supabase Auth với phiên đăng nhập an toàn. Thứ hai, phân quyền RBAC theo ma trận Vai trò × Tài nguyên × Hành động. Thứ ba, Row Level Security ở tầng cơ sở dữ liệu — mỗi truy vấn tự động lọc theo quyền người dùng. Thứ tư, Audit Trail ghi nhận toàn bộ thao tác — ai làm gì, lúc nào. Thứ năm, toàn bộ kết nối HTTPS được mã hóa. Thứ sáu, chức năng Impersonation cho phép quản trị viên hỗ trợ người dùng bằng cách xem hệ thống dưới góc nhìn của họ.');
 
 // ══════════════════════════════════════════
 // SLIDE 12: LỢI ÍCH & GIÁ TRỊ
@@ -529,6 +542,7 @@ addBenefits.forEach((b, i) => {
     fontSize: 10.5, fontFace: 'Arial', color: C.light,
   });
 });
+s.addNotes('Kính thưa quý Ban, khi triển khai hệ thống này, Ban QLDA sẽ đạt được những kết quả cụ thể sau: Giảm 80 phần trăm thời gian lập báo cáo nhờ tự động hóa biểu mẫu. Đạt 100 phần trăm minh bạch tiến độ với dashboard thời gian thực. Tốc độ tra cứu tăng gấp 5 lần nhờ tập trung dữ liệu. Và không cần cài đặt phần mềm — truy cập qua trình duyệt trên mọi thiết bị.\nNgoài ra, hệ thống còn mang lại giá trị về tuân thủ pháp luật, tích hợp BIM 3D, AI thông minh, và CDE theo chuẩn quốc tế ISO 19650.');
 
 // ══════════════════════════════════════════
 // SLIDE 13: LỘ TRÌNH TRIỂN KHAI — 1 QUÝ
@@ -570,6 +584,7 @@ phases.forEach((p, i) => {
     fontSize: 9.5, fontFace: 'Arial', color: C.muted, align: 'center', valign: 'top', lineSpacingMultiple: 1.4,
   });
 });
+s.addNotes('Về lộ trình triển khai, toàn bộ việc triển khai được gói gọn trong 1 quý — Quý 2 năm 2026, tương đương 12 tuần làm việc.\nTuần 1 đến 2: thiết lập hạ tầng, cấu hình phân quyền và nhập dữ liệu hiện có vào hệ thống. Tuần 3 đến 6: triển khai toàn bộ module nghiệp vụ bao gồm quản lý dự án, hợp đồng, thanh toán, CDE, BIM. Tuần 7 đến 10: tích hợp AI Analytics, báo cáo theo mẫu, kết nối CSDL quốc gia theo Nghị định 111. Tuần 11 đến 12: đào tạo người dùng toàn bộ 5 Ban QLDA, chạy song song để kiểm tra, nghiệm thu và chính thức đưa vào vận hành.');
 
 // ══════════════════════════════════════════
 // SLIDE 14: KẾT LUẬN & CẢM ƠN
@@ -592,12 +607,13 @@ s.addText('Hệ thống QLDA ĐTXD — Giải pháp số hóa toàn diện\ncho 
 
 addCard(s, 2.5, 3.8, 5.0, 1.2);
 s.addText([
-  { text: 'CIC — Construction Information Center\n', options: { fontSize: 14, bold: true, color: C.gold, breakLine: true } },
-  { text: 'Website: www.cic.com.vn  •  Email: support@cic.com.vn\n', options: { fontSize: 11, color: C.muted, breakLine: true } },
+  { text: 'CIC Technology and Consultancy JSC\n', options: { fontSize: 14, bold: true, color: C.gold, breakLine: true } },
+  { text: 'Website: www.cic.com.vn  •  Email: anhnq@cic.com.vn\n', options: { fontSize: 11, color: C.muted, breakLine: true } },
   { text: 'TP. Hồ Chí Minh, Việt Nam', options: { fontSize: 11, color: C.muted } },
 ], { x: 2.7, y: 3.9, w: 4.6, h: 1.0, fontFace: 'Arial', align: 'center', valign: 'middle', lineSpacingMultiple: 1.3 });
 
 s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 5.565, w: 10, h: 0.06, fill: { color: C.gold } });
+s.addNotes('Kính thưa quý Ban, trên đây là toàn bộ nội dung giới thiệu về Hệ thống Quản lý Dự án Đầu tư Xây dựng.\nChúng tôi tin tưởng rằng đây là giải pháp phù hợp để Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp từng bước thực hiện chuyển đổi số, nâng cao hiệu lực hiệu quả quản lý nhà nước trong lĩnh vực đầu tư xây dựng, đáp ứng yêu cầu ngày càng cao của pháp luật và thực tiễn công tác.\nXin trân trọng cảm ơn quý Ban đã lắng nghe. Kính mời quý Ban cho ý kiến chỉ đạo.');
 
 // ══════════════════════════════════════════
 // GENERATE

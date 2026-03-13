@@ -89,7 +89,8 @@ async function executeFunctionCall(
             }
 
             case 'get_dashboard_metrics': {
-                return await DashboardService.getMetrics();
+                const year = (args.year as number) || new Date().getFullYear();
+                return await DashboardService.getOverviewMetrics(year);
             }
 
             case 'get_capital_info': {
@@ -101,7 +102,8 @@ async function executeFunctionCall(
             }
 
             case 'get_upcoming_deadlines': {
-                return await DashboardService.getDeadlines();
+                // Deadlines removed from DashboardService — return empty
+                return [];
             }
 
             case 'get_bidding_packages': {

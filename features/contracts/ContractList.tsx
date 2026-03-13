@@ -10,6 +10,7 @@ import {
     ShieldCheck, ShieldAlert, Landmark, CalendarDays, Eye
 } from 'lucide-react';
 import { useContracts } from '../../hooks/useContracts';
+import { useAuth } from '../../context/AuthContext';
 import { usePayments } from '../../hooks/usePayments';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useContractors } from '../../hooks/useContractors';
@@ -53,13 +54,20 @@ const ContractList: React.FC = () => {
         return { paid, pending, percent, count: contractPayments.length };
     };
 
+    const { userType, contractorId } = useAuth();
+
     // === Scope filter: only contracts for scoped projects ===
     const scopedContracts = useMemo(() => {
-        return contracts.filter(c => {
+        let result = contracts.filter(c => {
             const pkg = biddingPackages.find(p => p.PackageID === c.PackageID);
             return pkg ? scopedProjectIds.has(pkg.ProjectID) : false;
         });
-    }, [contracts, biddingPackages, scopedProjectIds]);
+        // Contractors only see their own contracts
+        if (userType === 'contractor' && contractorId) {
+            result = result.filter(c => c.ContractorID === contractorId);
+        }
+        return result;
+    }, [contracts, biddingPackages, scopedProjectIds, userType, contractorId]);
 
     // === Scoped payments ===
     const scopedPayments = useMemo(() => {

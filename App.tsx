@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ImpersonationProvider } from './context/ImpersonationContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -13,6 +13,13 @@ import Login from './features/auth/Login';
 // Lazy-loaded Feature Modules (code splitting)
 const Dashboard = React.lazy(() => import('./features/dashboard/Dashboard'));
 const PersonalDashboard = React.lazy(() => import('./features/dashboard/PersonalDashboard'));
+
+// Contractor-aware home: redirect contractors to CDE
+const ContractorAwareHome: React.FC = () => {
+    const { userType } = useAuth();
+    if (userType === 'contractor') return <Navigate to="/cde" replace />;
+    return <React.Suspense fallback={<div />}><Dashboard /></React.Suspense>;
+};
 const ProjectList = React.lazy(() => import('./features/projects/ProjectList'));
 const ProjectDetail = React.lazy(() => import('./features/projects/ProjectDetail'));
 const PackageDetail = React.lazy(() => import('./features/projects/PackageDetail'));
@@ -70,7 +77,7 @@ const App: React.FC = () => {
 
                                     {/* Protected Routes inside MainLayout */}
                                     <Route path="/" element={<MainLayout />}>
-                                        <Route index element={<Dashboard />} />
+                                        <Route index element={<ContractorAwareHome />} />
                                         <Route path="my-dashboard" element={<PersonalDashboard />} />
 
                                         {/* Projects Routes */}

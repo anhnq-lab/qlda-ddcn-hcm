@@ -4,6 +4,7 @@
 import { generateSummary } from '../aiService';
 import { DashboardService } from '../DashboardService';
 import { ProjectService } from '../ProjectService';
+import { supabase } from '../../lib/supabase';
 
 interface CachedSummary {
     text: string;
@@ -26,6 +27,84 @@ function setCache(key: string, text: string) {
     summaryCache.set(key, { text, timestamp: Date.now() });
 }
 
+/** Get the ISO date string for 7 days ago */
+function oneWeekAgo(): string {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+}
+
+/** Fetch recent weekly activities from contracts, payments, tasks */
+async function getWeeklyActivities() {
+    const since = oneWeekAgo();
+    try {
+        const [
+            { data: newContracts },
+            { data: recentPayments },
+            { data: completedTasks },
+            { data: contractors },
+        ] = await Promise.all([
+            // Contracts created or signed this week
+            supabase.from('contracts')
+                .select('contract_id, contract_name, contractor_id, value, status, sign_date, created_at, project_id')
+                .or(`created_at.gte.${since},sign_date.gte.${since}`)
+                .order('created_at', { ascending: false })
+                .limit(10),
+            // Payments approved or transferred this week
+            supabase.from('payments')
+                .select('payment_id, contract_id, amount, status, approved_date, paid_date, description, project_id')
+                .or(`approved_date.gte.${since},paid_date.gte.${since}`)
+                .order('approved_date', { ascending: false })
+                .limit(10),
+            // Tasks completed this week
+            supabase.from('tasks')
+                .select('task_id, title, status, project_id')
+                .eq('status', 'Done')
+                .gte('updated_at', since)
+                .order('updated_at', { ascending: false })
+                .limit(10),
+            // All contractors for name lookup
+            supabase.from('contractors')
+                .select('contractor_id, full_name'),
+        ]);
+
+        // Build contractor name lookup
+        const contractorMap = new Map<string, string>();
+        (contractors || []).forEach((c: any) => {
+            contractorMap.set(c.contractor_id, c.full_name);
+        });
+
+        // Build contract name lookup from fetched contracts + payment contracts
+        const contractIds = (recentPayments || []).map((p: any) => p.contract_id).filter(Boolean);
+        let contractMap = new Map<string, string>();
+        if (contractIds.length > 0) {
+            const { data: paymentContracts } = await supabase
+                .from('contracts')
+                .select('contract_id, contract_name')
+                .in('contract_id', contractIds);
+            (paymentContracts || []).forEach((c: any) => {
+                contractMap.set(c.contract_id, c.contract_name);
+            });
+        }
+
+        return {
+            newContracts: (newContracts || []).map((c: any) => ({
+                ...c,
+                contractorName: contractorMap.get(c.contractor_id) || c.contractor_id,
+            })),
+            recentPayments: (recentPayments || []).map((p: any) => ({
+                ...p,
+                contractName: contractMap.get(p.contract_id) || p.contract_id,
+            })),
+            completedTasks: completedTasks || [],
+            since,
+        };
+    } catch (err) {
+        console.warn('Failed to fetch weekly activities:', err);
+        return { newContracts: [], recentPayments: [], completedTasks: [], since };
+    }
+}
+
 /**
  * Tóm tắt dashboard tổng quan
  */
@@ -37,19 +116,34 @@ export async function getDashboardSummary(forceRefresh = false): Promise<string>
     }
 
     try {
-        const [metrics, risks, deadlines, statusDist] = await Promise.all([
-            DashboardService.getMetrics(),
+        const currentYear = new Date().getFullYear();
+        const [metrics, risks, weeklyActivities] = await Promise.all([
+            DashboardService.getOverviewMetrics(currentYear),
             DashboardService.getRisks(),
-            DashboardService.getDeadlines(),
-            DashboardService.getProjectStatusDistribution(),
+            getWeeklyActivities(),
         ]);
 
         const data = {
             metrics,
             riskCount: risks.length,
             topRisks: risks.slice(0, 3),
-            upcomingDeadlines: deadlines.slice(0, 5),
-            statusDistribution: statusDist,
+            weeklyActivities: {
+                newContracts: weeklyActivities.newContracts.map((c: any) => ({
+                    contractName: c.contract_name,
+                    contractorName: c.contractorName,
+                    value: c.value,
+                    status: c.status,
+                    signDate: c.sign_date,
+                })),
+                recentPayments: weeklyActivities.recentPayments.map((p: any) => ({
+                    contractName: p.contractName,
+                    amount: p.amount,
+                    status: p.status,
+                    description: p.description,
+                })),
+                completedTasks: weeklyActivities.completedTasks.length,
+                period: `${weeklyActivities.since} → ${new Date().toISOString().split('T')[0]}`,
+            },
             currentDate: new Date().toISOString(),
         };
 

@@ -2,7 +2,7 @@
 
 **Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp — UBND TP. Hồ Chí Minh**
 
-Phiên bản 1.0 • 12/03/2026 • CIC — Construction Information Center
+Phiên bản 1.0 • 12/03/2026 • CIC Technology and Consultancy JSC
 
 ---
 
@@ -57,7 +57,6 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 - **Luật Đấu thầu số 22/2023/QH15** — Quy định về lựa chọn nhà thầu, nhà đầu tư
 - **Nghị định 175/2024/NĐ-CP** — Hướng dẫn thi hành Luật Xây dựng
 - **Nghị định 214/2025/NĐ-CP** — Hướng dẫn thi hành Luật Đấu thầu
-- **Thông tư 24/2025/TT-BXD** — Biểu mẫu quản lý dự án đầu tư xây dựng
 
 #### Về chuyển đổi số và cơ sở dữ liệu
 
@@ -69,6 +68,7 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 - **Quyết định 2289/QĐ-TTg** — Chiến lược quốc gia về Cách mạng công nghiệp lần thứ 4
 - **Nghị quyết 52-NQ/TW** — Chủ trương, chính sách chủ động tham gia Cách mạng công nghiệp 4.0
 - **Nghị quyết 57-NQ/TW** (ngày 22/12/2024) — Đột phá phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số quốc gia
+- **Thông tư 24/2025/TT-BXD** — Hướng dẫn khoản 4 Điều 8 NĐ 111/2024: thông tin chi tiết trong hệ thống CSDL quốc gia về hoạt động xây dựng (quy hoạch, dự án ĐTXD, mã số thông tin, biểu mẫu dữ liệu mở)
 
 *Pháp luật đã có, định hướng đã rõ ràng. Vậy thực trạng quản lý dự án hiện nay của chúng ta đang gặp những thách thức gì? Xin thẳng thắn nhìn nhận 5 vấn đề cốt lõi:*
 
@@ -126,16 +126,18 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 > Trung tâm điều hành tổng thể với KPI theo thời gian thực
 
-| Tính năng | Mô tả |
-|-----------|-------|
-| Thẻ KPI thống kê | 5 chỉ số chính: Số dự án, Tổng vốn đầu tư, Giải ngân, Hợp đồng, Cảnh báo rủi ro |
-| Biểu đồ phân bổ | Biểu đồ cột dự án theo Ban QLDA × giai đoạn; Donut cơ cấu vốn |
-| Biểu đồ giải ngân | So sánh kế hoạch vốn và thực hiện giải ngân 12 tháng |
-| Bản đồ vị trí | Bản đồ tương tác hiển thị vị trí tất cả dự án, phân biệt giai đoạn bằng màu |
-| Cảnh báo rủi ro | Công việc quá hạn, vấn đề pháp lý, GPMB — phân loại mức độ nghiêm trọng |
-| Bộ lọc thông minh | Lọc theo dự án, năm, Ban QLDA — tự động cập nhật tất cả biểu đồ |
-| AI Summary | Tóm tắt tình hình bằng AI, phát hiện bất thường, đánh giá rủi ro tự động |
-| Dashboard cá nhân | Trang tổng quan riêng cho từng người dùng với công việc được giao |
+**Mục tiêu:** Cung cấp cho lãnh đạo Ban QLDA cái nhìn toàn cảnh về tình hình thực hiện dự án, tài chính, tiến độ và rủi ro — thay thế hoàn toàn phương thức báo cáo định kỳ bằng giấy. Mỗi chỉ số, biểu đồ đều phản ánh dữ liệu thực tế theo thời gian thực, giúp ra quyết định nhanh chóng và chính xác. AI Summary tự động phân tích dữ liệu, phát hiện bất thường mà con người có thể bỏ sót.
+
+| Tính năng | Mô tả | Ý nghĩa |
+|-----------|-------|---------|
+| Thẻ KPI thống kê | 5 chỉ số chính: Số dự án, Tổng vốn đầu tư, Giải ngân, Hợp đồng, Cảnh báo rủi ro | Lãnh đạo nắm bắt ngay sức khỏe danh mục dự án mà không cần chờ báo cáo |
+| Biểu đồ phân bổ | Biểu đồ cột dự án theo Ban QLDA × giai đoạn; Donut cơ cấu vốn | So sánh quy mô, phân bổ nguồn lực giữa các Ban, phát hiện mất cân đối |
+| Biểu đồ giải ngân | So sánh kế hoạch vốn và thực hiện giải ngân 12 tháng | Phát hiện sớm tình trạng chậm giải ngân, chủ động điều chỉnh kế hoạch |
+| Bản đồ vị trí | Bản đồ tương tác hiển thị vị trí tất cả dự án, phân biệt giai đoạn bằng màu | Trực quan hóa phân bố dự án trên địa bàn, hỗ trợ quy hoạch và giám sát |
+| Cảnh báo rủi ro | Công việc quá hạn, vấn đề pháp lý, GPMB — phân loại mức độ nghiêm trọng | Cảnh báo sớm để xử lý kịp thời, tránh vi phạm pháp luật và chậm tiến độ |
+| Bộ lọc thông minh | Lọc theo dự án, năm, Ban QLDA — tự động cập nhật tất cả biểu đồ | Mỗi Ban QLDA chỉ thấy dữ liệu thuộc phạm vi quản lý, đảm bảo phân quyền |
+| AI Summary | Tóm tắt tình hình bằng AI, phát hiện bất thường, đánh giá rủi ro tự động | Giảm tải phân tích cho cán bộ, phát hiện vấn đề mà người khó nhận ra |
+| Dashboard cá nhân | Trang tổng quan riêng cho từng người dùng với công việc được giao | Mỗi cán bộ chủ động nắm bắt công việc của mình, tăng trách nhiệm cá nhân |
 
 *Từ Dashboard tổng quan, khi cần đi sâu vào từng dự án cụ thể, chúng ta chuyển sang module tiếp theo:*
 
@@ -143,17 +145,19 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 > Quản lý toàn diện thông tin dự án theo Luật ĐTC 58/2024/QH15 — 8 tab chi tiết
 
-| Tính năng | Mô tả |
-|-----------|-------|
-| Danh sách dự án | Hiển thị dạng thẻ (Card) với tiến độ, giai đoạn, Ban QLDA; tìm kiếm và lọc đa tiêu chí |
-| Tab Thông tin | Thông tin chung, chủ đầu tư, quyết định phê duyệt, phân loại nhóm (QN/A/B/C) |
-| Tab Vốn & Giải ngân | Kế hoạch vốn theo Luật ĐTC 2024, theo dõi giải ngân, quyết toán |
-| Tab Tuân thủ pháp lý | Checklist TT24/2025/TT-BXD, hồ sơ PCCC, môi trường, giấy phép XD |
-| Tab Tài liệu | Quản lý hồ sơ theo giai đoạn, upload/download, preview trực tiếp |
-| Tab Gói thầu | Kế hoạch LCNT, đấu thầu, chỉ định thầu, tự thực hiện, đánh giá HSDT |
-| Tab Kế hoạch | Gantt chart, milestone, tiến độ, phân bổ nguồn lực |
-| Tab Vận hành | Nghiệm thu công trình, bàn giao, quyết toán, bảo hành |
-| Vòng đời | Timeline 3 giai đoạn: Chuẩn bị → Thực hiện → Kết thúc (theo NĐ 175/2024) |
+**Mục tiêu:** Tập trung toàn bộ thông tin dự án đầu tư xây dựng vào một nơi duy nhất — từ quyết định phê duyệt, kế hoạch vốn, tuân thủ pháp lý, đến gói thầu và nghiệm thu. Mỗi tab được thiết kế theo đúng quy trình nghiệp vụ và căn cứ pháp luật hiện hành, giúp cán bộ thao tác đúng quy chuẩn ngay từ đầu.
+
+| Tính năng | Mô tả | Ý nghĩa |
+|-----------|-------|---------|
+| Danh sách dự án | Hiển thị dạng thẻ (Card) với tiến độ, giai đoạn, Ban QLDA; tìm kiếm và lọc đa tiêu chí | Nhanh chóng tìm đúng dự án cần xem, nắm bắt tình trạng ngay tại trang danh sách |
+| Tab Thông tin | Thông tin chung, chủ đầu tư, quyết định phê duyệt, phân loại nhóm (QN/A/B/C) | Lưu trữ đầy đủ hồ sơ pháp lý dự án, tra cứu nhanh khi cần |
+| Tab Vốn & Giải ngân | Kế hoạch vốn theo Luật ĐTC 2024, theo dõi giải ngân, quyết toán | Quản lý chặt chẽ nguồn vốn, đối chiếu kế hoạch–thực hiện theo quy định |
+| Tab Tuân thủ pháp lý | Checklist TT24/2025/TT-BXD, hồ sơ PCCC, môi trường, giấy phép XD | Đảm bảo không bỏ sót thủ tục pháp lý bắt buộc, giảm rủi ro vi phạm |
+| Tab Tài liệu | Quản lý hồ sơ theo giai đoạn, upload/download, preview trực tiếp | Tập trung tài liệu dự án, tránh thất lạc, truy xuất nhanh khi thanh kiểm tra |
+| Tab Gói thầu | Kế hoạch LCNT, đấu thầu, chỉ định thầu, tự thực hiện, đánh giá HSDT | Theo dõi toàn bộ hoạt động đấu thầu, đảm bảo tuân thủ Luật Đấu thầu |
+| Tab Kế hoạch | Gantt chart, milestone, tiến độ, phân bổ nguồn lực | Kiểm soát tiến độ trực quan, phát hiện sớm công việc trễ hạn |
+| Tab Vận hành | Nghiệm thu công trình, bàn giao, quyết toán, bảo hành | Quản lý giai đoạn kết thúc dự án theo đúng trình tự pháp lý |
+| Vòng đời | Timeline 3 giai đoạn: Chuẩn bị → Thực hiện → Kết thúc (theo NĐ 175/2024) | Theo dõi trực quan dự án đang ở giai đoạn nào, dễ dàng báo cáo |
 
 *Đây là một trong những tính năng đột phá nhất của hệ thống — lần đầu tiên, Ban QLDA có thể xem trực tiếp mô hình 3D của công trình mà không cần cài bất kỳ phần mềm nào:*
 
@@ -178,6 +182,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 > Common Data Environment theo tiêu chuẩn ISO 19650
 
+**Mục tiêu:** Tạo một môi trường chia sẻ tài liệu chung giữa Ban QLDA, chủ đầu tư, nhà thầu và tư vấn — đảm bảo mọi bên đều làm việc trên phiên bản tài liệu mới nhất, có quy trình duyệt rõ ràng, truy xuất nguồn gốc được mọi thao tác. Đây là yêu cầu bắt buộc khi triển khai BIM theo chuẩn quốc tế.
+
 | Tính năng | Mô tả |
 |-----------|-------|
 | Folder Tree | Cấu trúc thư mục phân cấp: WIP → SHARED → PUBLISHED → ARCHIVED |
@@ -196,6 +202,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 > Quản lý toàn bộ vòng đời hợp đồng xây dựng
 
+**Mục tiêu:** Kiểm soát chặt chẽ toàn bộ vòng đời hợp đồng từ ký kết đến thanh lý — liên kết trực tiếp với dự án và nhà thầu tương ứng, đảm bảo không bỏ sót phụ lục, gia hạn hay điều kiện thanh toán.
+
 | Tính năng | Mô tả |
 |-----------|-------|
 | Danh sách HĐ | Tìm kiếm, lọc theo trạng thái (Đang thực hiện / Tạm dừng / Đã thanh lý) |
@@ -206,6 +214,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 ### 3.6. Quản lý Thanh toán
 
 > Theo dõi thanh toán, giải ngân cho các dự án và hợp đồng
+
+**Mục tiêu:** Minh bạch hóa toàn bộ quy trình thanh toán — từ đề nghị tạm ứng, thanh toán khối lượng đến quyết toán. So sánh kế hoạch và thực hiện giải ngân, phục vụ công tác báo cáo UBND và kiểm toán.
 
 | Tính năng | Mô tả |
 |-----------|-------|
@@ -219,6 +229,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 ### 3.7. Quản lý Công việc
 
 > Quản lý và phân công công việc, theo dõi tiến độ
+
+**Mục tiêu:** Số hóa quy trình phân công và theo dõi công việc hàng ngày theo phương pháp Kanban — thay thế việc giao việc qua lời nói, email rời rạc. Mỗi công việc có người chịu trách nhiệm, thời hạn rõ ràng và trạng thái cập nhật liên tục.
 
 | Tính năng | Mô tả |
 |-----------|-------|
@@ -234,6 +246,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 > Quản lý thông tin nhân viên Ban QLDA
 
+**Mục tiêu:** Nắm rõ nguồn nhân lực của toàn bộ 5 Ban QLDA — ai đang phụ trách dự án nào, năng lực chuyên môn ra sao, hỗ trợ phân công công việc hợp lý và lập kế hoạch đào tạo.
+
 | Tính năng | Mô tả |
 |-----------|-------|
 | Danh sách nhân viên | Thông tin cá nhân, chức vụ, phòng ban, Ban QLDA |
@@ -243,6 +257,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 ### 3.9. Quản lý Nhà thầu
 
 > Quản lý thông tin các nhà thầu, đơn vị tư vấn
+
+**Mục tiêu:** Xây dựng cơ sở dữ liệu nhà thầu tập trung — đánh giá năng lực, theo dõi lịch sử thực hiện hợp đồng, sử dụng AI chấm điểm tự động để hỗ trợ lựa chọn nhà thầu cho các dự án tiếp theo.
 
 | Tính năng | Mô tả |
 |-----------|-------|
@@ -255,6 +271,8 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 ### 3.10. Hồ sơ Tài liệu
 
 > Quản lý hồ sơ, tài liệu dự án tập trung
+
+**Mục tiêu:** Tập trung toàn bộ hồ sơ, văn bản dự án vào một kho lưu trữ số — phân loại theo dự án, giai đoạn, loại tài liệu. Thay thế việc lưu trữ trên máy cá nhân, USB, giúp truy xuất nhanh khi thanh tra, kiểm toán.
 
 | Tính năng | Mô tả |
 |-----------|-------|
@@ -300,22 +318,38 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 *Quý Ban có thể thắc mắc: với nhiều tính năng như vậy, hệ thống được xây dựng trên nền tảng công nghệ nào? Xin trình bày kiến trúc kỹ thuật — đây là phần đảm bảo hệ thống hoạt động ổn định, nhanh và an toàn:*
 
-### Kiến trúc 4 tầng
+### Kiến trúc hệ thống — giải thích đơn giản
 
-| Tầng | Công nghệ | Mô tả |
-|------|-----------|-------|
-| **Frontend** | React 18 + TypeScript + Vite | SPA hiện đại, code-splitting, lazy loading |
-| **UI/UX** | TailwindCSS + Recharts + Leaflet | Responsive, Dark/Light mode, Charts, Maps |
-| **Backend** | Supabase (PostgreSQL + Auth) | RESTful API tự động, Realtime, Storage, RLS |
-| **AI / BIM** | Gemini API + Three.js + IFC.js | AI Summary, Risk Detection, 3D BIM Viewer |
+Hệ thống được xây dựng theo kiến trúc 4 tầng, mỗi tầng đảm nhận một vai trò riêng:
 
-### Đặc điểm kỹ thuật
+| Tầng | Vai trò | Giải thích dễ hiểu | Ưu điểm so với cách làm truyền thống |
+|------|---------|---------------------|---------------------------------------|
+| **Giao diện người dùng** | Phần mà cán bộ nhìn thấy và thao tác trên trình duyệt | Giống như mở một trang web — gõ địa chỉ, đăng nhập và sử dụng ngay. Trang chỉ cần tải một lần, sau đó chuyển đổi giữa các module rất nhanh, không cần chờ tải lại | Nhanh gấp 3–5 lần so với phần mềm web thế hệ cũ (kiểu trang phải tải lại mỗi lần nhấn) |
+| **Giao diện & Biểu đồ** | Bao gồm biểu đồ, bản đồ, bảng biểu, chế độ sáng/tối | Tất cả biểu đồ giải ngân, bản đồ dự án, bảng số liệu đều hiển thị đẹp và tự co giãn theo kích thước màn hình (máy tính, máy tính bảng, điện thoại) | Giao diện linh hoạt, thiết kế riêng cho QLDA — không bị gò bó như phần mềm quản lý nước ngoài |
+| **Máy chủ & Cơ sở dữ liệu** | Nơi lưu trữ toàn bộ dữ liệu dự án, tài khoản, hồ sơ | Sử dụng hệ quản trị CSDL PostgreSQL — hệ thống mã nguồn mở hàng đầu thế giới, ổn định và miễn phí bản quyền. Tự động bảo mật dữ liệu: mỗi người chỉ truy cập được phần dữ liệu thuộc phạm vi quản lý | Chi phí thấp hơn 70–80% so với mua bản quyền Oracle hoặc SQL Server; không cần đội ngũ lập trình viên riêng cho phần máy chủ |
+| **Trí tuệ nhân tạo & Mô hình 3D** | AI phân tích dữ liệu, BIM hiển thị mô hình công trình | AI (Gemini của Google) tự động tóm tắt tình hình dự án, phát hiện bất thường. Mô hình 3D công trình (BIM) xem trực tiếp trên trình duyệt, không cần cài phần mềm chuyên dụng | Thay thế phần mềm BIM desktop đắt tiền (Navisworks, Autodesk BIM 360 — mỗi người dùng khoảng 12 triệu đồng/năm); AI tích hợp sẵn, không mất thêm chi phí |
 
-- **Single Page Application (SPA)** — tải một lần, điều hướng tức thì
-- **Code-splitting** — chỉ tải module khi cần, giảm thời gian khởi động
-- **TanStack Query** — quản lý state server-side, cache thông minh
-- **Realtime subscriptions** — dữ liệu cập nhật tự động khi có thay đổi
-- **Responsive Design** — hoạt động tốt trên desktop, tablet, mobile
+### Tại sao chọn nền tảng này?
+
+**So sánh với các giải pháp phổ biến trên thị trường:**
+
+| Tiêu chí | Hệ thống QLDA ĐTXD | Giải pháp truyền thống (SAP, Oracle, SharePoint...) |
+|----------|---------------------|------------------------------------------------------|
+| **Chi phí** | **Thấp** — dùng nền tảng mã nguồn mở, không tốn phí bản quyền hàng năm | **Cao** — phí bản quyền SAP từ 2,5 tỷ đồng/năm; Oracle từ 1,2 tỷ đồng/năm |
+| **Phù hợp nghiệp vụ** | Thiết kế riêng cho quản lý dự án ĐTXD theo pháp luật Việt Nam | Phần mềm quốc tế, phải tùy chỉnh rất nhiều mới phù hợp quy trình VN |
+| **Xem mô hình 3D (BIM)** | Có sẵn — xem ngay trên trình duyệt | Phải mua thêm phần mềm BIM riêng (khoảng 12 triệu/người/năm) |
+| **Trí tuệ nhân tạo (AI)** | Tích hợp sẵn — tóm tắt, phát hiện bất thường tự động | Chưa có hoặc phải mua thêm module |
+| **Thời gian triển khai** | **12 tuần** (1 quý) | 6–18 tháng |
+| **Cài đặt** | Không cần cài đặt — mở trình duyệt là dùng | Phải cài phần mềm trên từng máy, đào tạo phức tạp |
+| **Tuân thủ pháp luật VN** | Đã tích hợp sẵn: Luật ĐTC, Luật XD 135, TT24, NĐ 111 | Phải thuê đơn vị tùy chỉnh thêm |
+
+### Các đặc điểm kỹ thuật nổi bật
+
+- **Mở là dùng ngay** — chỉ cần trình duyệt web (Chrome, Edge...), không cần cài đặt phần mềm
+- **Tốc độ nhanh** — hệ thống chỉ tải phần đang dùng, giảm 60% thời gian chờ so với phần mềm thông thường
+- **Dữ liệu cập nhật tức thì** — khi có người nhập liệu, tất cả các màn hình liên quan tự động cập nhật, không cần nhấn "Làm mới"
+- **Hiển thị tốt trên mọi thiết bị** — máy tính bàn, laptop, máy tính bảng, điện thoại
+- **Bảo mật từ gốc** — quyền truy cập được kiểm soát ngay tại tầng cơ sở dữ liệu, không thể vượt qua dù bằng cách nào
 
 ---
 
@@ -414,12 +448,12 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 | | |
 |---|---|
-| **Đơn vị phát triển** | CIC — Construction Information Center |
+| **Đơn vị phát triển** | CIC Technology and Consultancy JSC |
 | **Website** | https://www.cic.com.vn |
-| **Email hỗ trợ** | support@cic.com.vn |
+| **Email hỗ trợ** | anhnq@cic.com.vn |
 | **Phiên bản** | 1.0 |
 | **Ngày phát hành** | 12/03/2026 |
 
 ---
 
-*© 2026 Ban QLDA ĐTXD DDCN — UBND TP. Hồ Chí Minh. Bản quyền thuộc về CIC.*
+*© 2026 Ban QLDA ĐTXD DDCN — UBND TP. Hồ Chí Minh. Bản quyền thuộc về CIC Technology and Consultancy JSC.*

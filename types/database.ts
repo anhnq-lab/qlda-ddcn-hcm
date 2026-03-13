@@ -675,6 +675,7 @@ export type Database = {
           auth_user_id: string | null
           contractor_id: string
           created_at: string | null
+          current_password: string | null
           display_name: string
           email: string | null
           id: string
@@ -688,6 +689,7 @@ export type Database = {
           auth_user_id?: string | null
           contractor_id: string
           created_at?: string | null
+          current_password?: string | null
           display_name: string
           email?: string | null
           id?: string
@@ -701,6 +703,7 @@ export type Database = {
           auth_user_id?: string | null
           contractor_id?: string
           created_at?: string | null
+          current_password?: string | null
           display_name?: string
           email?: string | null
           id?: string
@@ -845,6 +848,50 @@ export type Database = {
           },
           {
             foreignKeyName: "contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
+      disbursement_plans: {
+        Row: {
+          actual_amount: number
+          created_at: string | null
+          id: string
+          month: number
+          notes: string | null
+          planned_amount: number
+          project_id: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          actual_amount?: number
+          created_at?: string | null
+          id?: string
+          month: number
+          notes?: string | null
+          planned_amount?: number
+          project_id: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          actual_amount?: number
+          created_at?: string | null
+          id?: string
+          month?: number
+          notes?: string | null
+          planned_amount?: number
+          project_id?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disbursement_plans_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -2009,6 +2056,33 @@ export type Database = {
             referencedColumns: ["employee_id"]
           },
         ]
+      }
+      user_permissions: {
+        Row: {
+          actions: string[] | null
+          created_at: string | null
+          id: string
+          resource: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions?: string[] | null
+          created_at?: string | null
+          id?: string
+          resource: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions?: string[] | null
+          created_at?: string | null
+          id?: string
+          resource?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       variation_orders: {
         Row: {
