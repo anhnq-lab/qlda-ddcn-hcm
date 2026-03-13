@@ -6,6 +6,16 @@ import { NationalGatewayService, SyncResult } from '@/services/NationalGatewaySe
 import { Project, Employee, ProjectStage } from '@/types';
 import { useTasks, useUpdateTask } from '@/hooks/useTasks';
 import { useBiddingPackages } from '@/hooks/useBiddingPackages';
+
+/** Props when rendering inside a SlidePanel */
+export interface ProjectDetailProps {
+    /** If provided, overrides useParams().id — used when rendering in a panel */
+    projectId?: string;
+    /** Called to close this panel */
+    onClose?: () => void;
+    /** Render in panel mode (no breadcrumb nav, adjusted height) */
+    inPanel?: boolean;
+}
 import { supabase } from '@/lib/supabase';
 import { ProjectHeader } from './components/ProjectHeader';
 import { ProjectInfoTab } from './components/tabs/ProjectInfoTab';
@@ -116,8 +126,9 @@ class BimErrorBoundary extends React.Component<BimErrorBoundaryProps, BimErrorBo
 }
 
 // ─────── Main Component ───────
-const ProjectDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId, onClose, inPanel = false }) => {
+    const { id: paramId } = useParams<{ id: string }>();
+    const id = propProjectId || paramId;
     const location = useLocation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -320,7 +331,7 @@ const ProjectDetail: React.FC = () => {
     if (!project) return <div className="flex h-screen items-center justify-center font-bold text-gray-500 dark:text-slate-400">Dự án không tồn tại.</div>;
 
     return (
-        <div className="flex flex-col relative h-[calc(100vh-120px)] bg-[#F8FAFC] dark:bg-slate-900">
+        <div className={`flex flex-col relative ${inPanel ? 'h-screen' : 'h-[calc(100vh-120px)]'} bg-[#F8FAFC] dark:bg-slate-900`}>
             {/* Fixed Header + Tabs — does NOT scroll */}
             <div className={`shrink-0 px-4 ${activeTab === 'bim' || activeTab === 'operations' ? 'pt-2' : 'pt-4'}`}>
                 {/* 1. Header */}

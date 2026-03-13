@@ -1646,3 +1646,92 @@
 [data-bim-viewer] .to-cyan-600 {
   --tw-gradient-to: #0891b2 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Slide Panel – Bitrix24-style right-side sliding panel system
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Slide-in animation ────────────────────────────────────────────── */
+@keyframes slidePanelIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slidePanelOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0.5;
+  }
+}
+
+/* ─── Backdrop fade animation ───────────────────────────────────────── */
+@keyframes slidePanelBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slidePanelBackdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ─── Tab ear fade-in ──────────────────────────────────────────────── */
+@keyframes slideTabFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Panel enter/exit ──────────────────────────────────────────────── */
+.slide-panel-enter {
+  animation: slidePanelIn 280ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.slide-panel-exit {
+  animation: slidePanelOut 220ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.slide-panel-backdrop-enter {
+  animation: slidePanelBackdropIn 200ms ease-out forwards;
+}
+
+.slide-panel-backdrop-exit {
+  animation: slidePanelBackdropOut 180ms ease-in forwards;
+}
+
+/* ─── Panel shadow — prominent floating effect ─────────────────────── */
+.slide-panel-stacked {
+  box-shadow:
+    -16px 0 60px -12px rgba(0, 0, 0, 0.2),
+    -6px 0 24px -6px rgba(0, 0, 0, 0.14),
+    -2px 0 8px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.dark .slide-panel-stacked {
+  box-shadow:
+    -16px 0 60px -12px rgba(0, 0, 0, 0.7),
+    -6px 0 24px -6px rgba(0, 0, 0, 0.5),
+    -2px 0 8px 0 rgba(0, 0, 0, 0.4),
+    -1px 0 0 0 rgba(212, 160, 23, 0.25),
+    0 0 40px -10px rgba(212, 160, 23, 0.15);
+}
+
+/* ─── Tab Ear ──────────────────────────────────────────────────────── */
+.slide-panel-tab {
+  animation: slideTabFadeIn 250ms ease-out 200ms both;
+}
+
+/* ─── Prevent body scroll when panel is open ────────────────────────── */
+body.slide-panel-open {
+  overflow: hidden;
+}

@@ -6,6 +6,8 @@ import { AIChatbot } from '../components/common/AIChatbot';
 import { GlobalSearch } from '../components/common/GlobalSearch';
 import { Breadcrumb } from '../components/common/Breadcrumb';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
+import { SlidePanelContainer } from '../components/ui/SlidePanel';
+import { SlidePanelProvider } from '../context/SlidePanelContext';
 import { useAuth } from '../context/AuthContext';
 import { useImpersonation } from '../context/ImpersonationContext';
 import { UserCheck, X } from 'lucide-react';
@@ -53,6 +55,7 @@ const MainLayout: React.FC = () => {
     if (!isAuthenticated) return <Navigate to="/login" />;
 
     return (
+        <SlidePanelProvider>
         <div className="flex h-screen overflow-hidden bg-surface-primary dark:bg-slate-950">
             {/* Mobile Overlay */}
             {isSidebarOpen && (
@@ -150,7 +153,11 @@ const MainLayout: React.FC = () => {
                 isOpen={isSearchOpen}
                 onClose={() => setIsSearchOpen(false)}
             />
+
+            {/* ═══ Slide Panel System (Bitrix24-style) ═══ */}
+            <SlidePanelContainer isSidebarCollapsed={isSidebarCollapsed} />
         </div>
+        </SlidePanelProvider>
     );
 };
 

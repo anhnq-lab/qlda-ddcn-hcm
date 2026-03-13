@@ -1,18 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { ProjectStatus, ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { ProjectCard } from './ProjectCard';
 import { ProjectStats } from './ProjectStats';
-import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown, FolderOpen } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { CreateProjectModal, SelectedMember } from './components/CreateProjectModal';
 import ProjectService from '../../services/ProjectService';
 import { Project } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { useSlidePanel } from '../../context/SlidePanelContext';
+import ProjectDetail from './ProjectDetail';
 
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
+    const { openPanel, closePanel } = useSlidePanel();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default open for large screens
 
@@ -89,6 +92,22 @@ const ProjectList: React.FC = () => {
             alert('Có lỗi xảy ra khi tạo dự án. Vui lòng thử lại.');
         }
     };
+
+    // Open project detail in slide panel
+    const handleOpenProject = useCallback((project: Project) => {
+        openPanel({
+            title: project.ProjectName,
+            icon: <FolderOpen size={14} />,
+            url: `/projects/${project.ProjectID}`,
+            component: (
+                <ProjectDetail
+                    projectId={project.ProjectID}
+                    onClose={() => closePanel()}
+                    inPanel
+                />
+            ),
+        });
+    }, [openPanel, closePanel]);
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 pb-20">
@@ -280,7 +299,7 @@ const ProjectList: React.FC = () => {
                                     <ProjectCard
                                         key={project.ProjectID}
                                         project={project}
-                                        onClick={() => navigate(`/projects/${project.ProjectID}`)}
+                                        onClick={() => handleOpenProject(project)}
                                         layout={viewMode}
                                     />
                                 ))}
