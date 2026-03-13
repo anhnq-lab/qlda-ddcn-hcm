@@ -41,7 +41,7 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 - **Dữ liệu là trung tâm** — Ai nắm dữ liệu chính xác, kịp thời sẽ ra quyết định đúng đắn
 - **Số hóa quy trình** — Chuyển từ quản lý giấy tờ, Excel sang nền tảng số tập trung
-- **Kết nối thông minh** — Các hệ thống được liên kết: BIM, AI, IoT, CSDL quốc gia
+- **Kết nối thông minh** — Các hệ thống được liên kết: BIM, AI, IoT, CSDL quốc gia đây là nền tảng digital twin
 - **Ra quyết định dựa trên dữ liệu** — Thay vì cảm tính, lãnh đạo có dashboard realtime với KPI chính xác
 
 *Trong bối cảnh đó, Đảng và Nhà nước đã ban hành hàng loạt chính sách, pháp luật quan trọng — tạo nền tảng pháp lý vững chắc cho việc chuyển đổi số trong lĩnh vực xây dựng.*
