@@ -20,13 +20,13 @@ Phiên bản 1.0 • 12/03/2026 • CIC Technology and Consultancy JSC
 
 ## 1. BỐI CẢNH & MỤC TIÊU
 
-*Kính thưa quý Ban lãnh đạo, trước khi đi vào chi tiết phần mềm, cho phép tôi trình bày bối cảnh vì sao chúng ta cần một hệ thống quản lý dự án số hóa tại thời điểm này.*
+*Kính thưa quý Ban lãnh đạo, trước khi đi vào chi tiết phần mềm, cho phép em trình bày bối cảnh vì sao chúng ta cần một hệ thống quản lý dự án số hóa tại thời điểm này.*
 
 ### Cuộc Cách mạng Công nghiệp và xu thế Chuyển đổi số
 
-*Nhìn lại lịch sử, nhân loại đã trải qua 4 cuộc cách mạng công nghiệp lớn. Mỗi cuộc cách mạng thay đổi hoàn toàn cách chúng ta làm việc — và cuộc cách mạng lần thứ 4 đang diễn ra ngay lúc này:*
+*Nhìn lại lịch sử,như anh chị đã biết trên thế giới hiện nay đã trải qua 4 cuộc cách mạng công nghiệp lớn. mỗi cuộc cách mạng đánh dấu bước ngoặt trong cách con người sản xuất, quản lý và vận hành. Nó thay đổi hoàn toàn cách chúng ta làm việc — và cuộc cách mạng lần thứ 4 đang diễn ra ngay lúc này:*
 
-Lịch sử phát triển loài người đã trải qua **4 cuộc cách mạng công nghiệp**, mỗi cuộc cách mạng đánh dấu bước ngoặt trong cách con người sản xuất, quản lý và vận hành:
+Lịch sử phát triển loài người đã trải qua **4 cuộc cách mạng công nghiệp**, , :
 
 | Giai đoạn | Thời kỳ | Đặc trưng | Động lực chính | Ý nghĩa |
 |-----------|---------|-----------|----------------|----------|
@@ -41,7 +41,7 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 - **Dữ liệu là trung tâm** — Ai nắm dữ liệu chính xác, kịp thời sẽ ra quyết định đúng đắn
 - **Số hóa quy trình** — Chuyển từ quản lý giấy tờ, Excel sang nền tảng số tập trung
-- **Kết nối thông minh** — Các hệ thống được liên kết: BIM, AI, IoT, CSDL quốc gia đây là nền tảng digital twin
+- **Kết nối thông minh** — Các hệ thống được liên kết: BIM, AI, IoT, CSDL quốc gia đây là nền tảng digital twin, khái niệm bản sao số của đô thị được đưa vào trong nghị quyết 57
 - **Ra quyết định dựa trên dữ liệu** — Thay vì cảm tính, lãnh đạo có dashboard realtime với KPI chính xác
 
 *Trong bối cảnh đó, Đảng và Nhà nước đã ban hành hàng loạt chính sách, pháp luật quan trọng — tạo nền tảng pháp lý vững chắc cho việc chuyển đổi số trong lĩnh vực xây dựng.*
@@ -96,9 +96,9 @@ Hiện nay, chúng ta đang ở giữa **Cuộc Cách mạng Công nghiệp lầ
 
 ## 2. TỔNG QUAN HỆ THỐNG
 
-*Sau khi hiểu rõ bối cảnh và mục tiêu, bây giờ cho phép tôi giới thiệu tổng quan về hệ thống. Đây là một nền tảng web hiện đại, không cần cài đặt — chỉ cần mở trình duyệt là có thể sử dụng ngay. Trước hết, xin tóm tắt hệ thống qua một số chỉ số quan trọng:*
+*Sau khi hiểu rõ bối cảnh và mục tiêu, bây giờ cho phép em giới thiệu tổng quan về hệ thống. Đây là một nền tảng web hiện đại, không cần cài đặt — chỉ cần mở trình duyệt là có thể sử dụng ngay. Trước hết, xin tóm tắt hệ thống qua một số tính năng  quan trọng:*
 
-### Các chỉ số chính
+### Các tính năng chính
 
 | Chỉ số | Giá trị | Ghi chú |
 |--------|---------|---------|
