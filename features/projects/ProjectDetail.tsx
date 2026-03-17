@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectService } from '@/services/ProjectService';
@@ -20,7 +20,7 @@ import { supabase } from '@/lib/supabase';
 import { ProjectHeader } from './components/ProjectHeader';
 import { ProjectInfoTab } from './components/tabs/ProjectInfoTab';
 import { ProjectPlanTab } from './components/tabs/ProjectPlanTab';
-const ProjectBimTab = React.lazy(() => import('./components/tabs/ProjectBimTab').then(m => ({ default: m.ProjectBimTab })));
+
 import { ProjectPackagesTab } from './components/tabs/ProjectPackagesTab';
 import { ProjectCapitalTab } from './components/tabs/ProjectCapitalTab';
 import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
@@ -28,11 +28,26 @@ import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
 import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { Info, CalendarCheck, Briefcase, FolderOpen, Layers, Landmark, Database, Settings2, Sparkles } from 'lucide-react';
+import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles } from 'lucide-react';
 import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
 import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
 import { AIForecastChart } from '@/components/ai/AIForecastChart';
 import { AIDocumentDrafter } from '@/components/ai/AIDocumentDrafter';
+import { AIReportModal } from './components/AIReportModal';
+import { generateMonthlyReport } from '@/services/aiService';
+
+// Tab definitions — extracted for reuse
+const TAB_DEFINITIONS = [
+    { id: 'info', label: 'TỔNG QUAN', shortLabel: 'T.QUAN', icon: Info },
+    { id: 'plan', label: 'KẾ HOẠCH/TIẾN ĐỘ', shortLabel: 'K.HOẠCH', icon: CalendarCheck },
+    { id: 'packages', label: 'GÓI THẦU', shortLabel: 'GÓI THẦU', icon: Briefcase },
+    { id: 'capital', label: 'VỐN & GIẢI NGÂN', shortLabel: 'VỐN', icon: Landmark },
+    { id: 'tt24', label: 'DỮ LIỆU TT24', shortLabel: 'TT24', icon: Database },
+    { id: 'documents', label: 'HỒ SƠ & PHÁP LÝ', shortLabel: 'HỒ SƠ', icon: FolderOpen },
+    { id: 'operations', label: 'VẬN HÀNH', shortLabel: 'V.HÀNH', icon: Settings2 },
+] as const;
+
+type TabId = typeof TAB_DEFINITIONS[number]['id'];
 
 // ─────── Skeleton Loading ───────
 const ProjectDetailSkeleton: React.FC = () => (
@@ -82,48 +97,7 @@ const ProjectDetailSkeleton: React.FC = () => (
     </div>
 );
 
-// ─────── BIM Error Boundary ───────
-interface BimErrorBoundaryProps {
-    children: React.ReactNode;
-}
-interface BimErrorBoundaryState {
-    hasError: boolean;
-    error: Error | null;
-}
-class BimErrorBoundary extends React.Component<BimErrorBoundaryProps, BimErrorBoundaryState> {
-    constructor(props: BimErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false, error: null };
-    }
-    static getDerivedStateFromError(error: Error): BimErrorBoundaryState {
-        return { hasError: true, error };
-    }
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        console.error('BIM Tab Error:', error, errorInfo);
-    }
-    render() {
-        if (this.state.hasError) {
-            return (
-                <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8">
-                    <div className="text-red-500 dark:text-red-400 text-lg font-bold">⚠️ BIM Viewer Error</div>
-                    <div className="text-gray-600 dark:text-slate-400 text-sm max-w-lg">
-                        {this.state.error?.message || 'Unknown error'}
-                    </div>
-                    <pre className="text-xs bg-gray-100 dark:bg-slate-800 p-4 rounded-lg max-w-2xl overflow-auto max-h-48 text-left text-gray-500 dark:text-slate-400">
-                        {this.state.error?.stack}
-                    </pre>
-                    <button
-                        onClick={() => this.setState({ hasError: false, error: null })}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    >
-                        Thử lại
-                    </button>
-                </div>
-            );
-        }
-        return this.props.children;
-    }
-}
+
 
 // ─────── Main Component ───────
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId, onClose, inPanel = false }) => {
@@ -139,7 +113,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
 
     // Read initial tab from navigation state (e.g. from TaskDetail breadcrumb)
     const initialTab = (location.state as any)?.activeTab || 'info';
-    const [activeTab, setActiveTab] = useState<'info' | 'plan' | 'packages' | 'capital' | 'documents' | 'bim' | 'tt24' | 'operations'>(initialTab);
+    const [activeTab, setActiveTab] = useState<TabId>(initialTab);
 
     // Sync activeTab when navigating from another page (e.g., PaymentList → Gói thầu tab)
     const openPackageId = (location.state as any)?.openPackageId || null;
@@ -156,6 +130,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
+    // AI Report Modal state
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [reportContent, setReportContent] = useState('');
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportError, setReportError] = useState<string | undefined>();
+
     // Delete confirmation modal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -166,15 +146,34 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     // AI Document Drafter modal
     const [showDrafter, setShowDrafter] = useState(false);
 
-    // Lazy-mount flags: once mounted, stay mounted to preserve 3D engine state
-    const [bimMounted, setBimMounted] = useState(initialTab === 'bim');
+    // Lazy-mount flags: once mounted, stay mounted to preserve state
     const [opsMounted, setOpsMounted] = useState(initialTab === 'operations');
 
-    // Mount BIM/Operations on first visit
+    // Mount Operations on first visit
     useEffect(() => {
-        if (activeTab === 'bim' && !bimMounted) setBimMounted(true);
         if (activeTab === 'operations' && !opsMounted) setOpsMounted(true);
-    }, [activeTab, bimMounted, opsMounted]);
+    }, [activeTab, opsMounted]);
+
+    // Keyboard: Arrow Left/Right to switch tabs when in panel
+    useEffect(() => {
+        if (!inPanel) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                setActiveTab(prev => {
+                    const currentIdx = TAB_DEFINITIONS.findIndex(t => t.id === prev);
+                    if (currentIdx === -1) return prev;
+                    const nextIdx = e.key === 'ArrowRight'
+                        ? Math.min(currentIdx + 1, TAB_DEFINITIONS.length - 1)
+                        : Math.max(currentIdx - 1, 0);
+                    return TAB_DEFINITIONS[nextIdx].id;
+                });
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [inPanel]);
 
     // Refetch project when switching to info tab (picks up DB-trigger stage/progress changes)
     useEffect(() => {
@@ -274,21 +273,53 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
 
     const handleGenerateReport = useCallback(async (type: 'Monitoring' | 'Settlement') => {
         if (!project) return;
-        setIsGeneratingReport(true);
-        try {
-            const report = type === 'Monitoring'
-                ? await NationalGatewayService.generateMonitoringReport(project.ProjectID)
-                : await NationalGatewayService.generateSettlementReport(project.ProjectID);
-            const link = document.createElement('a');
-            link.href = report.url;
-            link.download = `${type}_Report_${project.ProjectID}.pdf`;
-            document.body.appendChild(link);
-            document.body.removeChild(link);
-            alert(`Đã trích xuất báo cáo: ${report.id} thành công!`);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsGeneratingReport(false);
+
+        if (type === 'Monitoring') {
+            // AI-powered monthly report
+            setReportModalOpen(true);
+            setReportLoading(true);
+            setReportContent('');
+            setReportError(undefined);
+            setIsGeneratingReport(true);
+            try {
+                const projectData = {
+                    ProjectID: project.ProjectID,
+                    ProjectName: project.ProjectName,
+                    ProjectNumber: project.ProjectNumber,
+                    GroupCode: project.GroupCode,
+                    Stage: project.Stage,
+                    InvestorName: project.InvestorName,
+                    LocationCode: project.LocationCode,
+                    TotalInvestment: project.TotalInvestment,
+                    PhysicalProgress: project.PhysicalProgress,
+                    FinancialProgress: project.FinancialProgress,
+                    DisbursedAmount: project.DisbursedAmount,
+                    PlannedDisbursement: project.PlannedDisbursement,
+                    ContractEndDate: project.ContractEndDate,
+                    Duration: project.Duration,
+                    CapitalSource: project.CapitalSource,
+                    ManagementForm: project.ManagementForm,
+                };
+                const content = await generateMonthlyReport(projectData);
+                setReportContent(content);
+            } catch (error) {
+                console.error('Error generating AI report:', error);
+                setReportError(error instanceof Error ? error.message : 'Lỗi không xác định khi tạo báo cáo AI');
+            } finally {
+                setReportLoading(false);
+                setIsGeneratingReport(false);
+            }
+        } else {
+            // Settlement report — keep legacy mock for now
+            setIsGeneratingReport(true);
+            try {
+                const report = await NationalGatewayService.generateSettlementReport(project.ProjectID);
+                alert(`Đã trích xuất báo cáo quyết toán: ${report.id} thành công!`);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsGeneratingReport(false);
+            }
         }
     }, [project]);
 
@@ -333,8 +364,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     return (
         <div className={`flex flex-col relative ${inPanel ? 'h-screen' : 'h-[calc(100vh-120px)]'} bg-[#F8FAFC] dark:bg-slate-900`}>
             {/* Fixed Header + Tabs — does NOT scroll */}
-            <div className={`shrink-0 px-4 ${activeTab === 'bim' || activeTab === 'operations' ? 'pt-2' : 'pt-4'}`}>
-                {/* 1. Header */}
+            <div className={`shrink-0 px-4 ${activeTab === 'operations' ? 'pt-2' : inPanel ? 'pt-2' : 'pt-4'}`}>
+                {/* 1. Header — compact when in panel mode */}
                 <ProjectHeader
                     project={project}
                     onSync={handleSync}
@@ -342,34 +373,27 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     syncResult={syncResult}
                     onDelete={() => setShowDeleteModal(true)}
                     onEdit={() => setShowEditModal(true)}
-                    compact={activeTab === 'bim' || activeTab === 'operations'}
+                    compact={activeTab === 'operations' || inPanel}
+                    hideBackButton={inPanel}
                 />
 
                 {/* 2. Tab Navigation */}
-                <div className={`border-b border-gray-200 dark:border-slate-700 flex gap-8 ${activeTab === 'bim' || activeTab === 'operations' ? 'mt-2' : 'mt-4'} overflow-x-auto`}>
-                    {[
-                        { id: 'info', label: 'TỔNG QUAN', icon: Info },
-                        { id: 'plan', label: 'KẾ HOẠCH/TIẾN ĐỘ', icon: CalendarCheck },
-                        { id: 'packages', label: 'GÓI THẦU', icon: Briefcase },
-                        { id: 'capital', label: 'VỐN & GIẢI NGÂN', icon: Landmark },
-                        { id: 'tt24', label: 'DỮ LIỆU TT24', icon: Database },
-                        { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
-                        { id: 'bim', label: 'MÔ HÌNH BIM', icon: Layers },
-                        { id: 'operations', label: 'VẬN HÀNH', icon: Settings2 },
-                    ].map(t => (
+                <div className={`border-b border-gray-200 dark:border-slate-700 flex gap-1 ${activeTab === 'operations' ? 'mt-2' : inPanel ? 'mt-1' : 'mt-4'} overflow-x-auto scrollbar-hide`}>
+                    {TAB_DEFINITIONS.map(t => (
                         <button
-                            key={t.id} onClick={() => setActiveTab(t.id as any)}
-                            className={`${activeTab === 'bim' || activeTab === 'operations' ? 'py-2' : 'py-3'} px-1 text-xs font-black border-b-2 transition-all flex items-center gap-2 tracking-widest whitespace-nowrap ${activeTab === t.id ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                            key={t.id} onClick={() => setActiveTab(t.id)}
+                            className={`${activeTab === 'operations' || inPanel ? 'py-2' : 'py-3'} px-2 text-xs font-black border-b-2 transition-all flex items-center gap-1.5 tracking-wider whitespace-nowrap ${activeTab === t.id ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                            title={t.label}
                         >
-                            <t.icon className="w-4 h-4" />
-                            {t.label}
+                            <t.icon className="w-3.5 h-3.5" />
+                            <span className={inPanel ? '' : ''}>{inPanel ? t.shortLabel : t.label}</span>
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* 3. Tab Content — BIM & Operations stay mounted to avoid re-init */}
-            {activeTab !== 'bim' && activeTab !== 'operations' && (
+            {/* 3. Tab Content — Operations stays mounted to avoid re-init */}
+            {activeTab !== 'operations' && (
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
                     {activeTab === 'info' && (
                         <div className="space-y-4">
@@ -447,6 +471,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     )}
                     {activeTab === 'documents' && (
                         <div className="space-y-4">
+                            <AICompliancePanel projectId={project.ProjectID} />
                             <div className="flex justify-end">
                                 <button
                                     onClick={() => setShowDrafter(true)}
@@ -466,7 +491,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     )}
                     {activeTab === 'tt24' && (
                         <div className="space-y-4">
-                            <AICompliancePanel projectId={project.ProjectID} />
                             <ProjectComplianceTab
                                 project={project}
                                 onUpdate={(updated) => {
@@ -478,19 +502,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 </div>
             )}
 
-            {/* BIM tab: always mounted after first visit, hidden via visibility */}
-            {bimMounted && (
-                <div
-                    className={`flex-1 min-h-0 ${activeTab === 'bim' ? 'relative' : 'absolute inset-0 pointer-events-none'}`}
-                    style={activeTab === 'bim' ? undefined : { visibility: 'hidden', zIndex: -1 }}
-                >
-                    <BimErrorBoundary>
-                        <Suspense fallback={<div className="flex items-center justify-center h-96 text-blue-500 dark:text-blue-400">Đang tải BIM Viewer...</div>}>
-                            <ProjectBimTab projectID={project.ProjectID} />
-                        </Suspense>
-                    </BimErrorBoundary>
-                </div>
-            )}
 
             {/* Operations tab: always mounted after first visit, hidden via visibility */}
             {opsMounted && (
@@ -532,6 +543,17 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 projectName={project.ProjectName}
                 isOpen={showDrafter}
                 onClose={() => setShowDrafter(false)}
+            />
+
+            {/* ─── AI Monthly Report Modal ─── */}
+            <AIReportModal
+                isOpen={reportModalOpen}
+                onClose={() => setReportModalOpen(false)}
+                reportContent={reportContent}
+                isLoading={reportLoading}
+                error={reportError}
+                projectName={project.ProjectName}
+                onRegenerate={() => handleGenerateReport('Monitoring')}
             />
         </div>
     );

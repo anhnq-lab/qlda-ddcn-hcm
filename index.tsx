@@ -2,6 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { setupGlobalErrorHandlers, trackWebVitals } from './lib/errorReporting';
+
+// Initialize error tracking & performance monitoring
+setupGlobalErrorHandlers();
+trackWebVitals();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

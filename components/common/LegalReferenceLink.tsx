@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { Scale } from 'lucide-react';
+import { useSlidePanelSafe } from '../../context/SlidePanelContext';
+import LegalArticlePanel from './LegalArticlePanel';
 
 /**
  * Mapping from short legal reference patterns → { docId, articlePrefix }
@@ -157,6 +158,8 @@ interface LegalReferenceLinkProps {
 
 /**
  * Renders a legal basis string with auto-detected clickable links.
+ * Clicking opens a slide panel showing the referenced legal article inline,
+ * without navigating away from the current page.
  * 
  * Usage:
  * ```tsx
@@ -164,8 +167,18 @@ interface LegalReferenceLinkProps {
  * ```
  */
 export const LegalReferenceLink: React.FC<LegalReferenceLinkProps> = ({ text, className, showIcon }) => {
-    const location = useLocation();
+    const slidePanel = useSlidePanelSafe();
     const refs = parseLegalRefs(text);
+
+    const handleOpenPanel = (ref: LegalRef) => {
+        if (!slidePanel) return;
+        slidePanel.openPanel({
+            title: ref.label + (ref.articleId ? ` — Điều ${ref.articleId.split('-d')[1]}` : ''),
+            icon: <Scale size={14} />,
+            component: <LegalArticlePanel docId={ref.docId} articleId={ref.articleId} />,
+            url: `/legal-documents?docId=${ref.docId}${ref.articleId ? `&articleId=${ref.articleId}` : ''}`,
+        });
+    };
 
     if (refs.length === 0) {
         // No recognized references — render plain text
@@ -177,7 +190,7 @@ export const LegalReferenceLink: React.FC<LegalReferenceLinkProps> = ({ text, cl
         );
     }
 
-    // Build segments: plain text + linked references
+    // Build segments: plain text + clickable references (opening slide panel)
     const segments: React.ReactNode[] = [];
     let lastEnd = 0;
 
@@ -187,24 +200,21 @@ export const LegalReferenceLink: React.FC<LegalReferenceLinkProps> = ({ text, cl
             segments.push(<span key={`plain-${idx}`}>{text.substring(lastEnd, ref.start)}</span>);
         }
 
-        // Build the URL with from param for back navigation
-        const params = new URLSearchParams({ docId: ref.docId });
-        if (ref.articleId) {
-            params.set('articleId', ref.articleId);
-        }
-        params.set('from', location.pathname);
-        const url = `/legal-documents?${params.toString()}`;
-
         segments.push(
-            <Link
+            <button
                 key={`link-${idx}`}
-                to={url}
-                className="inline-flex items-center gap-0.5 text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 underline decoration-purple-300 dark:decoration-purple-600 decoration-dotted underline-offset-2 hover:decoration-solid font-medium transition-colors"
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOpenPanel(ref);
+                }}
+                className="inline-flex items-center gap-0.5 text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 underline decoration-purple-300 dark:decoration-purple-600 decoration-dotted underline-offset-2 hover:decoration-solid font-medium transition-colors cursor-pointer"
                 title={`Xem ${ref.label}${ref.articleId ? ` — Điều ${ref.articleId.split('-d')[1]}` : ''}`}
             >
                 <Scale className="w-3 h-3 opacity-60 shrink-0" />
                 {ref.matchedText}
-            </Link>
+            </button>
         );
         lastEnd = ref.end;
     });

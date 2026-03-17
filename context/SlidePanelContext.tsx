@@ -10,11 +10,18 @@ export interface PanelEntry {
     url?: string;
 }
 
+// Default & constraints for panel width
+const DEFAULT_PANEL_WIDTH = 0; // 0 = auto (calc based on stack offset)
+const MIN_PANEL_WIDTH = 400;
+const PANEL_WIDTH_STORAGE_KEY = 'slide-panel-width';
+
 interface SlidePanelContextType {
     /** Current stack of open panels (bottom → top) */
     panels: PanelEntry[];
-    /** Push a new panel onto the stack. Returns its unique ID. */
+    /** Push a new panel onto the stack. If a panel with the same `url` exists, focuses it instead. Returns its unique ID. */
     openPanel: (entry: Omit<PanelEntry, 'id'>) => string;
+    /** Replace the top-most panel with a new one (no animation gap) */
+    replacePanel: (entry: Omit<PanelEntry, 'id'>) => string;
     /** Close a specific panel by ID, or close the top-most panel if no ID given. Returns false if blocked. */
     closePanel: (id?: string) => boolean | undefined;
     /** Close ALL panels at once */
@@ -35,6 +42,10 @@ interface SlidePanelContextType {
     setOnCloseBlocked: (id: string | undefined, callback: (() => void) | null) => void;
     /** Force-close a panel (bypasses lock — used by discard/save handlers) */
     forceClosePanel: (id?: string) => void;
+    /** User-set panel width in px (0 = auto) */
+    panelWidth: number;
+    /** Update panel width (from resize handle) */
+    setPanelWidth: (width: number) => void;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -43,12 +54,36 @@ const SlidePanelContext = createContext<SlidePanelContextType | null>(null);
 
 let panelCounter = 0;
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function loadPersistedWidth(): number {
+    try {
+        const stored = localStorage.getItem(PANEL_WIDTH_STORAGE_KEY);
+        if (stored) {
+            const parsed = parseInt(stored, 10);
+            if (!isNaN(parsed) && parsed >= MIN_PANEL_WIDTH) return parsed;
+        }
+    } catch { /* ignore */ }
+    return DEFAULT_PANEL_WIDTH;
+}
+
+function persistWidth(width: number) {
+    try {
+        if (width > 0) {
+            localStorage.setItem(PANEL_WIDTH_STORAGE_KEY, String(width));
+        } else {
+            localStorage.removeItem(PANEL_WIDTH_STORAGE_KEY);
+        }
+    } catch { /* ignore */ }
+}
+
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export const SlidePanelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [panels, setPanels] = useState<PanelEntry[]>([]);
     const [closingPanels, setClosingPanels] = useState<Set<string>>(new Set());
     const [lockedPanels, setLockedPanels] = useState<Set<string>>(new Set());
+    const [panelWidth, setPanelWidthState] = useState<number>(loadPersistedWidth);
     const panelsRef = useRef(panels);
     const lockedRef = useRef(lockedPanels);
     const closeBlockedCallbacksRef = useRef<Map<string, () => void>>(new Map());
@@ -81,9 +116,57 @@ export const SlidePanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
     }, [panels, closingPanels, baseUrl]);
 
+    // ─── Panel width ──────────────────────────────────────────────
+    const setPanelWidth = useCallback((width: number) => {
+        const clamped = width <= 0 ? 0 : Math.max(MIN_PANEL_WIDTH, width);
+        setPanelWidthState(clamped);
+        persistWidth(clamped);
+    }, []);
+
+    // ─── Open panel (with duplicate prevention) ───────────────────
     const openPanel = useCallback((entry: Omit<PanelEntry, 'id'>): string => {
+        // Duplicate prevention: if a panel with the same url already exists, focus it
+        if (entry.url) {
+            const currentPanels = panelsRef.current;
+            const existing = currentPanels.find(p => p.url === entry.url);
+            if (existing) {
+                // Focus the existing panel instead of opening a new one
+                const idx = currentPanels.findIndex(p => p.id === existing.id);
+                if (idx < currentPanels.length - 1) {
+                    // Not already on top — close panels above it
+                    const panelsAbove = currentPanels.slice(idx + 1);
+                    const hasLocked = panelsAbove.some(p => lockedRef.current.has(p.id));
+                    if (!hasLocked) {
+                        const idsToClose = panelsAbove.map(p => p.id);
+                        setClosingPanels(prev => new Set([...prev, ...idsToClose]));
+                        setTimeout(() => {
+                            setPanels(prev => prev.filter(p => !idsToClose.includes(p.id)));
+                            setClosingPanels(prev => {
+                                const next = new Set(prev);
+                                idsToClose.forEach(i => next.delete(i));
+                                return next;
+                            });
+                        }, 220);
+                    }
+                }
+                return existing.id;
+            }
+        }
+
         const id = `panel-${++panelCounter}-${Date.now()}`;
         setPanels(prev => [...prev, { ...entry, id }]);
+        return id;
+    }, []);
+
+    // ─── Replace top panel ────────────────────────────────────────
+    const replacePanel = useCallback((entry: Omit<PanelEntry, 'id'>): string => {
+        const id = `panel-${++panelCounter}-${Date.now()}`;
+        setPanels(prev => {
+            if (prev.length === 0) return [{ ...entry, id }];
+            // Replace the last panel
+            const rest = prev.slice(0, -1);
+            return [...rest, { ...entry, id }];
+        });
         return id;
     }, []);
 
@@ -214,6 +297,7 @@ export const SlidePanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const value = useMemo(() => ({
         panels,
         openPanel,
+        replacePanel,
         closePanel,
         closeAllPanels,
         focusPanel,
@@ -224,7 +308,9 @@ export const SlidePanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isTopPanelLocked,
         setOnCloseBlocked,
         forceClosePanel,
-    }), [panels, openPanel, closePanel, closeAllPanels, focusPanel, hasOpenPanels, closingPanels, lockPanel, unlockPanel, isTopPanelLocked, setOnCloseBlocked, forceClosePanel]);
+        panelWidth,
+        setPanelWidth,
+    }), [panels, openPanel, replacePanel, closePanel, closeAllPanels, focusPanel, hasOpenPanels, closingPanels, lockPanel, unlockPanel, isTopPanelLocked, setOnCloseBlocked, forceClosePanel, panelWidth, setPanelWidth]);
 
     return (
         <SlidePanelContext.Provider value={value}>

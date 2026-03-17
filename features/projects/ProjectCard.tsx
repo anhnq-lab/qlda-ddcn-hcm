@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Project, ProjectStatus, ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
-import { MapPin, Building, Layers } from 'lucide-react';
+import { MapPin, Building, Layers, Building2, Calendar } from 'lucide-react';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { getGroupGradient, requiresBIM } from '../../utils/projectCompliance';
 
@@ -10,23 +10,17 @@ interface ProjectCardProps {
     layout?: 'grid' | 'list';
 }
 
-const getStatusLabel = (status: ProjectStatus) => {
-    switch (status) {
-        case ProjectStatus.Preparation: return 'Chuẩn bị DA';
-        case ProjectStatus.Execution: return 'Thực hiện DA';
-        case ProjectStatus.Completion: return 'Kết thúc XD';
-        default: return 'N/A';
-    }
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS — extracted outside component to avoid re-creation
+// ═══════════════════════════════════════════════════════════════
+
+const STATUS_CONFIG: Record<number, { label: string; hex: string }> = {
+    [ProjectStatus.Preparation]: { label: 'Chuẩn bị DA', hex: '#3B82F6' },
+    [ProjectStatus.Execution]: { label: 'Thực hiện DA', hex: '#F97316' },
+    [ProjectStatus.Completion]: { label: 'Kết thúc XD', hex: '#10B981' },
 };
 
-const getStatusStyle = (status: ProjectStatus) => {
-    switch (status) {
-        case ProjectStatus.Preparation: return '#3B82F6';
-        case ProjectStatus.Execution: return '#F97316';
-        case ProjectStatus.Completion: return '#10B981';
-        default: return '#9CA3AF';
-    }
-};
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600&auto=format&fit=crop";
 
 const ProgressBar: React.FC<{ value: number; colorClass: string }> = ({ value, colorClass }) => (
     <div className="h-1.5 w-full bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -37,8 +31,44 @@ const ProgressBar: React.FC<{ value: number; colorClass: string }> = ({ value, c
     </div>
 );
 
+// ═══════════════════════════════════════════════════════════════
+// LAZY IMAGE with placeholder
+// ═══════════════════════════════════════════════════════════════
+
+const LazyImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = '' }) => {
+    const [loaded, setLoaded] = useState(false);
+    const [error, setError] = useState(false);
+
+    const handleLoad = useCallback(() => setLoaded(true), []);
+    const handleError = useCallback(() => { setError(true); setLoaded(true); }, []);
+
+    return (
+        <div className={`relative ${className}`}>
+            {/* Placeholder gradient — shown until image loads */}
+            {!loaded && (
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 animate-pulse" />
+            )}
+            <img
+                src={error ? DEFAULT_IMAGE : src}
+                alt={alt}
+                loading="lazy"
+                onLoad={handleLoad}
+                onError={handleError}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CARD COMPONENT
+// ═══════════════════════════════════════════════════════════════
+
 export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, onClick, layout = 'grid' }) => {
-    const statusHex = getStatusStyle(project.Status);
+    const status = STATUS_CONFIG[project.Status] || { label: 'N/A', hex: '#9CA3AF' };
+    const board = project.ManagementBoard
+        ? MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard)
+        : null;
 
     if (layout === 'list') {
         return (
@@ -47,17 +77,17 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                 className="group flex flex-col md:flex-row bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all cursor-pointer"
             >
                 <div className="w-full md:w-56 h-32 md:h-auto relative shrink-0">
-                    <img
-                        src={project.ImageUrl || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600&auto=format&fit=crop"}
+                    <LazyImage
+                        src={project.ImageUrl || DEFAULT_IMAGE}
                         alt={project.ProjectName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full"
                     />
                     <div className="absolute top-2 left-2 right-2 flex justify-between">
                         <span className={`${getGroupGradient(project.GroupCode)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase`}>
                             Nhóm {project.GroupCode}
                         </span>
-                        <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: statusHex }}>
-                            {getStatusLabel(project.Status)}
+                        <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: status.hex }}>
+                            {status.label}
                         </span>
                     </div>
                 </div>
@@ -67,19 +97,21 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                         <h3 className="font-bold text-gray-900 dark:text-slate-100 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1">
                             {project.ProjectName}
                         </h3>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mb-3">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-slate-400 mb-3">
                             <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" /> {project.LocationCode}
                             </span>
                             <span className="font-mono">#{(project.ProjectID || '').slice(-5)}</span>
-                            {project.ManagementBoard && (() => {
-                                const board = MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard);
-                                return board ? (
-                                    <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: board.hex }}>
-                                        Ban {board.value}
-                                    </span>
-                                ) : null;
-                            })()}
+                            {project.InvestorName && (
+                                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                                    <Building2 className="w-3 h-3 shrink-0" /> {project.InvestorName}
+                                </span>
+                            )}
+                            {board && (
+                                <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: board.hex }}>
+                                    Ban {board.value}
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -108,18 +140,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
         );
     }
 
-    // Grid Layout - Clean & Compact
+    // Grid Layout - Clean & Compact with fixed height
     return (
         <div
             onClick={onClick}
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col cursor-pointer"
+            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col cursor-pointer h-full"
         >
             {/* Image - Only badges */}
-            <div className="relative h-32 w-full overflow-hidden">
-                <img
-                    src={project.ImageUrl || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600&auto=format&fit=crop"}
+            <div className="relative h-32 w-full overflow-hidden shrink-0">
+                <LazyImage
+                    src={project.ImageUrl || DEFAULT_IMAGE}
                     alt={project.ProjectName}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Badges */}
@@ -127,8 +159,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                     <span className={`${getGroupGradient(project.GroupCode)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase shadow`}>
                         Nhóm {project.GroupCode}
                     </span>
-                    <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow" style={{ backgroundColor: statusHex }}>
-                        {getStatusLabel(project.Status)}
+                    <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow" style={{ backgroundColor: status.hex }}>
+                        {status.label}
                     </span>
                 </div>
 
@@ -146,28 +178,25 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
 
             {/* Content */}
             <div className="p-3 flex-1 flex flex-col">
-                {/* Title */}
-                <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100 leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1.5" title={project.ProjectName}>
+                {/* Title - fixed to 2 lines */}
+                <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100 leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1.5 min-h-[2.5rem]" title={project.ProjectName}>
                     {project.ProjectName}
                 </h3>
 
-                {/* Location + ID */}
+                {/* Location + ID + Board */}
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 mb-3">
-                    <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-gray-400 dark:text-slate-500" />
-                        {project.LocationCode}
+                    <span className="flex items-center gap-1 truncate">
+                        <MapPin className="w-3 h-3 text-gray-400 dark:text-slate-500 shrink-0" />
+                        <span className="truncate">{project.LocationCode}</span>
                     </span>
-                    <span className="font-mono text-[10px] bg-gray-50 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+                    <span className="font-mono text-[10px] bg-gray-50 dark:bg-slate-700 px-1.5 py-0.5 rounded shrink-0">
                         #{(project.ProjectID || '').slice(-5)}
                     </span>
-                    {project.ManagementBoard && (() => {
-                        const board = MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard);
-                        return board ? (
-                            <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: board.hex }}>
-                                Ban {board.value}
-                            </span>
-                        ) : null;
-                    })()}
+                    {board && (
+                        <span className="text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ backgroundColor: board.hex }}>
+                            Ban {board.value}
+                        </span>
+                    )}
                 </div>
 
                 {/* Progress */}

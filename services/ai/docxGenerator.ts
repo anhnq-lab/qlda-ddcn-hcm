@@ -253,7 +253,7 @@ function parseContentToParagraphs(rawContent: string): Paragraph[] {
 export async function generateNd30Docx(options: DocxOptions): Promise<Blob> {
     const {
         organizationName = 'BAN QUẢN LÝ DỰ ÁN ĐTXD CN',
-        organizationParent = 'HỌC VIỆN CTQG HỒ CHÍ MINH',
+        organizationParent = 'UBND THÀNH PHỐ HỒ CHÍ MINH',
         documentNumber = '……/BC-BQLDA',
         location = 'Hà Nội',
         date = new Date(),
@@ -261,7 +261,7 @@ export async function generateNd30Docx(options: DocxOptions): Promise<Blob> {
         content,
         signerTitle = 'TRƯỞNG BAN',
         signerName = '(Ký, ghi rõ họ tên)',
-        recipientList = ['Ban Giám đốc Học viện (để b/c)', 'Các phòng ban liên quan', 'Lưu: VT.'],
+        recipientList = ['UBND TP.HCM (để b/c)', 'Các phòng ban liên quan', 'Lưu: VT.'],
     } = options;
 
     const dateStr = `${location}, ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`;

@@ -1,5 +1,5 @@
-import React from 'react';
-import { TrendingUp, Banknote } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { TrendingUp, Banknote, Activity } from 'lucide-react';
 
 interface DualProgressCardProps {
     physicalProgress: number;    // 0-100
@@ -8,64 +8,126 @@ interface DualProgressCardProps {
     financialLabel?: string;
 }
 
+// SVG Circular Progress Ring
+const ProgressRing: React.FC<{
+    progress: number;
+    color: string;
+    bgColor: string;
+    size?: number;
+    strokeWidth?: number;
+}> = ({ progress, color, bgColor, size = 72, strokeWidth = 6 }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (Math.min(100, Math.max(0, progress)) / 100) * circumference;
+
+    return (
+        <svg width={size} height={size} className="transform -rotate-90">
+            <circle
+                cx={size / 2} cy={size / 2} r={radius}
+                fill="none" stroke={bgColor} strokeWidth={strokeWidth}
+            />
+            <circle
+                cx={size / 2} cy={size / 2} r={radius}
+                fill="none" stroke={color} strokeWidth={strokeWidth}
+                strokeDasharray={circumference} strokeDashoffset={offset}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
+            />
+        </svg>
+    );
+};
+
 export const DualProgressCard: React.FC<DualProgressCardProps> = ({
     physicalProgress,
     financialProgress,
-    physicalLabel = 'Tiến độ khối lượng',
-    financialLabel = 'Tiến độ giải ngân'
+    physicalLabel = 'Khối lượng',
+    financialLabel = 'Giải ngân'
 }) => {
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    const ringBg = isDark ? '#374151' : '#E5E7EB';
+    const avgProgress = (physicalProgress + financialProgress) / 2;
+
     return (
         <div className="section-card">
             <div className="section-card-header">
                 <div className="flex items-center gap-2">
-                    <div className="section-icon"><TrendingUp className="w-3.5 h-3.5" /></div>
+                    <div className="section-icon"><Activity className="w-3.5 h-3.5" /></div>
                     <span>Tiến độ thực hiện</span>
                 </div>
             </div>
-            <div className="p-4 space-y-4">
-                {/* Physical Progress */}
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-amber-600" />
-                            <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{physicalLabel}</span>
+            <div className="p-4">
+                {/* Dual Rings */}
+                <div className="flex items-center justify-around mb-4">
+                    {/* Physical */}
+                    <div className="flex flex-col items-center">
+                        <div className="relative">
+                            <ProgressRing
+                                progress={physicalProgress}
+                                color="#A89050"
+                                bgColor={ringBg}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-base font-black text-gray-800 dark:text-slate-100 tabular-nums">
+                                    {physicalProgress.toFixed(0)}%
+                                </span>
+                            </div>
                         </div>
-                        <span className="text-sm font-bold text-amber-700 tabular-nums">
-                            {physicalProgress.toFixed(1)}%
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-2">
+                            <TrendingUp className="w-3.5 h-3.5 text-amber-600" />
+                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-400">{physicalLabel}</span>
+                        </div>
                     </div>
-                    <div className="h-2.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                        <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ background: 'linear-gradient(90deg, #A89050, #C4A035)', width: `${Math.min(100, Math.max(0, physicalProgress))}%` }}
-                        />
+
+                    {/* Divider */}
+                    <div className="w-px h-16 bg-gray-200 dark:bg-slate-600" />
+
+                    {/* Financial */}
+                    <div className="flex flex-col items-center">
+                        <div className="relative">
+                            <ProgressRing
+                                progress={financialProgress}
+                                color="#D4A017"
+                                bgColor={ringBg}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-base font-black text-gray-800 dark:text-slate-100 tabular-nums">
+                                    {financialProgress.toFixed(0)}%
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-2">
+                            <Banknote className="w-3.5 h-3.5 text-yellow-600" />
+                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-400">{financialLabel}</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Financial Progress */}
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            <Banknote className="w-4 h-4 text-yellow-600" />
-                            <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{financialLabel}</span>
-                        </div>
-                        <span className="text-sm font-bold text-yellow-700 tabular-nums">
-                            {financialProgress.toFixed(1)}%
+                {/* Summary Bar */}
+                <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg px-3 py-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-gray-500 dark:text-slate-400 font-medium">Trung bình tiến độ</span>
+                        <span className={`font-black tabular-nums ${avgProgress >= 50 ? 'text-emerald-600' : avgProgress > 20 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {avgProgress.toFixed(1)}%
                         </span>
                     </div>
-                    <div className="h-2.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden mt-1.5">
                         <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ background: 'linear-gradient(90deg, #C4A035, #D4A017)', width: `${Math.min(100, Math.max(0, financialProgress))}%` }}
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{
+                                background: avgProgress >= 50 ? 'linear-gradient(90deg, #10B981, #059669)' :
+                                    avgProgress > 20 ? 'linear-gradient(90deg, #C4A035, #D4A017)' :
+                                        'linear-gradient(90deg, #EF4444, #DC2626)',
+                                width: `${Math.min(100, Math.max(0, avgProgress))}%`
+                            }}
                         />
                     </div>
                 </div>
 
                 {/* Variance indicator */}
                 {Math.abs(physicalProgress - financialProgress) > 10 && (
-                    <div className={`text-[10px] p-2 rounded-md ${physicalProgress > financialProgress
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                        : 'bg-blue-50 text-blue-700 border border-blue-200'
+                    <div className={`text-[10px] p-2 mt-3 rounded-md font-medium ${physicalProgress > financialProgress
+                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                         }`}>
                         {physicalProgress > financialProgress
                             ? '⚠️ Khối lượng vượt trước giải ngân'

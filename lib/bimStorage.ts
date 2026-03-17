@@ -213,6 +213,23 @@ export async function getProjectModels(projectId: string): Promise<BimModel[]> {
 }
 
 /**
+ * Get ALL BIM models across all projects (for BIM dashboard/KPI)
+ */
+export async function getAllBimModels(): Promise<(BimModel & { project_name?: string })[]> {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+        .from('bim_models')
+        .select('*, projects!bim_models_project_id_fkey(project_name)')
+        .order('updated_at', { ascending: false });
+
+    if (error) throw new Error(`Fetch all BIM models error: ${error.message}`);
+    return (data || []).map((m: any) => ({
+        ...m,
+        project_name: m.projects?.project_name || null,
+    }));
+}
+
+/**
  * Get public URL for a file in storage
  */
 export function getStorageUrl(path: string): string {

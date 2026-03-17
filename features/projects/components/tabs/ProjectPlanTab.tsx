@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Task, TaskStatus, TaskPriority, Employee, ProjectGroup, Project } from '@/types';
 import {
     Layers, CheckCircle2, Circle, Clock, ChevronDown, ChevronRight,
-    FileText, AlertCircle, Plus, Calendar, User, Flag, Zap, Building2, Scale, Info, ExternalLink, ListPlus, Paperclip, Upload
+    FileText, AlertCircle, Plus, Calendar, User, Flag, Zap, Building2, Scale, Info, ExternalLink, ListPlus, Paperclip, Upload, X
 } from 'lucide-react';
 import { ProjectGanttChart } from '../ProjectGanttChart';
 import { ProjectTaskModal } from '../ProjectTaskModal';
@@ -22,6 +22,9 @@ import { supabase } from '@/lib/supabase';
 import { findByStepCode, buildTT24Key } from '@/utils/docStepMapping';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
 import { getProjectPhases, getGroupLabel } from '@/utils/projectPhases';
+import { useTaskFilters } from '../../hooks/useTaskFilters';
+import { useStepAggregates } from '../../hooks/useStepAggregates';
+import { usePlanPersist } from '../../hooks/usePlanPersist';
 
 
 interface ProjectPlanTabProps {
@@ -67,25 +70,47 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setTasks(initialTasks);
     }, [initialTasks]);
 
-    // UI State
-    const [currentView, setCurrentView] = useState<TaskViewMode>('wbs');
-    const [currentFilter, setCurrentFilter] = useState<TaskFilter>('all');
+    // UI State — persisted to localStorage per project
+    const { currentView, currentFilter, setView: setCurrentView, setFilter: setCurrentFilter } = usePlanPersist(projectID);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Auto-expand phases that have active tasks
+    // Smart auto-expand: expand active/overdue phases, collapse 100% done phases
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(() => {
         const initial: Record<string, boolean> = {};
         const phases = getProjectPhases(groupCode, isODA);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+
         phases.forEach(phase => {
-            const hasActiveTasks = initialTasks.some(t =>
-                phase.items.some(item => item.code === t.TimelineStep) &&
-                (t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review)
+            const phaseTasks = initialTasks.filter(t =>
+                phase.items.some(item => item.code === t.TimelineStep)
             );
-            initial[phase.id] = hasActiveTasks;
+            if (phaseTasks.length === 0) {
+                initial[phase.id] = false; // No tasks → collapse
+                return;
+            }
+            const allDone = phaseTasks.every(t => t.Status === TaskStatus.Done);
+            if (allDone) {
+                initial[phase.id] = false; // 100% done → auto-collapse
+                return;
+            }
+            const hasActive = phaseTasks.some(t =>
+                t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review
+            );
+            const hasOverdue = phaseTasks.some(t => {
+                if (t.Status === TaskStatus.Done || !t.DueDate) return false;
+                const d = new Date(t.DueDate); d.setHours(0, 0, 0, 0);
+                return d < today;
+            });
+            initial[phase.id] = hasActive || hasOverdue;
         });
-        // If no active phase, expand the first one
+        // If nothing expanded, show first non-done phase
         if (!Object.values(initial).some(v => v) && phases.length > 0) {
-            initial[phases[0].id] = true;
+            const first = phases.find(p => {
+                const pt = initialTasks.filter(t => p.items.some(i => i.code === t.TimelineStep));
+                return pt.length === 0 || !pt.every(t => t.Status === TaskStatus.Done);
+            });
+            if (first) initial[first.id] = true;
+            else initial[phases[0].id] = true;
         }
         return initial;
     });
@@ -101,6 +126,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [pendingUploadTaskId, setPendingUploadTaskId] = useState<string | null>(null);
+
+    // Toast notifications
+    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
+    const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+    };
 
     // Load attachment counts from documents table
     useEffect(() => {
@@ -175,126 +207,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         }
     };
 
-    // 2. Filter Tasks
-    const filteredTasks = useMemo(() => {
-        let filtered = [...tasks];
+    // 2. Filter Tasks + Counts (extracted to hook)
+    const { filteredTasks, taskCounts } = useTaskFilters(tasks, currentFilter, searchQuery, currentUserId);
 
-        // Apply search
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(t =>
-                t.Title.toLowerCase().includes(query) ||
-                t.Description?.toLowerCase().includes(query)
-            );
-        }
-
-        // Apply filter
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const weekEnd = new Date(today);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-
-        switch (currentFilter) {
-            case 'my-tasks':
-                filtered = filtered.filter(t =>
-                    t.AssigneeID === currentUserId ||
-                    t.Assignees?.some(a => a.EmployeeID === currentUserId)
-                );
-                break;
-            case 'overdue':
-                filtered = filtered.filter(t => {
-                    if (t.Status === TaskStatus.Done) return false;
-                    if (!t.DueDate) return false;
-                    return new Date(t.DueDate) < today;
-                });
-                break;
-            case 'this-week':
-                filtered = filtered.filter(t => {
-                    if (!t.DueDate) return false;
-                    const dueDate = new Date(t.DueDate);
-                    return dueDate >= today && dueDate <= weekEnd;
-                });
-                break;
-            case 'critical':
-                filtered = filtered.filter(t => t.IsCritical);
-                break;
-            case 'in-progress':
-                filtered = filtered.filter(t =>
-                    t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review
-                );
-                break;
-            case 'completed':
-                filtered = filtered.filter(t => t.Status === TaskStatus.Done);
-                break;
-        }
-
-        return filtered;
-    }, [tasks, currentFilter, searchQuery, currentUserId]);
-
-    // 3. Task Counts for Filter Bar
-    const taskCounts = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const weekEnd = new Date(today);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-
-        return {
-            all: tasks.length,
-            myTasks: tasks.filter(t =>
-                t.AssigneeID === currentUserId ||
-                t.Assignees?.some(a => a.EmployeeID === currentUserId)
-            ).length,
-            overdue: tasks.filter(t => {
-                if (t.Status === TaskStatus.Done) return false;
-                if (!t.DueDate) return false;
-                return new Date(t.DueDate) < today;
-            }).length,
-            thisWeek: tasks.filter(t => {
-                if (!t.DueDate) return false;
-                const dueDate = new Date(t.DueDate);
-                return dueDate >= today && dueDate <= weekEnd;
-            }).length,
-            critical: tasks.filter(t => t.IsCritical).length,
-            inProgress: tasks.filter(t =>
-                t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review
-            ).length,
-            completed: tasks.filter(t => t.Status === TaskStatus.Done).length
-        };
-    }, [tasks, currentUserId]);
-
-    // 4. Compute Parent Item Status & Dates
-    const stepAggregates = useMemo(() => {
-        const map = new Map<string, { status: TaskStatus; startDate: string | null; dueDate: string | null; childCount: number; progress: number }>();
-        const allItems = DECREE_175_PHASES.flatMap(p => p.items);
-
-        allItems.forEach(item => {
-            const children = filteredTasks.filter(t => t.TimelineStep === item.code);
-            if (children.length === 0) {
-                map.set(item.code, { status: TaskStatus.Todo, startDate: null, dueDate: null, childCount: 0, progress: 0 });
-                return;
-            }
-
-            const allDone = children.every(t => t.Status === TaskStatus.Done);
-            const anyActive = children.some(t => t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Done || t.Status === TaskStatus.Review);
-
-            let status = TaskStatus.Todo;
-            if (allDone) status = TaskStatus.Done;
-            else if (anyActive) status = TaskStatus.InProgress;
-
-            const startDates = children.map(t => new Date(t.StartDate || t.DueDate).getTime()).filter(t => !isNaN(t));
-            const dueDates = children.map(t => new Date(t.DueDate).getTime()).filter(t => !isNaN(t));
-
-            const minStart = startDates.length > 0 ? new Date(Math.min(...startDates)).toISOString() : null;
-            const maxDue = dueDates.length > 0 ? new Date(Math.max(...dueDates)).toISOString() : null;
-
-            // Calculate average progress
-            const totalProgress = children.reduce((sum, t) => sum + (t.ProgressPercent || (t.Status === TaskStatus.Done ? 100 : 0)), 0);
-            const avgProgress = Math.round(totalProgress / children.length);
-
-            map.set(item.code, { status, startDate: minStart, dueDate: maxDue, childCount: children.length, progress: avgProgress });
-        });
-        return map;
-    }, [filteredTasks]);
+    // 4. Compute Parent Item Status & Dates (extracted to hook)
+    const stepAggregates = useStepAggregates(filteredTasks, DECREE_175_PHASES);
 
     // 5. Prepare Gantt Data (Parents Only)
     const ganttTasks = useMemo(() => {
@@ -371,13 +288,61 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         else if (newStatus === TaskStatus.Review && newProgress < 100) newProgress = 100;
         else if (newStatus === TaskStatus.InProgress && newProgress === 0) newProgress = 25;
         else if (newStatus === TaskStatus.Todo) newProgress = 0;
-        handleSaveTask({ ...task, Status: newStatus, ProgressPercent: newProgress } as any);
+
+        // ── AUTO-FILL actual dates ──
+        const now = new Date().toISOString();
+        let actualStart = task.ActualStartDate || '';
+        let actualEnd = task.ActualEndDate || '';
+
+        if (newStatus === TaskStatus.InProgress && !actualStart) {
+            actualStart = now; // Bắt đầu thực hiện → ghi ngày bắt đầu thực tế
+        }
+        if (newStatus === TaskStatus.Done) {
+            if (!actualStart) actualStart = now;
+            if (!actualEnd) actualEnd = now; // Hoàn thành → ghi ngày kết thúc thực tế
+        }
+        if (newStatus === TaskStatus.Todo) {
+            actualStart = ''; // Reset khi quay về chưa bắt đầu
+            actualEnd = '';
+        }
+
+        handleSaveTask({
+            ...task,
+            Status: newStatus,
+            ProgressPercent: newProgress,
+            ActualStartDate: actualStart,
+            ActualEndDate: actualEnd,
+        } as any);
     };
 
     const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
         const task = tasks.find(t => t.TaskID === taskId);
         if (task) {
-            handleSaveTask({ ...task, Status: newStatus });
+            const now = new Date().toISOString();
+            let actualStart = task.ActualStartDate || '';
+            let actualEnd = task.ActualEndDate || '';
+            let newProgress = task.ProgressPercent || 0;
+
+            if (newStatus === TaskStatus.InProgress && !actualStart) actualStart = now;
+            if (newStatus === TaskStatus.InProgress && newProgress === 0) newProgress = 25;
+            if (newStatus === TaskStatus.Done) {
+                if (!actualStart) actualStart = now;
+                if (!actualEnd) actualEnd = now;
+                newProgress = 100;
+            }
+            if (newStatus === TaskStatus.Todo) {
+                actualStart = '';
+                actualEnd = '';
+                newProgress = 0;
+            }
+
+            handleSaveTask({
+                ...task,
+                Status: newStatus,
+                ProgressPercent: newProgress,
+                ActualStartDate: actualStart,
+                ActualEndDate: actualEnd,
+            } as any);
         }
     };
 
@@ -478,8 +443,12 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             }
 
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            // Toast success
+            const isNew = !taskData.TaskID || taskData.TaskID.startsWith('NEW_');
+            showToast(isNew ? `✅ Tạo công việc "${updatedTask.Title}" thành công` : `💾 Đã lưu thay đổi"${updatedTask.Title}"`, 'success');
         } catch (err) {
             console.error('Failed to save task:', err);
+            showToast('❌ Lưu thất bại, vui lòng thử lại', 'error');
         }
 
         if (onSaveTask) {
@@ -589,6 +558,52 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         }
     };
 
+    // ── Delete ALL tasks for current project ──
+    const [isDeletingAll, setIsDeletingAll] = useState(false);
+    const [deleteConfirmStep, setDeleteConfirmStep] = useState<0 | 1>(0); // 0=idle, 1=confirming
+
+    // Auto-reset confirm step after 3 seconds
+    useEffect(() => {
+        if (deleteConfirmStep === 1) {
+            const timer = setTimeout(() => setDeleteConfirmStep(0), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [deleteConfirmStep]);
+
+    const handleDeleteAllTasks = async () => {
+        if (!projectID) return;
+
+        // Step 1: First click → show confirm state
+        if (deleteConfirmStep === 0) {
+            setDeleteConfirmStep(1);
+            return;
+        }
+
+        // Step 2: Second click → actually delete
+        setDeleteConfirmStep(0);
+        setIsDeletingAll(true);
+        try {
+            // Gọi RPC function trực tiếp (SECURITY DEFINER, bypass RLS)
+            const { data, error } = await (supabase.rpc as any)('delete_project_tasks', {
+                p_project_id: projectID,
+            });
+
+            if (error) {
+                console.error('RPC delete_project_tasks error:', error);
+                throw new Error(error.message);
+            }
+
+            console.log(`✅ Đã xoá ${data} công việc cho dự án ${projectID}`);
+            setTasks([]); // Xóa local state
+            queryClient.invalidateQueries({ queryKey: ['tasks'] }); // Cập nhật React Query cache
+        } catch (err: any) {
+            console.error('Failed to delete all tasks:', err);
+            alert(`Lỗi khi xóa: ${err?.message || 'Không xác định'}. Vui lòng thử lại!`);
+        } finally {
+            setIsDeletingAll(false);
+        }
+    };
+
     // ── Bulk create tasks for a specific PHASE ──
     const [bulkCreatingPhase, setBulkCreatingPhase] = useState<string | null>(null);
     const handleBulkCreatePhase = async (phaseId: string) => {
@@ -646,6 +661,16 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm text-gray-600 bg-white hover:bg-gray-50 border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
+                        title="Tải lại dữ liệu từ máy chủ (Xóa Cache)"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Tải lại
+                    </button>
                     {/* Tạo tất cả công việc Button */}
                     <button
                         onClick={handleBulkCreateAll}
@@ -663,10 +688,41 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                         ) : (
                             <>
                                 <ListPlus className="w-3.5 h-3.5" />
-                                Tạo tất cả công việc
+                                Tạo KH tổng thể
                             </>
                         )}
                     </button>
+                    {/* Xóa tất cả công việc Button */}
+                    {tasks.length > 0 && (
+                        <button
+                            onClick={handleDeleteAllTasks}
+                            disabled={isDeletingAll}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${isDeletingAll
+                                    ? 'text-gray-400 bg-gray-50 border-gray-200 cursor-wait'
+                                    : deleteConfirmStep === 1
+                                        ? 'text-white bg-red-600 border-red-700 animate-pulse hover:bg-red-700'
+                                        : 'text-red-600 bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300'
+                                }`}
+                            title={deleteConfirmStep === 1 ? 'Bấm lần nữa để xác nhận xóa!' : 'Xóa toàn bộ công việc của dự án này'}
+                        >
+                            {isDeletingAll ? (
+                                <>
+                                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    Đang xóa...
+                                </>
+                            ) : deleteConfirmStep === 1 ? (
+                                <>
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    Xác nhận xoá?
+                                </>
+                            ) : (
+                                <>
+                                    <X className="w-3.5 h-3.5" />
+                                    Xóa tất cả việc
+                                </>
+                            )}
+                        </button>
+                    )}
                     <button
                         onClick={() => navigate(`/tasks`, { state: { filterProject: projectID } })}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-sm"
@@ -866,16 +922,28 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                         )}
                                                                     </td>
 
-                                                                    {/* Due Date + Completion Date */}
+                                                                    {/* Due Date + Smart Relative Time */}
                                                                     <td className={`px-2 py-2 hidden sm:table-cell ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-400 dark:text-slate-500'}`}>
                                                                         {t.Status === TaskStatus.Done && t.ActualEndDate ? (
                                                                             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium" title={`Hoàn thành: ${new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}`}>
                                                                                 <CheckCircle2 className="w-3 h-3" />
                                                                                 {new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}
                                                                             </span>
-                                                                        ) : (
-                                                                            t.DueDate && new Date(t.DueDate).toLocaleDateString('vi-VN')
-                                                                        )}
+                                                                        ) : t.DueDate ? (
+                                                                            <span className="flex flex-col" title={new Date(t.DueDate).toLocaleDateString('vi-VN')}>
+                                                                                <span>{new Date(t.DueDate).toLocaleDateString('vi-VN')}</span>
+                                                                                {(() => {
+                                                                                    const now = new Date(); now.setHours(0,0,0,0);
+                                                                                    const due = new Date(t.DueDate); due.setHours(0,0,0,0);
+                                                                                    const diff = Math.round((due.getTime() - now.getTime()) / 86400000);
+                                                                                    if (diff < 0) return <span className="text-[9px] text-red-500 font-bold">Quá hạn {Math.abs(diff)} ngày</span>;
+                                                                                    if (diff === 0) return <span className="text-[9px] text-amber-500 font-bold">Hôm nay!</span>;
+                                                                                    if (diff <= 3) return <span className="text-[9px] text-amber-500">Còn {diff} ngày</span>;
+                                                                                    if (diff <= 7) return <span className="text-[9px] text-blue-400">Còn {diff} ngày</span>;
+                                                                                    return null;
+                                                                                })()}
+                                                                            </span>
+                                                                        ) : null}
                                                                     </td>
 
                                                                     {/* Priority */}
@@ -1118,8 +1186,59 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     return (
         <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-6 py-4">
 
-            {/* 1. Statistics Header */}
-            <PlanStatisticsHeader tasks={tasks} />
+            {/* 1. Statistics Header — click card to filter */}
+            <PlanStatisticsHeader tasks={tasks} onFilterChange={setCurrentFilter} />
+
+            {/* 1.5 Smart Alerts */}
+            {(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const threeDays = new Date(today);
+                threeDays.setDate(threeDays.getDate() + 3);
+
+                const overdue = tasks.filter(t => {
+                    if (t.Status === TaskStatus.Done) return false;
+                    if (!t.DueDate) return false;
+                    const d = new Date(t.DueDate); d.setHours(0, 0, 0, 0);
+                    return d < today;
+                });
+                const upcoming = tasks.filter(t => {
+                    if (t.Status === TaskStatus.Done) return false;
+                    if (!t.DueDate) return false;
+                    const d = new Date(t.DueDate); d.setHours(0, 0, 0, 0);
+                    return d >= today && d <= threeDays;
+                });
+                const todayDone = tasks.filter(t => {
+                    if (t.Status !== TaskStatus.Done) return false;
+                    if (!t.ActualEndDate) return false;
+                    const d = new Date(t.ActualEndDate); d.setHours(0, 0, 0, 0);
+                    return d.getTime() === today.getTime();
+                });
+
+                const alerts: { icon: string; text: string; type: 'danger' | 'warn' | 'success' }[] = [];
+                if (overdue.length > 0) alerts.push({ icon: '🔴', text: `${overdue.length} công việc đã quá hạn — cần xử lý ngay!`, type: 'danger' });
+                if (upcoming.length > 0) alerts.push({ icon: '⚠️', text: `${upcoming.length} công việc sẽ đến hạn trong 3 ngày tới`, type: 'warn' });
+                if (todayDone.length > 0) alerts.push({ icon: '✅', text: `${todayDone.length} công việc vừa hoàn thành hôm nay`, type: 'success' });
+
+                if (alerts.length === 0) return null;
+
+                const typeStyles = {
+                    danger: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
+                    warn: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
+                    success: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400',
+                };
+
+                return (
+                    <div className="flex flex-wrap gap-2">
+                        {alerts.map((a, i) => (
+                            <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${typeStyles[a.type]}`}>
+                                <span>{a.icon}</span>
+                                <span>{a.text}</span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            })()}
 
             {/* 2. Filter Bar */}
             <TaskFilterBar
@@ -1220,9 +1339,68 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     )}
                 </div>
 
-                {/* Right: Milestone Timeline (1 col) */}
+                {/* Right: Sidebar (1 col) */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-4">
+                    <div className="sticky top-4 space-y-4">
+
+                        {/* Project Health Score */}
+                        {(() => {
+                            const total = tasks.length;
+                            if (total === 0) return null;
+
+                            const done = tasks.filter(t => t.Status === TaskStatus.Done).length;
+                            const today = new Date(); today.setHours(0, 0, 0, 0);
+                            const overdue = tasks.filter(t => {
+                                if (t.Status === TaskStatus.Done || !t.DueDate) return false;
+                                const d = new Date(t.DueDate); d.setHours(0, 0, 0, 0);
+                                return d < today;
+                            }).length;
+                            const assigned = tasks.filter(t => t.AssigneeID || (t.Assignees && t.Assignees.length > 0)).length;
+
+                            // Score calculation (0-100)
+                            const completionScore = (done / total) * 30;
+                            const onTimeScore = ((total - overdue) / total) * 30;
+                            const assignedScore = (assigned / total) * 20;
+                            const hasProgress = tasks.filter(t => (t.ProgressPercent || 0) > 0 || t.Status === TaskStatus.Done).length;
+                            const progressScore = (hasProgress / total) * 20;
+                            const score = Math.round(completionScore + onTimeScore + assignedScore + progressScore);
+
+                            const getScoreInfo = (s: number) => {
+                                if (s >= 80) return { emoji: '🟢', label: 'Tốt', color: 'text-emerald-600', bg: 'bg-emerald-500' };
+                                if (s >= 60) return { emoji: '🟡', label: 'Trung bình', color: 'text-amber-600', bg: 'bg-amber-500' };
+                                if (s >= 40) return { emoji: '🟠', label: 'Cần cải thiện', color: 'text-orange-600', bg: 'bg-orange-500' };
+                                return { emoji: '🔴', label: 'Rủi ro cao', color: 'text-red-600', bg: 'bg-red-500' };
+                            };
+                            const info = getScoreInfo(score);
+
+                            return (
+                                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-sm">
+                                    <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                                        Sức khỏe dự án
+                                    </h4>
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <span className="text-3xl">{info.emoji}</span>
+                                        <div>
+                                            <span className={`text-2xl font-black ${info.color}`}>{score}</span>
+                                            <span className="text-sm text-gray-400">/100</span>
+                                            <p className={`text-xs font-semibold ${info.color}`}>{info.label}</p>
+                                        </div>
+                                    </div>
+                                    {/* Score bar */}
+                                    <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-3">
+                                        <div className={`h-full ${info.bg} rounded-full transition-all duration-500`} style={{ width: `${score}%` }} />
+                                    </div>
+                                    {/* Breakdown */}
+                                    <div className="space-y-1.5 text-[10px] text-gray-500">
+                                        <div className="flex justify-between"><span>Hoàn thành ({done}/{total})</span><span className="font-bold">{Math.round(completionScore)}/30</span></div>
+                                        <div className="flex justify-between"><span>Đúng hạn ({total - overdue}/{total})</span><span className="font-bold">{Math.round(onTimeScore)}/30</span></div>
+                                        <div className="flex justify-between"><span>Có tiến độ</span><span className="font-bold">{Math.round(progressScore)}/20</span></div>
+                                        <div className="flex justify-between"><span>Đã phân công</span><span className="font-bold">{Math.round(assignedScore)}/20</span></div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         <MilestoneTimeline milestoneData={milestoneData} />
                     </div>
                 </div>
@@ -1264,6 +1442,18 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     e.target.value = '';
                 }}
             />
+
+            {/* Toast Notifications */}
+            {toast && (
+                <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${
+                    toast.type === 'success' ? 'bg-emerald-600 text-white' :
+                    toast.type === 'error' ? 'bg-red-600 text-white' :
+                    'bg-gray-800 text-white'
+                }`}>
+                    <span>{toast.msg}</span>
+                    <button onClick={() => setToast(null)} className="ml-2 text-white/60 hover:text-white text-lg leading-none">&times;</button>
+                </div>
+            )}
         </div>
     );
 };

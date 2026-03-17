@@ -174,11 +174,11 @@ export const TEMPLATE_REGISTRY: Record<string, TemplateConfig> = {
             { key: 'documentNumber', label: 'Số văn bản', type: 'text', placeholder: '…/BC-BQLDA' },
             { key: 'documentDate', label: 'Ngày văn bản', type: 'date' },
             { key: 'locationName', label: 'Nơi lập', type: 'text', placeholder: 'Hà Nội' },
-            { key: 'kinhGui', label: 'Kính gửi (cơ quan QĐ CTĐT)', type: 'text', required: true, autoFillFrom: autoProject.decisionAuthority, placeholder: 'Giám đốc Học viện CTQG HCM' },
+            { key: 'kinhGui', label: 'Kính gửi (cơ quan QĐ CTĐT)', type: 'text', required: true, autoFillFrom: autoProject.decisionAuthority, placeholder: 'UBND TP.HCM' },
             // === Phần I: Thông tin chung ===
             { key: 'projectName', label: 'Tên dự án', type: 'text', required: true, autoFillFrom: autoProject.name },
             { key: 'projectGroup', label: 'Nhóm dự án (B/C)', type: 'select', options: ['B', 'C'], autoFillFrom: autoProject.group },
-            { key: 'capQuyetDinh', label: 'Cấp QĐ đầu tư', type: 'text', autoFillFrom: autoProject.decisionAuthority, placeholder: 'Giám đốc Học viện CTQG HCM' },
+            { key: 'capQuyetDinh', label: 'Cấp QĐ đầu tư', type: 'text', autoFillFrom: autoProject.decisionAuthority, placeholder: 'UBND TP.HCM' },
             { key: 'investorName', label: 'Chủ đầu tư', type: 'text', autoFillFrom: autoProject.investorName },
             { key: 'location', label: 'Địa điểm thực hiện', type: 'text', autoFillFrom: autoProject.location },
             { key: 'totalInvestment', label: 'Tổng mức đầu tư (VNĐ)', type: 'text', autoFillFrom: autoProject.totalInvestment },

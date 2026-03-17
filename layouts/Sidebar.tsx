@@ -19,6 +19,7 @@ import {
   Scale,
   FolderTree,
   ShieldCheck,
+  Layers,
 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -53,8 +54,8 @@ const navItems: NavItem[] = [
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
   { name: 'Hợp đồng', path: '/contracts', icon: FileText, resource: 'contracts' },
   { name: 'Thanh toán', path: '/payments', icon: CreditCard, resource: 'payments' },
-  { name: 'Hồ sơ tài liệu', path: '/documents', icon: FileBox, resource: 'documents' },
   { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
+  { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'projects' },
   { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },
   { name: 'Báo cáo', path: '/reports', icon: BarChart2, resource: 'reports' },
   { name: 'Quy chế làm việc', path: '/regulations', icon: BookOpen, resource: 'regulations' },
@@ -62,15 +63,11 @@ const navItems: NavItem[] = [
 
 // Contractor-only: limited menu
 const contractorNavItems: NavItem[] = [
-  { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree },
+  { name: 'Quản lý tài liệu', path: '/cde', icon: FolderTree },
   { name: 'Hợp đồng', path: '/contracts', icon: FileText },
   { name: 'Thanh toán', path: '/payments', icon: CreditCard },
-  { name: 'Hồ sơ tài liệu', path: '/documents', icon: FileBox },
 ];
 
-const adminItems: NavItem[] = [
-  { name: 'Quản trị HT', path: '/admin', icon: ShieldCheck, resource: 'admin_accounts' },
-];
 
 const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed = false,
@@ -91,13 +88,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
   }, [can, isContractor]);
 
-  const visibleAdminItems = useMemo(() => {
-    if (isContractor) return []; // Contractors never see admin
-    return adminItems.filter(item => {
-      if (!item.resource) return true;
-      return can(item.resource, 'view');
-    });
-  }, [can, isContractor]);
 
   return (
     <div
@@ -129,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* ── Navigation ── */}
         <nav className="mt-2 px-2 space-y-0.5 overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-          {[...visibleNavItems, ...visibleAdminItems].map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}

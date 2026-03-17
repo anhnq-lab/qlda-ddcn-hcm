@@ -359,7 +359,7 @@ const ProjectBimTabContent: React.FC = () => {
         return () => document.removeEventListener('fullscreenchange', handleChange);
     }, [engine.worldRef]);
 
-    // ── Keyboard shortcuts ─────────────────
+    // ── Keyboard shortcuts (UI-only — camera/tool shortcuts handled by useBimKeyboard) ─────
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -372,33 +372,6 @@ const ProjectBimTabContent: React.FC = () => {
             }
 
             switch (e.key) {
-                case '0': engine.setView('iso'); break;
-                case '1': engine.setView('front'); break;
-                case '2': engine.setView('back'); break;
-                case '3': engine.setView('left'); break;
-                case '4': engine.setView('right'); break;
-                case '5': engine.setView('top'); break;
-                case '6': engine.setView('bottom'); break;
-                case 'f': case 'F': engine.fitAll(); break;
-                case 'v': case 'V': tools.activateTool('select'); break;
-                case 'i': case 'I': selection.handleIsolateSelected(); break;
-                case 'h':
-                    if (e.shiftKey) selection.handleShowAll();
-                    else selection.handleHideSelected();
-                    break;
-                case 'H':
-                    if (e.shiftKey) selection.handleShowAll();
-                    else selection.handleHideSelected();
-                    break;
-                case 'Escape':
-                    tools.activateTool('select');
-                    selection.clearSelection();
-                    setShowShortcuts(false);
-                    break;
-                case 'Delete':
-                    section.clearAllClipPlanes();
-                    measure.clearAllMeasurements();
-                    break;
                 case '?':
                     setShowShortcuts(prev => !prev);
                     break;
@@ -415,7 +388,7 @@ const ProjectBimTabContent: React.FC = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [engine, tools, selection, section, measure, toggleFullscreen]);
+    }, [toggleFullscreen, walkthrough]);
 
 
     // ── Click-outside to close context menu ──────

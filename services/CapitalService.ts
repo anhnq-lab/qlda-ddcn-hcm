@@ -277,6 +277,13 @@ export class CapitalService {
         };
     }
 
+    private static normalizeStatus(s: string): 'Pending' | 'Approved' | 'Rejected' {
+        const lower = (s || '').toLowerCase();
+        if (lower === 'approved' || lower === 'completed') return 'Approved';
+        if (lower === 'pending') return 'Pending';
+        return 'Rejected';
+    }
+
     private static mapDisbursement(row: any): Disbursement {
         return {
             DisbursementID: row.disbursement_id,
@@ -289,8 +296,8 @@ export class CapitalService {
             TreasuryCode: row.treasury_code || '',
             FormType: row.form_type || '',
             Description: row.description || '',
-            Status: row.status as 'Pending' | 'Approved' | 'Rejected',
-            Type: row.type || undefined,
+            Status: this.normalizeStatus(row.status),
+            Type: row.type || 'ThanhToanKLHT',
             ContractNumber: row.contract_number || '',
             CumulativeBefore: Number(row.cumulative_before) || 0,
             AdvanceBalance: Number(row.advance_balance) || 0,

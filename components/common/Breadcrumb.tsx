@@ -31,6 +31,8 @@ const routeLabels: Record<string, string> = {
     'contracts': 'Hợp đồng',
     'payments': 'Thanh toán',
     'documents': 'Hồ sơ tài liệu',
+    'cde': 'CDE',
+    'bim': 'BIM',
     'legal-documents': 'Văn bản pháp luật',
     'reports': 'Báo cáo',
     'regulations': 'Quy chế làm việc',

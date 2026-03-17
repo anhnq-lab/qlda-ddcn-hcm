@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     FileText, Send, Download, CalendarPlus, RefreshCw,
-    BarChart2, Users, Settings, ExternalLink, Loader2
+    Settings, Loader2, Zap
 } from 'lucide-react';
 
 interface QuickAction {
@@ -35,7 +35,6 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     isSyncing = false,
     compact = false
 }) => {
-    // Default actions if not provided
     const defaultActions: QuickAction[] = [
         {
             id: 'monthly-report',
@@ -80,14 +79,13 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
     const getButtonStyle = (variant: QuickAction['variant'] = 'secondary', disabled?: boolean) => {
         if (disabled) return 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed';
-
         switch (variant) {
             case 'primary':
-                return 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-200';
+                return 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm shadow-amber-200/50 dark:shadow-amber-900/30';
             case 'danger':
                 return 'bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-200';
             default:
-                return 'bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600 shadow-sm';
+                return 'bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-600/50 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600';
         }
     };
 
@@ -113,33 +111,52 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
         );
     }
 
+    // Split: first action = primary hero, rest = small grid
+    const [primary, ...rest] = actionsToRender;
+
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
             {/* Header */}
             <div className="section-card-header">
                 <div className="flex items-center gap-2">
-                    <div className="section-icon"><Settings className="w-3.5 h-3.5" /></div>
+                    <div className="section-icon"><Zap className="w-3.5 h-3.5" /></div>
                     <span>Thao tác nhanh</span>
                 </div>
             </div>
 
-            {/* Actions Grid */}
-            <div className="p-4 grid grid-cols-2 gap-3">
-                {actionsToRender.map(action => (
-                    <button
-                        key={action.id}
-                        onClick={action.onClick}
-                        disabled={action.disabled}
-                        className={`flex items-center gap-2 px-4 py-3 text-xs font-bold rounded-xl transition-all ${getButtonStyle(action.variant, action.disabled)}`}
-                    >
-                        {action.loading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <action.icon className="w-4 h-4" />
-                        )}
-                        {action.label}
-                    </button>
-                ))}
+            <div className="p-3 space-y-2">
+                {/* Primary action — full width */}
+                <button
+                    onClick={primary.onClick}
+                    disabled={primary.disabled}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all active:scale-[0.98] ${getButtonStyle(primary.variant, primary.disabled)}`}
+                >
+                    {primary.loading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <primary.icon className="w-4 h-4" />
+                    )}
+                    {primary.label}
+                </button>
+
+                {/* Secondary actions — compact 2-col grid */}
+                <div className="grid grid-cols-2 gap-2">
+                    {rest.map(action => (
+                        <button
+                            key={action.id}
+                            onClick={action.onClick}
+                            disabled={action.disabled}
+                            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg transition-all active:scale-[0.97] ${getButtonStyle(action.variant, action.disabled)}`}
+                        >
+                            {action.loading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <action.icon className="w-3.5 h-3.5" />
+                            )}
+                            <span className="truncate">{action.label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );

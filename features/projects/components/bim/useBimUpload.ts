@@ -12,6 +12,17 @@ import {
 } from '../../../../lib/bimStorage';
 
 
+// ── Module-level IFC download cache ─────────────────────
+// Persists across component mount/unmount to avoid re-downloading
+// IFC files from Supabase Storage when switching between models.
+const ifcDownloadCache = new Map<string, ArrayBuffer>();
+
+/** Clear a specific entry or all cached IFC downloads */
+export function clearIfcDownloadCache(key?: string) {
+    if (key) ifcDownloadCache.delete(key);
+    else ifcDownloadCache.clear();
+}
+
 export type LoadStatus = 'idle' | 'initializing' | 'loading' | 'converting' | 'success' | 'error';
 
 export interface DisciplineModel {
@@ -100,7 +111,17 @@ export function useBimUpload(
             // Load models in parallel for speed
             const loadPromises = readyModels.map(async (m) => {
                 try {
-                    const ifcBuffer = await downloadFile(m.ifc_path!);
+                    // Check module-level cache first
+                    const cacheKey = m.ifc_path!;
+                    let ifcBuffer: ArrayBuffer;
+                    if (ifcDownloadCache.has(cacheKey)) {
+                        ifcBuffer = ifcDownloadCache.get(cacheKey)!;
+                        console.log(`[BIM] Cache hit: ${m.file_name}`);
+                    } else {
+                        ifcBuffer = await downloadFile(cacheKey);
+                        ifcDownloadCache.set(cacheKey, ifcBuffer);
+                        console.log(`[BIM] Downloaded & cached: ${m.file_name}`);
+                    }
                     const uint8Array = new Uint8Array(ifcBuffer);
 
                     if (ifcLoader && worldRef.current) {

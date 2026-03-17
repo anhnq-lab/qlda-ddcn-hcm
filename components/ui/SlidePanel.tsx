@@ -1,5 +1,5 @@
-import React, { useEffect, useCallback } from 'react';
-import { X, FileText } from 'lucide-react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
+import { X, FileText, Layers, GripVertical, Maximize2, Minimize2 } from 'lucide-react';
 import { useSlidePanel, PanelEntry } from '../../context/SlidePanelContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -8,6 +8,83 @@ const BASE_GAP = 20;           // px base gap between sidebar and first panel
 const STACKING_OFFSET = 20;   // px additional gap per stacked panel
 const TAB_HEIGHT = 38;         // approximate tab height in px
 const TAB_VERTICAL_GAP = 6;   // px gap between cascading tabs vertically
+const MIN_PANEL_WIDTH = 400;   // minimum panel width in px
+const SWIPE_THRESHOLD = 100;   // px to trigger swipe-to-close
+
+// ─── Resize Handle ───────────────────────────────────────────────────────────
+
+interface ResizeHandleProps {
+    onResizeStart: (startX: number) => void;
+    onResetWidth: () => void;
+}
+
+const ResizeHandle: React.FC<ResizeHandleProps> = ({ onResizeStart, onResetWidth }) => {
+    return (
+        <div
+            className="slide-panel-resize-handle"
+            onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onResizeStart(e.clientX);
+            }}
+            onDoubleClick={(e) => {
+                e.preventDefault();
+                onResetWidth();
+            }}
+            title="Kéo để thay đổi kích thước • Nhấp đúp để đặt lại"
+        >
+            <div className="slide-panel-resize-indicator">
+                <GripVertical size={12} className="text-slate-400 dark:text-slate-500 opacity-0 group-hover/resize:opacity-100 transition-opacity" />
+            </div>
+        </div>
+    );
+};
+
+// ─── Panel Title Bar ─────────────────────────────────────────────────────────
+
+interface PanelTitleBarProps {
+    panel: PanelEntry;
+    onClose: () => void;
+    panelWidth: number;
+    onToggleMaximize?: () => void;
+    isMaximized?: boolean;
+}
+
+const PanelTitleBar: React.FC<PanelTitleBarProps> = ({ panel, onClose, panelWidth, onToggleMaximize, isMaximized }) => {
+    const isNarrow = panelWidth > 0 && panelWidth < 500;
+    return (
+        <div className="slide-panel-title-bar">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <span className="slide-panel-title-icon">
+                    {panel.icon || <FileText size={14} />}
+                </span>
+                <h3 className={`slide-panel-title-text ${isNarrow ? 'max-w-[180px]' : 'max-w-[400px]'}`}>
+                    {panel.title || 'Chi tiết'}
+                </h3>
+            </div>
+            <div className="flex items-center gap-1">
+                {onToggleMaximize && (
+                    <button
+                        onClick={onToggleMaximize}
+                        className="slide-panel-title-btn"
+                        aria-label={isMaximized ? 'Thu nhỏ' : 'Phóng to'}
+                        title={isMaximized ? 'Thu nhỏ' : 'Phóng to'}
+                    >
+                        {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    </button>
+                )}
+                <button
+                    onClick={onClose}
+                    className="slide-panel-title-btn slide-panel-title-btn-close"
+                    aria-label="Đóng"
+                    title="Đóng (Esc)"
+                >
+                    <X size={15} strokeWidth={2.5} />
+                </button>
+            </div>
+        </div>
+    );
+};
 
 // ─── Single Panel ────────────────────────────────────────────────────────────
 
@@ -17,11 +94,57 @@ interface SlidePanelItemProps {
     total: number;
     onClose: () => void;
     isExiting?: boolean;
+    panelWidth: number;
+    isResizing: boolean;
 }
 
-const SlidePanelItem: React.FC<SlidePanelItemProps> = ({ panel, index, total, onClose, isExiting }) => {
+const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
+    panel, index, total, onClose, isExiting, panelWidth, isResizing,
+}) => {
     const isTopPanel = index === total - 1;
     const stackOffset = BASE_GAP + index * STACKING_OFFSET;
+
+    // Swipe-to-close state
+    const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+    const [swipeOffset, setSwipeOffset] = useState(0);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+        setSwipeOffset(0);
+    }, []);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!touchStartRef.current || !isTopPanel) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartRef.current.x;
+        const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+
+        // Only track horizontal swipes (right direction)
+        if (deltaX > 10 && deltaX > deltaY) {
+            setSwipeOffset(Math.max(0, deltaX));
+        }
+    }, [isTopPanel]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (!touchStartRef.current) return;
+        if (swipeOffset > SWIPE_THRESHOLD) {
+            onClose();
+        }
+        setSwipeOffset(0);
+        touchStartRef.current = null;
+    }, [swipeOffset, onClose]);
+
+    // Compute width style
+    const widthStyle: React.CSSProperties = panelWidth > 0 && isTopPanel
+        ? {
+            width: `${panelWidth}px`,
+            maxWidth: `calc(100% - ${stackOffset}px)`,
+        }
+        : {
+            width: `calc(100% - ${stackOffset}px)`,
+            maxWidth: `calc(100% - ${stackOffset}px)`,
+        };
 
     return (
         <div
@@ -42,30 +165,33 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({ panel, index, total, on
             <div
                 className={`relative h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 
           flex flex-col overflow-hidden slide-panel-stacked
-          ${isExiting ? 'slide-panel-exit' : 'slide-panel-enter'}`}
+          ${isExiting ? 'slide-panel-exit' : 'slide-panel-enter'}
+          ${isResizing ? 'slide-panel-resizing' : ''}`}
                 style={{
-                    width: `calc(100% - ${stackOffset}px)`,
-                    maxWidth: `calc(100% - ${stackOffset}px)`,
+                    ...widthStyle,
                     ...(isTopPanel ? {} : {
                         filter: 'brightness(0.97)',
                     }),
+                    ...(swipeOffset > 0 ? {
+                        transform: `translateX(${swipeOffset}px)`,
+                        opacity: Math.max(0.3, 1 - swipeOffset / 400),
+                        transition: 'none',
+                    } : {}),
                 }}
                 role="dialog"
                 aria-modal={isTopPanel}
                 aria-label={panel.title || 'Panel'}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
             >
-                {/* Close Button */}
+                {/* Title Bar — replaces old floating close button */}
                 {isTopPanel && (
-                    <button
-                        onClick={onClose}
-                        className="absolute top-3 right-3 z-10 p-2 rounded-lg
-              text-slate-400 hover:text-slate-600 dark:hover:text-slate-300
-              hover:bg-slate-100 dark:hover:bg-slate-800
-              transition-colors"
-                        aria-label="Đóng"
-                    >
-                        <X size={20} />
-                    </button>
+                    <PanelTitleBar
+                        panel={panel}
+                        onClose={onClose}
+                        panelWidth={panelWidth}
+                    />
                 )}
 
                 {/* Content */}
@@ -84,9 +210,10 @@ interface PanelTabsOverlayProps {
     sidebarWidth: number;
     onFocus: (id: string) => void;
     onClose: (id: string) => void;
+    onCloseAll: () => void;
 }
 
-const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidth, onFocus, onClose }) => {
+const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidth, onFocus, onClose, onCloseAll }) => {
     if (panels.length === 0) return null;
 
     return (
@@ -103,7 +230,7 @@ const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidt
                 return (
                     <div
                         key={panel.id}
-                        className="slide-panel-tab pointer-events-auto absolute"
+                        className="slide-panel-tab pointer-events-auto absolute hidden md:block"
                         style={{
                             right: `calc(100% - ${tabRightEdge}px)`,
                             top: `${tabTop}px`,
@@ -157,6 +284,36 @@ const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidt
                     </div>
                 );
             })}
+
+            {/* "Close All" button — only when multiple panels are open */}
+            {panels.length > 1 && (
+                <div
+                    className="slide-panel-tab pointer-events-auto absolute hidden md:block"
+                    style={{
+                        right: `calc(100% - ${sidebarWidth + BASE_GAP + TAB_HEIGHT}px)`,
+                        top: `${12 + panels.length * (TAB_HEIGHT + TAB_VERTICAL_GAP)}px`,
+                        zIndex: 60 + panels.length * 2 + 1,
+                    }}
+                >
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onCloseAll();
+                        }}
+                        className="group flex items-center gap-1.5 pl-3 pr-3 py-2
+                            rounded-l-xl border border-r-0
+                            bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800
+                            text-red-500 dark:text-red-400
+                            hover:bg-red-100 dark:hover:bg-red-900/50 hover:text-red-600 dark:hover:text-red-300
+                            shadow-lg shadow-slate-900/10 dark:shadow-slate-950/30
+                            transition-all duration-200 whitespace-nowrap"
+                        title="Đóng tất cả panel"
+                    >
+                        <Layers size={14} />
+                        <span className="text-xs font-semibold">Đóng tất cả</span>
+                    </button>
+                </div>
+            )}
         </>
     );
 };
@@ -168,7 +325,18 @@ interface SlidePanelContainerProps {
 }
 
 export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSidebarCollapsed }) => {
-    const { panels, closePanel, focusPanel, hasOpenPanels, closingPanels, isTopPanelLocked } = useSlidePanel();
+    const {
+        panels, closePanel, closeAllPanels, focusPanel, hasOpenPanels,
+        closingPanels, isTopPanelLocked, panelWidth, setPanelWidth,
+    } = useSlidePanel();
+
+    // Resize state
+    const [isResizing, setIsResizing] = useState(false);
+    const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null);
+    const panelViewportRef = useRef<HTMLDivElement>(null);
+
+    // Focus trap
+    const previousFocusRef = useRef<HTMLElement | null>(null);
 
     const guardedClose = useCallback((id?: string) => {
         closePanel(id);
@@ -182,6 +350,7 @@ export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSide
         focusPanel(id);
     }, [focusPanel, isTopPanelLocked, closePanel]);
 
+    // ─── Keyboard: Escape to close ────────────────────────────────
     useEffect(() => {
         if (!hasOpenPanels) return;
         const handleEscapeKey = (e: KeyboardEvent) => {
@@ -195,19 +364,84 @@ export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSide
         return () => window.removeEventListener('keydown', handleEscapeKey, { capture: true });
     }, [hasOpenPanels, guardedClose]);
 
+    // ─── Focus management ─────────────────────────────────────────
     useEffect(() => {
         if (hasOpenPanels) {
+            // Save current focus and lock body scroll
+            previousFocusRef.current = document.activeElement as HTMLElement;
             document.body.classList.add('slide-panel-open');
+
+            // Focus the panel container after enter animation
+            const timer = setTimeout(() => {
+                if (panelViewportRef.current) {
+                    const firstFocusable = panelViewportRef.current.querySelector<HTMLElement>(
+                        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                    );
+                    firstFocusable?.focus();
+                }
+            }, 300);
+            return () => {
+                clearTimeout(timer);
+                document.body.classList.remove('slide-panel-open');
+            };
         } else {
             document.body.classList.remove('slide-panel-open');
+            // Restore focus
+            if (previousFocusRef.current) {
+                previousFocusRef.current.focus();
+                previousFocusRef.current = null;
+            }
         }
-        return () => document.body.classList.remove('slide-panel-open');
     }, [hasOpenPanels]);
+
+    // ─── Resize mouse move/up handlers ────────────────────────────
+    useEffect(() => {
+        if (!isResizing) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!resizeStartRef.current) return;
+            const delta = resizeStartRef.current.startX - e.clientX;
+            const newWidth = resizeStartRef.current.startWidth + delta;
+            const maxWidth = window.innerWidth * 0.95;
+            const clamped = Math.min(maxWidth, Math.max(MIN_PANEL_WIDTH, newWidth));
+            setPanelWidth(clamped);
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+            resizeStartRef.current = null;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+    }, [isResizing, setPanelWidth]);
+
+    const handleResizeStart = useCallback((startX: number) => {
+        // Compute current panel rendered width
+        const currentWidth = panelWidth > 0
+            ? panelWidth
+            : (panelViewportRef.current?.querySelector<HTMLElement>('[role="dialog"]')?.offsetWidth || window.innerWidth * 0.7);
+        resizeStartRef.current = { startX, startWidth: currentWidth };
+        setIsResizing(true);
+    }, [panelWidth]);
+
+    const handleResetWidth = useCallback(() => {
+        setPanelWidth(0);
+    }, [setPanelWidth]);
 
     if (!hasOpenPanels) return null;
 
     const sidebarWidth = isSidebarCollapsed ? 80 : 256; // w-20 vs w-64
-
     const isAllExiting = panels.length > 0 && closingPanels.size === panels.length;
 
     return (
@@ -228,18 +462,29 @@ export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSide
         }
       `}</style>
             <div
+                ref={panelViewportRef}
                 className="slide-panel-viewport absolute inset-0 overflow-hidden"
                 style={{ left: 0 }}
             >
                 {panels.map((panel, index) => (
-                    <SlidePanelItem
-                        key={panel.id}
-                        panel={panel}
-                        index={index}
-                        total={panels.length}
-                        onClose={() => guardedClose(panel.id)}
-                        isExiting={closingPanels.has(panel.id)}
-                    />
+                    <React.Fragment key={panel.id}>
+                        {/* Resize handle — only on the top-most panel */}
+                        {index === panels.length - 1 && !closingPanels.has(panel.id) && (
+                            <ResizeHandle
+                                onResizeStart={handleResizeStart}
+                                onResetWidth={handleResetWidth}
+                            />
+                        )}
+                        <SlidePanelItem
+                            panel={panel}
+                            index={index}
+                            total={panels.length}
+                            onClose={() => guardedClose(panel.id)}
+                            isExiting={closingPanels.has(panel.id)}
+                            panelWidth={panelWidth}
+                            isResizing={isResizing}
+                        />
+                    </React.Fragment>
                 ))}
             </div>
 
@@ -249,6 +494,7 @@ export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSide
                 sidebarWidth={sidebarWidth}
                 onFocus={(id) => guardedFocus(id)}
                 onClose={(id) => guardedClose(id)}
+                onCloseAll={closeAllPanels}
             />
         </div>
     );

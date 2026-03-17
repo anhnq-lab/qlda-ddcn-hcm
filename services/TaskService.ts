@@ -75,12 +75,30 @@ export const TaskService = {
     },
 
     deleteTask: async (id: string): Promise<boolean> => {
+        // Xóa sub_tasks liên quan trước
+        await supabase.from('sub_tasks').delete().eq('task_id', id);
+        
         const { error } = await supabase
             .from('tasks')
             .delete()
             .eq('task_id', id);
 
         if (error) throw new Error(`Failed to delete task: ${error.message}`);
+        return true;
+    },
+
+    deleteTasksByProject: async (projectId: string): Promise<boolean> => {
+        // Gọi RPC function (SECURITY DEFINER) để bypass RLS
+        const { data, error } = await (supabase.rpc as any)('delete_project_tasks', {
+            p_project_id: projectId,
+        });
+
+        if (error) {
+            console.error('RPC delete_project_tasks error:', error);
+            throw new Error(`Xoá công việc thất bại: ${error.message}`);
+        }
+
+        console.log(`Đã xoá ${data} công việc cho dự án ${projectId}`);
         return true;
     }
 };

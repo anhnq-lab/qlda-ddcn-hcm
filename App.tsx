@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ImpersonationProvider } from './context/ImpersonationContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import PageLoadingFallback from './components/ui/PageLoadingFallback';
 import MainLayout from './layouts/MainLayout';
 
 // Auth Features (eager load - needed immediately)
@@ -18,7 +19,7 @@ const PersonalDashboard = React.lazy(() => import('./features/dashboard/Personal
 const ContractorAwareHome: React.FC = () => {
     const { userType } = useAuth();
     if (userType === 'contractor') return <Navigate to="/cde" replace />;
-    return <React.Suspense fallback={<div />}><Dashboard /></React.Suspense>;
+    return <React.Suspense fallback={<PageLoadingFallback />}><Dashboard /></React.Suspense>;
 };
 const ProjectList = React.lazy(() => import('./features/projects/ProjectList'));
 const ProjectDetail = React.lazy(() => import('./features/projects/ProjectDetail'));
@@ -32,8 +33,9 @@ const EmployeeDetail = React.lazy(() => import('./features/employees/EmployeeDet
 const TaskList = React.lazy(() => import('./features/tasks/TaskList'));
 const TaskDetail = React.lazy(() => import('./features/tasks/TaskDetail'));
 const PaymentList = React.lazy(() => import('./features/payments/PaymentList'));
-const DocumentManager = React.lazy(() => import('./features/documents/DocumentManager'));
+// DocumentManager removed — integrated into CDE as 'Kho lưu trữ' tab
 const CDEPage = React.lazy(() => import('./features/cde/CDEPage'));
+const BimPage = React.lazy(() => import('./features/bim/BimPage'));
 const ReportCenter = React.lazy(() => import('./features/reports/ReportCenter'));
 const Regulations = React.lazy(() => import('./features/regulations/Regulations'));
 const LegalDocumentSearch = React.lazy(() => import('./features/legal-documents/LegalDocumentSearch'));
@@ -78,45 +80,49 @@ const App: React.FC = () => {
                                     {/* Protected Routes inside MainLayout */}
                                     <Route path="/" element={<MainLayout />}>
                                         <Route index element={<ContractorAwareHome />} />
-                                        <Route path="my-dashboard" element={<PersonalDashboard />} />
+                                        <Route path="my-dashboard" element={<React.Suspense fallback={<PageLoadingFallback />}><PersonalDashboard /></React.Suspense>} />
 
                                         {/* Projects Routes */}
-                                        <Route path="projects" element={<ProjectList />} />
-                                        <Route path="projects/:id" element={<ProjectDetail />} />
-                                        <Route path="projects/:projectId/packages/:packageId" element={<PackageDetail />} />
+                                        <Route path="projects" element={<React.Suspense fallback={<PageLoadingFallback />}><ProjectList /></React.Suspense>} />
+                                        <Route path="projects/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ProjectDetail /></React.Suspense>} />
+                                        <Route path="projects/:projectId/packages/:packageId" element={<React.Suspense fallback={<PageLoadingFallback />}><PackageDetail /></React.Suspense>} />
 
                                         {/* Tasks Routes */}
-                                        <Route path="tasks" element={<TaskList />} />
-                                        <Route path="tasks/:id" element={<TaskDetail />} />
+                                        <Route path="tasks" element={<React.Suspense fallback={<PageLoadingFallback />}><TaskList /></React.Suspense>} />
+                                        <Route path="tasks/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><TaskDetail /></React.Suspense>} />
 
                                         {/* HR Routes */}
-                                        <Route path="employees" element={<EmployeeList />} />
-                                        <Route path="employees/:id" element={<EmployeeDetail />} />
+                                        <Route path="employees" element={<React.Suspense fallback={<PageLoadingFallback />}><EmployeeList /></React.Suspense>} />
+                                        <Route path="employees/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><EmployeeDetail /></React.Suspense>} />
                                         <Route path="org-chart" element={<Navigate to="/employees" replace />} />
 
                                         {/* Contractor Routes */}
-                                        <Route path="contractors" element={<ContractorList />} />
-                                        <Route path="contractors/:id" element={<ContractorDetail />} />
+                                        <Route path="contractors" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorList /></React.Suspense>} />
+                                        <Route path="contractors/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorDetail /></React.Suspense>} />
 
                                         {/* Contract Routes */}
-                                        <Route path="contracts" element={<ContractList />} />
-                                        <Route path="contracts/:id" element={<ContractDetail />} />
+                                        <Route path="contracts" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractList /></React.Suspense>} />
+                                        <Route path="contracts/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractDetail /></React.Suspense>} />
 
                                         {/* Finance Routes */}
-                                        <Route path="payments" element={<PaymentList />} />
+                                        <Route path="payments" element={<React.Suspense fallback={<PageLoadingFallback />}><PaymentList /></React.Suspense>} />
 
                                         {/* Documents & Reports */}
-                                        <Route path="documents" element={<DocumentManager />} />
-                                        <Route path="cde" element={<CDEPage />} />
-                                        <Route path="legal-documents" element={<LegalDocumentSearch />} />
-                                        <Route path="reports" element={<ReportCenter />} />
-                                        <Route path="regulations" element={<Regulations />} />
+                                        <Route path="documents" element={<Navigate to="/cde" replace />} />
+                                        <Route path="cde" element={<React.Suspense fallback={<PageLoadingFallback />}><CDEPage /></React.Suspense>} />
+                                        <Route path="bim" element={<React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>} />
+                                        <Route path="bim/:projectId" element={<React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>} />
+                                        <Route path="legal-documents" element={<React.Suspense fallback={<PageLoadingFallback />}><LegalDocumentSearch /></React.Suspense>} />
+                                        <Route path="reports" element={<React.Suspense fallback={<PageLoadingFallback />}><ReportCenter /></React.Suspense>} />
+                                        <Route path="regulations" element={<React.Suspense fallback={<PageLoadingFallback />}><Regulations /></React.Suspense>} />
 
                                         {/* Admin */}
-                                        <Route path="audit-log" element={<AuditLogViewer />} />
+                                        <Route path="audit-log" element={<React.Suspense fallback={<PageLoadingFallback />}><AuditLogViewer /></React.Suspense>} />
                                         <Route path="admin" element={
                                             <ProtectedRoute resource="admin_accounts">
-                                                <AdminUserManagement />
+                                                <React.Suspense fallback={<PageLoadingFallback />}>
+                                                    <AdminUserManagement />
+                                                </React.Suspense>
                                             </ProtectedRoute>
                                         } />
                                         {/* Backward-compatible redirects */}
@@ -124,7 +130,7 @@ const App: React.FC = () => {
                                         <Route path="permissions" element={<Navigate to="/admin?tab=permissions" replace />} />
 
                                         {/* Settings */}
-                                        <Route path="settings" element={<Settings />} />
+                                        <Route path="settings" element={<React.Suspense fallback={<PageLoadingFallback />}><Settings /></React.Suspense>} />
 
                                         {/* Fallback */}
                                         <Route path="*" element={<Navigate to="/" replace />} />

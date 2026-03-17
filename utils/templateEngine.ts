@@ -56,7 +56,12 @@ function extractCityName(address: string): string {
  */
 function extractParentOrg(context: ExportDataContext): string {
     const name = context.project?.ProjectName || '';
-    // Try to detect Học viện CTQG HCM
+    const authority = context.project?.CompetentAuthority || '';
+    // Detect UBND TP.HCM (Ban QLDA trực thuộc TP.HCM)
+    if (authority.includes('UBND TP') || name.includes('TP.HCM') || name.includes('Hồ Chí Minh')) {
+        return 'UBND THÀNH PHỐ HỒ CHÍ MINH';
+    }
+    // Legacy: detect Học viện CTQG HCM
     if (name.includes('Học viện Chính trị') || name.includes('Học viện CTQG')) {
         return 'HỌC VIỆN CHÍNH TRỊ QUỐC GIA HỒ CHÍ MINH';
     }

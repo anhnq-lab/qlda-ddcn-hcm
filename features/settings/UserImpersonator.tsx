@@ -31,6 +31,7 @@ interface ContractorAccountItem {
     display_name: string;
     email: string | null;
     contractor_name: string;
+    allowed_project_ids: string[];
 }
 
 const UserImpersonator: React.FC = () => {
@@ -75,7 +76,7 @@ const UserImpersonator: React.FC = () => {
                 // Fetch contractor accounts with contractor names
                 const { data: ctrData, error: ctrErr } = await supabase
                     .from('contractor_accounts')
-                    .select('id, contractor_id, username, display_name, email, contractors(full_name)')
+                    .select('id, contractor_id, username, display_name, email, allowed_project_ids, contractors(full_name)')
                     .eq('is_active', true)
                     .order('display_name');
 
@@ -89,6 +90,7 @@ const UserImpersonator: React.FC = () => {
                         display_name: c.display_name,
                         email: c.email,
                         contractor_name: c.contractors?.full_name || c.contractor_id,
+                        allowed_project_ids: c.allowed_project_ids || [],
                     })));
                 }
             } catch (err) {
@@ -132,6 +134,7 @@ const UserImpersonator: React.FC = () => {
             Status: 'Active' as any,
             Username: ctr.username,
             Password: '',
+            AllowedProjectIDs: ctr.allowed_project_ids,
         };
         startImpersonation(fakeEmployee);
         setIsDropdownOpen(false);
@@ -243,7 +246,7 @@ const UserImpersonator: React.FC = () => {
 
                 {/* Dropdown Content */}
                 {isDropdownOpen && !loading && (
-                    <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
+                    <div className="absolute z-50 w-full mt-2 left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
                         {/* Tab Switcher */}
                         <div className="flex border-b border-slate-100 dark:border-slate-700">
                             <button
@@ -286,7 +289,7 @@ const UserImpersonator: React.FC = () => {
                         </div>
 
                         {/* List */}
-                        <div className="max-h-80 overflow-y-auto">
+                        <div className="max-h-[500px] overflow-y-auto">
                             {activeTab === 'employees' ? (
                                 // Employee list
                                 filteredEmployees.length === 0 ? (

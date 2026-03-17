@@ -9,7 +9,7 @@
  * - NĐ 175/2024/NĐ-CP (thay thế NĐ 15/2021)
  * - NĐ 140/2025/NĐ-CP (chính quyền 2 cấp)
  * - NĐ 144/2025/NĐ-CP (phân quyền, phân cấp)
- * - Sổ tay ĐTC Học viện CTQG HCM
+ * - Áp dụng cho Ban QLDA ĐTXD DDCN trực thuộc UBND TP.HCM
  */
 
 import { ProjectGroup } from '@/types';
@@ -32,7 +32,7 @@ export interface SubTaskDef {
 const PREP_PREFEASIBILITY: SubTaskDef[] = [
     {
         code: 'PREFEAS_01', title: 'Giao đơn vị lập BC NCTKT',
-        responsible: 'Giám đốc Học viện CTQG HCM',
+        responsible: 'UBND TP.HCM',
         legalBasis: 'Đ25 Luật ĐTC 58',
     },
     {
@@ -45,7 +45,7 @@ const PREP_PREFEASIBILITY: SubTaskDef[] = [
     },
     {
         code: 'PREFEAS_03', title: 'Thẩm định BC NCTKT + nguồn vốn',
-        responsible: 'HĐ thẩm định / Sở TC',
+        responsible: 'Sở TC TP.HCM',
         estimatedDays: 45,
         legalBasis: 'Đ25 Luật ĐTC 58; K6 Đ9 NĐ 40',
         templatePath: 'mau-04-bc-ket-qua-tham-dinh-chu-truong.md',
@@ -53,7 +53,7 @@ const PREP_PREFEASIBILITY: SubTaskDef[] = [
     },
     {
         code: 'PREFEAS_04', title: 'Hoàn thiện theo ý kiến thẩm định',
-        responsible: 'Đơn vị lập BC',
+        responsible: 'P.KH-ĐT, Ban ĐH DA',
         legalBasis: 'Đ25 Luật ĐTC 58',
     },
 ];
@@ -61,7 +61,7 @@ const PREP_PREFEASIBILITY: SubTaskDef[] = [
 const PREP_POLICY: SubTaskDef[] = [
     {
         code: 'POLICY_01', title: 'Lập BC đề xuất chủ trương đầu tư',
-        responsible: 'Chủ đầu tư (Ban QLDA)',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         estimatedDays: 20,
         legalBasis: 'Đ34-35 Luật ĐTC 58',
         templatePath: 'mau-03-bc-de-xuat-chu-truong-dt.md',
@@ -69,7 +69,7 @@ const PREP_POLICY: SubTaskDef[] = [
     },
     {
         code: 'POLICY_02', title: 'Thẩm định BC đề xuất CTrĐT + nguồn vốn',
-        responsible: 'HĐ thẩm định / Sở TC',
+        responsible: 'Sở TC TP.HCM',
         estimatedDays: 30,
         legalBasis: 'Đ27-28 Luật ĐTC 58',
         templatePath: 'mau-04-bc-ket-qua-tham-dinh-chu-truong.md',
@@ -77,17 +77,17 @@ const PREP_POLICY: SubTaskDef[] = [
     },
     {
         code: 'POLICY_03', title: 'Hoàn thiện theo ý kiến thẩm định',
-        responsible: 'Đơn vị lập BC',
+        responsible: 'P.KH-ĐT, Ban ĐH DA',
     },
     {
         code: 'POLICY_04', title: 'Trình duyệt QĐ chủ trương đầu tư',
-        responsible: 'HĐ thẩm định',
+        responsible: 'Sở TC TP.HCM',
         templatePath: 'mau-05-to-trinh-qd-chu-truong-dt.md',
         templateLabel: 'Mẫu 05 – Tờ trình QĐ CTrĐT',
     },
     {
         code: 'POLICY_05', title: 'Quyết định chủ trương đầu tư',
-        responsible: 'Giám đốc Học viện CTQG / Ban Cán sự Đảng',
+        responsible: 'UBND TP.HCM',
         legalBasis: 'K2 Đ25,27,28 Luật ĐTC 58',
         templatePath: 'mau-06-nghi-quyet-chu-truong-dt.md',
         templateLabel: 'Mẫu 06 – Nghị quyết CTrĐT',
@@ -97,51 +97,51 @@ const PREP_POLICY: SubTaskDef[] = [
 const PREP_SURVEY: SubTaskDef[] = [
     {
         code: 'SURVEY_01', title: 'Lập KHLCNT giai đoạn CBDA',
-        responsible: 'CĐT (Ban QLDA)',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         legalBasis: 'Đ36-39 Luật ĐT 2023',
     },
     {
         code: 'SURVEY_02', title: 'Thẩm định KHLCNT',
-        responsible: 'CĐT / Đơn vị được giao',
+        responsible: 'P.KH-ĐT, P.TC-KT',
         estimatedDays: 20,
         legalBasis: 'K3 Đ40 Luật ĐT 2023',
     },
     {
         code: 'SURVEY_03', title: 'Phê duyệt KHLCNT',
-        responsible: 'CĐT / Người có thẩm quyền',
+        responsible: 'Giám đốc Ban QLDA',
         estimatedDays: 10,
         legalBasis: 'Đ39, K2 Đ40 Luật ĐT 2023',
     },
     {
         code: 'SURVEY_04', title: 'LCNT khảo sát, TV thiết kế, TV thẩm tra',
-        responsible: 'CĐT, BMT, Tổ chuyên gia',
+        responsible: 'P.KH-ĐT, Tổ chuyên gia',
     },
     {
         code: 'SURVEY_05', title: 'Tổ chức khảo sát địa điểm',
-        responsible: 'CĐT, Nhà thầu TVKS',
+        responsible: 'Ban ĐH DA, NT TVKS',
     },
 ];
 
 const PREP_PLANNING: SubTaskDef[] = [
     {
         code: 'PLAN_01', title: 'Lập nhiệm vụ quy hoạch chi tiết',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA (Ban QLDA)',
         estimatedDays: 30,
         legalBasis: 'Đ36 Luật QHĐT&NT 47',
     },
     {
         code: 'PLAN_02', title: 'LCNT tư vấn lập quy hoạch',
-        responsible: 'CĐT',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         estimatedDays: 30,
     },
     {
         code: 'PLAN_03', title: 'Lập đồ án quy hoạch chi tiết',
-        responsible: 'CĐT, Nhà thầu TVTK',
+        responsible: 'Ban ĐH DA, NT TVTK',
         estimatedDays: 180,
     },
     {
         code: 'PLAN_04', title: 'Lấy ý kiến, thẩm định, phê duyệt QH',
-        responsible: 'Sở XD',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 30,
         legalBasis: 'Đ37, Đ40 Luật QHĐT&NT 47',
     },
@@ -151,18 +151,18 @@ const PREP_PLANNING: SubTaskDef[] = [
 const PREP_FEASIBILITY_AB: SubTaskDef[] = [
     {
         code: 'FEAS_01', title: 'Lập BCNCKT + Thiết kế cơ sở (TKCS)',
-        responsible: 'CĐT, Nhà thầu TVTK',
+        responsible: 'Ban ĐH DA, NT TVTK',
         estimatedDays: 80, // A: 80d, B: 60d — sẽ điều chỉnh theo groupCode
         legalBasis: 'Đ14 NĐ 175',
     },
     {
         code: 'FEAS_02', title: 'Hoàn thiện BCNCKT ĐTXD',
-        responsible: 'CĐT, ĐVTV lập BCNCKT',
+        responsible: 'Ban ĐH DA, ĐVTV',
         legalBasis: 'Đ14 NĐ 175',
     },
     {
         code: 'FEAS_03', title: 'Trình hồ sơ thẩm định BCNCKT',
-        responsible: 'CĐT',
+        responsible: 'P.KT-CL (Ban QLDA)',
         templatePath: 'mau-01-to-trinh-tham-dinh-bc-nctkt.md',
         templateLabel: 'Mẫu 01 – Tờ trình thẩm định',
     },
@@ -174,13 +174,13 @@ const PREP_FEASIBILITY_AB: SubTaskDef[] = [
     },
     {
         code: 'FEAS_05', title: 'Lấy ý kiến sở ngành liên quan',
-        responsible: 'Sở XD (NĐ 144)',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 15, // A: 15d, B: 10d
         legalBasis: 'Đ7 NĐ 10; Đ15-21 NĐ 175',
     },
     {
         code: 'FEAS_06', title: 'Tổng hợp kết quả thẩm định',
-        responsible: 'Sở XD (NĐ 144, NĐ 175)',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 40, // A: 40d, B: 30d
         legalBasis: 'K1 Đ22 NĐ 175',
         templatePath: 'thong-bao-ket-qua-tham-dinh-bcnckt.md',
@@ -188,7 +188,7 @@ const PREP_FEASIBILITY_AB: SubTaskDef[] = [
     },
     {
         code: 'FEAS_07', title: 'Thông báo KQTĐ (NQĐĐT)',
-        responsible: 'Người QĐ đầu tư',
+        responsible: 'UBND TP.HCM',
         templatePath: 'thong-bao-ket-qua-tham-dinh-bcnckt-nqddt.md',
         templateLabel: 'TB KQTĐ BCNCKT (NQĐĐT)',
     },
@@ -198,17 +198,17 @@ const PREP_FEASIBILITY_AB: SubTaskDef[] = [
 const PREP_FEASIBILITY_C: SubTaskDef[] = [
     {
         code: 'FEASC_01', title: 'Lập BCKTKT + TK Bản vẽ thi công',
-        responsible: 'CĐT, Nhà thầu TVTK',
+        responsible: 'Ban ĐH DA, NT TVTK',
         estimatedDays: 60,
         legalBasis: 'Đ14 NĐ 175',
     },
     {
         code: 'FEASC_02', title: 'Hoàn thiện BCKTKT ĐTXD',
-        responsible: 'CĐT, ĐVTV',
+        responsible: 'Ban ĐH DA, ĐVTV',
     },
     {
         code: 'FEASC_03', title: 'Thẩm định BCKTKT',
-        responsible: 'Sở XD (DA tỉnh) / UBND xã (DA xã, NĐ 140 Đ4)',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 20,
         legalBasis: 'Đ56-59 Luật XD; K13-16 Đ1 Luật 62; NĐ 140 Đ4',
         templatePath: 'thong-bao-ket-qua-tham-dinh-bcktkt.md',
@@ -216,7 +216,7 @@ const PREP_FEASIBILITY_C: SubTaskDef[] = [
     },
     {
         code: 'FEASC_04', title: 'Tổng hợp trình phê duyệt',
-        responsible: 'CQ chủ trì thẩm định',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 5,
     },
 ];
@@ -224,11 +224,11 @@ const PREP_FEASIBILITY_C: SubTaskDef[] = [
 const PREP_DECISION: SubTaskDef[] = [
     {
         code: 'DEC_01', title: 'Trình duyệt QĐ đầu tư dự án',
-        responsible: 'CQ chủ trì thẩm định',
+        responsible: 'Sở XD TP.HCM',
     },
     {
         code: 'DEC_02', title: 'Phê duyệt dự án đầu tư XD',
-        responsible: 'Giám đốc Học viện CTQG HCM',
+        responsible: 'UBND TP.HCM',
         estimatedDays: 7,
         legalBasis: 'Luật XD 135/2025; Luật ĐTC 58/2024',
     },
@@ -241,7 +241,7 @@ const PREP_DECISION: SubTaskDef[] = [
 const IMPL_SITE: SubTaskDef[] = [
     {
         code: 'SITE_01', title: 'Lập phương án bồi thường, hỗ trợ, TĐC',
-        responsible: 'CĐT, UBND xã',
+        responsible: 'Ban ĐH DA, UBND Quận',
     },
     {
         code: 'SITE_02', title: 'Thẩm định, phê duyệt PA BT, TĐC',
@@ -249,22 +249,22 @@ const IMPL_SITE: SubTaskDef[] = [
     },
     {
         code: 'SITE_03', title: 'Chi trả bồi thường, GPMB',
-        responsible: 'CĐT, UBND xã',
+        responsible: 'Ban ĐH DA, UBND Quận',
     },
     {
         code: 'SITE_04', title: 'Bàn giao mặt bằng',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
     },
 ];
 
 const IMPL_SURVEY: SubTaskDef[] = [
     {
         code: 'ISURVEY_01', title: 'Khảo sát địa hình, địa chất',
-        responsible: 'CĐT, Nhà thầu TVKS',
+        responsible: 'Ban ĐH DA, NT TVKS',
     },
     {
         code: 'ISURVEY_02', title: 'Nghiệm thu kết quả khảo sát',
-        responsible: 'CĐT',
+        responsible: 'P.KT-CL (Ban QLDA)',
         legalBasis: 'Luật XD 135/2025',
     },
 ];
@@ -273,7 +273,7 @@ const IMPL_SURVEY: SubTaskDef[] = [
 const IMPL_DESIGN_AB: SubTaskDef[] = [
     {
         code: 'DESIGN_01', title: 'Lập hồ sơ TKXD triển khai sau TKCS',
-        responsible: 'CĐT, Nhà thầu TVTK',
+        responsible: 'Ban ĐH DA, NT TVTK',
         estimatedDays: 80, // A: 80d, B: 60d
         legalBasis: 'Đ79-80 Luật XD sđ Luật 62; Đ35,37,42 NĐ 175',
         templatePath: 'mau-01-to-trinh-tham-dinh-bc-nctkt.md',
@@ -288,7 +288,7 @@ const IMPL_DESIGN_AB: SubTaskDef[] = [
     {
         code: 'DESIGN_03', title: 'CĐT tự thẩm định + phê duyệt TK-DT',
         description: 'Luật 135/2025: BÃI BỎ thẩm định tại CQ chuyên môn XD. CĐT tự chịu trách nhiệm.',
-        responsible: 'CĐT (Ban QLDA)',
+        responsible: 'P.KT-CL (Ban QLDA)',
         estimatedDays: 7,
         legalBasis: 'Luật XD 135/2025; K8 Đ82 Luật XD sđ; Đ48 NĐ 175',
         templatePath: 'quyet-dinh-phe-duyet-thiet-ke-xay-dung.md',
@@ -301,12 +301,12 @@ const IMPL_DESIGN_C: SubTaskDef[] = [
     {
         code: 'DESIGNC_01', title: 'Lập TK bản vẽ thi công + Dự toán',
         description: 'Nhóm C: TK BVTC đã lập trong BCKTKT. Bước này chỉ hoàn thiện dự toán chi tiết.',
-        responsible: 'CĐT, Nhà thầu TVTK',
+        responsible: 'Ban ĐH DA, NT TVTK',
         estimatedDays: 30,
     },
     {
         code: 'DESIGNC_02', title: 'Phê duyệt dự toán chi tiết',
-        responsible: 'CĐT',
+        responsible: 'Giám đốc Ban QLDA',
         estimatedDays: 5,
     },
 ];
@@ -314,14 +314,14 @@ const IMPL_DESIGN_C: SubTaskDef[] = [
 const IMPL_PERMIT: SubTaskDef[] = [
     {
         code: 'PERMIT_01', title: 'Lập đơn đề nghị cấp GPXD',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
         templatePath: 'phu-luc-II-01-don-de-nghi-cap-gpxd.md',
         templateLabel: 'Phụ lục II-01 – Đơn GPXD',
     },
     {
         code: 'PERMIT_02', title: 'Thẩm định + cấp GPXD',
-        description: 'NĐ 140/2025 Đ4: UBND xã cấp GPXD cấp III-IV. Sở XD cấp I-II.',
-        responsible: 'Sở XD (cấp I-II) / UBND xã (cấp III-IV, NĐ 140 Đ4)',
+        description: 'Sở XD TP.HCM cấp GPXD cho công trình trên địa bàn.',
+        responsible: 'Sở XD TP.HCM',
         estimatedDays: 20,
         legalBasis: 'K2-3 Đ103 Luật XD sđ 2020; NĐ 140 Đ4 K1',
     },
@@ -330,13 +330,13 @@ const IMPL_PERMIT: SubTaskDef[] = [
 const IMPL_BIDDING: SubTaskDef[] = [
     {
         code: 'BID_01', title: 'Lập Tờ trình KHLCNT giai đoạn THDA',
-        responsible: 'CĐT',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         templatePath: 'mau-07-van-ban-trinh-duyet-khlcnt.md',
         templateLabel: 'Mẫu 07 – VB trình duyệt KHLCNT',
     },
     {
         code: 'BID_02', title: 'Thẩm định KHLCNT',
-        responsible: 'Sở TC',
+        responsible: 'Sở TC TP.HCM',
         estimatedDays: 20,
         legalBasis: 'K3 Đ45 Luật ĐT 2023',
         templatePath: 'mau-08-bc-tham-dinh-khlcnt.md',
@@ -344,7 +344,7 @@ const IMPL_BIDDING: SubTaskDef[] = [
     },
     {
         code: 'BID_03', title: 'Phê duyệt KHLCNT',
-        responsible: 'Người có thẩm quyền / CĐT',
+        responsible: 'Giám đốc Ban QLDA',
         estimatedDays: 10,
         legalBasis: 'Đ40 Luật ĐT 2023',
         templatePath: 'mau-09-qd-phe-duyet-khlcnt.md',
@@ -352,23 +352,23 @@ const IMPL_BIDDING: SubTaskDef[] = [
     },
     {
         code: 'BID_04', title: 'Lập HSMT/HSYC',
-        responsible: 'CĐT, BMT',
+        responsible: 'P.KH-ĐT, Tổ chuyên gia',
     },
     {
         code: 'BID_05', title: 'Phát hành HSMT, mở thầu',
-        responsible: 'BMT',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
     },
     {
         code: 'BID_06', title: 'Đánh giá HSDT',
-        responsible: 'Tổ chuyên gia',
+        responsible: 'Tổ chuyên gia đấu thầu',
     },
     {
         code: 'BID_07', title: 'Thẩm định, phê duyệt KQLCNT',
-        responsible: 'CĐT',
+        responsible: 'Giám đốc Ban QLDA',
     },
     {
         code: 'BID_08', title: 'Thương thảo, ký kết hợp đồng',
-        responsible: 'CĐT, Nhà thầu',
+        responsible: 'Ban ĐH DA, NT trúng thầu',
         templatePath: 'mau-42-45-hop-dong-xay-dung.md',
         templateLabel: 'Mẫu 42-45 – Hợp đồng XD',
     },
@@ -377,7 +377,7 @@ const IMPL_BIDDING: SubTaskDef[] = [
 const IMPL_CONSTRUCTION: SubTaskDef[] = [
     {
         code: 'CONST_01', title: 'Thông báo khởi công',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
         templatePath: 'mau-16-thong-bao-khoi-cong.md',
         templateLabel: 'Mẫu 16 – TB khởi công',
     },
@@ -388,7 +388,7 @@ const IMPL_CONSTRUCTION: SubTaskDef[] = [
     },
     {
         code: 'CONST_03', title: 'Quản lý tiến độ, an toàn lao động',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA, NT TVGS',
         legalBasis: 'Luật XD 135/2025',
     },
 ];
@@ -396,7 +396,7 @@ const IMPL_CONSTRUCTION: SubTaskDef[] = [
 const IMPL_SUPERVISION: SubTaskDef[] = [
     {
         code: 'SUP_01', title: 'Giám sát thi công xây dựng',
-        responsible: 'CĐT, Nhà thầu TVGS',
+        responsible: 'NT TVGS, Ban ĐH DA',
         legalBasis: 'K1 Đ120 Luật XD; K1 Đ19 NĐ 06',
         templatePath: 'mau-17-bc-dinh-ky-giam-sat-thi-cong.md',
         templateLabel: 'Mẫu 17 – BC định kỳ GS thi công',
@@ -408,7 +408,7 @@ const IMPL_SUPERVISION: SubTaskDef[] = [
     },
     {
         code: 'SUP_03', title: 'Lập BC hoàn thành giám sát',
-        responsible: 'CĐT, Nhà thầu TVGS',
+        responsible: 'NT TVGS, P.KT-CL',
         templatePath: 'mau-18-bc-hoan-thanh-giam-sat-thi-cong.md',
         templateLabel: 'Mẫu 18 – BC hoàn thành GS',
     },
@@ -417,19 +417,19 @@ const IMPL_SUPERVISION: SubTaskDef[] = [
 const IMPL_PAYMENT: SubTaskDef[] = [
     {
         code: 'PAY_01', title: 'Xác định giá trị KLCV hoàn thành',
-        responsible: 'CĐT, Nhà thầu, TVGS',
+        responsible: 'Ban ĐH DA, NT TVGS',
         templatePath: 'mau-28-bang-xac-dinh-gia-tri-klcv-hoan-thanh.md',
         templateLabel: 'Mẫu 28 – Bảng xác định KLCV',
     },
     {
         code: 'PAY_02', title: 'Đề nghị thanh toán vốn đầu tư',
-        responsible: 'CĐT',
+        responsible: 'P.TC-KT (Ban QLDA)',
         templatePath: 'mau-25-giay-de-nghi-thanh-toan-von.md',
         templateLabel: 'Mẫu 25 – Giấy đề nghị thanh toán',
     },
     {
         code: 'PAY_03', title: 'Kiểm soát chi, giải ngân',
-        responsible: 'KBNN',
+        responsible: 'KBNN TP.HCM',
     },
 ];
 
@@ -440,24 +440,24 @@ const IMPL_ACCEPTANCE: SubTaskDef[] = [
     },
     {
         code: 'ACC_02', title: 'Nghiệm thu CĐT',
-        responsible: 'CĐT, TVGS, TVTK',
+        responsible: 'Ban ĐH DA, NT TVGS, TVTK',
     },
     {
         code: 'ACC_03', title: 'Đề nghị kiểm tra công tác nghiệm thu',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
         templatePath: 'mau-19-ho-so-de-nghi-kiem-tra-nghiem-thu.md',
         templateLabel: 'Mẫu 19 – Hồ sơ đề nghị KT nghiệm thu',
     },
     {
         code: 'ACC_04', title: 'Kiểm tra công tác nghiệm thu',
-        responsible: 'Sở XD (Đ123 NĐ 175)',
+        responsible: 'Sở XD TP.HCM',
         legalBasis: 'Đ123 Luật XD; Đ24 NĐ 06; Đ123 NĐ 175',
         templatePath: 'mau-20-thong-bao-kq-kiem-tra-nghiem-thu.md',
         templateLabel: 'Mẫu 20 – TB KQ kiểm tra nghiệm thu',
     },
     {
         code: 'ACC_05', title: 'Nghiệm thu hoàn thành công trình',
-        responsible: 'CĐT, các bên liên quan',
+        responsible: 'Ban ĐH DA, các bên liên quan',
     },
 ];
 
@@ -468,37 +468,37 @@ const IMPL_ACCEPTANCE: SubTaskDef[] = [
 const CLOSE_CONTRACT_SETTLEMENT: SubTaskDef[] = [
     {
         code: 'CSET_01', title: 'Quyết toán hợp đồng xây dựng',
-        responsible: 'CĐT, Nhà thầu',
+        responsible: 'P.TC-KT, NT thi công',
     },
     {
         code: 'CSET_02', title: 'Đối chiếu công nợ, xác nhận khối lượng',
-        responsible: 'CĐT, Nhà thầu, TVGS',
+        responsible: 'Ban ĐH DA, NT TVGS',
     },
 ];
 
 const CLOSE_CAPITAL_SETTLEMENT: SubTaskDef[] = [
     {
         code: 'CAPSET_01', title: 'Lập báo cáo quyết toán dự án hoàn thành',
-        responsible: 'CĐT',
+        responsible: 'P.TC-KT (Ban QLDA)',
         templatePath: 'mau-32-bc-tong-hop-quyet-toan-da.md',
         templateLabel: 'Mẫu 32 – BC tổng hợp quyết toán DA',
     },
     {
         code: 'CAPSET_02', title: 'Thẩm tra quyết toán',
-        responsible: 'Sở TC',
+        responsible: 'Sở TC TP.HCM',
         templatePath: 'mau-33-41-bieu-mau-quyet-toan-da.md',
         templateLabel: 'Mẫu 33-41 – Biểu mẫu quyết toán',
     },
     {
         code: 'CAPSET_03', title: 'Phê duyệt quyết toán',
-        responsible: 'Người QĐ đầu tư',
+        responsible: 'UBND TP.HCM',
     },
 ];
 
 const CLOSE_HANDOVER: SubTaskDef[] = [
     {
         code: 'HAND_01', title: 'Bàn giao công trình đưa vào sử dụng',
-        responsible: 'CĐT, Đơn vị sử dụng',
+        responsible: 'Ban ĐH DA, Đơn vị sử dụng',
     },
 ];
 
@@ -510,18 +510,18 @@ const CLOSE_WARRANTY: SubTaskDef[] = [
     },
     {
         code: 'WARR_02', title: 'Giám sát bảo hành',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
     },
 ];
 
 const CLOSE_ARCHIVE: SubTaskDef[] = [
     {
         code: 'ARCH_01', title: 'Tập hợp hồ sơ hoàn công',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA, P.KT-CL',
     },
     {
         code: 'ARCH_02', title: 'Bàn giao hồ sơ lưu trữ',
-        responsible: 'CĐT',
+        responsible: 'Ban ĐH DA',
     },
 ];
 
@@ -532,31 +532,31 @@ const CLOSE_ARCHIVE: SubTaskDef[] = [
 const IMPL_TRIAL_RUN: SubTaskDef[] = [
     {
         code: 'TRIAL_01', title: 'Lập kế hoạch vận hành, chạy thử',
-        responsible: 'CĐT, Nhà thầu',
+        responsible: 'Ban ĐH DA, NT thi công',
         legalBasis: 'NĐ 175/2024',
     },
     {
         code: 'TRIAL_02', title: 'Vận hành chạy thử thiết bị, hệ thống',
-        responsible: 'CĐT, Nhà thầu thi công',
+        responsible: 'NT thi công, Ban ĐH DA',
         estimatedDays: 30,
     },
     {
         code: 'TRIAL_03', title: 'Đánh giá kết quả vận hành chạy thử',
-        responsible: 'CĐT, TVGS',
+        responsible: 'Ban ĐH DA, NT TVGS',
     },
 ];
 
 const IMPL_MONITORING: SubTaskDef[] = [
     {
         code: 'MON_01', title: 'Lập báo cáo giám sát, đánh giá dự án đầu tư',
-        responsible: 'CĐT (Ban QLDA)',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         legalBasis: 'Đ71-73 Luật ĐTC 58/2024',
         templatePath: 'mau-bc-giam-sat-danh-gia-du-an.md',
         templateLabel: 'Mẫu BC giám sát, đánh giá DA',
     },
     {
         code: 'MON_02', title: 'Gửi báo cáo cho cơ quan có thẩm quyền',
-        responsible: 'CĐT',
+        responsible: 'Ban QLDA → UBND TP.HCM',
         legalBasis: 'Đ73 Luật ĐTC 58/2024',
     },
 ];
@@ -568,12 +568,12 @@ const IMPL_MONITORING: SubTaskDef[] = [
 const CLOSE_MONITORING: SubTaskDef[] = [
     {
         code: 'CMON_01', title: 'Đánh giá kết quả, hiệu quả đầu tư',
-        responsible: 'CĐT',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         legalBasis: 'Đ73 Luật ĐTC 58/2024',
     },
     {
         code: 'CMON_02', title: 'Lập báo cáo kết thúc dự án',
-        responsible: 'CĐT',
+        responsible: 'P.KH-ĐT (Ban QLDA)',
         templatePath: 'mau-bc-ket-thuc-du-an.md',
         templateLabel: 'Mẫu BC kết thúc DA',
     },

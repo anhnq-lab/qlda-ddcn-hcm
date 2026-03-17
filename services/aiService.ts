@@ -3,7 +3,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { sendContextAwareMessage, generateAIAnalysis } from './ai/aiOrchestrator';
-import { RISK_ANALYSIS_PROMPT, DOCUMENT_DRAFT_PROMPT, SUMMARY_PROMPT, COMPLIANCE_PROMPT, FORECAST_PROMPT } from './ai/prompts';
+import { RISK_ANALYSIS_PROMPT, DOCUMENT_DRAFT_PROMPT, SUMMARY_PROMPT, COMPLIANCE_PROMPT, FORECAST_PROMPT, MONTHLY_REPORT_PROMPT } from './ai/prompts';
 
 // ── Shared helpers ──────────────────────────────────────────────────
 const getGenAI = () => {
@@ -152,6 +152,16 @@ export const isAIAvailable = (): boolean => {
         return true;
     } catch {
         return false;
+    }
+};
+
+// ── 7. Monthly Report Generation (AI) ──────────────────────────────
+export const generateMonthlyReport = async (projectData: unknown): Promise<string> => {
+    try {
+        return await generateAIAnalysis(MONTHLY_REPORT_PROMPT, projectData);
+    } catch (error) {
+        console.error('Error generating monthly report:', error);
+        throw error;
     }
 };
 

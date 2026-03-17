@@ -12,6 +12,8 @@ interface ProjectHeaderProps {
     onDelete?: () => void;
     onEdit?: () => void;
     compact?: boolean;
+    /** Hide back button — used when rendering inside a slide panel */
+    hideBackButton?: boolean;
 }
 
 const getGroupBadge = (group: ProjectGroup) => {
@@ -33,7 +35,7 @@ const getStatusConfig = (status: ProjectStatus) => {
     }
 };
 
-export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, isSyncing, syncResult, onDelete, onEdit, compact }) => {
+export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, isSyncing, syncResult, onDelete, onEdit, compact, hideBackButton }) => {
     const navigate = useNavigate();
     const groupBadge = getGroupBadge(project.GroupCode);
     const statusConfig = getStatusConfig(project.Status);
@@ -46,12 +48,14 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
         return (
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
                 <div className="px-4 py-2 flex items-center gap-3">
+                {!hideBackButton && (
                     <button
                         onClick={() => navigate(-1)}
                         className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all shrink-0"
                     >
                         <ArrowLeft className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                     </button>
+                )}
                     <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                         {project.ProjectName}
                     </h2>
@@ -99,12 +103,14 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
             <div className="px-6 py-6 border-b border-gray-50 dark:border-slate-800/50">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-600 bg-white dark:bg-slate-800 shadow-sm"
-                        >
-                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                        </button>
+                        {!hideBackButton && (
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-600 bg-white dark:bg-slate-800 shadow-sm"
+                            >
+                                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            </button>
+                        )}
                         <div className="flex-1 min-w-0">
                             {/* Title + Status Badge */}
                             <div className="flex flex-wrap items-center gap-3 mb-1">

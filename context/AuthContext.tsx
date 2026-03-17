@@ -19,121 +19,114 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Resolve identifier → email for Supabase Auth login.
+ * Resolve identifier → email via single RPC call.
  * Supports: username (employee or contractor), email, or phone.
- * Has a 10s timeout to avoid hanging.
  */
 async function resolveEmail(identifier: string): Promise<string | null> {
-    // If already an email, return as-is
     if (identifier.includes('@')) return identifier;
 
-    console.log('[resolveEmail] Looking up:', identifier);
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase.rpc as any)('resolve_user_identity', {
+            p_identifier: identifier,
+        }) as { data: { email: string | null } | null; error: any };
 
-    // Wrap in a timeout to avoid hanging
-    const resolveWithTimeout = async (): Promise<string | null> => {
-        try {
-            // 1) Lookup username from user_accounts (employee login)
-            const { data: account, error: accErr } = await supabase
-                .from('user_accounts')
-                .select('employee_id')
-                .ilike('username', identifier)
-                .limit(1)
-                .maybeSingle();
-
-            if (accErr) console.warn('[resolveEmail] user_accounts error:', accErr.message);
-
-            if (account) {
-                const { data: emp } = await supabase
-                    .from('employees')
-                    .select('email')
-                    .eq('employee_id', account.employee_id)
-                    .maybeSingle();
-                console.log('[resolveEmail] Found employee email:', emp?.email);
-                return emp?.email || null;
-            }
-
-            // 2) Try contractor_accounts lookup
-            const { data: contractorAccount, error: ctrErr } = await supabase
-                .from('contractor_accounts')
-                .select('email, username, auth_user_id')
-                .ilike('username', identifier)
-                .eq('is_active', true)
-                .limit(1)
-                .maybeSingle();
-
-            if (ctrErr) console.error('[resolveEmail] contractor_accounts error:', ctrErr.message, ctrErr);
-
-            if (contractorAccount) {
-                const email = contractorAccount.email || `${contractorAccount.username}@cde.local`;
-                console.log('[resolveEmail] Found contractor email:', email);
-                return email;
-            }
-
-            // 3) Try phone lookup
-            const { data: phoneData } = await supabase
-                .from('employees')
-                .select('email')
-                .eq('phone', identifier)
-                .limit(1)
-                .maybeSingle();
-
-            console.log('[resolveEmail] No match found for:', identifier);
-            return phoneData?.email || null;
-        } catch (err) {
-            console.error('[resolveEmail] Exception:', err);
+        if (error) {
+            console.error('[resolveEmail] RPC error:', error.message);
             return null;
         }
-    };
 
-    // Race against timeout
-    const result = await Promise.race([
-        resolveWithTimeout(),
-        new Promise<null>((resolve) => {
-            setTimeout(() => {
-                console.error('[resolveEmail] Timed out after 10s');
-                resolve(null);
-            }, 10000);
-        }),
-    ]);
-
-    return result;
+        return data?.email || null;
+    } catch (err) {
+        console.error('[resolveEmail] Exception:', err);
+        return null;
+    }
 }
 
 /**
- * Fetch employee profile from Supabase using auth user ID.
+ * Fetch user profile (employee or contractor) via single RPC call.
  */
-async function fetchEmployeeByAuthId(authUserId: string): Promise<Employee | null> {
-    // First get employee_id from user_accounts
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('employee_id, username')
-        .eq('auth_user_id', authUserId)
-        .maybeSingle();
+async function fetchUserProfile(authUserId: string): Promise<{
+    user: Employee | null;
+    userType: 'employee' | 'contractor';
+    contractorId: string | null;
+}> {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase.rpc as any)('get_user_profile_by_auth_id', {
+            p_auth_user_id: authUserId,
+        }) as { data: Record<string, any> | null; error: any };
 
-    if (!account) return null;
+        if (error || !data || data.user_type === 'unknown') {
+            return { user: null, userType: 'employee', contractorId: null };
+        }
 
-    const { data: emp } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('employee_id', account.employee_id)
-        .maybeSingle();
+        if (data.user_type === 'employee') {
+            return {
+                user: {
+                    EmployeeID: data.employee_id,
+                    FullName: data.full_name,
+                    Role: data.role as any,
+                    Department: data.department || '',
+                    Position: data.position || '',
+                    Email: data.email || '',
+                    Phone: data.phone || '',
+                    AvatarUrl: data.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.full_name)}&background=0D8ABC&color=fff`,
+                    JoinDate: data.join_date || '',
+                    Status: data.status as any || 'Active',
+                    Username: data.username || '',
+                    Password: '',
+                },
+                userType: 'employee',
+                contractorId: null,
+            };
+        }
 
-    if (!emp) return null;
+        if (data.user_type === 'contractor') {
+            const contractorName = data.full_name || 'Nhà thầu';
+            
+            // Fetch allowed_project_ids for this contractor account
+            let allowedProjectIds: string[] = [];
+            try {
+                const { data: contractorData, error: contractorErr } = await supabase
+                    .from('contractor_accounts')
+                    .select('allowed_project_ids')
+                    .eq('auth_user_id', authUserId)
+                    .single();
+                
+                if (!contractorErr && contractorData?.allowed_project_ids) {
+                    allowedProjectIds = contractorData.allowed_project_ids;
+                }
+            } catch (err) {
+                console.error('[fetchUserProfile] Error fetching contractor accounts:', err);
+            }
 
-    return {
-        EmployeeID: emp.employee_id,
-        FullName: emp.full_name,
-        Role: emp.role as any,
-        Department: emp.department || '',
-        Position: emp.position || '',
-        Email: emp.email || '',
-        Phone: emp.phone || '',
-        AvatarUrl: emp.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.full_name)}&background=0D8ABC&color=fff`,
-        JoinDate: emp.join_date || '',
-        Status: emp.status as any || 'Active',
-        Username: account.username,
-        Password: '', // Never store password
-    };
+            return {
+                user: {
+                    EmployeeID: authUserId,
+                    FullName: contractorName,
+                    Role: 'contractor' as any,
+                    Department: data.display_name || '',
+                    Position: 'Nhà thầu',
+                    Email: data.email || '',
+                    Phone: data.phone || '',
+                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
+                    JoinDate: '',
+                    Status: 'Active' as any,
+                    Username: data.username || '',
+                    Password: '',
+                    AllowedProjectIDs: allowedProjectIds,
+                },
+                userType: 'contractor',
+                contractorId: data.contractor_id,
+            };
+        }
+
+        return { user: null, userType: 'employee', contractorId: null };
+    } catch (err) {
+        console.error('[fetchUserProfile] Exception:', err);
+        return { user: null, userType: 'employee', contractorId: null };
+    }
 }
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -155,43 +148,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         setSupabaseUser(authUser);
 
-        // Try employee first
-        const employee = await fetchEmployeeByAuthId(authUser.id);
-        if (employee) {
-            setCurrentUser(employee);
-            setUserType('employee');
-            setContractorId(null);
-            console.log('[Auth] Logged in as employee:', employee.FullName);
-            return;
-        }
+        // Single RPC call to resolve user profile (employee or contractor)
+        const profile = await fetchUserProfile(authUser.id);
 
-        // Try contractor
-        const { data: contractorAccount } = await supabase
-            .from('contractor_accounts')
-            .select('*, contractors(full_name)')
-            .eq('auth_user_id', authUser.id)
-            .eq('is_active', true)
-            .maybeSingle();
-
-        if (contractorAccount) {
-            const contractorName = (contractorAccount as any).contractors?.full_name || contractorAccount.display_name || 'Nhà thầu';
-            setUserType('contractor');
-            setContractorId(contractorAccount.contractor_id);
-            setCurrentUser({
-                EmployeeID: authUser.id,
-                FullName: contractorName,
-                Role: 'contractor' as any,
-                Department: contractorAccount.display_name || '',
-                Position: 'Nhà thầu',
-                Email: contractorAccount.email || '',
-                Phone: contractorAccount.phone || '',
-                AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
-                JoinDate: '',
-                Status: 'Active' as any,
-                Username: contractorAccount.username,
-                Password: '',
-            });
-            console.log('[Auth] Logged in as contractor:', contractorName);
+        if (profile.user) {
+            setCurrentUser(profile.user);
+            setUserType(profile.userType);
+            setContractorId(profile.contractorId);
             return;
         }
 
@@ -214,17 +177,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     }, []);
 
+    // Dev bypass: inject mock Admin profile when VITE_DEV_BYPASS_AUTH=true
+    const isDevBypass = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
+    useEffect(() => {
+        if (isDevBypass) {
+            console.log('[Auth] 🔧 Dev bypass active – injecting mock Admin profile');
+            setCurrentUser({
+                EmployeeID: 'NV001',
+                FullName: 'Quản trị viên (Dev)',
+                Role: 'Admin' as any,
+                Department: 'Ban Quản lý',
+                Position: 'Quản trị viên',
+                Email: 'admin@bqlddcn.gov.vn',
+                Phone: '',
+                AvatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff',
+                JoinDate: '2024-01-01',
+                Status: 'Active' as any,
+                Username: 'Admin',
+                Password: '',
+            });
+            setUserType('employee');
+            setIsLoading(false);
+        }
+    }, [isDevBypass]);
+
     // Initialize: restore session + setup auth listener
     useEffect(() => {
+        // If dev bypass is active, skip session init entirely
+        if (isDevBypass) return;
+
         let mounted = true;
 
-        // Safety timeout: if auth check takes too long, stop loading
+        // Safety timeout: reduced from 8s to 5s for faster UX
         const timeout = setTimeout(() => {
             if (mounted && isLoading) {
-                console.warn('[Auth] Session check timed out after 8s, redirecting to login');
+                console.warn('[Auth] Session check timed out after 5s');
                 setIsLoading(false);
             }
-        }, 8000);
+        }, 5000);
 
         // Restore existing session
         supabase.auth.getSession().then(({ data: { session: existingSession } }) => {

@@ -104,6 +104,8 @@ export const FacilityManagementPanel: React.FC = () => {
             const data = await getProjectAssets(projectId);
             setAssets(data);
         } catch (err: any) {
+            // Ignore AbortError — happens when component unmounts/re-renders during fetch
+            if (err?.name === 'AbortError' || err?.message?.includes('abort')) return;
             setError(err.message);
         } finally {
             setLoading(false);

@@ -17,9 +17,11 @@ export const taskKeys = {
 export const useTasks = (options: { projectId?: string } = {}) => {
     return useQuery({
         queryKey: taskKeys.list(options.projectId),
-        queryFn: () => options.projectId
-            ? TaskService.getTasksByProject(options.projectId)
-            : TaskService.getAllTasks(),
+        queryFn: async () => {
+            if (!options.projectId) return [];
+            return TaskService.getTasksByProject(options.projectId);
+        },
+        enabled: !!options.projectId,
     });
 };
 

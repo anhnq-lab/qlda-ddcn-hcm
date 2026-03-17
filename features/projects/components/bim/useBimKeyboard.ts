@@ -31,6 +31,13 @@ interface UseBimKeyboardOptions {
     clearMeasurements?: () => void;
     clearSections?: () => void;
     clearSelection?: () => void;
+    // Extended shortcuts (from ProjectBimTab)
+    onIsolateSelected?: () => void;
+    onHideSelected?: () => void;
+    onShowAll?: () => void;
+    onToggleToolbar?: () => void;
+    onTogglePerfStats?: () => void;
+    onToggleFullscreen?: () => void;
 }
 
 export interface BimKeyboardResult {
@@ -49,6 +56,12 @@ export function useBimKeyboard({
     clearMeasurements,
     clearSections,
     clearSelection,
+    onIsolateSelected,
+    onHideSelected,
+    onShowAll,
+    onToggleToolbar,
+    onTogglePerfStats,
+    onToggleFullscreen,
 }: UseBimKeyboardOptions): BimKeyboardResult {
     const keysPressed = useRef<Set<string>>(new Set());
     const animFrameRef = useRef<number>(0);
@@ -213,6 +226,51 @@ export function useBimKeyboard({
                     activateTool('orbit-point');
                     flashShortcut('O — Orbit Point');
                     return;
+                case 'Digit0': case 'Numpad0':
+                    e.preventDefault();
+                    setView('iso');
+                    flashShortcut('0 — Isometric');
+                    return;
+                case 'KeyV':
+                    e.preventDefault();
+                    activateTool('select');
+                    flashShortcut('V — Select');
+                    return;
+                case 'KeyI':
+                    e.preventDefault();
+                    onIsolateSelected?.();
+                    flashShortcut('I — Isolate');
+                    return;
+                case 'KeyH':
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        onShowAll?.();
+                        flashShortcut('Shift+H — Show All');
+                    } else {
+                        onHideSelected?.();
+                        flashShortcut('H — Hide');
+                    }
+                    return;
+                case 'KeyT':
+                    e.preventDefault();
+                    onToggleToolbar?.();
+                    flashShortcut('T — Toggle Toolbar');
+                    return;
+                case 'KeyP':
+                    e.preventDefault();
+                    onTogglePerfStats?.();
+                    flashShortcut('P — Perf Stats');
+                    return;
+                case 'F11':
+                    e.preventDefault();
+                    onToggleFullscreen?.();
+                    return;
+                case 'Delete': case 'Backspace':
+                    e.preventDefault();
+                    clearSections?.();
+                    clearMeasurements?.();
+                    flashShortcut('Del — Clear All');
+                    return;
             }
 
             // ── Continuous keys (WASD, arrows, Q, E, +, -) ──
@@ -253,7 +311,7 @@ export function useBimKeyboard({
             cancelAnimationFrame(animFrameRef.current);
             keysPressed.current.clear();
         };
-    }, [containerRef, animate, setView, fitAll, activateTool, onEscape, flashShortcut, toggleShortcutsHelp, clearMeasurements, clearSections, clearSelection]);
+    }, [containerRef, animate, setView, fitAll, activateTool, onEscape, flashShortcut, toggleShortcutsHelp, clearMeasurements, clearSections, clearSelection, onIsolateSelected, onHideSelected, onShowAll, onToggleToolbar, onTogglePerfStats, onToggleFullscreen]);
 
     return {
         lastShortcutLabel,

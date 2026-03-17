@@ -25,6 +25,7 @@ export interface Employee {
     Username: string;
     Password?: string;
     Role: Role;
+    AllowedProjectIDs?: string[];
 }
 
 // 9.1 Audit Logs (Lưu vết hệ thống)

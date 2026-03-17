@@ -1,6 +1,6 @@
 import React from 'react';
 import { Project, ProjectStatus } from '../../types';
-import { Wallet, TrendingUp, FolderOpen, AlertCircle } from 'lucide-react';
+import { Wallet, TrendingUp, FolderOpen, HardHat } from 'lucide-react';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { StatCard } from '../../components/common/StatCard';
 
@@ -42,8 +42,8 @@ export const ProjectStats: React.FC<ProjectStatsProps> = ({ projects }) => {
             <StatCard
                 label="Chuẩn bị dự án"
                 value={preparingProjects}
-                icon={<AlertCircle className="w-6 h-6" />}
-                color="blue"
+                icon={<HardHat className="w-6 h-6" />}
+                color="amber"
                 sublabel="dự án"
             />
         </div>

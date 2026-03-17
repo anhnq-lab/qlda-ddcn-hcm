@@ -66,10 +66,10 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
                         <p className="text-[10px] text-gray-500 dark:text-slate-400 uppercase font-bold mb-1">Tổng mức ĐT</p>
                         <p className="text-lg font-black text-gray-800 dark:text-slate-100">{formatCurrency(totalInvestment)}</p>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-xl">
-                        <p className="text-[10px] text-blue-600 uppercase font-bold mb-1">Đã giải ngân</p>
-                        <p className="text-lg font-black text-blue-700">{formatCurrency(disbursedAmount)}</p>
-                        <p className="text-[10px] text-blue-500">{disbursedPercent.toFixed(1)}%</p>
+                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+                        <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-bold mb-1">Đã giải ngân</p>
+                        <p className="text-lg font-black text-blue-700 dark:text-blue-300">{formatCurrency(disbursedAmount)}</p>
+                        <p className="text-[10px] text-blue-500 dark:text-blue-400">{disbursedPercent.toFixed(1)}%</p>
                     </div>
                     <div className="text-center p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
                         <p className="text-[10px] text-gray-500 dark:text-slate-400 uppercase font-bold mb-1">Còn lại</p>
@@ -87,7 +87,7 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
                     <div className="relative h-4 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
                         {/* Actual */}
                         <div
-                            className="absolute h-full transition-all duration-500"
+                            className="absolute h-full rounded-full transition-all duration-700 ease-out"
                             style={{ background: 'linear-gradient(90deg, #A89050, #C4A035)', width: `${Math.min(disbursedPercent, 100)}%` }}
                         />
                         {/* Planned marker */}

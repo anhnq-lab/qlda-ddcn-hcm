@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ChevronRight, Search, FolderOpen, Upload, Eye, Download, Loader2 } from 'lucide-react';
+import { ChevronRight, Search, FolderOpen, Upload, Eye, Download, Loader2, PenTool } from 'lucide-react';
 import type { CDEFolder, CDEDocument } from '../types';
 import { getStatusColor, getStatusLabel } from '../constants';
 import { getFileIcon } from '@/utils/fileIcons';
@@ -15,6 +15,8 @@ interface CDEDocumentTableProps {
     onSearchChange: (q: string) => void;
     onSelectDoc: (doc: CDEDocument) => void;
     onPreview: (doc: CDEDocument) => void;
+    onDownload: (doc: CDEDocument) => void;
+    onSign?: (doc: CDEDocument) => void;
     onUpload: () => void;
     onFolderClick: (folderId: string) => void;
     selectedIds?: number[];
@@ -23,7 +25,7 @@ interface CDEDocumentTableProps {
 
 const CDEDocumentTable: React.FC<CDEDocumentTableProps> = ({
     folders, activeFolder, activeFolderId, docs, isLoading,
-    searchQuery, selectedDocId, onSearchChange, onSelectDoc, onPreview, onUpload, onFolderClick,
+    searchQuery, selectedDocId, onSearchChange, onSelectDoc, onPreview, onDownload, onSign, onUpload, onFolderClick,
     selectedIds = [], onToggleSelect,
 }) => {
 
@@ -189,11 +191,21 @@ const CDEDocumentTable: React.FC<CDEDocumentTableProps> = ({
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onPreview(doc); }}
                                                     className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                                    title="Xem"
+                                                    title="Xem trước"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
+                                                {onSign && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); onSign(doc); }}
+                                                        className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                                                        title="Ký số CA"
+                                                    >
+                                                        <PenTool className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                                 <button
+                                                    onClick={(e) => { e.stopPropagation(); onDownload(doc); }}
                                                     className="p-1.5 text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                                     title="Tải xuống"
                                                 >

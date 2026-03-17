@@ -55,11 +55,19 @@ export function useScopedProjects(): ScopedProjectsResult {
     // Scoped projects
     const scopedProjects = useMemo(() => {
         if (isGlobalScope || systemRole === 'super_admin') return allProjects;
+        
+        // Thêm trường hợp cho tài khoản nhà thầu
+        if (systemRole === 'contractor') {
+            const allowedIds = effectiveUser?.AllowedProjectIDs || [];
+            if (allowedIds.length === 0) return [];
+            return allProjects.filter(p => allowedIds.includes(p.ProjectID));
+        }
+
         if (banNumber !== null) {
             return allProjects.filter(p => p.ManagementBoard === banNumber);
         }
         return allProjects;
-    }, [allProjects, isGlobalScope, systemRole, banNumber]);
+    }, [allProjects, isGlobalScope, systemRole, banNumber, effectiveUser]);
 
     // Scoped project IDs (for quick lookup in other modules)
     const scopedProjectIds = useMemo(() => {

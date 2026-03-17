@@ -89,7 +89,6 @@ export const ProjectDocumentsTab: React.FC<ProjectDocumentsTabProps> = ({
     approvalDecision
 }) => {
     // View modes
-    const [activeView, setActiveView] = useState<'legal' | 'cde'>('legal');
     const [activeFolderId, setActiveFolderId] = useState<string>('FLD-ROOT');
     const [expandedCategories, setExpandedCategories] = useState<string[]>([projectStage]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -283,27 +282,9 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
             {/* Header with View Toggle */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 mb-6 overflow-hidden">
                 <div className="px-5 py-3 flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setActiveView('legal')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeView === 'legal'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900'
-                                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                                }`}
-                        >
-                            <FileText className="w-4 h-4" />
-                            Văn bản pháp lý
-                        </button>
-                        <button
-                            onClick={() => setActiveView('cde')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeView === 'cde'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900'
-                                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                                }`}
-                        >
-                            <FolderOpen className="w-4 h-4" />
-                            Hồ sơ CDE (ISO 19650)
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-bold text-gray-700 dark:text-slate-200">Văn bản pháp lý</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="relative">
@@ -330,8 +311,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
             </div>
 
             {/* ═══ LEGAL DOCUMENTS VIEW ═══ */}
-            {activeView === 'legal' && (
-                <div className="space-y-4">
+            <div className="space-y-4">
                     {/* Quick Stats */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
                         {statCards.map((stat, idx) => {
@@ -583,28 +563,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
                             </div>
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* ═══ CDE VIEW — Now redirects to dedicated /cde page ═══ */}
-            {activeView === 'cde' && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-8 text-center">
-                    <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
-                        <FolderOpen className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-lg font-black text-gray-800 dark:text-slate-100 mb-2">Quản lý CDE chuyên nghiệp</h3>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 max-w-md mx-auto">
-                        Module CDE đã được nâng cấp với cấu trúc thư mục ISO 19650, quy trình phê duyệt 5 bước, và cổng nộp hồ sơ nhà thầu.
-                    </p>
-                    <a
-                        href="/cde"
-                        className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all"
-                        style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
-                    >
-                        <FolderOpen className="w-4 h-4" /> Mở CDE Module
-                    </a>
-                </div>
-            )}
+            </div>
 
             {/* MODALS */}
             {previewFile && (

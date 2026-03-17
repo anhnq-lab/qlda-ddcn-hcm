@@ -172,7 +172,12 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
     const sourceChartData = useMemo(() => {
         const map = new Map<string, number>();
         allocations.forEach(a => {
-            map.set(a.Source, (map.get(a.Source) || 0) + a.Amount);
+            // Chuẩn hóa tên nguồn vốn
+            let sourceKey: string = a.Source;
+            if (sourceKey === 'Ngân sách TP.HCM' || sourceKey === 'Ngân sách TPHCM') {
+                sourceKey = 'NganSachDiaPhuong';
+            }
+            map.set(sourceKey, (map.get(sourceKey) || 0) + a.Amount);
         });
         return Array.from(map.entries()).map(([source, value]) => ({
             name: SOURCE_LABELS[source] || source,
@@ -210,14 +215,22 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
         return result;
     }, [summary]);
 
-    // Per-allocation disbursement rate
+    // Per-allocation disbursement rate — tính theo NĂM phát sinh
     const allocationWithRate = useMemo(() => {
         return allocations.map(a => {
             const disbursed = disbursements
-                .filter(d => d.AllocationID === a.AllocationID && d.Status === 'Approved' && d.Type !== 'ThuHoiTamUng')
+                .filter(d => {
+                    const dYear = new Date(d.Date).getFullYear();
+                    // Ưu tiên match theo AllocationID, fallback theo năm
+                    const matchPlan = d.AllocationID === a.AllocationID;
+                    const matchYear = dYear === a.Year;
+                    return (matchPlan || matchYear) && d.Status === 'Approved' && d.Type !== 'ThuHoiTamUng';
+                })
+                // Tránh trùng lặp: chỉ lấy bút toán của đúng năm này
+                .filter(d => new Date(d.Date).getFullYear() === a.Year)
                 .reduce((s, d) => s + d.Amount, 0);
             const recovered = disbursements
-                .filter(d => d.AllocationID === a.AllocationID && d.Status === 'Approved' && d.Type === 'ThuHoiTamUng')
+                .filter(d => new Date(d.Date).getFullYear() === a.Year && d.Status === 'Approved' && d.Type === 'ThuHoiTamUng')
                 .reduce((s, d) => s + d.Amount, 0);
             return { ...a, disbursed: disbursed - recovered, rate: a.Amount > 0 ? ((disbursed - recovered) / a.Amount) * 100 : 0 };
         });

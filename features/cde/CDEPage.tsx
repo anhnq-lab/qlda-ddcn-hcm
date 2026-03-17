@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════════
-// CDE Page — Orchestrator Component (Phase 3)
+// CDE Page — Orchestrator Component (Phase 4)
 // Common Data Environment (ISO 19650 + VN Construction QLDA)
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
-import { useCDEFolders, useCDEDocuments, useCDEStats, useCDEWorkflowHistory, useUploadCDE, useProcessWorkflowStep } from '../../hooks/useCDE';
+import { useCDEFolders, useCDEDocuments, useCDEProjectDocuments, useCDEStats, useCDEWorkflowHistory, useUploadCDE, useProcessWorkflowStep, useDownloadCDE, useCDEUserPermission } from '../../hooks/useCDE';
 import { CDE_WORKFLOW_STEPS, CDE_PROJECT_PHASES } from './constants';
 import type { CDEDocument } from './types';
 import { CDEService } from '../../services/CDEService';
@@ -23,6 +23,8 @@ import CDEDashboard from './components/CDEDashboard';
 import CDEPermissionManager from './components/CDEPermissionManager';
 import CDETransmittalForm from './components/CDETransmittalForm';
 import CDEAuditLog from './components/CDEAuditLog';
+import CDEFilePreview from './components/CDEFilePreview';
+import CDEDigitalSign from './components/CDEDigitalSign';
 import { supabase } from '../../lib/supabase';
 import { FolderOpen, BarChart3, Shield, ClipboardList, ScrollText } from 'lucide-react';
 
@@ -38,17 +40,8 @@ const CDEPage: React.FC = () => {
     const { biddingPackages } = useAllBiddingPackages();
 
     // Contractors: only show projects where they have contracts
-    const projects = useMemo(() => {
-        if (userType !== 'contractor' || !contractorId) return allProjects;
-        // Find project IDs from contractor's contracts
-        const contractorContracts = contracts.filter(c => c.ContractorID === contractorId);
-        const projectIds = new Set<string>();
-        contractorContracts.forEach(c => {
-            const pkg = biddingPackages.find(p => p.PackageID === c.PackageID);
-            if (pkg?.ProjectID) projectIds.add(pkg.ProjectID);
-        });
-        return allProjects.filter(p => projectIds.has(p.ProjectID));
-    }, [allProjects, contracts, biddingPackages, userType, contractorId]);
+    // Contractors: only show projects assigned to them (handled by useScopedProjects)
+    const projects = allProjects;
 
     // State
     const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -61,6 +54,8 @@ const CDEPage: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [activeTab, setActiveTab] = useState<'explorer' | 'analytics' | 'permissions' | 'transmittals' | 'audit'>('explorer');
     const [activePhase, setActivePhase] = useState('implementation');
+    const [previewDoc, setPreviewDoc] = useState<CDEDocument | null>(null);
+    const [signDoc, setSignDoc] = useState<CDEDocument | null>(null);
 
     // Set default project
     React.useEffect(() => {
@@ -74,12 +69,24 @@ const CDEPage: React.FC = () => {
     // Queries
     const { data: folders = [], isLoading: foldersLoading } = useCDEFolders(selectedProjectId);
     const { data: docs = [], isLoading: docsLoading } = useCDEDocuments(activeFolderId);
-    const { data: stats } = useCDEStats(selectedProjectId);
     const { data: workflowHistory = [] } = useCDEWorkflowHistory(selectedDoc?.doc_id || null);
 
-    // Mutations
+    // Mutations & Hooks
     const uploadMutation = useUploadCDE();
     const workflowMutation = useProcessWorkflowStep();
+    const { data: stats } = useCDEStats(selectedProjectId);
+    const { data: projectDocs = [] } = useCDEProjectDocuments(selectedProjectId);
+    const { download: downloadFile } = useDownloadCDE();
+    const { data: userPermission } = useCDEUserPermission(selectedProjectId, currentUser?.EmployeeID || '');
+
+    // Toast state
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    React.useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
 
     // Auto-select first root folder
     React.useEffect(() => {
@@ -116,11 +123,18 @@ const CDEPage: React.FC = () => {
 
     const hasActiveFilters = filters.status.length > 0 || filters.discipline.length > 0 || filters.docType.length > 0 || !!filters.dateFrom || !!filters.dateTo;
 
-    // File preview
+    // File preview — open CDEFilePreview modal
     const handlePreview = useCallback(async (doc: CDEDocument) => {
         if (!doc.storage_path) return;
         const { data } = supabase.storage.from('documents').getPublicUrl(doc.storage_path);
-        if (data?.publicUrl) window.open(data.publicUrl, '_blank');
+        if (data?.publicUrl) {
+            setPreviewDoc({ ...doc, storage_path: data.publicUrl } as CDEDocument);
+        }
+    }, []);
+
+    // Digital sign handler
+    const handleSign = useCallback((doc: CDEDocument) => {
+        setSignDoc(doc);
     }, []);
 
     // Upload handler
@@ -139,14 +153,27 @@ const CDEPage: React.FC = () => {
         }, {
             onSuccess: () => {
                 setShowSubmitModal(false);
-                alert('✅ Nộp hồ sơ thành công!');
+                setToast({ message: 'Nộp hồ sơ thành công!', type: 'success' });
             },
             onError: (err: Error) => {
                 console.error('Upload error:', err);
-                alert(`❌ Nộp hồ sơ thất bại: ${err.message}`);
+                setToast({ message: `Nộp hồ sơ thất bại: ${err.message}`, type: 'error' });
             },
         });
     }, [uploadMutation, selectedProjectId, currentUser, contractorId]);
+
+    // Download handler
+    const handleDownload = useCallback(async (doc: CDEDocument) => {
+        if (!doc.storage_path) {
+            setToast({ message: 'Tài liệu chưa có file đính kèm', type: 'error' });
+            return;
+        }
+        try {
+            await downloadFile(doc.storage_path, doc.doc_name);
+        } catch (err: any) {
+            setToast({ message: `Tải xuống thất bại: ${err.message}`, type: 'error' });
+        }
+    }, [downloadFile]);
 
     // Workflow handlers
     const getNextStep = useCallback(() => {
@@ -165,7 +192,7 @@ const CDEPage: React.FC = () => {
         return nextUncompleted || null;
     }, [workflowHistory, selectedDoc]);
 
-    const handleWorkflow = useCallback((status: 'Approved' | 'Rejected' | 'Returned') => {
+    const handleWorkflow = useCallback((status: 'Approved' | 'Rejected' | 'Returned', comment?: string) => {
         if (!selectedDoc) return;
         const step = getNextStep();
         if (!step) return;
@@ -177,7 +204,15 @@ const CDEPage: React.FC = () => {
             actorName: currentUser?.FullName || '',
             actorRole: step.roleLabel,
             status,
-            comment: status === 'Approved' ? 'Đã duyệt' : status === 'Returned' ? 'Yêu cầu bổ sung' : 'Từ chối',
+            comment: comment || (status === 'Approved' ? 'Đã duyệt' : status === 'Returned' ? 'Yêu cầu bổ sung' : 'Từ chối'),
+        }, {
+            onSuccess: () => {
+                const labels = { Approved: 'Đã duyệt', Rejected: 'Đã từ chối', Returned: 'Yêu cầu bổ sung' };
+                setToast({ message: `${labels[status]} hồ sơ thành công`, type: status === 'Rejected' ? 'error' : 'success' });
+            },
+            onError: (err: Error) => {
+                setToast({ message: `Thao tác thất bại: ${err.message}`, type: 'error' });
+            },
         });
     }, [selectedDoc, getNextStep, workflowMutation, currentUser]);
 
@@ -312,6 +347,8 @@ const CDEPage: React.FC = () => {
                             onSearchChange={setSearchQuery}
                             onSelectDoc={setSelectedDoc}
                             onPreview={handlePreview}
+                            onDownload={handleDownload}
+                            onSign={handleSign}
                             onUpload={() => setShowSubmitModal(true)}
                             onFolderClick={setActiveFolderId}
                             selectedIds={selectedIds}
@@ -323,9 +360,10 @@ const CDEPage: React.FC = () => {
                                 doc={selectedDoc}
                                 workflowHistory={workflowHistory}
                                 isPending={workflowMutation.isPending}
-                                onApprove={() => handleWorkflow('Approved')}
-                                onReject={() => handleWorkflow('Rejected')}
-                                onReturn={() => handleWorkflow('Returned')}
+                                userPermission={userPermission}
+                                onApprove={(comment) => handleWorkflow('Approved', comment)}
+                                onReject={(comment) => handleWorkflow('Rejected', comment)}
+                                onReturn={(comment) => handleWorkflow('Returned', comment)}
                                 onClose={() => setSelectedDoc(null)}
                             />
                         )}
@@ -338,7 +376,7 @@ const CDEPage: React.FC = () => {
                 <div className="flex-1 overflow-y-auto">
                     <CDEDashboard
                         stats={stats}
-                        docs={docs}
+                        docs={projectDocs}
                         projectName={selectedProject?.ProjectName || ''}
                     />
                 </div>
@@ -374,11 +412,50 @@ const CDEPage: React.FC = () => {
                 docs={docs}
                 preSelectedDocIds={selectedIds}
                 onClose={() => setShowTransmittal(false)}
-                onSent={() => { setSelectedIds([]); }}
+                onSent={() => { setSelectedIds([]); setToast({ message: 'Đã gửi phiếu chuyển giao', type: 'success' }); }}
             />
+
+            {/* File Preview Modal */}
+            {previewDoc && (
+                <CDEFilePreview
+                    file={{
+                        doc_name: previewDoc.doc_name,
+                        version: previewDoc.version || 'P01.01',
+                        size: previewDoc.size || '',
+                        publicUrl: previewDoc.storage_path,
+                    }}
+                    onClose={() => setPreviewDoc(null)}
+                    onDownload={() => handleDownload(previewDoc)}
+                />
+            )}
+
+            {/* Digital Sign Modal */}
+            {signDoc && (
+                <CDEDigitalSign
+                    file={{ doc_name: signDoc.doc_name, size: signDoc.size || '' }}
+                    isOpen={true}
+                    onClose={() => setSignDoc(null)}
+                    onSignComplete={(name) => {
+                        setSignDoc(null);
+                        setToast({ message: `Ký số thành công: ${name}`, type: 'success' });
+                    }}
+                />
+            )}
+
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-300 ${
+                    toast.type === 'success'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-red-600 text-white'
+                }`}>
+                    <span>{toast.type === 'success' ? '✅' : '❌'}</span>
+                    {toast.message}
+                    <button onClick={() => setToast(null)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+                </div>
+            )}
         </div>
     );
 };
 
 export default CDEPage;
-

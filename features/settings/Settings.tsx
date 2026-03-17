@@ -1,12 +1,13 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, ChevronRight, Palette, Bell, Shield, User, Users } from 'lucide-react';
+import { Sun, Moon, ChevronRight, Palette, Bell, Shield, User, Users, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 import UserImpersonator from './UserImpersonator';
 
 const Settings: React.FC = () => {
     const { theme, setTheme } = useTheme();
-    const { currentUser } = useAuth();
+    const { currentUser, logout } = useAuth();
 
     // Only admin can impersonate
     const isAdmin = currentUser?.Role === 'Admin';
@@ -49,123 +50,162 @@ const Settings: React.FC = () => {
     ];
 
     return (
-        <div className="space-y-6 max-w-3xl">
+        <div className="max-w-[1400px] w-full lg:px-6">
             {/* Page Header */}
-            <div>
+            <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Cài đặt</h2>
                 <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Tùy chỉnh giao diện và cấu hình hệ thống</p>
             </div>
 
-            {/* User Impersonation — Admin Only */}
-            {isAdmin && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
-                        <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
-                            <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+                {/* Cột trái: Giao diện, Thông báo, Bảo mật, Quản trị */}
+                <div className="space-y-6 flex-1 w-full">
+                    {/* Appearance Section */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+                                <Palette className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Giao diện</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Chọn chế độ hiển thị phù hợp</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Giả làm người dùng</h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">Test phân quyền bằng cách đăng nhập với vai trò khác</p>
-                        </div>
-                    </div>
-                    <div className="p-5">
-                        <UserImpersonator />
-                    </div>
-                </div>
-            )}
 
-            {/* Appearance Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-                        <Palette className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Giao diện</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">Chọn chế độ hiển thị phù hợp</p>
-                    </div>
-                </div>
-
-                <div className="p-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {themeOptions.map(opt => {
-                            const isActive = theme === opt.key;
-                            return (
-                                <button
-                                    key={opt.key}
-                                    onClick={() => setTheme(opt.key)}
-                                    className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 group ${isActive
-                                            ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-800'
-                                            : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800'
-                                        }`}
-                                >
-                                    {/* Mini Preview */}
-                                    <div className={`${opt.preview.bg} rounded-lg border border-gray-200 dark:border-slate-600 p-2 mb-3 flex gap-1.5 h-20 overflow-hidden`}>
-                                        <div className={`${opt.preview.sidebar} rounded w-6 flex flex-col gap-1 p-1`}>
-                                            <div className={`${opt.preview.accent} rounded-sm h-1`}></div>
-                                            <div className={`${opt.preview.text} rounded-sm h-1`}></div>
-                                            <div className={`${opt.preview.text} rounded-sm h-1`}></div>
-                                        </div>
-                                        <div className="flex-1 flex flex-col gap-1">
-                                            <div className={`${opt.preview.header} rounded h-3`}></div>
-                                            <div className="flex gap-1 flex-1">
-                                                <div className={`${opt.preview.card} rounded flex-1`}></div>
-                                                <div className={`${opt.preview.card} rounded flex-1`}></div>
+                        <div className="p-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {themeOptions.map(opt => {
+                                    const isActive = theme === opt.key;
+                                    return (
+                                        <button
+                                            key={opt.key}
+                                            onClick={() => setTheme(opt.key)}
+                                            className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 group ${isActive
+                                                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-800'
+                                                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800'
+                                                }`}
+                                        >
+                                            {/* Mini Preview */}
+                                            <div className={`${opt.preview.bg} rounded-lg border border-gray-200 dark:border-slate-600 p-2 mb-3 flex gap-1.5 h-20 overflow-hidden`}>
+                                                <div className={`${opt.preview.sidebar} rounded w-6 flex flex-col gap-1 p-1`}>
+                                                    <div className={`${opt.preview.accent} rounded-sm h-1`}></div>
+                                                    <div className={`${opt.preview.text} rounded-sm h-1`}></div>
+                                                    <div className={`${opt.preview.text} rounded-sm h-1`}></div>
+                                                </div>
+                                                <div className="flex-1 flex flex-col gap-1">
+                                                    <div className={`${opt.preview.header} rounded h-3`}></div>
+                                                    <div className="flex gap-1 flex-1">
+                                                        <div className={`${opt.preview.card} rounded flex-1`}></div>
+                                                        <div className={`${opt.preview.card} rounded flex-1`}></div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Label */}
-                                    <div className="flex items-center gap-2.5">
-                                        <div className={`p-1.5 rounded-lg ${isActive
-                                                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-                                                : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
-                                            }`}>
-                                            <opt.icon className="w-4 h-4" />
+                                            {/* Label */}
+                                            <div className="flex items-center gap-2.5">
+                                                <div className={`p-1.5 rounded-lg ${isActive
+                                                        ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                                                    }`}>
+                                                    <opt.icon className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm font-bold ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-slate-100'
+                                                        }`}>{opt.label}</p>
+                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400">{opt.description}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Active Indicator */}
+                                            {isActive && (
+                                                <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Other Settings (Placeholder) */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="divide-y divide-gray-100 dark:divide-slate-700">
+                            {settingSections.map((section, idx) => (
+                                <div key={idx} className="px-5 py-4 flex items-center justify-between opacity-60 cursor-not-allowed">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl">
+                                            <section.icon className="w-5 h-5 text-gray-500 dark:text-slate-400" />
                                         </div>
                                         <div>
-                                            <p className={`text-sm font-bold ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-slate-100'
-                                                }`}>{opt.label}</p>
-                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">{opt.description}</p>
+                                            <p className="text-sm font-bold text-gray-800 dark:text-slate-100">{section.label}</p>
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">{section.description}</p>
                                         </div>
                                     </div>
-
-                                    {/* Active Indicator */}
-                                    {isActive && (
-                                        <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 px-2 py-0.5 rounded-md uppercase">Sắp ra mắt</span>
+                                        <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Other Settings (Placeholder) */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="divide-y divide-gray-100 dark:divide-slate-700">
-                    {settingSections.map((section, idx) => (
-                        <div key={idx} className="px-5 py-4 flex items-center justify-between opacity-60 cursor-not-allowed">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl">
-                                    <section.icon className="w-5 h-5 text-gray-500 dark:text-slate-400" />
+                    {/* Admin Section */}
+                    {isAdmin && (
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                            <Link
+                                to="/admin"
+                                className="px-5 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-xl">
+                                        <ShieldCheck className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-800 dark:text-slate-100">Quản trị hệ thống</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">Quản lý tài khoản, phân quyền, cấu hình</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Logout */}
+                    <button
+                        onClick={logout}
+                        className="w-full bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden px-5 py-4 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-colors group"
+                    >
+                        <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl group-hover:bg-red-100 dark:group-hover:bg-red-900/40 transition-colors">
+                            <LogOut className="w-5 h-5 text-gray-500 dark:text-slate-400 group-hover:text-red-500 transition-colors" />
+                        </div>
+                        <p className="text-sm font-bold text-gray-800 dark:text-slate-100 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Đăng xuất</p>
+                    </button>
+                </div>
+
+                {/* Cột phải: User Impersonator (Chỉ hiện khi là Admin) */}
+                {isAdmin && (
+                    <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[700px] flex-shrink-0 relative">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm sticky top-6">
+                            <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                                <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
+                                    <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-slate-100">{section.label}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{section.description}</p>
+                                    <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Giả làm người dùng</h3>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">Test phân quyền bằng cách đăng nhập với vai trò khác</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 px-2 py-0.5 rounded-md uppercase">Sắp ra mắt</span>
-                                <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600" />
+                            <div className="p-5">
+                                <UserImpersonator />
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

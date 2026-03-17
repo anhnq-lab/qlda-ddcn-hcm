@@ -349,6 +349,14 @@ export class ProjectService {
             .eq('project_id', projectId)
             .order('date', { ascending: true });
 
+        // Helper: chuẩn hóa Status case-insensitive
+        const normalizeStatus = (s: string): 'Pending' | 'Approved' | 'Rejected' => {
+            const lower = (s || '').toLowerCase();
+            if (lower === 'approved' || lower === 'completed') return 'Approved';
+            if (lower === 'pending') return 'Pending';
+            return 'Rejected';
+        };
+
         const disbursements: Disbursement[] = (disbursementRows || []).map((row: any) => ({
             DisbursementID: row.disbursement_id,
             ProjectID: row.project_id,
@@ -359,8 +367,12 @@ export class ProjectService {
             Date: row.date,
             TreasuryCode: row.treasury_code || '',
             FormType: row.form_type || '',
-            Description: '',
-            Status: row.status as 'Pending' | 'Approved' | 'Rejected',
+            Description: row.description || '',
+            Status: normalizeStatus(row.status),
+            Type: row.type || 'ThanhToanKLHT',
+            ContractNumber: row.contract_number || '',
+            CumulativeBefore: Number(row.cumulative_before) || 0,
+            AdvanceBalance: Number(row.advance_balance) || 0,
         }));
 
         // Get project total investment

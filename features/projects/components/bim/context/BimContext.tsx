@@ -131,6 +131,10 @@ export const BimProvider: React.FC<BimProviderProps> = ({
         activateTool: tools.activateTool,
         clearMeasurements: measure.measurementCount > 0 ? measure.clearAllMeasurements : undefined,
         clearSections: section.clipPlaneCount > 0 ? section.clearAllClipPlanes : undefined,
+        clearSelection: selection.clearSelection,
+        onIsolateSelected: selection.handleIsolateSelected,
+        onHideSelected: selection.handleHideSelected,
+        onShowAll: selection.handleShowAll,
     });
 
     const handleExtractFromBIM = useCallback(async () => {

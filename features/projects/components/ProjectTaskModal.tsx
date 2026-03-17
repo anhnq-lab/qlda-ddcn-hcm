@@ -1,9 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Calendar, User, AlignLeft, CheckSquare, Clock, Flag, Link2, BarChart3 } from 'lucide-react';
 import { Task, TaskStatus, TaskPriority, TaskDependency, Employee } from '@/types';
 import { useEmployees } from '@/hooks/useEmployees';
 import { ProgressSlider } from './ProgressSlider';
 import { TaskDependencyManager } from './TaskDependencyManager';
+
+// ── Date helpers ──
+const todayISO = () => new Date().toISOString();
+const toYMD = (iso?: string | null): string => {
+    if (!iso) return '';
+    try { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0]; }
+    catch { return ''; }
+};
+const toDMY = (iso?: string | null): string => {
+    if (!iso) return '';
+    try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        return `${dd}/${mm}/${d.getFullYear()}`;
+    } catch { return ''; }
+};
+
+// ── DateInputVN: hiển thị dd/mm/yyyy trực tiếp, native calendar popup ──
+const DateInputVN: React.FC<{
+    value?: string | null;
+    onChange: (iso: string) => void;
+    borderClass?: string;
+}> = ({ value, onChange, borderClass = 'border-gray-300' }) => {
+    const ref = React.useRef<HTMLInputElement>(null);
+    return (
+        <div
+            className={`relative flex items-center w-full rounded-lg border bg-white cursor-pointer ${borderClass}`}
+            onClick={() => ref.current?.showPicker?.()}
+        >
+            <Calendar className="w-4 h-4 text-gray-400 ml-3 shrink-0 pointer-events-none" />
+            {/* Visible text dd/mm/yyyy */}
+            <span className={`flex-1 pl-2 py-2.5 text-sm select-none ${value ? 'text-gray-800' : 'text-gray-400'}`}>
+                {value ? toDMY(value) : 'dd/mm/yyyy'}
+            </span>
+            {/* Hidden native date input - still clickable for calendar popup */}
+            <input
+                ref={ref}
+                type="date"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                value={toYMD(value)}
+                onChange={e => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+            />
+        </div>
+    );
+};
 
 interface ProjectTaskModalProps {
     isOpen: boolean;
@@ -158,65 +205,58 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                             <Clock className="w-4 h-4 text-gray-400" /> Ngày bắt đầu
                                         </label>
-                                        <div className="relative">
-                                            <input
-                                                type="date"
-                                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                                                value={formData.StartDate ? new Date(formData.StartDate).toISOString().split('T')[0] : ''}
-                                                onChange={e => setFormData({ ...formData, StartDate: e.target.value ? new Date(e.target.value).toISOString() : '' })}
-                                            />
-                                            <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                                        </div>
+                                        <DateInputVN
+                                            value={formData.StartDate}
+                                            onChange={v => setFormData({ ...formData, StartDate: v })}
+                                            borderClass="border-gray-300 focus-within:ring-2 focus-within:ring-blue-500"
+                                        />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                             <Clock className="w-4 h-4 text-gray-400" /> Hạn hoàn thành
                                         </label>
-                                        <div className="relative">
-                                            <input
-                                                type="date"
-                                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                                                value={formData.DueDate ? new Date(formData.DueDate).toISOString().split('T')[0] : ''}
-                                                onChange={e => setFormData({ ...formData, DueDate: e.target.value ? new Date(e.target.value).toISOString() : '' })}
-                                            />
-                                            <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                                        </div>
+                                        <DateInputVN
+                                            value={formData.DueDate}
+                                            onChange={v => setFormData({ ...formData, DueDate: v })}
+                                            borderClass="border-gray-300 focus-within:ring-2 focus-within:ring-blue-500"
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Actual Start/End Dates - show when task has progress */}
-                                {((formData.ProgressPercent || 0) > 0 || formData.ActualStartDate || formData.ActualEndDate) && (
-                                    <div className="grid grid-cols-2 gap-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                                        <div className="space-y-1.5">
-                                            <label className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-emerald-500" /> Ngày bắt đầu thực tế
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="date"
-                                                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-emerald-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
-                                                    value={formData.ActualStartDate ? new Date(formData.ActualStartDate).toISOString().split('T')[0] : ''}
-                                                    onChange={e => setFormData({ ...formData, ActualStartDate: e.target.value || '' })}
-                                                />
-                                                <Calendar className="w-4 h-4 text-emerald-400 absolute left-3 top-3" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                                                <CheckSquare className="w-4 h-4 text-emerald-500" /> Ngày hoàn thành thực tế
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="date"
-                                                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-emerald-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
-                                                    value={formData.ActualEndDate ? new Date(formData.ActualEndDate).toISOString().split('T')[0] : ''}
-                                                    onChange={e => setFormData({ ...formData, ActualEndDate: e.target.value || '' })}
-                                                />
-                                                <Calendar className="w-4 h-4 text-emerald-400 absolute left-3 top-3" />
-                                            </div>
-                                        </div>
+                                {/* Actual Start/End Dates */}
+                                <div className={`grid grid-cols-2 gap-4 p-3 rounded-lg border ${(formData.ActualStartDate || formData.ActualEndDate)
+                                    ? 'bg-emerald-50 border-emerald-200'
+                                    : 'bg-gray-50 border-gray-200'}`}
+                                >
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-emerald-500" /> Ngày bắt đầu thực tế
+                                            {formData.ActualStartDate && (
+                                                <span className="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">Tự động</span>
+                                            )}
+                                        </label>
+                                        <DateInputVN
+                                            value={formData.ActualStartDate}
+                                            onChange={v => setFormData({ ...formData, ActualStartDate: v })}
+                                            borderClass="border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-500"
+                                        />
+                                        <p className="text-[10px] text-gray-400 italic">Tự động điền khi bắt đầu thực hiện</p>
                                     </div>
-                                )}
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                                            <CheckSquare className="w-4 h-4 text-emerald-500" /> Ngày hoàn thành thực tế
+                                            {formData.ActualEndDate && (
+                                                <span className="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">Tự động</span>
+                                            )}
+                                        </label>
+                                        <DateInputVN
+                                            value={formData.ActualEndDate}
+                                            onChange={v => setFormData({ ...formData, ActualEndDate: v })}
+                                            borderClass="border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-500"
+                                        />
+                                        <p className="text-[10px] text-gray-400 italic">Tự động điền khi trạng thái = Hoàn thành</p>
+                                    </div>
+                                </div>
 
                                 {/* Progress */}
                                 <div className="space-y-1.5">
@@ -228,7 +268,23 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                             if (value === 100) newStatus = TaskStatus.Review;
                                             else if (value >= 1) newStatus = TaskStatus.InProgress;
                                             else newStatus = TaskStatus.Todo;
-                                            setFormData({ ...formData, ProgressPercent: value, Status: newStatus });
+
+                                            // ── AUTO-FILL actual dates ──
+                                            const updates: Partial<Task> = {
+                                                ...formData,
+                                                ProgressPercent: value,
+                                                Status: newStatus,
+                                            };
+                                            // Auto-set ActualStartDate khi lần đầu có progress > 0
+                                            if (value > 0 && !formData.ActualStartDate) {
+                                                updates.ActualStartDate = todayISO();
+                                            }
+                                            // Reset ActualStartDate khi về 0%
+                                            if (value === 0) {
+                                                updates.ActualStartDate = '';
+                                                updates.ActualEndDate = '';
+                                            }
+                                            setFormData(updates);
                                         }}
                                     />
                                 </div>
@@ -277,7 +333,28 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                                 else if (newStatus === TaskStatus.Todo) newProgress = 0;
                                                 else if (newStatus === TaskStatus.InProgress && newProgress === 0) newProgress = 25;
                                                 else if (newStatus === TaskStatus.Review && newProgress < 100) newProgress = 100;
-                                                setFormData({ ...formData, Status: newStatus, ProgressPercent: newProgress });
+
+                                                // ── AUTO-FILL actual dates based on status ──
+                                                const updates: Partial<Task> = {
+                                                    ...formData,
+                                                    Status: newStatus,
+                                                    ProgressPercent: newProgress,
+                                                };
+                                                // Bắt đầu thực hiện → auto-set ActualStartDate = hôm nay
+                                                if (newStatus === TaskStatus.InProgress && !formData.ActualStartDate) {
+                                                    updates.ActualStartDate = todayISO();
+                                                }
+                                                // Hoàn thành → auto-set ActualEndDate = hôm nay
+                                                if (newStatus === TaskStatus.Done) {
+                                                    if (!formData.ActualStartDate) updates.ActualStartDate = todayISO();
+                                                    if (!formData.ActualEndDate) updates.ActualEndDate = todayISO();
+                                                }
+                                                // Quay về Chưa bắt đầu → xóa actual dates
+                                                if (newStatus === TaskStatus.Todo) {
+                                                    updates.ActualStartDate = '';
+                                                    updates.ActualEndDate = '';
+                                                }
+                                                setFormData(updates);
                                             }}
                                         >
                                             <option value={TaskStatus.Todo}>Chưa bắt đầu</option>

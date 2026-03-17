@@ -1,7 +1,9 @@
-import React from 'react';
-import { FileText, CheckCircle2, X, PenTool, Shield, History, Loader2, ArrowLeft } from 'lucide-react';
-import type { CDEDocument, CDEWorkflowEntry } from '../types';
+import React, { useState } from 'react';
+import { FileText, CheckCircle2, X, PenTool, Shield, History, Loader2, ArrowLeft, MessageSquare, Lock } from 'lucide-react';
+import type { CDEDocument, CDEWorkflowEntry, CDEPermission } from '../types';
 import { CDE_WORKFLOW_STEPS, CONTAINER_COLORS, getStatusLabel, getContainerFromStatus } from '../constants';
+import { CDEService } from '../../../services/CDEService';
+import { useCDERevisions } from '../../../hooks/useCDE';
 import CDECommentThread from './CDECommentThread';
 import CDERevisionHistory from './CDERevisionHistory';
 
@@ -9,15 +11,20 @@ interface CDEWorkflowPanelProps {
     doc: CDEDocument;
     workflowHistory: CDEWorkflowEntry[];
     isPending: boolean;
-    onApprove: () => void;
-    onReject: () => void;
-    onReturn: () => void;
+    userPermission?: CDEPermission | null;
+    onApprove: (comment: string) => void;
+    onReject: (comment: string) => void;
+    onReturn: (comment: string) => void;
     onClose: () => void;
 }
 
 const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
-    doc, workflowHistory, isPending, onApprove, onReject, onReturn, onClose,
+    doc, workflowHistory, isPending, userPermission, onApprove, onReject, onReturn, onClose,
 }) => {
+    const [actionComment, setActionComment] = useState('');
+
+    // Fetch real revision history
+    const { data: revisions } = useCDERevisions(doc.doc_id);
 
     // Determine completed steps from cde_status
     // Status progression: S0 -> S1 -> S2 -> S3 -> A1
@@ -50,6 +57,22 @@ const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
     const nextStep = getNextStep();
     const containerType = getContainerFromStatus(doc.cde_status || 'S0');
     const colors = CONTAINER_COLORS[containerType];
+
+    // Check if user can perform this step
+    const canPerformAction = nextStep
+        ? CDEService.canPerformStep(userPermission?.user_role, nextStep.role)
+        : false;
+
+    // Handle actions with comment
+    const handleApprove = () => { onApprove(actionComment || 'Đã duyệt'); setActionComment(''); };
+    const handleReject = () => {
+        if (!actionComment.trim()) { alert('Vui lòng nhập lý do từ chối'); return; }
+        onReject(actionComment); setActionComment('');
+    };
+    const handleReturn = () => {
+        if (!actionComment.trim()) { alert('Vui lòng nhập yêu cầu bổ sung'); return; }
+        onReturn(actionComment); setActionComment('');
+    };
 
     return (
         <div className="w-[340px] bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden shrink-0 animate-in slide-in-from-right-4 duration-300">
@@ -164,11 +187,11 @@ const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
                     </div>
                 )}
 
-                {/* Revision History */}
+                {/* Revision History — Real data */}
                 <CDERevisionHistory
                     docName={doc.doc_name}
                     currentVersion={doc.version || 'P01.01'}
-                    revisions={[]}
+                    revisions={revisions || []}
                 />
 
                 {/* Comment Thread */}
@@ -178,38 +201,68 @@ const CDEWorkflowPanel: React.FC<CDEWorkflowPanelProps> = ({
             {/* Action Buttons */}
             <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800/80">
                 {nextStep ? (
-                    <div className="space-y-2">
-                        <div className="flex gap-2">
-                            <button
-                                disabled={isPending}
-                                onClick={onReturn}
-                                className="flex-1 py-2.5 bg-white dark:bg-slate-700 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
-                                title="Yêu cầu bổ sung"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5" /> Bổ sung
-                            </button>
-                            <button
-                                disabled={isPending}
-                                onClick={onReject}
-                                className="flex-1 py-2.5 bg-white dark:bg-slate-700 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
-                            >
-                                <X className="w-3.5 h-3.5" /> Từ chối
-                            </button>
-                            <button
-                                disabled={isPending}
-                                onClick={onApprove}
-                                className="flex-[2] py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all shadow-md shadow-emerald-200 dark:shadow-emerald-900/30 flex items-center justify-center gap-1.5"
-                            >
-                                {isPending ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <>
-                                        {nextStep.id === 'DIRECTOR_SIGN' ? <PenTool className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                                        {nextStep.name}
-                                    </>
-                                )}
-                            </button>
+                    <div className="space-y-2.5">
+                        {/* Comment input for workflow actions */}
+                        <div>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                                <MessageSquare className="w-3 h-3 text-gray-400" />
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Nhận xét</span>
+                            </div>
+                            <textarea
+                                value={actionComment}
+                                onChange={e => setActionComment(e.target.value)}
+                                placeholder="Nhập nhận xét, lý do từ chối hoặc yêu cầu bổ sung..."
+                                rows={2}
+                                disabled={!canPerformAction}
+                                className="w-full text-xs bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2 resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 dark:text-slate-200 disabled:opacity-50"
+                            />
                         </div>
+
+                        {canPerformAction ? (
+                            <div className="flex gap-2">
+                                <button
+                                    disabled={isPending}
+                                    onClick={handleReturn}
+                                    className="flex-1 py-2.5 bg-white dark:bg-slate-700 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+                                    title="Yêu cầu bổ sung"
+                                >
+                                    <ArrowLeft className="w-3.5 h-3.5" /> Bổ sung
+                                </button>
+                                <button
+                                    disabled={isPending}
+                                    onClick={handleReject}
+                                    className="flex-1 py-2.5 bg-white dark:bg-slate-700 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+                                >
+                                    <X className="w-3.5 h-3.5" /> Từ chối
+                                </button>
+                                <button
+                                    disabled={isPending}
+                                    onClick={handleApprove}
+                                    className="flex-[2] py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all shadow-md shadow-emerald-200 dark:shadow-emerald-900/30 flex items-center justify-center gap-1.5"
+                                >
+                                    {isPending ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        <>
+                                            {nextStep.id === 'DIRECTOR_SIGN' ? <PenTool className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                            {nextStep.name}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl">
+                                <Lock className="w-4 h-4 text-gray-400 shrink-0" />
+                                <div>
+                                    <p className="text-[11px] font-bold text-gray-600 dark:text-slate-300">
+                                        Bạn không có quyền thực hiện bước này
+                                    </p>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">
+                                        Yêu cầu: {nextStep.roleLabel}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <p className="text-[9px] text-gray-400 dark:text-slate-500 text-center font-medium">
                             Quyền hạn: {nextStep.roleLabel}
                         </p>

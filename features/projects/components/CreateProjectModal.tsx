@@ -96,11 +96,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         // Section 2 - Thông tin đầu tư
         TotalInvestment: 0,
         CapitalSource: 'Ngân sách Tỉnh',
-        ProvinceCode: '42', // Hà Tĩnh default
+        ProvinceCode: '79', // TP. Hồ Chí Minh default
         LocationCode: '',
         ConstructionType: '',
         ConstructionGrade: '',
-        CompetentAuthority: 'Giám đốc Học viện Chính trị quốc gia Hồ Chí Minh',
+        CompetentAuthority: 'UBND TP.HCM',
         InvestorName: 'Ban QLDA ĐTXD CN',
         Duration: '',
         ManagementBoard: 0,
@@ -122,11 +122,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 StartDate: editProject.StartDate ? new Date(editProject.StartDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                 TotalInvestment: editProject.TotalInvestment || 0,
                 CapitalSource: editProject.CapitalSource || 'Ngân sách Tỉnh',
-                ProvinceCode: editProject.ProvinceCode || '42',
+                ProvinceCode: editProject.ProvinceCode || '79',
                 LocationCode: editProject.LocationCode || '',
                 ConstructionType: editProject.ConstructionType || '',
                 ConstructionGrade: editProject.ConstructionGrade || '',
-                CompetentAuthority: editProject.CompetentAuthority || 'Giám đốc Học viện Chính trị quốc gia Hồ Chí Minh',
+                CompetentAuthority: editProject.CompetentAuthority || 'UBND TP.HCM',
                 InvestorName: editProject.InvestorName || 'Ban QLDA ĐTXD CN',
                 Duration: editProject.Duration || '',
                 ManagementBoard: editProject.ManagementBoard || 0,
@@ -701,7 +701,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="VD: Giám đốc Học viện CTQG HCM"
+                                        placeholder="VD: UBND TP.HCM"
                                         className={inputWithIconClass + aiHighlight('CompetentAuthority')}
                                         value={formData.CompetentAuthority}
                                         onChange={e => updateField('CompetentAuthority', e.target.value)}

@@ -170,3 +170,57 @@ Phương pháp:
 - Kịch bản lạc quan: +20% so với baseline
 - Kịch bản bi quan: -20% so với baseline
 Chỉ trả về JSON, KHÔNG có text thừa.`;
+
+/**
+ * Prompt tổng hợp báo cáo tháng bằng AI
+ */
+export const MONTHLY_REPORT_PROMPT = `Bạn là chuyên gia tổng hợp báo cáo giám sát dự án đầu tư công, viết báo cáo tháng cho Ban QLDA.
+
+Dựa trên dữ liệu dự án được cung cấp, hãy soạn **BÁO CÁO TÌNH HÌNH THỰC HIỆN DỰ ÁN THÁNG ${new Date().getMonth() + 1}/${new Date().getFullYear()}**.
+
+## Format báo cáo (Markdown):
+
+# BÁO CÁO TÌNH HÌNH THỰC HIỆN DỰ ÁN
+**Tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}**
+
+## I. THÔNG TIN CHUNG
+Tên dự án, mã dự án, chủ đầu tư, nhóm dự án, giai đoạn hiện tại.
+
+## II. TÌNH HÌNH GIẢI NGÂN
+- Tổng mức đầu tư
+- Lũy kế giải ngân đến nay (số tiền + % so với tổng mức ĐT)
+- So sánh với kế hoạch giải ngân năm
+- Đánh giá: đạt/không đạt kế hoạch
+
+## III. TIẾN ĐỘ THỰC HIỆN
+- Tiến độ khối lượng: X%
+- Tiến độ giải ngân: Y%
+- So sánh 2 chỉ số, nhận xét chênh lệch (nếu có)
+- Các công việc chính đang triển khai
+
+## IV. TÌNH HÌNH HỢP ĐỒNG & NHÀ THẦU
+- Số lượng gói thầu, tổng giá trị
+- Nhà thầu đang thi công
+- Tình hình nghiệm thu, thanh toán
+
+## V. KHÓ KHĂN, VƯỚNG MẮC
+- Phân tích các vấn đề nếu: tiến độ chậm, giải ngân thấp, chênh lệch lớn
+- Nếu không có vấn đề, ghi "Dự án đang triển khai bình thường"
+
+## VI. KIẾN NGHỊ, ĐỀ XUẤT
+- Dựa trên phân tích, đưa ra kiến nghị cụ thể
+- Ví dụ: đẩy nhanh giải ngân, bổ sung hồ sơ, điều chỉnh kế hoạch
+
+## VII. KẾT LUẬN
+- Đánh giá tổng thể 1-2 câu
+- Dự kiến kế hoạch tháng tới
+
+---
+*Báo cáo được tổng hợp tự động bởi AI vào ngày ${new Date().toLocaleDateString('vi-VN')}*
+
+## Quy tắc:
+1. Format số tiền dễ đọc: "319,8 tỷ đồng" thay vì "319887000000"
+2. Sử dụng DỮ LIỆU THỰC từ input, KHÔNG bịa số liệu
+3. Nếu thiếu dữ liệu, ghi rõ "[Chưa có dữ liệu]"
+4. Giọng văn chuyên nghiệp, hành chính
+5. Trả về Markdown hoàn chỉnh, có thể in trực tiếp`;

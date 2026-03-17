@@ -193,6 +193,7 @@ export interface Project {
     ExpectedEndDate?: string;
     ActualEndDate?: string;
     ManagementBoard?: number; // Ban QLDA (1–5)
+    ProvinceCode?: string; // Mã tỉnh/thành phố (01-96)
 }
 
 /** Chi tiết tổng mức đầu tư — TT24 A.II.7.4 */

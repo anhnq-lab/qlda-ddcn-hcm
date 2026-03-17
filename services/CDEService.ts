@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════
 // CDE Service — Supabase CRUD for CDE Module
 // ISO 19650 + VN Construction QLDA
+// Phase 4 — Full-featured with Audit, Revisions, Permissions
 // ═══════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabase';
-import type { CDEFolder, CDEDocument, CDEWorkflowEntry, CDEStats, CDEStatusCode } from '../features/cde/types';
+import type { CDEFolder, CDEDocument, CDEWorkflowEntry, CDEStats, CDEStatusCode, CDETransmittal, CDEPermission } from '../features/cde/types';
 import { CDE_WORKFLOW_STEPS, getContainerFromStatus, formatFileSize } from '../features/cde/constants';
 
 // ═══════════════════════════════════════════════════════════════
@@ -41,7 +42,7 @@ export class CDEService {
         return (data || []).map(f => ({
             ...f,
             doc_count: countMap[f.id] || 0,
-        }));
+        })) as CDEFolder[];
     }
 
     /**
@@ -50,11 +51,11 @@ export class CDEService {
     static async createFolder(folder: Partial<CDEFolder>): Promise<CDEFolder> {
         const { data, error } = await supabase
             .from('cde_folders')
-            .insert(folder)
+            .insert(folder as any)
             .select()
             .single();
         if (error) throw new Error(`Failed to create folder: ${error.message}`);
-        return data;
+        return data as CDEFolder;
     }
 
     /**
@@ -135,11 +136,28 @@ export class CDEService {
             .order('upload_date', { ascending: false });
 
         if (error) throw new Error(`Failed to fetch documents: ${error.message}`);
-        return data || [];
+        return (data || []) as CDEDocument[];
     }
 
     /**
+     * Get ALL CDE documents for a project (used for Analytics Dashboard).
+     */
+    static async getProjectDocuments(projectId: string): Promise<CDEDocument[]> {
+        const { data, error } = await supabase
+            .from('documents')
+            .select('*')
+            .eq('project_id', projectId)
+            .not('cde_folder_id', 'is', null)
+            .order('upload_date', { ascending: false });
+
+        if (error) throw new Error(`Failed to fetch project documents: ${error.message}`);
+        return (data || []) as CDEDocument[];
+    }
+
+
+    /**
      * Upload a document (contractor submission).
+     * Now includes automatic audit logging.
      */
     static async uploadDocument(params: {
         file: File;
@@ -194,18 +212,124 @@ export class CDEService {
             .single();
 
         if (error) throw new Error(`Failed to save document: ${error.message}`);
-        return data;
+        const doc = data as CDEDocument;
+
+        // Auto audit log
+        await CDEService.logAudit({
+            projectId,
+            entityType: 'document',
+            entityId: String(doc.doc_id),
+            action: 'upload',
+            actorId: userId,
+            actorName: userName,
+            details: { doc_name: file.name, size: formatFileSize(file.size), discipline, docType, folder_id: folderId },
+        });
+
+        return doc;
     }
 
     /**
      * Move document to a different folder.
      */
-    static async moveDocument(docId: number, newFolderId: string): Promise<void> {
+    static async moveDocument(docId: number, newFolderId: string, actorId?: string, actorName?: string, projectId?: string): Promise<void> {
         const { error } = await supabase
             .from('documents')
             .update({ cde_folder_id: newFolderId })
             .eq('doc_id', docId);
         if (error) throw new Error(`Failed to move document: ${error.message}`);
+
+        // Auto audit log
+        if (actorId && projectId) {
+            await CDEService.logAudit({
+                projectId,
+                entityType: 'document',
+                entityId: String(docId),
+                action: 'move',
+                actorId,
+                actorName: actorName || actorId,
+                details: { new_folder_id: newFolderId },
+            });
+        }
+    }
+
+    /**
+     * Download a document from Supabase Storage.
+     * Returns a signed URL valid for 1 hour.
+     */
+    static async downloadDocument(storagePath: string): Promise<string> {
+        const { data, error } = await supabase.storage
+            .from('documents')
+            .createSignedUrl(storagePath, 3600);
+
+        if (error || !data?.signedUrl) {
+            // Fallback to public URL
+            const { data: publicData } = supabase.storage.from('documents').getPublicUrl(storagePath);
+            if (publicData?.publicUrl) return publicData.publicUrl;
+            throw new Error(`Failed to generate download URL: ${error?.message || 'Unknown error'}`);
+        }
+        return data.signedUrl;
+    }
+
+    /**
+     * Get revision history for a document (all versions sharing same doc_name pattern).
+     */
+    static async getRevisions(docId: number): Promise<Array<{
+        version: string; revision: string; date: string;
+        author: string; reason: string; size: string; storagePath?: string;
+    }>> {
+        // Get the current document
+        const { data: currentDoc } = await supabase
+            .from('documents')
+            .select('doc_name, project_id, cde_folder_id')
+            .eq('doc_id', docId)
+            .single();
+
+        if (!currentDoc) return [];
+
+        // Get workflow history to build revision entries
+        const { data: wfHistory } = await supabase
+            .from('cde_workflow_history')
+            .select('*')
+            .eq('doc_id', docId)
+            .order('created_at', { ascending: false });
+
+        // Build revision list from workflow history
+        const revisions: Array<{
+            version: string; revision: string; date: string;
+            author: string; reason: string; size: string; storagePath?: string;
+        }> = [];
+
+        // Add entries for each workflow step
+        if (wfHistory && wfHistory.length > 0) {
+            const statusVersionMap: Record<string, string> = {
+                'SUBMIT': 'P01.01', 'CHECK': 'P01.02', 'APPRAISE': 'P01.03',
+                'APPROVE': 'C01.01', 'SIGN': 'C01.02',
+            };
+            wfHistory.forEach(wf => {
+                revisions.push({
+                    version: statusVersionMap[wf.step_code] || 'P01.01',
+                    revision: wf.step_code.startsWith('A') || wf.step_code === 'SIGN' || wf.step_code === 'APPROVE' ? 'C01' : 'P01',
+                    date: new Date(wf.created_at || '').toLocaleDateString('vi-VN'),
+                    author: wf.actor_name,
+                    reason: `${wf.step_name} — ${wf.status}${wf.comment ? `: ${wf.comment}` : ''}`,
+                    size: '—',
+                });
+            });
+        }
+
+        // Always add initial version if no history
+        if (revisions.length === 0) {
+            revisions.push({
+                version: 'P01.01',
+                revision: 'P01',
+                date: new Date().toLocaleDateString('vi-VN'),
+                author: '—',
+                reason: 'Phiên bản đầu tiên',
+                size: '—',
+            });
+        }
+
+        return revisions;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -223,11 +347,12 @@ export class CDEService {
             .order('created_at', { ascending: true });
 
         if (error) throw new Error(`Failed to fetch workflow history: ${error.message}`);
-        return data || [];
+        return (data || []) as CDEWorkflowEntry[];
     }
 
     /**
      * Process a workflow step (approve/reject/return).
+     * Now includes automatic audit logging.
      */
     static async processWorkflowStep(params: {
         docId: number;
@@ -256,6 +381,13 @@ export class CDEService {
             });
 
         if (wfError) throw new Error(`Failed to record workflow: ${wfError.message}`);
+
+        // Get project_id for audit log
+        const { data: docData } = await supabase
+            .from('documents')
+            .select('project_id, doc_name')
+            .eq('doc_id', docId)
+            .single();
 
         // Update document status
         if (status === 'Approved') {
@@ -309,6 +441,20 @@ export class CDEService {
                 .update({ cde_status: 'S0', iso_status: 'WIP' })
                 .eq('doc_id', docId);
         }
+
+        // Auto audit log
+        if (docData?.project_id) {
+            const actionMap: Record<string, string> = { Approved: 'approve', Rejected: 'reject', Returned: 'return' };
+            await CDEService.logAudit({
+                projectId: docData.project_id,
+                entityType: 'document',
+                entityId: String(docId),
+                action: actionMap[status] || status.toLowerCase(),
+                actorId,
+                actorName,
+                details: { step: stepName, step_code: stepCode, status, comment: comment || '', doc_name: docData.doc_name },
+            });
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -335,6 +481,94 @@ export class CDEService {
             published: docs.filter(d => d.iso_status === 'PUBLISHED').length,
             archived: docs.filter(d => d.iso_status === 'ARCHIVED').length,
         };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // AUDIT LOG
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Log an audit entry. Called automatically by upload/workflow/move operations.
+     */
+    static async logAudit(params: {
+        projectId: string;
+        entityType: string;
+        entityId: string;
+        action: string;
+        actorId: string;
+        actorName: string;
+        details?: Record<string, any>;
+    }): Promise<void> {
+        try {
+            await supabase.from('cde_audit_log').insert({
+                project_id: params.projectId,
+                entity_type: params.entityType,
+                entity_id: params.entityId,
+                action: params.action,
+                actor_id: params.actorId,
+                actor_name: params.actorName,
+                details: params.details || {},
+            });
+        } catch {
+            // Audit log failures should not block main operations
+            console.warn('Audit log insert failed silently');
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // TRANSMITTALS
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Get all transmittals for a project.
+     */
+    static async getTransmittals(projectId: string): Promise<CDETransmittal[]> {
+        const { data, error } = await supabase
+            .from('cde_transmittals')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw new Error(`Failed to fetch transmittals: ${error.message}`);
+        return (data || []) as CDETransmittal[];
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PERMISSIONS
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Get current user's CDE permission for a project.
+     * Returns null if no permission found (treat as viewer).
+     */
+    static async getUserPermission(projectId: string, userId: string): Promise<CDEPermission | null> {
+        const { data } = await supabase
+            .from('cde_permissions')
+            .select('*')
+            .eq('project_id', projectId)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        return data as CDEPermission | null;
+    }
+
+    /**
+     * Check if a user can perform a specific workflow step.
+     * Maps CDE roles to workflow step roles.
+     */
+    static canPerformStep(userRole: string | undefined, stepRole: string): boolean {
+        // Admin can do everything
+        if (userRole === 'admin' || userRole === 'director') return true;
+        // Map CDE permission roles to workflow step roles
+        const roleMapping: Record<string, string[]> = {
+            'contributor': ['contractor'],
+            'reviewer': ['contractor', 'consultant'],
+            'approver': ['contractor', 'consultant', 'staff', 'manager'],
+            'admin': ['contractor', 'consultant', 'staff', 'manager', 'director'],
+        };
+        // Also allow by exact match (e.g. staff user can do staff step)
+        if (userRole === stepRole) return true;
+        return roleMapping[userRole || '']?.includes(stepRole) || false;
     }
 }
 

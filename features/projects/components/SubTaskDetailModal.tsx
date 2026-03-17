@@ -23,27 +23,29 @@ interface SubTaskDetailModalProps {
     project?: Project | null;
 }
 
-// Danh sách đơn vị phụ trách theo mô hình 2 cấp (NĐ 140/2025)
+// Danh sách đơn vị phụ trách — Ban QLDA ĐTXD DDCN trực thuộc UBND TP.HCM
 const RESPONSIBLE_UNITS = [
-    'CĐT (Ban QLDA)',
-    'Sở Xây dựng',
-    'Sở Tài chính',
-    'Giám đốc Học viện CTQG HCM',
-    'Vụ KH-TC Học viện',
-    'Nhà thầu TVTK',
-    'Nhà thầu TVGS',
-    'Nhà thầu TV thẩm tra',
-    'Nhà thầu TVKS',
-    'Nhà thầu thi công',
-    'Bên mời thầu (BMT)',
-    'Tổ chuyên gia',
-    'HĐ thẩm định',
-    'KBNN',
-    'Hội đồng BT TĐC',
-    'CQ chủ trì thẩm định',
-    'Người QĐ đầu tư',
-    'Giám đốc Học viện CTQG HCM',
-    'Ban Cán sự Đảng Học viện',
+    // Nội bộ Ban QLDA
+    'Giám đốc Ban QLDA',
+    'P.KH-ĐT (Ban QLDA)',
+    'P.KT-CL (Ban QLDA)',
+    'P.TC-KT (Ban QLDA)',
+    'Ban ĐH DA',
+    'Ban ĐH DA (Ban QLDA)',
+    // Cơ quan nhà nước TP.HCM
+    'UBND TP.HCM',
+    'Sở XD TP.HCM',
+    'Sở TC TP.HCM',
+    'KBNN TP.HCM',
+    'UBND Quận',
+    'HĐ BT TĐC Quận',
+    // Nhà thầu / Tư vấn
+    'NT TVTK',
+    'NT TVGS',
+    'NT TV thẩm tra',
+    'NT TVKS',
+    'NT thi công',
+    'Tổ chuyên gia đấu thầu',
     'Đơn vị sử dụng',
 ];
 
