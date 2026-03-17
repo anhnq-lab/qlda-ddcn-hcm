@@ -39,3 +39,6 @@ Doccument/
 
 # IFC/BIM model files (too large for GitHub)
 model/
+
+temp_pptx/
+.env.production
