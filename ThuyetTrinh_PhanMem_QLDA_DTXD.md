@@ -80,226 +80,290 @@ Phiên bản 3.0 • 17/03/2026 • CIC Technology and Consultancy JSC
 
 ## 2. TỔNG QUAN HỆ THỐNG
 
-*Với 5 trụ cột vừa trình bày, giờ đây cho phép em giới thiệu tổng quan hệ thống mà chúng tôi đã xây dựng — một nền tảng sẵn sàng để quý Ban có thể sử dụng ngay. Trước hết, xin tóm tắt qua một số con số quan trọng:*
+*Với 5 trụ cột vừa trình bày, giờ đây cho phép em giới thiệu tổng quan hệ thống mà chúng tôi đã xây dựng �## 3. CÁC MODULE CHỨC NĂNG
 
-### Các chỉ số chính
-
-| Chỉ số | Giá trị | Ghi chú |
-|--------|---------|---------|
-| Module chức năng | **15+** | Phủ toàn bộ quy trình QLDA |
-| Quy mô người dùng | **200+** | Sẵn sàng cho 200 người dùng đồng thời |
-| Ban QLDA trực thuộc | **5** | Ban 1 đến Ban 5 |
-| BIM 3D Viewer | **IFC** | Xem mô hình 3D trong trình duyệt, cache thông minh |
-| CDE (ISO 19650) | **4 vùng dữ liệu** | Môi trường dữ liệu chung: WIP, SHARED, PUBLISHED, ARCHIVED |
-| AI tích hợp | **9 module AI** | Gemini: tóm tắt, dự báo, phát hiện bất thường, soạn văn bản, chấm điểm nhà thầu |
-| Bảo mật | **RBAC + RLS** | 148 chính sách bảo mật, 6 lớp phân quyền |
-
-### Điểm nổi bật
-
-- Dashboard realtime với 5 KPI chính, biểu đồ giải ngân theo tháng, bản đồ vị trí dự án
-- Quản lý toàn bộ vòng đời dự án: **Chuẩn bị, Thực hiện, Kết thúc xây dựng**
-- **9 module AI**: tóm tắt dự án, dự báo giải ngân, phát hiện bất thường, kiểm tra tuân thủ, soạn văn bản, chấm điểm nhà thầu, đánh giá rủi ro, tối ưu nguồn lực, phê duyệt thông minh
-- BIM 3D Viewer — xem mô hình công trình trực tiếp trong trình duyệt, cache thông minh không cần tải lại
-- CDE tuân thủ ISO 19650 — workflow duyệt tài liệu chuyên nghiệp
-- AI Summary tự động phân tích dữ liệu, phát hiện bất thường mà con người có thể bỏ sót
-- Tất cả biểu đồ đều phản ánh dữ liệu thực tế theo thời gian thực
-- AI Report — xuất báo cáo giám sát hàng tháng bằng AI, xuất DOCX chuyên nghiệp
+*Hệ thống bao gồm 18 module chức năng, bao phủ toàn bộ quy trình quản lý dự án đầu tư xây dựng — từ tổng quan điều hành, lập kế hoạch vốn, quản lý gói thầu theo Luật Đấu thầu 2023, đến tuân thủ pháp lý, BIM 3D và trí tuệ nhân tạo. Mỗi module đều được phát triển sát nghiệp vụ thực tế của Ban QLDA. Em xin lần lượt trình bày chi tiết:*
 
 ---
 
-## 3. CÁC MODULE CHỨC NĂNG
+### 3.1. Dashboard Tổng quan — Trung tâm Điều hành
 
-*Hệ thống bao gồm 15 module, bao phủ toàn bộ quy trình quản lý dự án đầu tư xây dựng từ khâu lập kế hoạch vốn, tuân thủ pháp lý, đến gói thầu và nghiệm thu. Mỗi module đều gắn liền với nghiệp vụ thực tế của Ban. Em xin lần lượt trình bày:*
+*Đây là trang đầu tiên khi Lãnh đạo đăng nhập — nơi nắm bắt toàn bộ tình hình danh mục dự án chỉ trong 30 giây, với dữ liệu realtime và AI phân tích tự động:*
 
-### 3.1. Dashboard — Trung tâm Điều hành
+| Tính năng | Mô tả chi tiết | Ý nghĩa |
+|-----------|----------------|---------|
+| **4 KPI Cards** | Dự án đang quản lý (phân theo 3 giai đoạn), Tổng vốn đầu tư, Kế hoạch vốn năm, Giải ngân năm (% đạt kế hoạch) — click vào card chuyển thẳng đến module tương ứng | Nắm bắt tổng quan ngay lập tức, tương tác trực tiếp |
+| **Bộ lọc thông minh** | Lọc theo Năm (2020-2027) và theo Ban QLDA (Ban 1-5) — toàn bộ dashboard cập nhật theo bộ lọc | So sánh hiệu quả giữa các năm, các Ban |
+| **Bảng tổng hợp dự án** | Tên dự án, Ban QLDA, giai đoạn (badge màu), thanh tiến độ, vốn đầu tư, % giải ngân — click vào dự án để xem chi tiết | Rà soát nhanh toàn bộ danh mục |
+| **Biểu đồ Kế hoạch vs Giải ngân** | Biểu đồ cột so sánh vốn kế hoạch và thực giải ngân theo từng Ban, tỷ lệ % — tooltip chi tiết | Phát hiện sớm Ban nào chậm giải ngân |
+| **Hub AI (5 widget)** | AI Summary (tóm tắt tổng thể), AI Risk Dashboard, AI Anomaly Detector, AI Contractor Scoring, AI Resource Optimizer — tất cả hiển thị trên 1 trang | Trợ lý AI phân tích toàn diện |
+| **Bản đồ Leaflet** | Bản đồ tương tác hiển thị vị trí dự án trên địa bàn TP.HCM, phân loại giai đoạn bằng màu marker, chú thích trực quan | Trực quan hóa phân bố dự án |
+| **Panel cảnh báo** | Danh sách cảnh báo quan trọng: chậm tiến độ, vượt dự toán, thiếu hồ sơ — phân loại mức độ nghiêm trọng bằng màu | Phát hiện sớm rủi ro, xử lý kịp thời |
 
-*Đây là trang đầu tiên khi đăng nhập — nơi lãnh đạo có thể nắm bắt toàn bộ tình hình chỉ trong 30 giây:*
+---
 
-| Tính năng | Mô tả | Ý nghĩa |
-|-----------|-------|---------|
-| KPI Cards | 5 chỉ số chính: Tổng dự án, Đang triển khai, Tổng vốn, Giải ngân, Cảnh báo | Nắm bắt tổng quan ngay lập tức |
-| Biểu đồ giải ngân | Theo dõi kế hoạch vs thực tế theo từng tháng | Phát hiện sớm tình trạng chậm giải ngân |
-| Bản đồ dự án | Vị trí các dự án trên bản đồ, phân loại giai đoạn bằng màu | Trực quan hóa phân bố dự án trên địa bàn |
-| Cảnh báo realtime | Danh sách vấn đề quan trọng, phân loại mức độ nghiêm trọng | Cảnh báo sớm để xử lý kịp thời |
-| AI Summary | Tóm tắt tình hình tổng thể bằng AI, đánh giá rủi ro tự động | Giảm tải phân tích cho cán bộ |
+### 3.2. Dashboard Cá nhân — Góc làm việc riêng
 
-### 3.2. Quản lý Dự án — Trang danh sách
+*Mỗi cán bộ khi đăng nhập sẽ có một trang Dashboard cá nhân, hiển thị chỉ những dự án và công việc mình phụ trách — thay thế việc hỏi đồng nghiệp "hôm nay tôi cần làm gì":*
+
+| Tính năng | Mô tả chi tiết |
+|-----------|----------------|
+| **Welcome Header** | Xin chào + Họ tên, Chức vụ, Phòng Ban — hiển thị ngày hôm nay |
+| **4 KPI cá nhân** | Dự án phụ trách, Công việc đang làm, Chờ xử lý, Quá hạn — click vào chuyển sang module tương ứng |
+| **Dự án của tôi** | Danh sách dự án được phân công, thanh tiến độ, giai đoạn, tổng vốn — lọc tự động theo EmployeeID |
+| **Deadline sắp tới** | 5 công việc sắp hết hạn trong 7 ngày, hiển thị "Hôm nay", "Ngày mai", "3 ngày" — badge theo mức ưu tiên |
+| **Công việc đang thực hiện** | Danh sách task đang InProgress, badge mức ưu tiên (Urgent/High/Medium/Low) |
+| **Tài liệu gần đây** | 5 tài liệu mới nhất của dự án mình phụ trách, trạng thái duyệt ISO, phiên bản — truy vấn realtime từ Supabase |
+| **Hợp đồng liên quan** | Hợp đồng thuộc các dự án mình phụ trách, giá trị, tên dự án |
+| **Tổng mức đầu tư phụ trách** | Tổng vốn + tỷ lệ hoàn thành công việc cá nhân |
+
+---
+
+### 3.3. Quản lý Dự án — Trang danh sách
 
 *Từ Dashboard tổng quan, khi muốn xem chi tiết, người dùng chuyển sang trang Danh sách Dự án:*
 
 | Tính năng | Mô tả | Ý nghĩa |
 |-----------|-------|---------|
-| Danh sách dự án | Hiển thị tên, trạng thái, giai đoạn, Ban quản lý, tổng vốn | Nắm bắt tình trạng ngay tại trang danh sách |
-| Tìm kiếm và lọc | Lọc theo trạng thái, giai đoạn, loại, Ban quản lý | Tìm nhanh trong hàng trăm dự án |
-| Phân loại giai đoạn | 3 giai đoạn: Chuẩn bị, Thực hiện, Kết thúc (theo NĐ 175/2024) | Theo dõi trực quan dự án đang ở giai đoạn nào |
-| Phân quyền theo Ban | Mỗi Ban QLDA chỉ thấy dữ liệu thuộc phạm vi quản lý | Đảm bảo phân quyền tự động |
+| Danh sách dự án | Hiển thị tên, trạng thái, giai đoạn, Ban quản lý, tổng vốn, tiến độ | Nắm bắt tình trạng ngay tại trang danh sách |
+| Tìm kiếm và lọc | Lọc theo trạng thái, giai đoạn, nhóm dự án (A/B/C), Ban QLDA | Tìm nhanh trong hàng trăm dự án |
+| Phân loại giai đoạn | 3 giai đoạn: Chuẩn bị ĐA, Thực hiện ĐA, Kết thúc XD (theo Điều 4 NĐ 175/2024) | Theo dõi trực quan dự án đang ở giai đoạn nào |
+| Phân quyền theo Ban | Mỗi Ban QLDA chỉ thấy dữ liệu thuộc phạm vi quản lý (RLS tự động) | Bảo mật dữ liệu giữa các Ban |
 
-### 3.3. Chi tiết Dự án — 8 Tab nghiệp vụ
+---
 
-*Khi bấm vào một dự án cụ thể, hệ thống hiển thị giao diện chi tiết với 8 tab chuyên biệt — mỗi tab phục vụ một mảng nghiệp vụ riêng (BIM đã được tách thành module riêng):*
+### 3.4. Chi tiết Dự án — 8 Tab nghiệp vụ chuyên sâu
 
-| Tab | Chức năng | Ý nghĩa |
-|-----|----------|---------|
-| Tab Thông tin chung | Tổng quan dự án: chủ đầu tư, Ban QL, địa chỉ, tổng vốn, trạng thái, AI Summary | Cái nhìn tổng thể, AI tự động phân tích |
-| Tab Kế hoạch | Quản lý giai đoạn, bước thực hiện, theo dõi tiến độ, Gantt chart | Kiểm soát tiến độ từng bước, cảnh báo chậm trễ |
-| Tab Vốn & Giải ngân | Cơ cấu nguồn vốn, kế hoạch giải ngân, AI dự báo xu hướng | Kiểm soát tài chính chặt chẽ |
-| Tab Gói thầu | Danh sách gói thầu, hình thức lựa chọn, nhà thầu trúng thầu | Quản lý đấu thầu minh bạch |
-| Tab Tuân thủ | Thủ tục pháp lý bắt buộc, AI cảnh báo thiếu hồ sơ | Sẵn sàng khi thanh tra |
-| Tab Hồ sơ & Pháp lý | Upload/download hồ sơ, preview, **AI Soạn văn bản** | AI hỗ trợ soạn văn bản pháp lý tự động |
-| Tab Vận hành | Nghiệm thu, bàn giao, quyết toán, bảo hành | Quản lý giai đoạn kết thúc dự án |
-| Tab Công việc | Quản lý task Kanban, giao việc cho cá nhân | Tăng trách nhiệm cá nhân |
+*Khi bấm vào một dự án cụ thể, hệ thống hiển thị giao diện chi tiết với 8 tab chuyên biệt — mỗi tab là một hệ thống con hoàn chỉnh:*
 
-*Bây giờ, em xin đi sâu vào một số module quan trọng. Đầu tiên là BIM 3D Viewer — module riêng cho phép anh chị có thể xem trực tiếp mô hình 3D của công trình mà không cần cài bất kỳ phần mềm nào:*
+#### Tab 1: Thông tin chung
+- Tổng quan dự án: chủ đầu tư, Ban QL, địa chỉ, tỉnh/thành, nhóm dự án, tổng vốn, ngày phê duyệt
+- **AI Summary** tự động phân tích tình hình dự án, phát hiện vấn đề
+- Chỉnh sửa inline, lưu realtime
 
-### 3.4. BIM 3D Viewer
+#### Tab 2: Kế hoạch thực hiện (Module lớn nhất hệ thống)
+
+*Đây là tab nghiệp vụ quan trọng nhất — quản lý toàn bộ kế hoạch thực hiện dự án theo đúng trình tự NĐ 175/2024:*
+
+| Tính năng | Mô tả chi tiết |
+|-----------|----------------|
+| **WBS theo NĐ 175/2024** | Cấu trúc phân cấp 3 giai đoạn → các bước thực hiện → công việc con — tự động phát sinh theo nhóm dự án (A/B/C/QG) và có/không ODA |
+| **4 chế độ xem** | WBS (cấu trúc phân cấp), Gantt Chart (biểu đồ thời gian), Kanban (bảng trạng thái), Resource (phân bổ nhân sự) |
+| **Auto-generate kế hoạch** | Nút "Tạo KH tổng thể" — tự động tạo toàn bộ công việc từ quy trình pháp lý (sub-task registry), tính ngày bắt đầu/kết thúc dựa trên ngày khởi công |
+| **Tạo KH theo giai đoạn** | Tạo kế hoạch riêng cho từng giai đoạn (Chuẩn bị/Thực hiện/Kết thúc) |
+| **Smart auto-expand** | Tự động mở rộng giai đoạn đang hoạt động/quá hạn, thu gọn giai đoạn đã hoàn thành 100% |
+| **Quick status toggle** | Click icon trạng thái để chuyển nhanh: Todo → InProgress → Review → Done, tự động cập nhật % tiến độ |
+| **Auto-fill ngày thực tế** | Khi bắt đầu làm → tự ghi ngày bắt đầu thực tế; hoàn thành → ghi ngày kết thúc thực tế |
+| **Auto-propagate** | Khi hoàn thành công việc → tự động gán ngày bắt đầu cho công việc kế tiếp (predecessor chain) |
+| **Đính kèm hồ sơ** | Upload file đính kèm cho từng công việc, tự động liên kết với bảng documents, cross-reference TT24/2025 |
+| **Milestone Timeline** | Dòng thời gian các mốc quan trọng: phê duyệt chủ trương, phê duyệt dự án, khởi công, nghiệm thu, bàn giao |
+| **Statistics Header** | Thanh thống kê tổng quan: tổng task, hoàn thành, đang làm, quá hạn — click vào card để lọc |
+| **Tham chiếu pháp lý** | Mỗi bước hiển thị căn cứ pháp lý (NĐ 175, Luật XD, Luật ĐTC), click để xem toàn văn |
+| **Optimistic UI + Toast** | Cập nhật giao diện ngay lập tức, toast thông báo thành công/thất bại |
+
+#### Tab 3: Vốn & Giải ngân
+- Cơ cấu nguồn vốn (ngân sách TW, địa phương, ODA, vay), kế hoạch giải ngân theo quý/năm
+- **AI Forecast** dự báo xu hướng giải ngân 3 tháng tới
+- Biểu đồ so sánh kế hoạch vs thực tế
+
+#### Tab 4: Gói thầu — Quản lý đấu thầu toàn diện
+
+*Module đấu thầu tuân thủ Luật Đấu thầu 22/2023/QH15 và NĐ 214/2025:*
+
+| Tính năng | Mô tả chi tiết |
+|-----------|----------------|
+| **Quản lý KHLCNT** | Tạo, sửa, xóa Kế hoạch lựa chọn nhà thầu — hỗ trợ cả hệ thống EGP mới và hệ thống cũ |
+| **Import từ Excel** | Nhập danh sách gói thầu từ file Excel/CSV, tự động mapping cột |
+| **Bảng gói thầu** | 16 cột theo biểu mẫu Bộ KH&ĐT: tên gói, giá trị, nguồn vốn, hình thức LCNT, phương thức, thời gian, loại HĐ |
+| **6 trạng thái** | Trong kế hoạch → Đã đăng tải → Đang mời thầu → Đang xét thầu → Đã có kết quả → Hủy thầu |
+| **Drag & Drop** | Kéo thả gói thầu để sắp xếp thứ tự, tự động lưu sort_order |
+| **MSC Compliance** | Kiểm tra tự động nghĩa vụ đăng tải trên **muasamcong.mpi.gov.vn** — cảnh báo gói thầu cần đăng tải |
+| **Xuất VB KHLCNT** | Xuất văn bản Quyết định phê duyệt KHLCNT theo đúng mẫu quy định |
+| **Export Excel** | Xuất toàn bộ danh sách gói thầu ra Excel |
+| **Chi tiết 4 tab** | KHLCNT, Lựa chọn nhà thầu, Hợp đồng, Thanh quyết toán — quản lý toàn bộ vòng đời gói thầu |
+
+#### Tab 5: Tuân thủ Pháp lý
+- Checklist thủ tục pháp lý bắt buộc theo từng giai đoạn
+- **AI Compliance Checker** tự động kiểm tra và cảnh báo thiếu hồ sơ
+- Liên kết trực tiếp đến điều khoản trong văn bản pháp luật
+
+#### Tab 6: Hồ sơ & Pháp lý
+- Upload/download hồ sơ đa định dạng, preview trực tiếp, phân loại theo TT 24/2025
+- **AI Document Drafter** — soạn văn bản pháp lý tự động: công văn, quyết định, biên bản
+
+#### Tab 7: Vận hành
+- Nghiệm thu, bàn giao, quyết toán, bảo hành công trình — quản lý giai đoạn kết thúc xây dựng
+
+#### Tab 8: BIM (trong dự án)
+- Xem nhanh mô hình BIM gắn với dự án, liên kết sang module BIM Viewer chi tiết
+
+---
+
+### 3.5. BIM 3D Viewer — Module riêng
+
+*Module BIM cho phép xem trực tiếp mô hình 3D ngay trên trình duyệt — không cần cài đặt phần mềm:*
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| Upload & Render IFC | Tải lên file IFC, tự động render mô hình 3D, **cache thông minh** không cần tải lại |
+| Upload & Render IFC | Tải lên file IFC, tự động render mô hình 3D bằng engine IFC.js + web-ifc |
 | Model Tree | Cây phân cấp cấu kiện theo tầng/loại, bật/tắt hiển thị nhóm, tìm kiếm |
 | Properties Panel | Thuộc tính chi tiết cấu kiện: vật liệu, kích thước, tham số kỹ thuật (30+ trường) |
 | Section Plane | Cắt mặt cắt ngang/dọc qua mô hình để xem bên trong, điều chỉnh realtime |
-| Spatial Tree | Phân cấp không gian: Site, Building, Storey, Element |
+| Spatial Tree | Phân cấp không gian: Site → Building → Storey → Element |
 | Camera Presets | Chế độ xem: phối cảnh, orthographic, mặt trước/sau/trái/phải |
-| Cache thông minh | File IFC được cache — chuyển qua lại giữa các mô hình không cần tải lại |
+| **Cache thông minh** | File IFC được cache trên trình duyệt — chuyển qua lại giữa các mô hình không cần tải lại |
+| **Visibility pattern** | Giữ BIM viewer mounted khi chuyển tab — không cần reload mô hình |
 
-*Với BIM Viewer, Ban QLDA có thể giám sát trực quan mô hình 3D ngay trên máy tính, không phụ thuộc vào phần mềm chuyên dụng đắt tiền. Module này tuân thủ tiêu chuẩn IFC — chuẩn mở toàn cầu cho trao đổi dữ liệu BIM.*
+*Tuân thủ tiêu chuẩn IFC — chuẩn mở toàn cầu cho trao đổi dữ liệu BIM.*
 
-*Song song với BIM, hệ thống còn tích hợp CDE — Môi trường Dữ liệu Chung — nơi quản lý tập trung toàn bộ tài liệu dự án theo chuẩn ISO 19650:*
+---
 
-### 3.5. CDE — Môi trường Dữ liệu Chung (ISO 19650)
+### 3.6. CDE — Môi trường Dữ liệu Chung (ISO 19650)
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| Folder Tree | Cấu trúc thư mục phân cấp: WIP, SHARED, PUBLISHED, ARCHIVED |
-| Upload & Drag-drop | Kéo thả file, hỗ trợ đa định dạng (PDF, DWG, IFC, DOC, XLS...) |
-| Workflow duyệt | Submit, Review, Approve theo trạng thái tài liệu |
+| Folder Tree | Cấu trúc thư mục 4 vùng: **WIP** (đang làm), **SHARED** (chia sẻ), **PUBLISHED** (ban hành), **ARCHIVED** (lưu trữ) |
+| Upload & Drag-drop | Kéo thả file, hỗ trợ đa định dạng (PDF, DWG, IFC, DOC, XLS, JPG...) |
+| Workflow duyệt | Submit → Review → Approve — theo đúng quy trình ISO 19650 |
 | Revision History | Lịch sử phiên bản đầy đủ, so sánh giữa các phiên bản |
-| Transmittal | Tạo phiếu gửi tài liệu chính thức giữa các bên |
-| Permission Manager | Phân quyền truy cập theo tổ chức, vai trò — nhóm Ban, nhà thầu |
-| Audit Log | Ghi lại mọi thao tác: ai tải, ai sửa, ai duyệt |
+| Transmittal | Tạo phiếu gửi tài liệu chính thức giữa các bên liên quan |
+| Permission Manager | Phân quyền truy cập theo tổ chức, vai trò — nhóm Ban, nhà thầu, tư vấn |
+| Audit Log | Ghi lại mọi thao tác: ai tải, ai sửa, ai duyệt, timestamp chính xác |
 | Comment Thread | Bình luận trực tiếp trên tài liệu, trao đổi giữa các bên |
 | Contractor Dashboard | Trang tổng quan riêng cho nhà thầu, chỉ thấy tài liệu được phân quyền |
+| **Thống kê CDE** | Dashboard thống kê: số tài liệu theo vùng, theo trạng thái, hoạt động gần đây |
 
-*CDE đảm bảo mọi tài liệu đều có quy trình duyệt rõ ràng, truy xuất nguồn gốc được mọi thao tác. Đây là yêu cầu bắt buộc khi triển khai BIM theo chuẩn quốc tế.*
+---
 
-*Tiếp theo là các module quản lý tài chính — hợp đồng và thanh toán, hai phần không thể thiếu trong bất kỳ dự án đầu tư xây dựng nào:*
+### 3.7. Quản lý Hợp đồng
 
-### 3.6. Quản lý Hợp đồng
-
-**Mục tiêu:** Kiểm soát chặt chẽ toàn bộ vòng đời hợp đồng từ ký kết đến thanh lý — liên kết trực tiếp với dự án và nhà thầu tương ứng.
+**Mục tiêu:** Kiểm soát toàn bộ vòng đời hợp đồng từ ký kết đến thanh lý — liên kết trực tiếp với dự án, gói thầu và nhà thầu.
 
 | Tính năng | Mô tả |
 |-----------|-------|
 | Danh sách hợp đồng | Tổng quan: số HĐ, nhà thầu, giá trị, trạng thái, tiến độ thanh toán |
-| Chi tiết hợp đồng | Thông tin đầy đủ: loại HĐ, ngày ký, thời hạn, giá trị, điều khoản |
+| Chi tiết hợp đồng | Loại HĐ (trọn gói/đơn giá cố định/đơn giá điều chỉnh/hỗn hợp), ngày ký, thời hạn, giá trị |
 | Phụ lục hợp đồng | Quản lý phụ lục, gia hạn, điều chỉnh giá trị |
 | Liên kết dự án & gói thầu | Tự động liên kết với dự án gốc, gói thầu tương ứng |
 | Theo dõi thanh toán | Tiến độ thanh toán theo đợt, so sánh với giá trị hợp đồng |
 
-### 3.7. Quản lý Thanh toán
+### 3.8. Quản lý Thanh toán
 
 | Tính năng | Mô tả |
 |-----------|-------|
 | Danh sách thanh toán | Tổng hợp theo hợp đồng, đợt thanh toán, số tiền, trạng thái |
 | Tạo đợt thanh toán | Ghi nhận: số tiền, ngày thanh toán, hồ sơ đính kèm |
 | Tiến độ thanh toán | Phần trăm đã thanh toán so với tổng giá trị hợp đồng |
-| Báo cáo tài chính | Tổng hợp theo dự án, theo Ban, theo kỳ |
-
-*Hợp đồng và thanh toán được liên kết chặt chẽ — mỗi đợt thanh toán đều gắn với hợp đồng cụ thể, giúp đối soát chính xác và truy xuất nhanh khi thanh tra, kiểm toán.*
-
-*Bên cạnh quản lý tài chính, hệ thống còn hỗ trợ điều phối công việc hàng ngày cho toàn bộ đội ngũ:*
-
-### 3.8. Quản lý Công việc (Task Management)
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Kanban Board | Bảng công việc trực quan: Chờ xử lý, Đang làm, Hoàn thành |
-| Giao việc | Phân công cho cá nhân, đặt deadline, mức ưu tiên |
-| Theo dõi tiến độ | Trạng thái cập nhật liên tục, thông báo khi quá hạn |
-| Liên kết dự án | Mỗi task gắn với dự án cụ thể |
-| Thống kê cá nhân | Tổng quan công việc đang xử lý, hoàn thành |
-
-*Quản lý công việc theo Kanban — thay thế việc giao việc qua lời nói, email rời rạc. Mỗi công việc có người chịu trách nhiệm, deadline rõ ràng và trạng thái cập nhật liên tục.*
-
-*Ngoài quản lý dự án và tài chính, một hệ thống QLDA hoàn chỉnh không thể thiếu yếu tố con người. Hệ thống cung cấp module quản lý nhân sự và nhà thầu:*
-
-### 3.9. Quản lý Nhà thầu
-
-*Hệ thống xây dựng cơ sở dữ liệu nhà thầu tập trung — đánh giá năng lực, theo dõi lịch sử, AI chấm điểm tự động:*
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Danh sách nhà thầu | Thông tin: tên, loại hình, năng lực, lịch sử hợp đồng |
-| Hồ sơ năng lực | Kinh nghiệm, dự án đã thực hiện, đánh giá |
-| AI Chấm điểm | Tự động chấm điểm năng lực dựa trên lịch sử, đánh giá |
-| Liên kết gói thầu | Theo dõi nhà thầu đang phụ trách dự án nào |
-
-### 3.10. Quản lý Nhân sự & Tổ chức
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Danh sách cán bộ | Thông tin: họ tên, chức vụ, Ban, email, số điện thoại |
-| Phân công dự án | Cán bộ đang phụ trách dự án nào, năng lực chuyên môn |
-| Sơ đồ tổ chức | Mô hình phân cấp theo Ban QLDA (Ban 1-5) |
-
-*Tiếp theo là nhóm module chức năng hỗ trợ nghiệp vụ — hồ sơ tài liệu, văn bản pháp luật, báo cáo và quản trị hệ thống:*
-
-### 3.11. Hồ sơ & Tài liệu
-
-*Khác với CDE dành cho tài liệu BIM/thiết kế, module Hồ sơ & Tài liệu là kho lưu trữ số — phân loại theo dự án, giai đoạn, loại tài liệu:*
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Upload & Download | Tải lên/tải xuống, hỗ trợ đa định dạng |
-| Phân loại | Theo dự án, giai đoạn, loại hồ sơ |
-| Preview | Xem trước PDF, hình ảnh, các định dạng phổ biến |
-| AI Soạn văn bản | AI hỗ trợ soạn văn bản pháp lý: công văn, quyết định, báo cáo |
-
-### 3.12. Văn bản Pháp luật
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Tìm kiếm | Theo số hiệu, tên, cơ quan ban hành, lĩnh vực |
-| Cơ sở dữ liệu | Luật ĐTC 58/2024, Luật XD, NĐ 175/2024, NĐ 214/2025, TT24/2025... |
-| Liên kết dự án | Gắn văn bản áp dụng trực tiếp vào từng dự án |
-
-### 3.13. Báo cáo
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Báo cáo tổng hợp | Tổng hợp tiến độ, tài chính, nhân sự toàn bộ danh mục |
-| Xuất báo cáo | Excel, PDF theo mẫu Bộ XD, UBND TP.HCM |
-| Biểu mẫu KHLCNT | Xuất kế hoạch lựa chọn nhà thầu theo mẫu quy định |
-| AI Report | Xuất báo cáo giám sát hàng tháng do AI soạn, xuất DOCX chuyên nghiệp |
-
-### 3.14. Quản trị Hệ thống
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| Quản lý tài khoản | Tạo, sửa, vô hiệu hóa tài khoản; gán vai trò |
-| Phân quyền RBAC | Phân quyền theo tài nguyên x hành động (xem/sửa/xóa/duyệt) |
-| Audit Log | Ghi nhận mọi thao tác: đăng nhập, sửa dữ liệu, duyệt tài liệu |
-| Impersonation | Admin xem hệ thống dưới góc nhìn người dùng khác |
-| Cài đặt | Dark/Light mode, ngôn ngữ, thông báo, tùy chỉnh giao diện |
-
-### 3.15. Module AI — Trí tuệ Nhân tạo
-
-*Và đây là module em muốn nhấn mạnh đặc biệt — 9 module AI được tích hợp xuyên suốt hệ thống, sử dụng mô hình Gemini của Google:*
-
-| # | Module AI | Chức năng | Ví dụ ứng dụng |
-|---|----------|----------|----------------|
-| 1 | **AI Summary** | Tóm tắt tình hình dự án tự động | "Dự án X chậm 15% so với kế hoạch, cần bổ sung 2 hồ sơ" |
-| 2 | **AI Forecast** | Dự báo xu hướng giải ngân, tiến độ | Biểu đồ dự báo 3 tháng tới, cảnh báo vượt dự toán |
-| 3 | **AI Anomaly Detector** | Phát hiện bất thường trong dữ liệu | Phát hiện giải ngân đột biến, tiến độ bất thường |
-| 4 | **AI Compliance Checker** | Kiểm tra tuân thủ pháp lý tự động | Cảnh báo thiếu hồ sơ bắt buộc theo NĐ 175/2024 |
-| 5 | **AI Document Drafter** | Soạn văn bản pháp lý tự động | Soạn công văn, quyết định, biên bản từ dữ liệu dự án |
-| 6 | **AI Contractor Scoring** | Chấm điểm năng lực nhà thầu | Đánh giá dựa trên lịch sử, năng lực, chất lượng, tuân thủ |
-| 7 | **AI Risk Analyzer** | Đánh giá rủi ro dự án | Phân tích đa chiều: tiến độ, tài chính, pháp lý, kỹ thuật |
-| 8 | **AI Resource Optimizer** | Tối ưu phân bổ nguồn lực | Gợi ý phân công cán bộ, điều phối giữa các Ban |
-| 9 | **AI Smart Approval** | Hỗ trợ phê duyệt thông minh | Phân tích hồ sơ, đề xuất phê duyệt/từ chối kèm lý do |
+| **Deep-link** | Click vào thanh toán → chuyển thẳng đến chi tiết gói thầu tab "Thanh quyết toán" |
 
 ---
+
+### 3.9. Kế hoạch Vốn & Giải ngân KBNN
+
+*Module riêng quản lý kế hoạch vốn hàng năm và giải ngân qua Kho bạc Nhà nước — module nghiệp vụ đặc thù cho quản lý đầu tư công:*
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Kế hoạch vốn** | Quản lý vốn trung hạn và hàng năm: năm, quyết định số, vốn giao, đã giải ngân, tỷ lệ %, nguồn vốn |
+| **Lịch sử giải ngân KBNN** | Ghi nhận từng giao dịch: mã giao dịch, ngày, nội dung, biểu mẫu (03a/03b), giá trị, trạng thái |
+| **3 KPI cards** | Kế hoạch vốn (tổng vốn được giao), Đã giải ngân (progress bar %), Cảnh báo rủi ro |
+| **Xuất mẫu 03a** | Xuất biểu mẫu đề nghị thanh toán vốn theo mẫu KBNN |
+
+---
+
+### 3.10. Quản lý Công việc (Task Management)
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| Kanban Board | Bảng công việc trực quan: Chờ xử lý, Đang làm, Đang kiểm tra, Hoàn thành |
+| Giao việc | Phân công cho cá nhân cụ thể, đặt deadline, mức ưu tiên (Urgent/High/Medium/Low) |
+| Theo dõi tiến độ | Trạng thái cập nhật liên tục, thanh % tiến độ, thông báo khi quá hạn |
+| Liên kết dự án | Mỗi task gắn với dự án cụ thể, filter theo dự án |
+
+---
+
+### 3.11. Quản lý Nhà thầu
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| Danh sách nhà thầu | Thông tin: tên, loại hình (tư vấn TK/giám sát/thẩm tra/thi công), năng lực, lịch sử |
+| Hồ sơ năng lực | Kinh nghiệm, dự án đã thực hiện, đánh giá chất lượng |
+| **AI Chấm điểm** | AI tự động chấm điểm năng lực dựa trên lịch sử, đánh giá, tuân thủ, chất lượng |
+| **Tài khoản nhà thầu** | Admin tạo tài khoản đăng nhập riêng cho nhà thầu — nhà thầu chỉ thấy dự án được phân quyền |
+
+### 3.12. Quản lý Nhân sự & Tổ chức
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| Danh sách cán bộ | Họ tên, chức vụ, Ban, email, số điện thoại, avatar |
+| Phân công dự án | Cán bộ đang phụ trách dự án nào, năng lực chuyên môn |
+| **Sơ đồ tổ chức** | Module OrgChart trực quan — mô hình phân cấp theo Ban QLDA (Ban 1-5) |
+
+---
+
+### 3.13. Hồ sơ & Tài liệu
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| Upload & Download | Tải lên/tải xuống, hỗ trợ đa định dạng, lưu trữ trên Supabase Storage (S3) |
+| Phân loại | Theo dự án, giai đoạn, loại hồ sơ, cross-reference TT 24/2025/TT-BXD |
+| Preview | Xem trước PDF, hình ảnh trực tiếp trong trình duyệt |
+| **AI Soạn văn bản** | AI soạn văn bản pháp lý tự động: công văn, quyết định, biên bản — từ dữ liệu dự án |
+
+### 3.14. Văn bản Pháp luật — Kho Luật Toàn văn
+
+*Module tích hợp cơ sở dữ liệu pháp luật xây dựng với hơn 2MB dữ liệu toàn văn:*
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Tìm kiếm toàn văn** | Theo số hiệu, tên, cơ quan ban hành, lĩnh vực — tìm kiếm trong toàn bộ nội dung |
+| **CSDL toàn văn** | Luật XD 62/2020, Luật ĐTC 58/2024, NĐ 175/2024, NĐ 111/2024, NĐ 214/2025, TT 24/2025 — nội dung đầy đủ điều khoản |
+| **Xem toàn văn** | Đọc trực tiếp nội dung văn bản trong ứng dụng (Legal Article Panel) — không cần mở trang ngoài |
+| **Legal Reference Link** | Click vào tên văn bản/điều khoản trong bất kỳ module nào → mở panel xem toàn văn |
+
+---
+
+### 3.15. Trung tâm Báo cáo & Đồng bộ CSDL Quốc gia
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Đồng bộ CSDL Quốc gia** | Tự động đồng bộ dữ liệu dự án, gói thầu về CSDL Quốc gia qua API theo NĐ 111/2024/NĐ-CP — hiển thị trạng thái kết nối, lần đồng bộ cuối |
+| **BC Giám sát Đầu tư** | Báo cáo tình hình thực hiện theo biểu mẫu Bộ KH&ĐT (BC-01) — xuất CSV, định kỳ Tháng/Quý |
+| **BC Giải ngân** | So sánh vốn giải ngân thực tế vs kế hoạch — dữ liệu realtime |
+| **BC Xử lý vướng mắc** | Tổng hợp vấn đề khó khăn, vướng mắc cần tháo gỡ |
+| **AI Report** | AI soạn báo cáo giám sát hàng tháng tự động, xuất file DOCX chuyên nghiệp |
+
+---
+
+### 3.16. Quản trị Hệ thống
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Quản lý tài khoản** | Tạo, sửa, vô hiệu hóa tài khoản cán bộ; gán vai trò |
+| **Quản lý TK nhà thầu** | Tạo tài khoản riêng cho nhà thầu (tư vấn TK, giám sát, thẩm tra, thi công) — gán dự án được truy cập |
+| **Phân quyền RBAC** | Phân quyền theo Vai trò × Tài nguyên × Hành động — giao diện Permission Manager trực quan |
+| **Audit Log** | Ghi nhận mọi thao tác: đăng nhập, sửa dữ liệu, duyệt tài liệu — lọc theo người dùng, thời gian |
+| **Impersonation** | Admin xem hệ thống dưới góc nhìn người dùng khác — phục vụ hỗ trợ và kiểm tra phân quyền |
+| **Cài đặt** | Dark/Light mode, tùy chỉnh giao diện, thông tin cá nhân |
+
+---
+
+### 3.17. Module AI — Trí tuệ Nhân tạo (9 Module)
+
+*Và đây là module em muốn nhấn mạnh đặc biệt — 9 module AI được tích hợp xuyên suốt hệ thống, sử dụng mô hình Gemini của Google. AI không phải là một trang riêng biệt, mà được nhúng vào từng nghiệp vụ, hỗ trợ cán bộ ngay tại nơi làm việc:*
+
+| # | Module AI | Vị trí tích hợp | Chức năng | Ví dụ ứng dụng |
+|---|----------|-----------------|----------|----------------|
+| 1 | **AI Summary** | Dashboard + Tab Thông tin | Tóm tắt tình hình dự án/danh mục tự động | "Dự án X chậm 15% so với kế hoạch, cần bổ sung 2 hồ sơ" |
+| 2 | **AI Forecast** | Tab Vốn & Giải ngân | Dự báo xu hướng giải ngân, tiến độ | Biểu đồ dự báo 3 tháng tới, cảnh báo vượt dự toán |
+| 3 | **AI Anomaly Detector** | Dashboard | Phát hiện bất thường trong dữ liệu | Phát hiện giải ngân đột biến, tiến độ bất thường |
+| 4 | **AI Compliance Checker** | Tab Tuân thủ | Kiểm tra tuân thủ pháp lý tự động | Cảnh báo thiếu hồ sơ bắt buộc theo NĐ 175/2024 |
+| 5 | **AI Document Drafter** | Tab Hồ sơ | Soạn văn bản pháp lý tự động | Soạn công văn, quyết định, biên bản từ dữ liệu dự án |
+| 6 | **AI Contractor Scoring** | Dashboard + Nhà thầu | Chấm điểm năng lực nhà thầu | Đánh giá dựa trên lịch sử, năng lực, chất lượng, tuân thủ |
+| 7 | **AI Risk Analyzer** | Dashboard | Đánh giá rủi ro dự án | Phân tích đa chiều: tiến độ, tài chính, pháp lý, kỹ thuật |
+| 8 | **AI Resource Optimizer** | Dashboard | Tối ưu phân bổ nguồn lực | Gợi ý phân công cán bộ, điều phối giữa các Ban |
+| 9 | **AI Smart Approval** | Workflow duyệt | Hỗ trợ phê duyệt thông minh | Phân tích hồ sơ, đề xuất phê duyệt/từ chối kèm lý do |
+
 
 ## 4. CÔNG NGHỆ & KIẾN TRÚC
 
