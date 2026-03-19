@@ -1,5 +1,8 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import { ProjectStatus } from '../../types';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { ProjectStatus, PROJECT_PHASE_COLORS } from '../../types';
+import { formatCurrency } from '../../utils/format';
 
 interface Project {
     ProjectID?: string;
@@ -103,7 +106,6 @@ const PROVINCE_COORDS: Record<string, { lat: number; lng: number }> = {
 // Try to extract province/district from LocationCode text 
 function extractCoords(locationCode: string): { lat: number; lng: number } | null {
     const lower = locationCode.toLowerCase();
-    // Try more specific matches first (districts before provinces)
     let bestMatch: { key: string; coords: { lat: number; lng: number } } | null = null;
     for (const [name, coords] of Object.entries(PROVINCE_COORDS)) {
         if (lower.includes(name)) {
@@ -129,7 +131,6 @@ async function geocodeLocation(locationCode: string): Promise<{ lat: number; lng
         return geocodeCache.get(locationCode) || null;
     }
 
-    // Try province/district extraction first (instant, no API call)
     const localCoords = extractCoords(locationCode);
     if (localCoords) {
         geocodeCache.set(locationCode, localCoords);
@@ -156,19 +157,85 @@ async function geocodeLocation(locationCode: string): Promise<{ lat: number; lng
     return null;
 }
 
-const InteractiveMap: React.FC<InteractiveMapProps> = ({ projects }) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-    const enrichedRef = useRef<Project[]>([]);
-    const iframeLoadedRef = useRef(false);
+// Get status info from project status
+function getStatusInfo(status: ProjectStatus): { color: string; text: string } {
+    const phase = PROJECT_PHASE_COLORS[status];
+    if (phase) return { color: phase.hex, text: phase.label };
+    return { color: '#6B7280', text: 'Không rõ' };
+}
 
-    // Send data to iframe
-    const sendToIframe = useCallback(() => {
-        if (iframeRef.current?.contentWindow && enrichedRef.current.length > 0) {
-            iframeRef.current.contentWindow.postMessage({
-                type: 'UPDATE_PROJECTS',
-                payload: enrichedRef.current
-            }, '*');
+// Create custom Leaflet divIcon for a status color
+function createMarkerIcon(color: string): L.DivIcon {
+    return L.divIcon({
+        className: 'custom-project-marker',
+        html: `<div class="marker-pin pulse-animation" style="background-color: ${color};"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -10],
+    });
+}
+
+// Inject global CSS for markers (only once)
+let styleInjected = false;
+function injectMarkerStyles() {
+    if (styleInjected) return;
+    styleInjected = true;
+    const style = document.createElement('style');
+    style.textContent = `
+        .custom-project-marker { background: transparent; }
+        .marker-pin {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+        }
+        .pulse-animation { animation: pulse 2s infinite; }
+        .custom-popup .leaflet-popup-content-wrapper {
+            border-radius: 12px; padding: 0; overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .custom-popup .leaflet-popup-content { margin: 0; width: auto !important; }
+        .custom-popup .leaflet-popup-tip { background: white; }
+    `;
+    document.head.appendChild(style);
+}
+
+const InteractiveMap: React.FC<InteractiveMapProps> = ({ projects }) => {
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<L.Map | null>(null);
+    const markersRef = useRef<L.Marker[]>([]);
+    const [enrichedProjects, setEnrichedProjects] = useState<Project[]>([]);
+
+    // Inject marker CSS on mount
+    useEffect(() => {
+        injectMarkerStyles();
+    }, []);
+
+    // Initialize Leaflet map
+    useEffect(() => {
+        if (!mapContainerRef.current || mapRef.current) return;
+
+        const map = L.map(mapContainerRef.current, {
+            zoomControl: false,
+            attributionControl: false,
+        }).setView([16.0, 106.0], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(map);
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        mapRef.current = map;
+
+        return () => {
+            map.remove();
+            mapRef.current = null;
+        };
     }, []);
 
     // Geocode and enrich projects
@@ -186,41 +253,59 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ projects }) => {
             );
 
             if (!cancelled) {
-                enrichedRef.current = enriched;
-                sendToIframe();
+                setEnrichedProjects(enriched);
             }
         };
 
         enrichAll();
         return () => { cancelled = true; };
-    }, [projects, sendToIframe]);
+    }, [projects]);
 
-    // Handle iframe load event
+    // Update markers on map when enrichedProjects change
     useEffect(() => {
-        const handleLoad = () => {
-            iframeLoadedRef.current = true;
-            // Small delay to ensure iframe JS is fully initialized
-            setTimeout(sendToIframe, 200);
-        };
+        const map = mapRef.current;
+        if (!map) return;
 
-        const iframe = iframeRef.current;
-        if (iframe) {
-            iframe.addEventListener('load', handleLoad);
+        // Clear existing markers
+        markersRef.current.forEach(m => map.removeLayer(m));
+        markersRef.current = [];
+
+        const bounds = L.latLngBounds([]);
+
+        enrichedProjects.forEach((p) => {
+            if (!p.Coordinates) return;
+
+            const { color: statusColor, text: statusText } = getStatusInfo(p.Status);
+            const icon = createMarkerIcon(statusColor);
+
+            const marker = L.marker([p.Coordinates.lat, p.Coordinates.lng], { icon }).addTo(map);
+
+            const popupContent = `
+                <div style="padding: 8px; min-width: 200px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                    <h4 style="font-size: 12px; font-weight: 900; color: #1f2937; margin: 0 0 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.ProjectName}</h4>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                        <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; color: white; background-color: ${statusColor}; text-transform: uppercase;">
+                            ${statusText}
+                        </span>
+                        <p style="font-size: 10px; font-weight: 700; color: #6b7280; margin: 0;">${formatCurrency(p.TotalInvestment)}</p>
+                    </div>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent, { className: 'custom-popup' });
+            markersRef.current.push(marker);
+            bounds.extend(marker.getLatLng());
+        });
+
+        if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
         }
-
-        return () => {
-            if (iframe) {
-                iframe.removeEventListener('load', handleLoad);
-            }
-        };
-    }, [sendToIframe]);
+    }, [enrichedProjects]);
 
     return (
-        <iframe
-            ref={iframeRef}
-            src="/map.html"
-            className="w-full h-full rounded-2xl border-none custom-map-iframe"
-            title="Project Map"
+        <div
+            ref={mapContainerRef}
+            className="w-full h-full rounded-2xl custom-map-container"
             style={{ width: '100%', height: '100%', minHeight: '500px' }}
         />
     );
