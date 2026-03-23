@@ -207,55 +207,43 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 {/* ── KPI Cards ── */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Total assets */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <Package className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Tổng tài sản</span>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Package className="w-4 h-4 text-white" /></div>
-                            </div>
-                            <div className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stats.total}</div>
-                            <div className="text-[10px] mt-1 text-white/80">{stats.hasBim} đã gắn BIM</div>
+                    <div className="stat-card stat-card-blue cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Tổng tài sản</span>
+                            <div className="stat-card-icon"><Package className="w-5 h-5" /></div>
                         </div>
+                        <div className="stat-card-value tabular-nums">{stats.total}</div>
+                        <div className="text-xs text-slate-500 mt-2 font-medium">{stats.hasBim} đã gắn BIM</div>
                     </div>
 
                     {/* Active */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <CheckCircle2 className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Hoạt động</span>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>
-                            </div>
-                            <div className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stats.byStatus.Active}</div>
-                            <div className="text-[10px] mt-1 text-white/80">{stats.total > 0 ? Math.round((stats.byStatus.Active / stats.total) * 100) : 0}% tổng số</div>
+                    <div className="stat-card stat-card-emerald cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Hoạt động</span>
+                            <div className="stat-card-icon"><CheckCircle2 className="w-5 h-5" /></div>
                         </div>
+                        <div className="stat-card-value tabular-nums">{stats.byStatus.Active}</div>
+                        <div className="text-xs text-slate-500 mt-2 font-medium">{stats.total > 0 ? Math.round((stats.byStatus.Active / stats.total) * 100) : 0}% tổng số</div>
                     </div>
 
                     {/* Maintenance overdue */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', borderTop: '3px solid #C4A035', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <AlertTriangle className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Quá hạn bảo trì</span>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-white" /></div>
-                            </div>
-                            <div className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stats.maintenanceOverdue}</div>
-                            <div className="text-[10px] mt-1 text-white/80">Cần xử lý ngay</div>
+                    <div className="stat-card stat-card-rose cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Quá hạn bảo trì</span>
+                            <div className="stat-card-icon"><AlertTriangle className="w-5 h-5" /></div>
                         </div>
+                        <div className="stat-card-value tabular-nums">{stats.maintenanceOverdue}</div>
+                        <div className="text-xs text-slate-500 mt-2 font-medium">Cần xử lý ngay</div>
                     </div>
 
                     {/* Warranty expiring */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <Shield className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Sắp hết bảo hành</span>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Shield className="w-4 h-4 text-white" /></div>
-                            </div>
-                            <div className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stats.warrantyExpiringSoon}</div>
-                            <div className="text-[10px] mt-1 text-white/80">Trong 90 ngày tới</div>
+                    <div className="stat-card stat-card-amber cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Sắp hết bảo hành</span>
+                            <div className="stat-card-icon"><Shield className="w-5 h-5" /></div>
                         </div>
+                        <div className="stat-card-value tabular-nums">{stats.warrantyExpiringSoon}</div>
+                        <div className="text-xs text-slate-500 mt-2 font-medium">Trong 90 ngày tới</div>
                     </div>
                 </div>
 
@@ -465,7 +453,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                             </div>
                         ) : (
                             <table className="w-full text-xs">
-                                <thead className="sticky top-0 z-[5]">
+                                <thead className="sticky top-0 z-[5] border-b border-slate-200 dark:border-slate-700">
                                     <tr className={isDark ? 'bg-slate-800' : 'bg-gray-50'}>
                                         <th className={`px-3 py-2 text-left font-bold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Mã TS</th>
                                         <th className={`px-3 py-2 text-left font-bold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Tên tài sản</th>

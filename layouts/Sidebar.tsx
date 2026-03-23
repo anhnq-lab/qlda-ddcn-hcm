@@ -20,6 +20,7 @@ import {
   FolderTree,
   ShieldCheck,
   Layers,
+  CalendarRange,
 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -27,7 +28,7 @@ import { usePermissionCheck } from '../hooks/usePermissionCheck';
 import type { PermissionResource } from '../types/permission.types';
 
 // ========================================
-// SIDEBAR COMPONENT — Ban DDCN TP.HCM Theme
+// SIDEBAR COMPONENT — Ban DDCN TP.HCM Theme (Amber Style)
 // ========================================
 
 interface SidebarProps {
@@ -52,8 +53,8 @@ const navItems: NavItem[] = [
   { name: 'Công việc', path: '/tasks', icon: CheckSquare, badge: 5, resource: 'tasks' },
   { name: 'Nhân sự', path: '/employees', icon: UserCircle, resource: 'employees' },
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
-  { name: 'Hợp đồng', path: '/contracts', icon: FileText, resource: 'contracts' },
-  { name: 'Thanh toán', path: '/payments', icon: CreditCard, resource: 'payments' },
+  { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase, resource: 'contracts' },
+  { name: 'KH Vốn & Giải ngân', path: '/capital-planning', icon: CalendarRange, resource: 'projects' },
   { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
   { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'projects' },
   { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },
@@ -64,8 +65,7 @@ const navItems: NavItem[] = [
 // Contractor-only: limited menu
 const contractorNavItems: NavItem[] = [
   { name: 'Quản lý tài liệu', path: '/cde', icon: FolderTree },
-  { name: 'Hợp đồng', path: '/contracts', icon: FileText },
-  { name: 'Thanh toán', path: '/payments', icon: CreditCard },
+  { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase },
 ];
 
 
@@ -93,32 +93,37 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div
       className={`
         h-full flex flex-col justify-between
-        transition-all duration-300 ease-out
+        transition-all duration-300 ease-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50
         ${isCollapsed ? 'w-20' : 'w-64'}
       `}
-      style={{
-        background: 'linear-gradient(180deg, #3D3D3D 0%, #2D2D2D 60%, #1F1F1F 100%)',
-      }}
     >
       {/* ── Logo & Brand ── */}
-      <div>
-        <div
-          className={`flex items-center gap-3 px-4 h-16 shrink-0 ${isCollapsed ? 'justify-center px-2' : ''}`}
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          <div className="w-14 h-14 bg-white rounded-md p-1 flex items-center justify-center shrink-0 shadow-[0_2px_10px_rgba(255,255,255,0.15)] overflow-hidden">
-            <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover" />
-          </div>
-          {!isCollapsed && (
-            <div className="animate-fade-in overflow-hidden pl-1 flex flex-col justify-center">
-              <h1 className="text-[13px] font-bold text-white leading-tight truncate">Ban QLDA ĐTXD ĐDCN</h1>
-              <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.55)' }}>UBND TP.HCM</p>
+      <div className="flex flex-col h-full overflow-hidden">
+        <div className={`relative p-4 flex items-center justify-between ${isCollapsed ? 'md:px-3 md:justify-center' : ''} border-b border-slate-100 dark:border-slate-800`}>
+          {/* Subtle gradient accent line at bottom */}
+          <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
+
+          {/* Logo - Expanded state */}
+          <div className={`flex items-center overflow-hidden transition-all duration-300 gap-3 ${isCollapsed ? 'md:hidden' : 'w-auto'}`}>
+            <div className="w-10 h-10 bg-white rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+               <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
             </div>
-          )}
+            <div className="animate-fade-in flex flex-col justify-center min-w-0">
+               <h1 className="text-[12px] font-black text-slate-900 dark:text-slate-100 leading-tight truncate uppercase tracking-tight w-full">Ban QLDA ĐTXD ĐDCN</h1>
+               <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate mt-0.5">UBND TP.HCM</p>
+            </div>
+          </div>
+
+          {/* Logo - Collapsed state */}
+          <div className={`hidden transition-all duration-300 ${isCollapsed ? 'md:flex justify-center' : ''}`}>
+             <div className="w-10 h-10 bg-white rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+               <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
+             </div>
+          </div>
         </div>
 
         {/* ── Navigation ── */}
-        <nav className="mt-2 px-2 space-y-0.5 overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+        <nav className={`flex-1 overflow-y-auto p-4 ${isCollapsed ? 'md:px-2' : 'px-4'} space-y-1 no-scrollbar`} style={{ maxHeight: 'calc(100vh - 160px)' }}>
           {visibleNavItems.map((item) => (
             <NavLink
               key={item.path}
@@ -126,74 +131,33 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={onClose}
               title={isCollapsed ? item.name : undefined}
               className={({ isActive }) => `
-                flex items-center gap-2.5 px-3 py-2 rounded-lg
-                transition-all duration-150 group relative text-[13px]
-                ${isCollapsed ? 'justify-center' : ''}
+                relative w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
                 ${isActive
-                  ? 'font-semibold'
-                  : 'sidebar-nav-item'
+                  ? 'bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm dark:shadow-amber-500/5 border-l-[3px] border-l-amber-500 dark:border-l-amber-400'
+                  : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 border-l-[3px] border-l-transparent'
                 }
+                ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
               `}
-              style={({ isActive }) => isActive ? {
-                background: 'rgba(255,255,255,0.18)',
-                color: '#ffffff',
-                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)',
-              } : {
-                color: 'rgba(255,255,255,0.7)',
-              }}
             >
               {({ isActive }) => (
                 <>
-                  {/* Active Indicator — golden left bar */}
-                  {isActive && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-                      style={{ background: '#FFD700' }}
-                    />
-                  )}
-
                   <item.icon className={`
                     w-[18px] h-[18px] shrink-0 transition-transform
                     ${isActive ? '' : 'group-hover:scale-110'}
                   `} />
 
-                  {!isCollapsed && (
-                    <span className="flex-1 truncate">{item.name}</span>
-                  )}
+                  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isCollapsed ? 'md:w-0 md:opacity-0' : 'w-auto opacity-100 flex-1'}`}>
+                       {item.name}
+                  </span>
 
                   {/* Badge */}
                   {item.badge && !isCollapsed && (
-                    <span
-                      className="px-1.5 py-0.5 text-[10px] font-bold rounded-md leading-none"
-                      style={{
-                        background: '#FFD700',
-                        color: '#2D2D2D',
-                      }}
-                    >
+                    <span className="px-1.5 py-0.5 text-[10px] font-black rounded-md leading-none bg-amber-500 text-white shadow-sm">
                       {item.badge}
                     </span>
                   )}
                   {item.badge && isCollapsed && (
-                    <span
-                      className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                      style={{ background: '#FFD700' }}
-                    />
-                  )}
-
-                  {/* Tooltip for collapsed */}
-                  {isCollapsed && (
-                    <span
-                      className="
-                        absolute left-full ml-2 px-2 py-1
-                        text-white text-xs rounded-lg
-                        opacity-0 group-hover:opacity-100 pointer-events-none
-                        whitespace-nowrap z-50 shadow-lg
-                        transition-opacity duration-200
-                      "
-                      style={{ background: '#2D2D2D' }}
-                    >
-                      {item.name}
-                    </span>
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 border-2 border-white dark:border-slate-900" />
                   )}
                 </>
               )}
@@ -203,36 +167,25 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* ── Footer ── */}
-      <div
-        className="px-2 py-3 space-y-0.5"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
-      >
+      <div className={`p-4 border-t border-slate-100 dark:border-slate-800 space-y-1 ${isCollapsed ? 'md:px-2' : ''}`}>
         {/* Collapse Toggle */}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             className={`
-              w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-              transition-all duration-150 text-[13px]
-              ${isCollapsed ? 'justify-center' : ''}
+              w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
+              text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 border-l-[3px] border-l-transparent
+              ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
             `}
-            style={{ color: 'rgba(255,255,255,0.5)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-              e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
-            }}
             aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
+            title={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
           >
             {isCollapsed ? (
               <ChevronRight className="w-[18px] h-[18px]" />
             ) : (
               <>
                 <ChevronLeft className="w-[18px] h-[18px]" />
-                <span>Thu gọn</span>
+                <span className="flex-1 text-left">Thu gọn</span>
               </>
             )}
           </button>
@@ -242,38 +195,28 @@ const Sidebar: React.FC<SidebarProps> = ({
         <NavLink
           to="/settings"
           className={`
-            flex items-center gap-2.5 px-3 py-2 rounded-lg
-            transition-colors text-[13px]
-            ${isCollapsed ? 'justify-center' : ''}
+            w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
+            text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 border-l-[3px] border-l-transparent
+            ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
           `}
-          style={{ color: 'rgba(255,255,255,0.5)' }}
           title={isCollapsed ? 'Cài đặt' : undefined}
         >
           <Settings className="w-[18px] h-[18px]" />
-          {!isCollapsed && <span>Cài đặt</span>}
+          {!isCollapsed && <span className="flex-1 text-left">Cài đặt</span>}
         </NavLink>
 
         {/* Logout */}
         <button
           onClick={() => { logout(); }}
           className={`
-            w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-            transition-all duration-150 text-[13px]
-            ${isCollapsed ? 'justify-center' : ''}
+            w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
+            text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 border-l-[3px] border-l-transparent
+            ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
           `}
-          style={{ color: 'rgba(255,255,255,0.5)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-            e.currentTarget.style.color = '#FFD700';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
-          }}
           title={isCollapsed ? 'Đăng xuất' : undefined}
         >
           <LogOut className="w-[18px] h-[18px]" />
-          {!isCollapsed && <span>Đăng xuất</span>}
+          {!isCollapsed && <span className="flex-1 text-left">Đăng xuất</span>}
         </button>
       </div>
     </div>

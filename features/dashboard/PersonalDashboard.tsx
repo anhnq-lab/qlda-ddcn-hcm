@@ -123,13 +123,13 @@ const PersonalDashboard: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Welcome Header */}
-            <div className="rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2D2D2D 0%, #3D3D3D 50%, #4A4A4A 100%)', borderLeft: '4px solid #D4A017' }}>
-                <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-                <div className="absolute right-20 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2"></div>
+            <div className="rounded-2xl p-6 sm:p-8 relative overflow-hidden bg-gradient-to-r from-amber-500 to-amber-600 dark:from-slate-800 dark:to-slate-900 border border-transparent dark:border-slate-800 shadow-md">
+                <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl pointer-events-none"></div>
+                <div className="absolute right-20 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 blur-xl pointer-events-none"></div>
 
-                <div className="relative z-10 flex items-center justify-between">
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur">
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur shadow-sm ring-1 ring-white/30">
                             {currentUser?.AvatarUrl ? (
                                 <img src={currentUser.AvatarUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
                             ) : (
@@ -137,96 +137,80 @@ const PersonalDashboard: React.FC = () => {
                             )}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Xin chào, {currentUser?.FullName || 'Khách'}!</h1>
-                            <p className="text-gray-400 mt-1">{currentUser?.Position} - {currentUser?.Department}</p>
+                            <h1 className="text-2xl font-bold text-white drop-shadow-sm">Xin chào, {currentUser?.FullName || 'Khách'}!</h1>
+                            <p className="text-amber-100 dark:text-slate-300 mt-1 font-medium">{currentUser?.Position} - {currentUser?.Department}</p>
                         </div>
                     </div>
-                    <div className="text-right hidden md:block">
-                        <p className="text-sm text-gray-400">Hôm nay</p>
-                        <p className="text-xl font-bold">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                    <div className="text-left sm:text-right">
+                        <p className="text-sm text-amber-100 dark:text-slate-400">Hôm nay</p>
+                        <p className="text-lg font-bold text-white">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                     </div>
                 </div>
             </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {/* Card 1: Dự án phụ trách — Charcoal */}
+                {/* Card 1: Dự án phụ trách */}
                 <div
-                    className="stat-card-premium cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A' }}
+                    className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md cursor-pointer hover:-translate-y-0.5 group"
                     onClick={() => navigate('/projects')}
                 >
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="p-2.5 rounded-xl bg-white/20 shadow-sm">
-                            <Building2 className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Dự án phụ trách</h3>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
+                            <Building2 className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="relative z-10">
-                        <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{myProjects.length}</h3>
-                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em]">Dự án phụ trách</p>
-                    </div>
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.15] text-white">
-                        <Building2 className="w-20 h-20" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{myProjects.length}</h3>
                     </div>
                 </div>
 
-                {/* Card 2: Công việc đang làm — Warm Charcoal */}
+                {/* Card 2: Công việc đang làm */}
                 <div
-                    className="stat-card-premium cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050' }}
+                    className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md cursor-pointer hover:-translate-y-0.5 group"
                     onClick={() => navigate('/tasks')}
                 >
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="p-2.5 rounded-xl bg-white/20 shadow-sm">
-                            <Target className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Công việc đang làm</h3>
+                        <div className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
+                            <Target className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="relative z-10">
-                        <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{taskStats.inProgress}</h3>
-                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em]">Công việc đang làm</p>
-                    </div>
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.15] text-white">
-                        <Target className="w-20 h-20" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{taskStats.inProgress}</h3>
                     </div>
                 </div>
 
-                {/* Card 3: Chờ xử lý — Gold-brown */}
+                {/* Card 3: Chờ xử lý */}
                 <div
-                    className="stat-card-premium cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', borderTop: '3px solid #C4A035' }}
+                    className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md cursor-pointer hover:-translate-y-0.5 group"
                     onClick={() => navigate('/tasks')}
                 >
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="p-2.5 rounded-xl bg-white/20 shadow-sm">
-                            <Clock className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Chờ xử lý</h3>
+                        <div className="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg group-hover:bg-purple-100 dark:group-hover:bg-purple-900/50 transition-colors">
+                            <Clock className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="relative z-10">
-                        <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{taskStats.todo}</h3>
-                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em]">Chờ xử lý</p>
-                    </div>
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.15] text-white">
-                        <Clock className="w-20 h-20" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{taskStats.todo}</h3>
                     </div>
                 </div>
 
-                {/* Card 4: Quá hạn — Rich Gold */}
+                {/* Card 4: Quá hạn */}
                 <div
-                    className="stat-card-premium cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017' }}
+                    className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 transition-all hover:shadow-md cursor-pointer hover:-translate-y-0.5 group"
                     onClick={() => navigate('/tasks')}
                 >
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="p-2.5 rounded-xl bg-white/20 shadow-sm">
-                            <AlertTriangle className="w-5 h-5 text-white" />
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Công việc quá hạn</h3>
+                        <div className="p-2 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg group-hover:bg-rose-100 dark:group-hover:bg-rose-900/50 transition-colors">
+                            <AlertTriangle className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="relative z-10">
-                        <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{taskStats.overdue}</h3>
-                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em]">Quá hạn</p>
-                    </div>
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.15] text-white">
-                        <AlertTriangle className="w-20 h-20" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{taskStats.overdue}</h3>
                     </div>
                 </div>
             </div>
@@ -493,8 +477,7 @@ const PersonalDashboard: React.FC = () => {
                     </div>
                     <button
                         onClick={() => navigate('/tasks')}
-                        className="px-5 py-2.5 text-white text-sm font-bold rounded-xl transition-colors shadow-lg flex items-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)', boxShadow: '0 4px 14px rgba(184, 134, 11, 0.3)' }}
+                        className="btn btn-primary btn-md shadow-lg flex items-center gap-2"
                     >
                         <TrendingUp className="w-4 h-4" />
                         Xem báo cáo chi tiết

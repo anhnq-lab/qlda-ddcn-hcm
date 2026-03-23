@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, Mail, Phone, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Mail, Phone, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Employee } from '@/types';
 
 interface ProjectTeamSectionProps {
@@ -11,6 +11,8 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
     members,
     onViewMember
 }) => {
+    const [showAll, setShowAll] = useState(false);
+    const MAX_SHOW = 3;
     if (!members || members.length === 0) {
         return (
             <div className="text-center py-6 text-gray-400 text-sm">
@@ -29,7 +31,7 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
             </div>
 
             <div className="space-y-2">
-                {members.map((member, idx) => (
+                {(showAll ? members : members.slice(0, MAX_SHOW)).map((member, idx) => (
                     <div
                         key={member.EmployeeID}
                         className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/60 rounded-lg border border-gray-200 dark:border-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer group"
@@ -78,6 +80,19 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
                         </div>
                     </div>
                 ))}
+
+                {members.length > MAX_SHOW && (
+                    <button
+                        onClick={() => setShowAll(!showAll)}
+                        className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline py-1.5"
+                    >
+                        {showAll ? (
+                            <><ChevronUp className="w-3.5 h-3.5" /> Thu gọn</>
+                        ) : (
+                            <><ChevronDown className="w-3.5 h-3.5" /> Xem tất cả {members.length} thành viên</>
+                        )}
+                    </button>
+                )}
             </div>
         </div>
     );

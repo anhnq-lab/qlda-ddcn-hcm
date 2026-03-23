@@ -43,12 +43,12 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
         return dd >= today && dd <= threeDaysLater;
     }).length;
 
-    const CARD_STYLES: Record<number, { bg: string; border: string }> = {
-        0: { bg: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
-        1: { bg: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', border: '#A89050' },
-        2: { bg: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', border: '#C4A035' },
-        3: { bg: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', border: '#D4A017' },
-        4: { bg: 'linear-gradient(135deg, #3A3530 0%, #2D2A22 100%)', border: '#8B7355' },
+    const CARD_STYLES: Record<number, string> = {
+        0: 'stat-card-blue',
+        1: 'stat-card-amber',
+        2: 'stat-card-emerald',
+        3: 'stat-card-rose',
+        4: 'stat-card-violet',
     };
 
     type StatItem = {
@@ -99,41 +99,35 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
                     <div
                         key={index}
                         onClick={() => stat.filter && onFilterChange?.(stat.filter)}
-                        className={`relative overflow-hidden rounded-2xl text-white p-4 shadow-xl transition-all duration-300 ${onFilterChange && stat.filter
-                            ? 'cursor-pointer hover:scale-[1.03] hover:shadow-2xl active:scale-[0.98]'
-                            : 'hover:scale-[1.02] hover:shadow-2xl'
-                            }`}
-                        style={{ background: s.bg, borderTop: `3px solid ${s.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}
+                        className={`stat-card ${s} ${onFilterChange && stat.filter ? 'cursor-pointer hover:shadow-md' : ''}`}
                     >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
-
-                        <div className="relative flex items-start justify-between">
+                        <div className="flex items-center justify-between w-full relative z-10">
                             <div>
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">
+                                <p className="stat-card-label">
                                     {stat.label}
                                 </p>
-                                <div className="mt-2 flex items-baseline gap-2">
-                                    <span className="text-2xl font-black text-white tabular-nums drop-shadow-sm">
+                                <div className="mt-1 flex items-baseline gap-2">
+                                    <span className="stat-card-value tabular-nums">
                                         {stat.value}
                                     </span>
                                     {stat.subtitle && (
-                                        <span className="text-sm font-semibold text-white/80">
+                                        <span className="text-sm font-semibold text-slate-500">
                                             {stat.subtitle}
                                         </span>
                                     )}
                                 </div>
                             </div>
-                            <div className="p-2 rounded-lg bg-white/20 shadow-sm">
-                                <stat.icon className={`w-5 h-5 text-white ${stat.alert ? 'animate-pulse' : ''}`} />
+                            <div className="stat-card-icon">
+                                <stat.icon className={`w-5 h-5 ${stat.alert ? 'animate-pulse' : ''}`} />
                             </div>
                         </div>
 
                         {/* Progress bar for completion card */}
                         {stat.label === 'Hoàn thành' && (
-                            <div className="mt-3">
-                                <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="w-full mt-2">
+                                <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-white/80 transition-all duration-500 rounded-full"
+                                        className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
                                         style={{ width: `${completionRate}%` }}
                                     />
                                 </div>
@@ -142,7 +136,7 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
 
                         {/* Click hint */}
                         {onFilterChange && stat.filter && (
-                            <div className="absolute bottom-1.5 right-2 text-[8px] text-white/40 font-medium uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute bottom-1 right-2 text-[9px] text-slate-400 font-medium uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
                                 Click để lọc
                             </div>
                         )}

@@ -1,6 +1,7 @@
 // Capital Service - Supabase CRUD operations
 import { supabase } from '../lib/supabase';
-import { CapitalPlan, Disbursement } from '../types';
+import { CapitalPlan, Disbursement, CapitalPlanRow, DisbursementPlanRow, DisbursementRow } from '../types';
+import { normalizeSource } from '../utils/capitalConstants';
 
 export interface DisbursementAlert {
     ProjectID: string;
@@ -40,6 +41,95 @@ export class CapitalService {
         return (data || []).map(this.mapDisbursementPlan);
     }
 
+    /**
+     * Create a new Monthly Disbursement Plan
+     */
+    static async createDisbursementPlan(plan: Omit<DisbursementPlanItem, 'Id'>): Promise<DisbursementPlanItem> {
+        const { data, error } = await (supabase as any)
+            .from('disbursement_plans')
+            .insert({
+                id: `DP-${Date.now()}`,
+                project_id: plan.ProjectID,
+                year: plan.Year,
+                month: plan.Month,
+                planned_amount: plan.PlannedAmount || 0,
+                actual_amount: plan.ActualAmount || 0,
+                notes: plan.Notes || null,
+            })
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to create plan: ${error.message}`);
+        return this.mapDisbursementPlan(data);
+    }
+
+    /**
+     * Save Monthly Disbursement Plans in bulk
+     */
+    static async bulkSaveDisbursementPlans(projectId: string, year: number, plans: { id?: string, month: number, plannedAmount: number, actualAmount: number, notes: string }[]): Promise<void> {
+        // First delete all plans for this project and year
+        const { error: deleteError } = await (supabase as any)
+            .from('disbursement_plans')
+            .delete()
+            .eq('project_id', projectId)
+            .eq('year', year);
+            
+        if (deleteError) throw new Error(`Failed to delete old plans: ${deleteError.message}`);
+
+        const newPlans = plans
+            .filter(p => p.plannedAmount > 0 || p.actualAmount > 0 || p.notes)
+            .map(p => ({
+                id: p.id || `DP-${Date.now()}-${p.month}`,
+                project_id: projectId,
+                year: year,
+                month: p.month,
+                planned_amount: p.plannedAmount,
+                actual_amount: p.actualAmount,
+                notes: p.notes || null,
+            }));
+
+        if (newPlans.length > 0) {
+            const { error: insertError } = await (supabase as any)
+                .from('disbursement_plans')
+                .insert(newPlans);
+            if (insertError) throw new Error(`Failed to insert new plans: ${insertError.message}`);
+        }
+    }
+
+    /**
+     * Update an existing Monthly Disbursement Plan
+     */
+    static async updateDisbursementPlan(id: string, updates: Partial<DisbursementPlanItem>): Promise<DisbursementPlanItem> {
+        const updateData: Record<string, any> = {};
+        if (updates.Year !== undefined) updateData.year = updates.Year;
+        if (updates.Month !== undefined) updateData.month = updates.Month;
+        if (updates.PlannedAmount !== undefined) updateData.planned_amount = updates.PlannedAmount;
+        if (updates.ActualAmount !== undefined) updateData.actual_amount = updates.ActualAmount;
+        if (updates.Notes !== undefined) updateData.notes = updates.Notes;
+
+        const { data, error } = await supabase
+            .from('disbursement_plans')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to update disbursement plan: ${error.message}`);
+        return this.mapDisbursementPlan(data);
+    }
+
+    /**
+     * Delete a Monthly Disbursement Plan
+     */
+    static async deleteDisbursementPlan(id: string): Promise<void> {
+        const { error } = await supabase
+            .from('disbursement_plans')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw new Error(`Failed to delete disbursement plan: ${error.message}`);
+    }
+
     // ═══════════════════════════════════════════════════════════
     // CAPITAL PLANS — CRUD
     // ═══════════════════════════════════════════════════════════
@@ -62,10 +152,11 @@ export class CapitalService {
      * Create a new Capital Plan
      */
     static async createCapitalPlan(plan: Omit<CapitalPlan, 'PlanID'>): Promise<CapitalPlan> {
+        const prefix = plan.PlanType === 'mid_term' ? 'MT' : 'CP';
         const { data, error } = await supabase
             .from('capital_plans')
             .insert({
-                plan_id: `CP-${Date.now()}`,
+                plan_id: `${prefix}-${Date.now()}`,
                 project_id: plan.ProjectID,
                 year: plan.Year,
                 amount: plan.Amount,
@@ -74,6 +165,13 @@ export class CapitalService {
                 date_assigned: plan.DateAssigned || null,
                 disbursed_amount: plan.DisbursedAmount || 0,
                 status: plan.Status || 'Approved',
+                plan_type: plan.PlanType || 'annual',
+                period_start: plan.PeriodStart || null,
+                period_end: plan.PeriodEnd || null,
+                approval_status: plan.ApprovalStatus || 'draft',
+                approved_by: plan.ApprovedBy || null,
+                approved_date: plan.ApprovedDate || null,
+                notes: plan.Notes || null,
             })
             .select()
             .single();
@@ -94,6 +192,13 @@ export class CapitalService {
         if (updates.DateAssigned !== undefined) updateData.date_assigned = updates.DateAssigned;
         if (updates.DisbursedAmount !== undefined) updateData.disbursed_amount = updates.DisbursedAmount;
         if (updates.Status !== undefined) updateData.status = updates.Status;
+        if (updates.PlanType !== undefined) updateData.plan_type = updates.PlanType;
+        if (updates.PeriodStart !== undefined) updateData.period_start = updates.PeriodStart;
+        if (updates.PeriodEnd !== undefined) updateData.period_end = updates.PeriodEnd;
+        if (updates.ApprovalStatus !== undefined) updateData.approval_status = updates.ApprovalStatus;
+        if (updates.ApprovedBy !== undefined) updateData.approved_by = updates.ApprovedBy;
+        if (updates.ApprovedDate !== undefined) updateData.approved_date = updates.ApprovedDate;
+        if (updates.Notes !== undefined) updateData.notes = updates.Notes;
 
         const { data, error } = await supabase
             .from('capital_plans')
@@ -240,7 +345,7 @@ export class CapitalService {
                 ProjectID: projectId,
                 AlertLevel: 'High',
                 Message: 'Tỷ lệ giải ngân thấp (< 50%) trong Quý 4. Cần đẩy nhanh tiến độ hồ sơ thanh toán.',
-                Deadline: '31/12/2024'
+                Deadline: `31/12/${new Date().getFullYear()}`
             });
         }
 
@@ -262,6 +367,13 @@ export class CapitalService {
             DateAssigned: row.date_assigned || '',
             DisbursedAmount: Number(row.disbursed_amount) || 0,
             Status: row.status || 'Approved',
+            PlanType: row.plan_type || 'annual',
+            PeriodStart: row.period_start || undefined,
+            PeriodEnd: row.period_end || undefined,
+            ApprovalStatus: row.approval_status || 'draft',
+            ApprovedBy: row.approved_by || undefined,
+            ApprovedDate: row.approved_date || undefined,
+            Notes: row.notes || undefined,
         };
     }
 
@@ -302,5 +414,73 @@ export class CapitalService {
             CumulativeBefore: Number(row.cumulative_before) || 0,
             AdvanceBalance: Number(row.advance_balance) || 0,
         };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GLOBAL FETCHERS (Summary page)
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Compute real disbursed amount (Advanced - Recovered + Completion)
+     */
+    static calculateTrueDisbursed(disbursements: any[]): number {
+        const valid = disbursements.filter(d => {
+            const status = (d.status || d.Status || '').toLowerCase();
+            return status === 'approved' || status === 'completed';
+        });
+        
+        const advance = valid.filter(d => (d.type || d.Type) === 'TamUng').reduce((s, d) => s + Number(d.amount || d.Amount || 0), 0);
+        const recovered = valid.filter(d => (d.type || d.Type) === 'ThuHoiTamUng').reduce((s, d) => s + Number(d.amount || d.Amount || 0), 0);
+        const completion = valid.filter(d => ['ThanhToanKLHT', 'ThanhToanTT'].includes(d.type || d.Type)).reduce((s, d) => s + Number(d.amount || d.Amount || 0), 0);
+        
+        return advance + completion - recovered;
+    }
+
+    /** Fetch all capital plans with project names joined and actual disbursements computed */
+    static async fetchAllCapitalPlans(): Promise<CapitalPlanRow[]> {
+        const { data: plans } = await supabase.from('capital_plans').select('*').order('year', { ascending: false });
+        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
+        const { data: disbs } = await supabase.from('disbursements').select('*');
+        
+        const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
+        
+        return (plans || []).map((p: any) => {
+            // Find related disbursements for this plan
+            // For annual plans, match by year. For mid-term, match by period_start/period_end.
+            let relatedDisbs = [];
+            const projectDisbs = (disbs || []).filter((d: any) => d.project_id === p.project_id);
+            
+            if (p.plan_type === 'annual' && p.year) {
+                relatedDisbs = projectDisbs.filter((d: any) => new Date(d.date).getFullYear() === p.year);
+            } else if (p.plan_type === 'mid_term') {
+                relatedDisbs = projectDisbs.filter((d: any) => {
+                    const y = new Date(d.date).getFullYear();
+                    return y >= (p.period_start || 0) && y <= (p.period_end || 9999);
+                });
+            }
+            
+            return {
+                ...p,
+                project_name: pm.get(p.project_id) || p.project_id,
+                source: normalizeSource(p.source),
+                disbursed_amount: this.calculateTrueDisbursed(relatedDisbs)
+            };
+        });
+    }
+
+    /** Fetch all monthly disbursement plans with project names */
+    static async fetchAllDisbursementPlans(): Promise<DisbursementPlanRow[]> {
+        const { data: plans } = await supabase.from('disbursement_plans').select('*').order('year').order('month');
+        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
+        const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
+        return (plans || []).map((p: any) => ({ ...p, project_name: pm.get(p.project_id) || p.project_id }));
+    }
+
+    /** Fetch all actual disbursements with project names */
+    static async fetchAllDisbursements(): Promise<DisbursementRow[]> {
+        const { data: disbs } = await supabase.from('disbursements').select('*').order('date', { ascending: true });
+        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
+        const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
+        return (disbs || []).map((d: any) => ({ ...d, project_name: pm.get(d.project_id) || d.project_id }));
     }
 }

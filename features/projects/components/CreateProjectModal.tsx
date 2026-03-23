@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Building2, Calendar, DollarSign, MapPin, User, Clock, FileText, HardHat, Search, Shield, Users, Check, ChevronDown, Sparkles, ImagePlus, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Building2, Calendar, DollarSign, MapPin, User, Clock, FileText, HardHat, Search, Shield, Users, Check, ChevronDown, Sparkles, ImagePlus, Loader2, CheckCircle2, Ruler, Layers } from 'lucide-react';
 import { ProjectGroup, InvestmentType, Project, Employee, MANAGEMENT_BOARDS } from '../../../types';
 import { generateProjectCode, ConstructionType, PermitType } from '../../../utils/projectCodeGenerator';
 import EmployeeService from '../../../services/EmployeeService';
@@ -109,6 +109,16 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         FeasibilityContractor: '',
         SurveyContractor: '',
         ReviewContractor: '',
+        // Section 2.5 - Quy mô công trình
+        TotalEstimate: 0,
+        SiteArea: 0,
+        ConstructionArea: 0,
+        FloorArea: 0,
+        BuildingHeight: 0,
+        BuildingDensity: 0,
+        LandUseCoefficient: 0,
+        AboveGroundFloors: 0,
+        BasementFloors: 0,
     });
 
     // Populate form data in edit mode
@@ -134,6 +144,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 FeasibilityContractor: editProject.FeasibilityContractor || '',
                 SurveyContractor: editProject.SurveyContractor || '',
                 ReviewContractor: editProject.ReviewContractor || '',
+                TotalEstimate: editProject.TotalEstimate || 0,
+                SiteArea: editProject.SiteArea || 0,
+                ConstructionArea: editProject.ConstructionArea || 0,
+                FloorArea: editProject.FloorArea || 0,
+                BuildingHeight: editProject.BuildingHeight || 0,
+                BuildingDensity: editProject.BuildingDensity || 0,
+                LandUseCoefficient: editProject.LandUseCoefficient || 0,
+                AboveGroundFloors: editProject.AboveGroundFloors || 0,
+                BasementFloors: editProject.BasementFloors || 0,
             });
         }
     }, [isOpen, editProject]);
@@ -723,6 +742,123 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     onChange={e => updateField('InvestorName', e.target.value)}
                                 />
                                 <User className={iconClass} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ═══ SECTION 2.5: Quy mô công trình ═══ */}
+                    <div>
+                        <SectionHeader icon={Ruler} title="Quy mô công trình" subtitle="Thông tin kỹ thuật: diện tích, tầng, chiều cao" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Tổng dự toán */}
+                            <div>
+                                <label className={labelClass}>Tổng dự toán (VNĐ)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        className={inputWithIconClass}
+                                        value={formData.TotalEstimate || ''}
+                                        onChange={e => updateField('TotalEstimate', Number(e.target.value))}
+                                    />
+                                    <DollarSign className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Diện tích (m²) */}
+                            <div>
+                                <label className={labelClass}>Diện tích khu đất (m²)</label>
+                                <input
+                                    type="number" min="0" step="0.01" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.SiteArea || ''}
+                                    onChange={e => updateField('SiteArea', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* DT xây dựng (m²) */}
+                            <div>
+                                <label className={labelClass}>DT xây dựng (m²)</label>
+                                <input
+                                    type="number" min="0" step="0.01" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.ConstructionArea || ''}
+                                    onChange={e => updateField('ConstructionArea', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* DT sàn SD (m²) */}
+                            <div>
+                                <label className={labelClass}>DT sàn sử dụng (m²)</label>
+                                <input
+                                    type="number" min="0" step="0.01" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.FloorArea || ''}
+                                    onChange={e => updateField('FloorArea', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* Chiều cao (m) */}
+                            <div>
+                                <label className={labelClass}>Chiều cao (m)</label>
+                                <input
+                                    type="number" min="0" step="0.1" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.BuildingHeight || ''}
+                                    onChange={e => updateField('BuildingHeight', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* Mật độ XD (%) */}
+                            <div>
+                                <label className={labelClass}>Mật độ xây dựng (%)</label>
+                                <input
+                                    type="number" min="0" max="100" step="0.1" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.BuildingDensity || ''}
+                                    onChange={e => updateField('BuildingDensity', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* Hệ số SDĐ */}
+                            <div>
+                                <label className={labelClass}>Hệ số sử dụng đất</label>
+                                <input
+                                    type="number" min="0" step="0.01" placeholder="0"
+                                    className={inputClass}
+                                    value={formData.LandUseCoefficient || ''}
+                                    onChange={e => updateField('LandUseCoefficient', Number(e.target.value))}
+                                />
+                            </div>
+
+                            {/* Số tầng nổi */}
+                            <div>
+                                <label className={labelClass}>Số tầng nổi</label>
+                                <div className="relative">
+                                    <input
+                                        type="number" min="0" step="1" placeholder="0"
+                                        className={inputWithIconClass}
+                                        value={formData.AboveGroundFloors || ''}
+                                        onChange={e => updateField('AboveGroundFloors', Number(e.target.value))}
+                                    />
+                                    <Layers className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Số tầng hầm */}
+                            <div>
+                                <label className={labelClass}>Số tầng hầm</label>
+                                <div className="relative">
+                                    <input
+                                        type="number" min="0" step="1" placeholder="0"
+                                        className={inputWithIconClass}
+                                        value={formData.BasementFloors || ''}
+                                        onChange={e => updateField('BasementFloors', Number(e.target.value))}
+                                    />
+                                    <Layers className={iconClass} />
+                                </div>
                             </div>
                         </div>
                     </div>

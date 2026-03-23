@@ -176,7 +176,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                         onClick={handleSubmit}
                         disabled={!canSubmit || isPending}
                         className="px-6 py-2.5 text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                        
                     >
                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                         Nộp hồ sơ

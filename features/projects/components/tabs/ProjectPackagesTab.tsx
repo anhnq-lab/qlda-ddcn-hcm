@@ -390,58 +390,46 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                 {/* Main Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Total Packages */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <Briefcase className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Tổng số gói thầu</p>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Briefcase className="w-4.5 h-4.5 text-white" /></div>
-                            </div>
-                            <h3 className="text-3xl font-black tracking-tight text-white drop-shadow-sm tabular-nums">{packages?.length || 0}</h3>
+                    <div className="stat-card stat-card-blue cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Tổng số gói thầu</span>
+                            <div className="stat-card-icon"><Briefcase className="w-5 h-5" /></div>
                         </div>
+                        <h3 className="stat-card-value tabular-nums">{packages?.length || 0}</h3>
                     </div>
 
                     {/* Total Value */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <FileText className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Tổng giá trị (DT)</p>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><FileText className="w-4.5 h-4.5 text-white" /></div>
-                            </div>
-                            <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm tabular-nums">
-                                {formatCurrency(packages?.reduce((sum, p) => sum + (p.Price || 0), 0) || 0)}
-                            </h3>
+                    <div className="stat-card stat-card-amber cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Tổng giá trị (DT)</span>
+                            <div className="stat-card-icon"><FileText className="w-5 h-5" /></div>
                         </div>
+                        <h3 className="stat-card-value tabular-nums text-2xl truncate">
+                            {formatCurrency(packages?.reduce((sum, p) => sum + (p.Price || 0), 0) || 0)}
+                        </h3>
                     </div>
 
                     {/* Awarded Packages */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', borderTop: '3px solid #C4A035', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <CheckCircle2 className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Đã có kết quả</p>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><CheckCircle2 className="w-4.5 h-4.5 text-white" /></div>
-                            </div>
-                            <h3 className="text-3xl font-black tracking-tight text-white drop-shadow-sm tabular-nums">
-                                {packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0}
-                                <span className="text-lg font-bold text-white/70 ml-1">/{packages?.length || 0}</span>
-                            </h3>
+                    <div className="stat-card stat-card-emerald cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Đã có kết quả</span>
+                            <div className="stat-card-icon"><CheckCircle2 className="w-5 h-5" /></div>
                         </div>
+                        <h3 className="stat-card-value tabular-nums">
+                            {packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0}
+                            <span className="text-sm font-bold text-emerald-600/60 dark:text-emerald-400/60 ml-1">/{packages?.length || 0}</span>
+                        </h3>
                     </div>
 
                     {/* In Progress */}
-                    <div className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200" style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                        <Clock className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Đang thực hiện</p>
-                                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Clock className="w-4.5 h-4.5 text-white" /></div>
-                            </div>
-                            <h3 className="text-3xl font-black tracking-tight text-white drop-shadow-sm tabular-nums">
-                                {packages?.filter(p => p.Status === PackageStatus.Bidding || p.Status === PackageStatus.Evaluating).length || 0}
-                            </h3>
+                    <div className="stat-card stat-card-violet cursor-default">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                            <span className="stat-card-label">Đang thực hiện</span>
+                            <div className="stat-card-icon"><Clock className="w-5 h-5" /></div>
                         </div>
+                        <h3 className="stat-card-value tabular-nums">
+                            {packages?.filter(p => p.Status === PackageStatus.Bidding || p.Status === PackageStatus.Evaluating).length || 0}
+                        </h3>
                     </div>
                 </div>
 
@@ -455,11 +443,11 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                 : 0}%
                         </span>
                     </div>
-                    <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
-                        <div className="h-full transition-all" style={{ background: 'linear-gradient(90deg, #C4A035, #D4A017)', width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100 : 0}%` }} title="Đã có kết quả" />
-                        <div className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Evaluating).length / packages!.length) * 100 : 0}%` }} title="Đang xét thầu" />
-                        <div className="h-full transition-all" style={{ background: 'linear-gradient(90deg, #A89050, #C4A035)', width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Bidding).length / packages!.length) * 100 : 0}%` }} title="Đang mời thầu" />
-                        <div className="h-full bg-gradient-to-r from-indigo-300 to-indigo-400 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Posted).length / packages!.length) * 100 : 0}%` }} title="Đã đăng tải" />
+                    <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100 : 0}%` }} title="Đã có kết quả" />
+                        <div className="h-full bg-amber-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Evaluating).length / packages!.length) * 100 : 0}%` }} title="Đang xét thầu" />
+                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Bidding).length / packages!.length) * 100 : 0}%` }} title="Đang mời thầu" />
+                        <div className="h-full bg-indigo-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Posted).length / packages!.length) * 100 : 0}%` }} title="Đã đăng tải" />
                     </div>
                     <div className="flex flex-wrap gap-4 mt-3 text-xs">
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-gray-600 dark:text-slate-400">Đã có kết quả ({packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0})</span></span>
@@ -718,9 +706,9 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs border-collapse">
                                                 <thead>
-                                                    <tr className="bg-slate-100 dark:bg-slate-700">
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-1 py-2 text-center w-8"></th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center w-10">
+                                                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-1 py-3 text-center w-8"></th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-10">
                                                             <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                                                 checked={planPackages.length > 0 && planPackages.every(p => selectedPackageIds.has(p.PackageID))}
                                                                 onChange={(e) => {
@@ -730,24 +718,24 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                                     setSelectedPackageIds(newSet);
                                                                 }} />
                                                         </th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-10">TT</th>
-                                                        <th colSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200">Tên gói thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[110px]">Giá gói thầu<br />(Đồng)</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 min-w-[100px]">Nguồn vốn</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200">Hình thức<br />lựa chọn<br />nhà thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200">Phương thức<br />lựa chọn<br />nhà thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[90px]">Thời gian<br />tổ chức<br />LCNT</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[90px]">Thời gian<br />bắt đầu<br />tổ chức<br />LCNT</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200">Loại<br />hợp đồng</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[90px]">Thời gian<br />thực hiện<br />gói thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[60px]">Tùy chọn<br />mua thêm</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[90px]">Trạng thái</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[60px]">MSC</th>
-                                                        <th rowSpan={2} className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-10">TT</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-10">TT</th>
+                                                        <th colSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Tên gói thầu</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[110px]">Giá gói thầu<br />(Đồng)</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center min-w-[100px]">Nguồn vốn</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Hình thức<br />lựa chọn<br />nhà thầu</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Phương thức<br />lựa chọn<br />nhà thầu</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />tổ chức<br />LCNT</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />bắt đầu<br />tổ chức<br />LCNT</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Loại<br />hợp đồng</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />thực hiện<br />gói thầu</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">Tùy chọn<br />mua thêm</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Trạng thái</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">MSC</th>
+                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-10">TT</th>
                                                     </tr>
-                                                    <tr className="bg-slate-100 dark:bg-slate-700">
-                                                        <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-center font-bold text-slate-700 dark:text-slate-200 min-w-[120px]">Tên gói thầu</th>
-                                                        <th className="border border-slate-300 dark:border-slate-600 px-2 py-1 text-center font-bold text-slate-700 dark:text-slate-200 min-w-[140px]">Tóm tắt công việc<br />chính của gói thầu</th>
+                                                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                                                        <th className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-center min-w-[120px]">Tên gói thầu</th>
+                                                        <th className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-center min-w-[140px]">Tóm tắt công việc<br />chính của gói thầu</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -815,14 +803,14 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                 </tbody>
                                                 {planPackages.length > 0 && (
                                                     <tfoot>
-                                                        <tr className="bg-slate-50 dark:bg-slate-750 font-bold">
-                                                            <td colSpan={5} className="border border-slate-300 dark:border-slate-600 px-3 py-2 text-right text-slate-700 dark:text-slate-200 text-xs">
+                                                        <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-200 dark:border-slate-700/50">
+                                                            <td colSpan={5} className="border border-slate-200 dark:border-slate-800 px-3 py-2 text-right text-xs uppercase tracking-wider">
                                                                 Tổng ({planPackages.length} gói):
                                                             </td>
-                                                            <td className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-right text-slate-900 dark:text-slate-100 tabular-nums text-xs">
+                                                            <td className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-right text-slate-900 dark:text-slate-100 tabular-nums text-sm">
                                                                 {formatCurrency(planTotal)}
                                                             </td>
-                                                            <td colSpan={11} className="border border-slate-300 dark:border-slate-600"></td>
+                                                            <td colSpan={11} className="border border-slate-200 dark:border-slate-800"></td>
                                                         </tr>
                                                     </tfoot>
                                                 )}
@@ -850,54 +838,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                     );
                 })}
 
-                {/* Ungrouped Packages */}
-                {(() => {
-                    const ungrouped = filteredPackages?.filter(p => !p.PlanID) || [];
-                    if (ungrouped.length === 0) return null;
-                    const isExpanded = expandedGroups.has('__ungrouped__');
-                    return (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                            <button onClick={() => toggleGroup('__ungrouped__')}
-                                className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
-                                    <span className="text-sm font-medium text-gray-600 dark:text-slate-300 italic">Chưa phân nhóm kế hoạch</span>
-                                </div>
-                                <span className="px-2 py-1 text-xs font-bold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-full">{ungrouped.length} gói</span>
-                            </button>
-                            {isExpanded && (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-xs border-collapse">
-                                        <thead>
-                                            <tr className="bg-slate-100 dark:bg-slate-700">
-                                                <th className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center w-10">TT</th>
-                                                <th className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200">Tên gói thầu</th>
-                                                <th className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[110px]">Giá gói thầu</th>
-                                                <th className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-[90px]">Trạng thái</th>
-                                                <th className="border border-slate-300 dark:border-slate-600 px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-200 w-10">TT</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {ungrouped.map((pkg, index) => (
-                                                <tr key={pkg.PackageID} className="hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer" onClick={() => handleView(pkg)}>
-                                                    <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center font-bold text-slate-500">{index + 1}</td>
-                                                    <td className="border border-slate-200 dark:border-slate-700 px-3 py-3 font-semibold text-slate-800 dark:text-slate-200">{pkg.PackageName}</td>
-                                                    <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-right font-bold tabular-nums text-slate-800 dark:text-slate-200">{formatCurrency(pkg.Price)}</td>
-                                                    <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center">
-                                                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-semibold ${getStatusColor(pkg.Status)}`}>{getStatusLabel(pkg.Status)}</span>
-                                                    </td>
-                                                    <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                                                        <ActionDropdown pkg={pkg} isOpen={openDropdownId === pkg.PackageID} onToggle={() => setOpenDropdownId(openDropdownId === pkg.PackageID ? null : pkg.PackageID)} onClose={() => setOpenDropdownId(null)} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} onCopyTBMT={handleCopyTBMT} />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })()}
+
 
                 {/* No plans & no packages */}
                 {(!plans || plans.length === 0) && (!filteredPackages || filteredPackages.length === 0) && (

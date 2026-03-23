@@ -6,7 +6,8 @@
 import React, { useState, useRef, useMemo } from 'react';
 import {
     Folder, File as FileIcon, Download, Eye, PenTool, Box,
-    History, Search, Upload, Image as ImageIcon, X, HardDrive
+    History, Search, Upload, Image as ImageIcon, X, HardDrive,
+    CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { getFileIcon } from '@/utils/fileIcons';
@@ -15,13 +16,13 @@ import CDEDigitalSign from './CDEDigitalSign';
 
 // Static folder structure for QLDA document categories
 const ARCHIVE_FOLDERS = [
-    { id: 'F1', name: '01. Hồ sơ Pháp lý dự án', icon: '📋' },
-    { id: 'F2', name: '02. Hồ sơ Thiết kế & Khảo sát', icon: '📐' },
-    { id: 'F3', name: '03. Hồ sơ Đấu thầu', icon: '📦' },
-    { id: 'F4', name: '04. Hồ sơ Quản lý chất lượng', icon: '✅' },
-    { id: 'F5', name: '05. Hồ sơ Thanh quyết toán', icon: '💰' },
-    { id: 'F6', name: '06. Mô hình BIM & Bản vẽ', icon: '🏗️' },
-    { id: 'F7', name: '07. Hồ sơ Hoàn công', icon: '🏁' },
+    { id: 'F1', name: '01. Hồ sơ Pháp lý dự án' },
+    { id: 'F2', name: '02. Hồ sơ Thiết kế & Khảo sát' },
+    { id: 'F3', name: '03. Hồ sơ Đấu thầu' },
+    { id: 'F4', name: '04. Hồ sơ Quản lý chất lượng' },
+    { id: 'F5', name: '05. Hồ sơ Thanh quyết toán' },
+    { id: 'F6', name: '06. Mô hình BIM & Bản vẽ' },
+    { id: 'F7', name: '07. Hồ sơ Hoàn công' },
 ];
 
 type FilterType = 'all' | 'pdf' | 'office' | 'bim' | 'image';
@@ -75,7 +76,7 @@ const VersionHistoryModal: React.FC<{ file: ArchiveDoc; onClose: () => void }> =
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-gray-500"><X className="w-5 h-5" /></button>
                 </div>
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 dark:bg-slate-700/50 text-xs uppercase font-bold text-gray-500 dark:text-slate-400">
+                    <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                         <tr>
                             <th className="px-6 py-4">Phiên bản</th>
                             <th className="px-6 py-4">Thời gian</th>
@@ -307,7 +308,7 @@ const CDEArchiveView: React.FC<CDEArchiveViewProps> = ({ projectId, projectName 
                             </div>
                         ) : (
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-10 border-b border-gray-200 dark:border-slate-700 tracking-[0.1em]">
+                                <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 tracking-[0.1em]">
                                     <tr>
                                         <th className="px-5 py-4">Tên tài liệu</th>
                                         <th className="px-5 py-4 w-28 text-center">Phiên bản</th>
@@ -390,9 +391,13 @@ const CDEArchiveView: React.FC<CDEArchiveViewProps> = ({ projectId, projectName 
             {/* Toast */}
             {toast && (
                 <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-4 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
-                    <span>{toast.type === 'success' ? '✅' : '❌'}</span>
+                    {toast.type === 'success'
+                        ? <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        : <AlertCircle className="w-4 h-4 shrink-0" />}
                     {toast.message}
-                    <button onClick={() => setToast(null)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+                    <button onClick={() => setToast(null)} className="ml-2 opacity-70 hover:opacity-100 p-0.5">
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 </div>
             )}
         </div>

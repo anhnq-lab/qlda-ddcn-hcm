@@ -4,7 +4,7 @@ import { X, Loader2, Save, Calendar, FileText, Building2, AlertCircle, Lightbulb
 import { BiddingPackage, PackageStatus, BIDDING_THRESHOLDS } from '../../../types';
 import { formatCurrency } from '../../../utils/format';
 import ApiClient from '../../../services/api';
-import { detectApplicableMethod, getMethodGuidance, formatThreshold } from '../../../utils/biddingCompliance';
+import { detectApplicableMethod, getMethodGuidance, checkPackageCompliance } from '../../../utils/biddingCompliance';
 import { LegalReferenceLink } from '../../../components/common/LegalReferenceLink';
 
 // ========================================
@@ -101,9 +101,10 @@ interface FormData {
     PlanGroupName: string;
     PlanDecisionNumber: string;
     PlanDecisionDate: string;
-    // MSC Integration
-    MSCPlanCode: string;
-    MSCPackageLink: string;
+    // Báo cáo đấu thầu
+    BiddingScope: string;
+    BiddersCount: string;
+    EvaluationBiddersCount: string;
 }
 
 const FUNDING_SOURCE_OPTIONS = [
@@ -148,9 +149,10 @@ const initialFormData: FormData = {
     PlanGroupName: '',
     PlanDecisionNumber: '',
     PlanDecisionDate: '',
-    // MSC
-    MSCPlanCode: '',
-    MSCPackageLink: '',
+    // Báo cáo đấu thầu
+    BiddingScope: 'Domestic',
+    BiddersCount: '',
+    EvaluationBiddersCount: '',
 };
 
 export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
@@ -184,6 +186,16 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
         return getMethodGuidance(method);
     }, [formData.Price, formData.Field]);
 
+    // Live Compliance Check
+    const complianceResult = useMemo(() => {
+        const compliancePkg = {
+            Price: parseFloat(formData.Price) || 0,
+            Field: formData.Field,
+            SelectionMethod: formData.SelectionMethod
+        } as BiddingPackage;
+        return checkPackageCompliance(compliancePkg, true);
+    }, [formData.Price, formData.Field, formData.SelectionMethod]);
+
     // Initialize form when editing
     useEffect(() => {
         if (packageToEdit) {
@@ -213,6 +225,9 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                 SelectionDuration: packageToEdit.SelectionDuration || '45 ngày',
                 SelectionStartDate: packageToEdit.SelectionStartDate || '',
                 HasOption: packageToEdit.HasOption ? 'true' : 'false',
+                BiddingScope: packageToEdit.BiddingScope || 'Domestic',
+                BiddersCount: packageToEdit.BiddersCount?.toString() || '',
+                EvaluationBiddersCount: packageToEdit.EvaluationBiddersCount?.toString() || '',
                 PlanID: planId || undefined,
             });
         } else {
@@ -267,6 +282,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
             newErrors.Duration = 'Thời gian thực hiện là bắt buộc';
         }
 
+        if (!complianceResult.isValid) {
+            newErrors.SelectionMethod = complianceResult.errors.join(' ');
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -307,9 +326,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
             PlanGroupName: formData.PlanGroupName || undefined,
             PlanDecisionNumber: formData.PlanDecisionNumber || undefined,
             PlanDecisionDate: formData.PlanDecisionDate || undefined,
-            // MSC
-            MSCPlanCode: formData.MSCPlanCode || undefined,
-            MSCPackageLink: formData.MSCPackageLink || undefined,
+            // Báo cáo đấu thầu
+            BiddingScope: (formData.BiddingScope as any) || 'Domestic',
+            BiddersCount: formData.BiddersCount ? parseInt(formData.BiddersCount) : undefined,
+            EvaluationBiddersCount: formData.EvaluationBiddersCount ? parseInt(formData.EvaluationBiddersCount) : undefined,
         };
 
         if (isEditMode) {
@@ -434,10 +454,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         Giá gói thầu (VNĐ) <span className="text-red-500">*</span>
                                     </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         placeholder="0"
-                                        value={formData.Price}
-                                        onChange={(e) => handleChange('Price', e.target.value)}
+                                        value={formData.Price ? Number(formData.Price).toLocaleString('vi-VN') : ''}
+                                        onChange={(e) => handleChange('Price', e.target.value.replace(/\D/g, ''))}
                                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.Price ? 'border-red-500' : 'border-gray-200'}`}
                                     />
                                     {formData.Price && (
@@ -511,25 +531,60 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                     </select>
                                 </div>
 
-                                {/* NĐ 214/2025 Guidance Banner */}
-                                {methodGuidance && (
-                                    <div className="col-span-2 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                                        <div className="flex items-start gap-3">
-                                            <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                            <div className="flex-1">
-                                                <h5 className="text-sm font-semibold text-blue-800">
-                                                    Gợi ý theo NĐ 214/2025
-                                                </h5>
-                                                <p className="text-sm text-blue-700 mt-1">
-                                                    Với giá gói thầu <strong>{formatCurrency(parseFloat(formData.Price) || 0)}</strong>
-                                                    {' '}và lĩnh vực <strong>{FIELD_OPTIONS.find(o => o.value === formData.Field)?.label}</strong>,
-                                                    {' '}có thể áp dụng: <strong>{methodGuidance.label}</strong>
-                                                </p>
-                                                <p className="text-xs text-blue-600 mt-1">
-                                                    {methodGuidance.description} • <em><LegalReferenceLink text={methodGuidance.legalBasis} /></em>
-                                                </p>
+                                {/* NĐ 214/2025 Guidance Banner & Live Compliance Result */}
+                                {(methodGuidance || complianceResult.suggestions.length > 0 || !complianceResult.isValid) && (
+                                    <div className="col-span-2 space-y-3">
+                                        {/* Auto-detected Guidance */}
+                                        {methodGuidance && (
+                                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1">
+                                                        <h5 className="text-sm font-semibold text-blue-800">
+                                                            Gợi ý phương án LCNT (NĐ 214/2025)
+                                                        </h5>
+                                                        <p className="text-sm text-blue-700 mt-1">
+                                                            Nên áp dụng: <strong>{methodGuidance.label}</strong>
+                                                        </p>
+                                                        <p className="text-xs text-blue-600 mt-1">
+                                                            {methodGuidance.description} • <em><LegalReferenceLink text={methodGuidance.legalBasis} /></em>
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
+                                        
+                                        {/* Compliance Error */}
+                                        {!complianceResult.isValid && (
+                                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1 text-sm text-red-700">
+                                                        <ul className="list-disc pl-4 space-y-1">
+                                                            {complianceResult.errors.map((err, i) => (
+                                                                <li key={i}>{err}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Compliance Suggestions */}
+                                        {complianceResult.isValid && complianceResult.suggestions.length > 0 && (
+                                            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <Lightbulb className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1 text-sm text-emerald-700">
+                                                        <ul className="list-disc pl-4 space-y-1">
+                                                            {complianceResult.suggestions.map((sug, i) => (
+                                                                <li key={i}>{sug}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -560,12 +615,17 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                     <select
                                         value={formData.SelectionMethod}
                                         onChange={(e) => handleChange('SelectionMethod', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${!complianceResult.isValid ? 'border-red-500' : 'border-gray-200'}`}
                                     >
                                         {SELECTION_METHOD_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
+                                    {!complianceResult.isValid && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            Hình thức chọn không khả dụng. Xem cảnh báo bên dưới.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -611,6 +671,51 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
+                                </div>
+
+                                {/* Phạm vi đấu thầu */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Phạm vi đấu thầu
+                                    </label>
+                                    <select
+                                        value={formData.BiddingScope}
+                                        onChange={(e) => handleChange('BiddingScope', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        <option value="Domestic">Trong nước</option>
+                                        <option value="International">Quốc tế</option>
+                                    </select>
+                                </div>
+
+                                {/* Số nhà thầu nộp HSDT */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Số NTh nộp HSDT/HSĐX
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        value={formData.BiddersCount}
+                                        onChange={(e) => handleChange('BiddersCount', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+
+                                {/* Số NTh vào đánh giá tài chính */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Số NTh vào đánh giá TC
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        value={formData.EvaluationBiddersCount}
+                                        onChange={(e) => handleChange('EvaluationBiddersCount', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    />
                                 </div>
                             </div>
                         )}
@@ -726,38 +831,6 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* MSC Integration */}
-                                <div className="p-4 bg-teal-50 rounded-xl">
-                                    <h4 className="font-semibold text-gray-800 mb-3">Liên kết Muasamcong.vn</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Mã KHLCNT trên MSC
-                                            </label>
-                                            <input
-                                                type="text"
-                                                placeholder="VD: PL2025..."
-                                                value={formData.MSCPlanCode}
-                                                onChange={(e) => handleChange('MSCPlanCode', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Link gói thầu trên MSC
-                                            </label>
-                                            <input
-                                                type="url"
-                                                placeholder="https://muasamcong.mpi.gov.vn/..."
-                                                value={formData.MSCPackageLink}
-                                                onChange={(e) => handleChange('MSCPackageLink', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* TBMT Section */}
                                 <div className="p-4 bg-blue-50 rounded-xl">
                                     <h4 className="font-semibold text-gray-800 mb-3">Thông báo mời thầu (E-TBMT)</h4>

@@ -160,6 +160,16 @@ export interface Project {
     ReviewContractor?: string;
     // TT24/2025/TT-BXD
     InvestmentScale?: string;
+    // Quy mô công trình
+    TotalEstimate?: number;
+    SiteArea?: number;
+    ConstructionArea?: number;
+    FloorArea?: number;
+    BuildingHeight?: number;
+    BuildingDensity?: number;
+    LandUseCoefficient?: number;
+    AboveGroundFloors?: number;
+    BasementFloors?: number;
     PlanningApprovalNumber?: string;
     PlanningApprovalDate?: string;
     PCCCApprovalNumber?: string;

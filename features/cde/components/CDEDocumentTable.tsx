@@ -106,7 +106,7 @@ const CDEDocumentTable: React.FC<CDEDocumentTableProps> = ({
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 sticky top-0 z-10 border-b border-gray-200 dark:border-slate-700 tracking-wider">
+                        <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 tracking-wider">
                             <tr>
                                 {onToggleSelect && (
                                     <th className="px-3 py-3.5 w-10">

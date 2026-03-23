@@ -160,7 +160,7 @@ const VersionHistoryModal: React.FC<{ file: any, onClose: () => void }> = ({ fil
                 </div>
                 <div className="p-0">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-700/50 text-xs uppercase font-bold text-gray-500 dark:text-slate-400">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                             <tr>
                                 <th className="px-6 py-4">Phiên bản</th>
                                 <th className="px-6 py-4">Thời gian cập nhật</th>
@@ -531,7 +531,7 @@ const DocumentManager: React.FC = () => {
                             </div>
                         ) : (
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-20 border-b border-gray-200 dark:border-slate-700 tracking-[0.1em] shadow-sm">
+                                <thead className="bg-white dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-20 border-b border-slate-200 dark:border-slate-700 tracking-[0.1em] shadow-sm">
                                     <tr>
                                         <th className="px-6 py-5">Tên tài liệu</th>
                                         <th className="px-6 py-5 w-32 text-center">Phiên bản</th>

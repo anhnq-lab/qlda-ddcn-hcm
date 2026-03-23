@@ -28,6 +28,8 @@ const routeLabels: Record<string, string> = {
     'tasks': 'Công việc',
     'employees': 'Nhân sự',
     'contractors': 'Nhà thầu',
+    'bidding': 'Đấu thầu & Hợp đồng',
+    'capital-planning': 'Kế hoạch Vốn & Giải ngân',
     'contracts': 'Hợp đồng',
     'payments': 'Thanh toán',
     'documents': 'Hồ sơ tài liệu',

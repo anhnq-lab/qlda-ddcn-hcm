@@ -83,15 +83,30 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                     />
                 </div>
             </div>
-            <div>
-                <label className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Ghi chú</label>
-                <textarea
-                    value={meta.notes || ''}
-                    onChange={e => onMetaChange('notes', e.target.value)}
-                    placeholder="Nhập ghi chú..."
-                    rows={2}
-                    className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all resize-none"
-                />
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Trạng thái hiệu lực</label>
+                    <select
+                        value={meta.legal_status || 'active'}
+                        onChange={e => onMetaChange('legal_status', e.target.value)}
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                    >
+                        <option value="active">✅ Còn hiệu lực</option>
+                        <option value="expired">❌ Hết hiệu lực</option>
+                        <option value="replaced">🔄 Đã thay thế</option>
+                        <option value="draft">📝 Bản nháp</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Ghi chú</label>
+                    <textarea
+                        value={meta.notes || ''}
+                        onChange={e => onMetaChange('notes', e.target.value)}
+                        placeholder="Nhập ghi chú..."
+                        rows={2}
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all resize-none"
+                    />
+                </div>
             </div>
 
             {/* Action buttons */}

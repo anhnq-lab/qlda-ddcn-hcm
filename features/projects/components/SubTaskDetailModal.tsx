@@ -321,7 +321,7 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                                     <button
                                         onClick={() => setMode('create')}
                                         className="w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
-                                        style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                                        
                                     >
                                         <Zap size={18} />
                                         Tạo thành công việc để quản lý

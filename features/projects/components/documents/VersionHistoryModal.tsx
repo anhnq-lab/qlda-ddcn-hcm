@@ -34,7 +34,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({ doc, o
                 </div>
                 <div className="max-h-[400px] overflow-y-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-700 text-xs uppercase font-bold text-gray-500 dark:text-slate-400 sticky top-0">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0 border-b border-slate-200 dark:border-slate-700">
                             <tr>
                                 <th className="px-5 py-3">Phiên bản</th>
                                 <th className="px-5 py-3">Ngày</th>

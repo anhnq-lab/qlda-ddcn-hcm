@@ -374,11 +374,11 @@ const PermissionManager: React.FC = () => {
                             {/* Permission matrix table */}
                             <div className="flex-1 overflow-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="sticky top-0 bg-gray-50 dark:bg-gray-900 z-10">
+                                    <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 shadow-sm border-b border-slate-200 dark:border-slate-800">
                                         <tr>
-                                            <th className="text-left px-4 py-2.5 font-medium text-gray-500 dark:text-gray-400 w-56">Chức năng</th>
+                                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56 border-b border-slate-200 dark:border-slate-800">Chức năng</th>
                                             {ALL_ACTIONS.map(action => (
-                                                <th key={action} className="text-center px-2 py-2.5 font-medium text-gray-500 dark:text-gray-400 w-16">
+                                                <th key={action} className="text-center px-2 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-16 border-b border-slate-200 dark:border-slate-800">
                                                     {ACTION_LABELS[action]}
                                                 </th>
                                             ))}

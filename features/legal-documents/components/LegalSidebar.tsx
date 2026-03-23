@@ -34,8 +34,8 @@ export const LegalSidebar: React.FC<LegalSidebarProps> = ({
                         <FileText className="w-4 h-4 inline" /> Văn bản ({filteredDocs.length})
                     </button>
                     <button onClick={() => setShowBookmarks(true)}
-                        className={`text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg transition-all ${showBookmarks ? 'bg-amber-500 text-white' : 'text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
-                        🔖 Đánh dấu ({bookmarks.length})
+                        className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg transition-all ${showBookmarks ? 'bg-amber-500 text-white' : 'text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
+                        <Bookmark className="w-4 h-4" /> Đánh dấu ({bookmarks.length})
                     </button>
                     {recentlyViewed.length > 0 && (
                         <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-gray-400 dark:text-slate-500">
@@ -52,7 +52,7 @@ export const LegalSidebar: React.FC<LegalSidebarProps> = ({
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <Bookmark className="w-12 h-12 text-gray-200 dark:text-slate-700 mb-4" />
                             <p className="text-sm font-bold text-gray-400 dark:text-slate-500">Chưa có mục đánh dấu</p>
-                            <p className="text-xs text-gray-300 dark:text-slate-600 mt-1">Nhấn 🔖 trên điều khoản để đánh dấu</p>
+                            <p className="text-xs text-gray-300 dark:text-slate-600 mt-1">Nhấn nút <Bookmark className="w-3 h-3 inline" /> trên điều khoản để đánh dấu</p>
                         </div>
                     ) : (
                         bookmarks.map(bm => {

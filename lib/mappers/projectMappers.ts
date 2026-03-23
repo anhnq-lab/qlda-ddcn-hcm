@@ -85,6 +85,16 @@ export const dbToProject = (row: any): Project => ({
     TT24CompletionPct: row.tt24_completion_pct || 0,
     ManagementBoard: row.management_board || undefined,
     ProvinceCode: row.province_code || '',
+    // Quy mô công trình
+    TotalEstimate: Number(row.total_estimate) || 0,
+    SiteArea: Number(row.site_area) || 0,
+    ConstructionArea: Number(row.construction_area) || 0,
+    FloorArea: Number(row.floor_area) || 0,
+    BuildingHeight: Number(row.building_height) || 0,
+    BuildingDensity: Number(row.building_density) || 0,
+    LandUseCoefficient: Number(row.land_use_coefficient) || 0,
+    AboveGroundFloors: Number(row.above_ground_floors) || 0,
+    BasementFloors: Number(row.basement_floors) || 0,
 });
 
 export const projectToDb = (p: Partial<Project>) => {
@@ -165,6 +175,16 @@ export const projectToDb = (p: Partial<Project>) => {
     if (p.TT24CompletionPct !== undefined) result.tt24_completion_pct = p.TT24CompletionPct;
     if (p.ManagementBoard !== undefined) result.management_board = p.ManagementBoard;
     if (p.ProvinceCode !== undefined) result.province_code = p.ProvinceCode;
+    // Quy mô công trình
+    if (p.TotalEstimate !== undefined) result.total_estimate = p.TotalEstimate;
+    if (p.SiteArea !== undefined) result.site_area = p.SiteArea;
+    if (p.ConstructionArea !== undefined) result.construction_area = p.ConstructionArea;
+    if (p.FloorArea !== undefined) result.floor_area = p.FloorArea;
+    if (p.BuildingHeight !== undefined) result.building_height = p.BuildingHeight;
+    if (p.BuildingDensity !== undefined) result.building_density = p.BuildingDensity;
+    if (p.LandUseCoefficient !== undefined) result.land_use_coefficient = p.LandUseCoefficient;
+    if (p.AboveGroundFloors !== undefined) result.above_ground_floors = p.AboveGroundFloors;
+    if (p.BasementFloors !== undefined) result.basement_floors = p.BasementFloors;
     return result;
 };
 

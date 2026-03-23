@@ -55,8 +55,8 @@ export const taskToDb = (t: Partial<Task>) => ({
     ...(t.ActualEndDate !== undefined && { actual_end_date: t.ActualEndDate }),
     ...(t.Progress !== undefined && { progress: t.Progress }),
     ...(t.ProgressPercent !== undefined && { progress: t.ProgressPercent }),
-    ...(t.SubTasks !== undefined && { sub_tasks: t.SubTasks }),
-    ...(t.Attachments !== undefined && { attachments: t.Attachments }),
-    ...(t.Dependencies !== undefined && { dependencies: t.Dependencies }),
+    ...(t.SubTasks !== undefined && { sub_tasks: t.SubTasks as any }),
+    ...(t.Attachments !== undefined && { attachments: t.Attachments as any }),
+    ...(t.Dependencies !== undefined && { dependencies: t.Dependencies as any }),
     ...(t.IsCritical !== undefined && { is_critical: t.IsCritical }),
 });

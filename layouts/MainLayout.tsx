@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Header } from '../components/common/Header';
 import { AIChatbot } from '../components/common/AIChatbot';
@@ -33,6 +33,7 @@ const PageLoadingSkeleton: React.FC = () => (
 const MainLayout: React.FC = () => {
     const { isAuthenticated, isLoading } = useAuth();
     const { impersonatedUser, isImpersonating, stopImpersonation } = useImpersonation();
+    const location = useLocation();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -52,7 +53,7 @@ const MainLayout: React.FC = () => {
     // Show loading skeleton while checking auth session
     if (isLoading) return <PageLoadingSkeleton />;
 
-    if (!isAuthenticated) return <Navigate to="/login" />;
+    if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
 
     return (
         <SlidePanelProvider>

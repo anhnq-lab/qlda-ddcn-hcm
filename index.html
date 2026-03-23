@@ -13,33 +13,19 @@
     content="Hệ thống quản lý dự án đầu tư xây dựng — Quản lý toàn diện từ lập kế hoạch, đấu thầu, hợp đồng đến giải ngân và nghiệm thu." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap"
-    rel="stylesheet">
+  <!-- Be Vietnam Pro: hỗ trợ tiếng Việt tốt hơn Inter, rất phù hợp cho ngôn ngữ có dấu -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    /* Flash of Unstyled Content prevention — match Tailwind bg */
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f5f4f1;
+      font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+      background-color: #f8fafc;
       color: #1d1c1c;
     }
-
-    /* Custom scrollbar for cleaner look */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f5f4f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #D4A017;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #B8860B;
+    .dark body {
+      background-color: #020617;
     }
   </style>
   <link rel="stylesheet" href="/index.css">

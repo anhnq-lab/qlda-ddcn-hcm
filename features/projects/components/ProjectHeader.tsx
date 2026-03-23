@@ -72,6 +72,18 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
                     <span className="hidden md:inline-flex text-[11px] font-bold text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 shrink-0">
                         {formatShortCurrency(project.TotalInvestment)}
                     </span>
+                    {/* Mini progress bar */}
+                    {progress > 0 && (
+                        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                            <div className="w-16 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all ${progress >= 90 ? 'bg-emerald-500' : progress >= 50 ? 'bg-blue-500' : 'bg-amber-500'}`}
+                                    style={{ width: `${Math.min(progress, 100)}%` }}
+                                />
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400">{progress}%</span>
+                        </div>
+                    )}
                     <div className="flex-1" />
                     {onEdit && (
                         <button
@@ -155,19 +167,20 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
                                 </span>
                             </div>
 
-                            {/* Sync Button */}
-                            <button
-                                onClick={onSync}
-                                disabled={isSyncing}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all mt-1 ${project.SyncStatus?.IsSynced || syncResult?.success
-                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
-                                    : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                    }`}
-                                title={project.SyncStatus?.LastSyncDate ? `Đồng bộ lần cuối: ${project.SyncStatus.LastSyncDate}` : 'Chưa đồng bộ'}
-                            >
-                                <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                                {isSyncing ? 'Đang đồng bộ...' : (project.SyncStatus?.IsSynced || syncResult?.success ? 'Đã đồng bộ QG' : 'Đồng bộ QG')}
-                            </button>
+                            {/* Progress bar */}
+                            {progress > 0 && (
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden max-w-xs">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-500 ${progress >= 90 ? 'bg-emerald-500' : progress >= 50 ? 'bg-blue-500' : 'bg-amber-500'}`}
+                                            style={{ width: `${Math.min(progress, 100)}%` }}
+                                        />
+                                    </div>
+                                    <span className={`text-xs font-bold ${progress >= 90 ? 'text-emerald-600 dark:text-emerald-400' : progress >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                        {progress}% tiến độ
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

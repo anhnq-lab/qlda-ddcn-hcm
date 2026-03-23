@@ -35,16 +35,16 @@ export const HighlightText: React.FC<{ text: string; query: string }> = ({ text,
 // STAT CARD
 // ============================================
 export const StatCard: React.FC<{ label: string; value: number; color: string; icon: React.ElementType; index?: number }> = ({ label, value, icon: Icon, index = 0 }) => {
-    const CARD_STYLES = [
-        { bg: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
-        { bg: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', border: '#A89050' },
-        { bg: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', border: '#C4A035' },
-        { bg: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', border: '#D4A017' },
+    const CARD_CLASSES = [
+        'stat-card-slate',
+        'stat-card-amber',
+        'stat-card-blue',
+        'stat-card-emerald',
     ];
-    const style = CARD_STYLES[index % CARD_STYLES.length];
+    const styleClass = CARD_CLASSES[index % CARD_CLASSES.length];
 
     return (
-        <div className="relative overflow-hidden flex items-center gap-3 px-4 py-3 rounded-2xl text-white shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300" style={{ background: style.bg, borderTop: `3px solid ${style.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+        <div className={`relative overflow-hidden flex items-center gap-3 px-4 py-3 rounded-2xl text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl duration-300 stat-card ${styleClass}`}>
             <div className="absolute -right-3 -top-3 opacity-[0.12]">
                 <Icon className="w-20 h-20" strokeWidth={1.2} />
             </div>

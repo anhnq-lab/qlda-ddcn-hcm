@@ -19,8 +19,9 @@ export {
     dbToCapitalAllocation,
 } from './mappers/projectMappers';
 
-// Contract
+// Contract & Variation Orders
 export { dbToContract, contractToDb } from './mappers/contractMappers';
+export { dbToVariationOrder, variationOrderToDb } from './mappers/variationOrderMappers';
 
 // Payment
 export { dbToPayment, paymentToDb } from './mappers/paymentMappers';

@@ -812,7 +812,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
         <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-5 py-4">
 
             {/* ── Header ── */}
-            <div className="rounded-2xl p-5 text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #333333 0%, #4A4230 50%, #5A4A25 100%)' }}>
+            <div className="rounded-2xl p-5 text-white shadow-lg bg-gradient-to-br from-slate-800 via-amber-900 to-yellow-900">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">

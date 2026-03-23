@@ -636,7 +636,7 @@ const TaskDetail: React.FC = () => {
                             </div>
                             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                                 <button type="button" onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">Hủy</button>
-                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-lg active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-lg active:scale-[0.98]" >
                                     {editingSubTask ? 'Lưu' : 'Thêm mới'}
                                 </button>
                             </div>

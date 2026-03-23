@@ -97,21 +97,30 @@ export const SlidePanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         panelsRef.current = panels;
     }, [panels]);
 
-    // Track URLs
+    // Track URLs — sync panel state to URL search params
     useEffect(() => {
         if (panels.length === 0) {
+            // All panels closed — remove ?panel= param, restore base URL
             if (baseUrl) {
                 window.history.replaceState(null, '', baseUrl);
                 setBaseUrl('');
             }
         } else {
+            // Save base URL (without panel params) when first panel opens
             if (panels.length === 1 && !baseUrl) {
-                setBaseUrl(window.location.pathname + window.location.search);
+                // Store current path WITHOUT panel param
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.delete('panel');
+                setBaseUrl(currentUrl.pathname + currentUrl.search);
             }
             const activePanels = panels.filter(p => !closingPanels.has(p.id));
             const topPanel = activePanels[activePanels.length - 1];
             if (topPanel && topPanel.url) {
-                window.history.replaceState(null, '', topPanel.url);
+                // Extract panel ID from url (e.g., "/projects/DA-123" → "DA-123")
+                const panelId = topPanel.url.split('/').pop() || '';
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('panel', panelId);
+                window.history.replaceState(null, '', currentUrl.pathname + currentUrl.search);
             }
         }
     }, [panels, closingPanels, baseUrl]);

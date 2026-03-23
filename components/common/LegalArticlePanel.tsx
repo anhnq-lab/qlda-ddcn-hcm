@@ -26,14 +26,14 @@ const ArticleContent: React.FC<{ content: string }> = ({ content }) => {
         while ((match = tableRegex.exec(raw)) !== null) {
             if (match.index > lastIndex) {
                 const textPart = raw.substring(lastIndex, match.index);
-                newHtml += `<div class="whitespace-pre-line mb-4">${textPart}</div>`;
+                newHtml += `<div class="whitespace-pre-line break-words mb-4">${textPart}</div>`;
             }
             newHtml += `<div class="legal-table-wrapper my-4 overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-600">${match[0]}</div>`;
             lastIndex = match.index + match[0].length;
         }
         if (lastIndex < raw.length) {
             const textPart = raw.substring(lastIndex);
-            newHtml += `<div class="whitespace-pre-line">${textPart}</div>`;
+            newHtml += `<div class="whitespace-pre-line break-words">${textPart}</div>`;
         }
 
         return newHtml || raw;
@@ -41,7 +41,8 @@ const ArticleContent: React.FC<{ content: string }> = ({ content }) => {
 
     return (
         <div
-            className="text-[13px] leading-relaxed text-gray-700 dark:text-slate-300 space-y-2"
+            className="text-[13px] leading-relaxed text-gray-700 dark:text-slate-300 space-y-2 overflow-hidden break-words"
+            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );
@@ -85,7 +86,7 @@ const ArticleCard: React.FC<{
             </button>
 
             {isExpanded && (
-                <div className="px-4 pb-4 border-t border-gray-100 dark:border-slate-700 pt-3">
+                <div className="px-4 pb-4 border-t border-gray-100 dark:border-slate-700 pt-3 overflow-hidden">
                     {article.summary && (
                         <p className="text-xs text-gray-500 dark:text-slate-400 italic mb-3 pb-3 border-b border-dashed border-gray-200 dark:border-slate-600 leading-relaxed">
                             {article.summary}
@@ -162,7 +163,7 @@ const LegalArticlePanel: React.FC<LegalArticlePanelProps> = ({ docId, articleId 
     const statusColor = DOC_STATUS_COLORS[doc.status];
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
             {/* Document Header */}
             <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-b from-gray-50/80 to-white dark:from-slate-800/80 dark:to-slate-900 shrink-0">
                 {/* Badges */}
@@ -224,7 +225,7 @@ const LegalArticlePanel: React.FC<LegalArticlePanelProps> = ({ docId, articleId 
                         {/* Chapter Header */}
                         <button
                             onClick={() => toggleChapter(chapter.id)}
-                            className={`w-full text-left sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-lg border transition-all group ${expandedChapters.has(chapter.id)
+                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all group ${expandedChapters.has(chapter.id)
                                 ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/10'
                                 : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                                 }`}

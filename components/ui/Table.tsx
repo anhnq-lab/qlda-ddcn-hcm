@@ -59,10 +59,10 @@ export function Table<T extends Record<string, any>>({
     const cellPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
 
     return (
-        <div className={`overflow-x-auto rounded-xl border border-gray-200 ${className}`}>
+        <div className={`overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm ${className}`}>
             <table className="w-full text-sm">
                 {/* Header */}
-                <thead className={`bg-gray-50 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                <thead className={`bg-slate-50 dark:bg-slate-800/80 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
                     <tr>
                         {columns.map((column, idx) => (
                             <th
@@ -71,15 +71,15 @@ export function Table<T extends Record<string, any>>({
                                 className={`
                                     ${cellPadding}
                                     ${alignClass[column.align || 'left']}
-                                    text-xs font-bold text-gray-600 uppercase tracking-wider
-                                    border-b border-gray-200
+                                    text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider
+                                    border-b border-slate-200 dark:border-slate-800
                                     ${column.className || ''}
                                 `}
                             >
-                                <div className="flex items-center gap-1">
+                                <div className={`flex items-center gap-1 ${column.align === 'center' ? 'justify-center' : column.align === 'right' ? 'justify-end' : 'justify-start'}`}>
                                     {column.header}
                                     {column.sortable && (
-                                        <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-3 h-3 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                         </svg>
                                     )}
@@ -90,7 +90,7 @@ export function Table<T extends Record<string, any>>({
                 </thead>
 
                 {/* Body */}
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/50">
                     {loading ? (
                         // Loading skeleton rows
                         Array.from({ length: loadingRows }).map((_, rowIdx) => (
@@ -100,7 +100,7 @@ export function Table<T extends Record<string, any>>({
                                         key={`skeleton-${rowIdx}-${colIdx}`}
                                         className={cellPadding}
                                     >
-                                        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
                                     </td>
                                 ))}
                             </tr>
@@ -110,8 +110,8 @@ export function Table<T extends Record<string, any>>({
                         <tr>
                             <td colSpan={columns.length} className="px-4 py-12 text-center">
                                 {emptyState || (
-                                    <div className="text-gray-500">
-                                        <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div className="text-slate-500 dark:text-slate-500">
+                                        <svg className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                         </svg>
                                         <p className="text-sm font-medium">Không có dữ liệu</p>
@@ -126,8 +126,8 @@ export function Table<T extends Record<string, any>>({
                                 key={rowIdx}
                                 onClick={() => onRowClick?.(row, rowIdx)}
                                 className={`
-                                    ${striped && rowIdx % 2 === 1 ? 'bg-gray-50/50' : ''}
-                                    ${hoverable ? 'hover:bg-gray-50 transition-colors' : ''}
+                                    ${striped && rowIdx % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-800/20' : ''}
+                                    ${hoverable ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors' : ''}
                                     ${onRowClick ? 'cursor-pointer' : ''}
                                     ${rowClassName?.(row, rowIdx) || ''}
                                 `}
@@ -140,7 +140,7 @@ export function Table<T extends Record<string, any>>({
                                             className={`
                                                 ${cellPadding}
                                                 ${alignClass[column.align || 'left']}
-                                                text-gray-700
+                                                text-sm text-slate-700 dark:text-slate-300
                                                 ${column.className || ''}
                                             `}
                                         >

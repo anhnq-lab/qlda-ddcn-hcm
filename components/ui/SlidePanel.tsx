@@ -21,7 +21,7 @@ interface ResizeHandleProps {
 const ResizeHandle: React.FC<ResizeHandleProps> = ({ onResizeStart, onResetWidth }) => {
     return (
         <div
-            className="slide-panel-resize-handle"
+            className="slide-panel-resize-handle group/resize"
             onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -103,6 +103,7 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
 }) => {
     const isTopPanel = index === total - 1;
     const stackOffset = BASE_GAP + index * STACKING_OFFSET;
+    const [isMaximized, setIsMaximized] = useState(false);
 
     // Swipe-to-close state
     const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -136,15 +137,20 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
     }, [swipeOffset, onClose]);
 
     // Compute width style
-    const widthStyle: React.CSSProperties = panelWidth > 0 && isTopPanel
+    const widthStyle: React.CSSProperties = isMaximized
         ? {
-            width: `${panelWidth}px`,
-            maxWidth: `calc(100% - ${stackOffset}px)`,
+            width: '100%',
+            maxWidth: '100%',
         }
-        : {
-            width: `calc(100% - ${stackOffset}px)`,
-            maxWidth: `calc(100% - ${stackOffset}px)`,
-        };
+        : panelWidth > 0 && isTopPanel
+            ? {
+                width: `${panelWidth}px`,
+                maxWidth: `calc(100% - ${stackOffset}px)`,
+            }
+            : {
+                width: `calc(100% - ${stackOffset}px)`,
+                maxWidth: `calc(100% - ${stackOffset}px)`,
+            };
 
     return (
         <div
@@ -185,12 +191,14 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* Title Bar — replaces old floating close button */}
+                {/* Title Bar */}
                 {isTopPanel && (
                     <PanelTitleBar
                         panel={panel}
                         onClose={onClose}
                         panelWidth={panelWidth}
+                        onToggleMaximize={() => setIsMaximized(prev => !prev)}
+                        isMaximized={isMaximized}
                     />
                 )}
 

@@ -138,37 +138,58 @@ export function getMethodGuidance(method: ApplicableSelectionMethod): {
     }
 }
 
+export interface ComplianceResult {
+    isValid: boolean;
+    errors: string[];
+    suggestions: string[];
+}
+
 /**
  * Kiểm tra compliance của gói thầu
  */
-export function checkPackageCompliance(pkg: BiddingPackage): {
-    isCompliant: boolean;
-    issues: string[];
-    suggestions: string[];
-} {
-    const issues: string[] = [];
+export function checkPackageCompliance(pkg: BiddingPackage, isProjectBased: boolean = true): ComplianceResult {
+    const errors: string[] = [];
     const suggestions: string[] = [];
 
-    const detectedMethod = detectApplicableMethod(pkg.Price, pkg.Field);
+    const cdtThreshold = getCDTThreshold(pkg.Field, isProjectBased);
+    const formattedPrice = formatThreshold(pkg.Price);
 
-    // Kiểm tra hình thức LCNT có phù hợp với hạn mức không
-    if (pkg.SelectionMethod === 'Appointed' && pkg.Price > BIDDING_THRESHOLDS.CDT_SIMPLIFIED_CONSTRUCTION) {
-        issues.push(
-            `Giá gói thầu (${formatThreshold(pkg.Price)}) vượt hạn mức CĐT rút gọn cho ${pkg.Field}`
-        );
-        suggestions.push('Cân nhắc chuyển sang hình thức Đấu thầu rộng rãi hoặc Chào hàng cạnh tranh');
-    }
+    switch (pkg.SelectionMethod) {
+        case 'Appointed':
+            if (pkg.Price > cdtThreshold) {
+                errors.push(`Giá gói thầu (${formattedPrice}) vượt hạn mức Chỉ định thầu rút gọn cho lĩnh vực ${pkg.Field ? pkg.Field : 'Xây dựng'} (tối đa ${formatThreshold(cdtThreshold)} theo NĐ 214/2025).`);
+            } else if (pkg.Price <= BIDDING_THRESHOLDS.DIRECT_PURCHASE) {
+                suggestions.push(`Gói thầu dưới 50 triệu có thể áp dụng thủ tục Mua sắm trực tiếp (CĐT tự quyết) nhanh gọn hơn.`);
+            }
+            break;
 
-    // Gợi ý nếu có thể áp dụng hình thức đơn giản hơn
-    if (detectedMethod === 'SimplifiedCDT' && pkg.SelectionMethod === 'OpenBidding') {
-        suggestions.push(
-            `Theo NĐ 214/2025, gói thầu này có thể áp dụng CĐT rút gọn (hạn mức: ${formatThreshold(getCDTThreshold(pkg.Field, true))})`
-        );
+        case 'CompetitiveShopping':
+            if (pkg.Price > BIDDING_THRESHOLDS.COMPETITIVE_SHOPPING) {
+                errors.push(`Giá gói thầu (${formattedPrice}) vượt hạn mức Chào hàng cạnh tranh (tối đa 10 tỷ đồng theo NĐ 214/2025).`);
+            }
+            if (pkg.Field === 'Consultancy') {
+                errors.push(`Chào hàng cạnh tranh không áp dụng cho gói thầu Tư vấn.`);
+            }
+            break;
+
+        case 'OpenBidding':
+            if (pkg.Price <= cdtThreshold) {
+                suggestions.push(`Theo NĐ 214/2025, gói thầu này có thể áp dụng Chỉ định thầu rút gọn để tiết kiệm thời gian (hạn mức: ${formatThreshold(cdtThreshold)}).`);
+            }
+            break;
+
+        case 'LimitedBidding':
+        case 'DirectProcurement':
+        case 'SelfExecution':
+        case 'CommunityParticipation':
+            // Các hình thức này yêu cầu điều kiện đặc thù (Luật Đấu thầu 2023)
+            suggestions.push(`Đảm bảo gói thầu đáp ứng đủ điều kiện đặc thù theo Luật Đấu thầu 2023 để áp dụng hình thức này.`);
+            break;
     }
 
     return {
-        isCompliant: issues.length === 0,
-        issues,
+        isValid: errors.length === 0,
+        errors,
         suggestions,
     };
 }

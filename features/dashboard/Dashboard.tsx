@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Wallet, Activity, AlertCircle, CheckCircle2, Clock, AlertTriangle, Building2, Map as MapIcon, Filter, ChevronDown, FileBox, TrendingUp, ArrowRight, Brain } from 'lucide-react';
+import { Wallet, Activity, AlertCircle, CheckCircle2, Clock, AlertTriangle, Building2, Map as MapIcon, Filter, ChevronDown, FileBox, TrendingUp, ArrowRight, Brain, X } from 'lucide-react';
 import { formatShortCurrency } from '../../utils/format';
 import InteractiveMap from '../../components/common/InteractiveMap';
 import { DashboardService } from '../../services/DashboardService';
@@ -15,47 +15,83 @@ import { AIAnomalyDetector } from '../../components/ai/AIAnomalyDetector';
 import { AIContractorScoring } from '../../components/ai/AIContractorScoring';
 import { AIResourceOptimizer } from '../../components/ai/AIResourceOptimizer';
 
-// ── Stat Card ───────────────────────────────────────────
+// ── StatCard (Chuẩn CIC ERP) ─────────────────────────────────
 const StatCard: React.FC<{
     title: string;
     value: string;
-    subtitle?: string;
+    targetValue?: string;
+    progressLabel?: string;
+    progressPercentage?: number;
+    trendLabel?: string;
+    trendPercentage?: number;
     icon: React.ElementType;
-    accentColor: string;
+    colorVariant: 'slate' | 'amber' | 'blue' | 'emerald' | 'violet';
     loading?: boolean;
     onClick?: () => void;
-}> = ({ title, value, subtitle, icon: Icon, accentColor, loading, onClick }) => (
-    <div
-        className={`relative overflow-hidden rounded-2xl text-white p-4 shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300 flex flex-col justify-center gap-1.5 ${onClick ? 'cursor-pointer' : ''}`}
-        style={{
-            background: `linear-gradient(135deg, #333 0%, #222 100%)`,
-            borderTop: `3px solid ${accentColor}`,
-            boxShadow: `0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}
-        onClick={onClick}
-        role={onClick ? 'button' : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
-    >
-        <div className="absolute -right-2 -top-2 opacity-[0.10]">
-            <Icon className="w-20 h-20" strokeWidth={1.2} />
-        </div>
-        <div className="flex justify-between items-start relative z-10">
-            <div className="p-2 rounded-xl" style={{ background: `${accentColor}30` }}>
-                <Icon className="w-4 h-4 text-white" />
+    footer?: React.ReactNode;
+}> = ({ title, value, targetValue, progressLabel, progressPercentage, trendLabel, trendPercentage, icon: Icon, colorVariant, loading, onClick, footer }) => {
+    const isDark = true; // Always stick to dark context styling based on CIC ERP, or adapt based on Tailwind class
+    return (
+        <div
+            className={`
+                relative overflow-hidden flex flex-col gap-2 p-4 rounded-2xl
+                bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-800/80
+                shadow-sm dark:shadow-none transition-all duration-200
+                ${onClick ? 'cursor-pointer hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-700/80 hover:shadow-md' : 'cursor-default'}
+            `}
+            onClick={onClick}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
+        >
+            {/* Row 1: Title + Trend */}
+            <div className="flex items-center justify-between">
+                <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase leading-none">{title}</h3>
+                {(trendPercentage !== undefined && trendLabel) && (
+                    <div className={`flex items-center gap-0.5 text-[10px] font-bold ${trendPercentage >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {trendPercentage >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingUp className="w-3 h-3 rotate-180" />}
+                        {Math.abs(trendPercentage)}%
+                        <span className="text-slate-400 dark:text-slate-500 font-medium ml-0.5">{trendLabel}</span>
+                    </div>
+                )}
             </div>
-        </div>
-        <div className="relative z-10 mt-1">
-            {loading ? (
-                <div className="h-7 w-24 bg-white/20 rounded animate-pulse my-0.5" />
+
+            {/* Row 2: Value + Icon inline */}
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 min-w-0">
+                    <span className="text-xl lg:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-none">
+                        {loading ? <div className="h-7 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /> : value}
+                    </span>
+                    {targetValue && !loading && (
+                        <span className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate">
+                            / {targetValue}
+                        </span>
+                    )}
+                </div>
+                <div className={`shrink-0 p-2 rounded-xl bg-${colorVariant}-50 dark:bg-${colorVariant}-500/10 text-${colorVariant}-600 dark:text-${colorVariant}-400`}>
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                </div>
+            </div>
+
+            {/* Row 3: Progress bar */}
+            {progressPercentage !== undefined && progressLabel ? (
+                <div>
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{progressLabel}</span>
+                        <span className={`text-[10px] font-bold text-${colorVariant}-600 dark:text-${colorVariant}-400`}>{progressPercentage}%</span>
+                    </div>
+                    <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full bg-${colorVariant}-500 rounded-full transition-all duration-1000 ease-out`} style={{ width: `${Math.min(100, progressPercentage)}%` }}></div>
+                    </div>
+                </div>
             ) : (
-                <h3 className="text-2xl font-black tracking-tight drop-shadow-md" style={{ color: accentColor }}>{value}</h3>
+                <div className="h-px" /> // minimal spacer
             )}
-            <p className="text-[10px] font-extrabold text-white uppercase tracking-[0.12em] mt-0.5">{title}</p>
-            {subtitle && <p className="text-[9px] text-white/80 mt-0.5 font-medium">{subtitle}</p>}
+            {/* Row 4: Footer slot */}
+            {footer}
         </div>
-    </div>
-);
+    );
+};
 
 // ── Phase Badge ──────────────────────────────────────────
 const PhaseBadge: React.FC<{ status: number }> = ({ status }) => {
@@ -232,8 +268,7 @@ const Dashboard: React.FC = () => {
                     {/* Export */}
                     <button
                         onClick={() => navigate('/reports')}
-                        className="px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)' }}
+                        className="px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 bg-gradient-to-br from-amber-500 to-yellow-600 hover:shadow-amber-500/20"
                     >
                         <FileBox className="w-4 h-4" /> Xuất báo cáo
                     </button>
@@ -250,9 +285,9 @@ const Dashboard: React.FC = () => {
                     </span>
                     <button
                         onClick={() => { setSelectedYear(new Date().getFullYear()); setSelectedBoard('all'); }}
-                        className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
+                        className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                     >
-                        ✕ Xóa bộ lọc
+                        <X className="w-3 h-3" /> Xóa bộ lọc
                     </button>
                 </div>
             )}
@@ -265,33 +300,58 @@ const Dashboard: React.FC = () => {
                     title="Dự án đang quản lý"
                     value={filteredRows.length.toString()}
                     icon={Building2}
-                    accentColor="#8A8A8A"
-                    subtitle={`${statusSummary.prep} chuẩn bị • ${statusSummary.exec} thực hiện • ${statusSummary.comp} kết thúc`}
+                    colorVariant="slate"
                     loading={loadingProjects}
                     onClick={() => navigate('/projects')}
+                    footer={
+                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                style={{ background: '#F59E0B18', color: '#B45309', border: '1px solid #F59E0B40' }}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                Chuẩn bị: {statusSummary.prep}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                style={{ background: '#10B98118', color: '#047857', border: '1px solid #10B98140' }}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Thực hiện: {statusSummary.exec}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                style={{ background: '#6366F118', color: '#4338CA', border: '1px solid #6366F140' }}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                Kết thúc: {statusSummary.comp}
+                            </span>
+                        </div>
+                    }
                 />
                 <StatCard
                     title="Tổng vốn đầu tư"
                     value={metrics ? formatShortCurrency(metrics.totalInvestment) : '—'}
                     icon={Wallet}
-                    accentColor="#D4A017"
-                    subtitle="Tổng mức đầu tư tất cả dự án"
+                    colorVariant="amber"
+                    progressLabel="Tỷ trọng vốn năm nay"
+                    progressPercentage={metrics && metrics.totalInvestment > 0 ? Math.round((metrics.yearlyPlanned / metrics.totalInvestment) * 100) : 0}
                     loading={loadingMetrics}
                 />
                 <StatCard
-                    title={selectedYear ? `Kế hoạch vốn ${selectedYear}` : 'Kế hoạch vốn'}
+                    title={selectedYear ? `Kế hoạch vốn ${selectedYear}` : 'Tổng kế hoạch vốn'}
                     value={metrics ? formatShortCurrency(metrics.yearlyPlanned) : '—'}
+                    targetValue={metrics && metrics.totalInvestment ? formatShortCurrency(metrics.totalInvestment) : undefined}
                     icon={TrendingUp}
-                    accentColor="#3B82F6"
-                    subtitle={selectedYear ? `Kế hoạch vốn năm ${selectedYear}` : 'Kế hoạch vốn tất cả năm'}
+                    colorVariant="violet"
+                    progressLabel="Giải ngân trên KH"
+                    progressPercentage={metrics ? metrics.yearlyDisbursementRate : 0}
                     loading={loadingMetrics}
                 />
                 <StatCard
-                    title={selectedYear ? `Giải ngân ${selectedYear}` : 'Giải ngân'}
+                    title={selectedYear ? `Lũy kế giải ngân ${selectedYear}` : 'Lũy kế giải ngân'}
                     value={metrics ? formatShortCurrency(metrics.yearlyDisbursed) : '—'}
+                    targetValue={metrics ? formatShortCurrency(metrics.yearlyPlanned) : undefined}
                     icon={Activity}
-                    accentColor="#10B981"
-                    subtitle={metrics ? `Đạt ${metrics.yearlyDisbursementRate}% kế hoạch` : '—'}
+                    colorVariant="blue"
+                    progressLabel="Hoàn thành kế hoạch"
+                    progressPercentage={metrics ? metrics.yearlyDisbursementRate : 0}
+                    trendLabel="Tiến độ"
+                    trendPercentage={metrics ? metrics.yearlyDisbursementRate : 0}
                     loading={loadingMetrics}
                 />
             </div>
@@ -322,12 +382,12 @@ const Dashboard: React.FC = () => {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-gray-50/80 dark:bg-slate-700/50">
-                                    <th className="px-4 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider">Tên dự án</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider">Ban QLDA</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider">Giai đoạn</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider w-36">Tiến độ</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider text-right">Vốn ĐT</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider text-right">Giải ngân</th>
+                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tên dự án</th>
+                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ban QLDA</th>
+                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Giai đoạn</th>
+                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Tiến độ</th>
+                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Vốn ĐT</th>
+                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Giải ngân</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
@@ -426,11 +486,7 @@ const Dashboard: React.FC = () => {
                                     cursor={{ fill: theme === 'dark' ? '#1E293B' : '#F3F4F6' }}
                                 />
                                 <Bar dataKey="planned" fill={theme === 'dark' ? '#475569' : '#E5E7EB'} radius={[4, 4, 0, 0]} maxBarSize={40} />
-                                <Bar dataKey="actual" fill="#D4A017" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                                    {capitalVsDisbursement.map((b, idx) => (
-                                        <Cell key={idx} fill={b.color} />
-                                    ))}
-                                </Bar>
+                                <Bar dataKey="actual" fill="#D4A017" radius={[4, 4, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

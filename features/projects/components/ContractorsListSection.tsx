@@ -1,10 +1,10 @@
-import React from 'react';
-import { Building2, HardHat, ExternalLink, CircleDollarSign, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { Building2, HardHat, ExternalLink, CircleDollarSign, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { Contractor, BiddingPackage } from '@/types';
 import { formatShortCurrency } from '@/utils/format';
 
 interface ContractorsListSectionProps {
-    contractors: Contractor[];
+    contractors: (Contractor & { contractNames?: string[]; packageNames?: string[] })[];
     packages?: BiddingPackage[];
     onViewContractor?: (contractorId: string) => void;
     onViewPackage?: (packageId: string) => void;
@@ -28,6 +28,8 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
     onViewContractor,
     onViewPackage
 }) => {
+    const [showAllContractors, setShowAllContractors] = useState(false);
+    const MAX_SHOW = 3;
 
     if (contractors.length === 0 && packages.length === 0) {
         return (
@@ -57,28 +59,54 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
             {/* Contractors from contracts table */}
             {contractors.length > 0 && (
                 <div className="space-y-2">
-                    {contractors.map((contractor) => (
-                        <div
-                            key={contractor.ContractorID}
-                            className="flex items-center gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/15 rounded-lg border border-amber-100 dark:border-amber-800/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/25 transition-colors cursor-pointer group"
-                            onClick={() => onViewContractor?.(contractor.ContractorID)}
-                        >
-                            <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-                                <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">
-                                    {contractor.FullName}
-                                </p>
-                                {contractor.TaxCode && (
-                                    <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate">
-                                        MST: {contractor.TaxCode}
+                    {(showAllContractors ? contractors : contractors.slice(0, MAX_SHOW)).map((contractor) => {
+                        const displayInfo = contractor.packageNames?.length
+                            ? contractor.packageNames.join(', ')
+                            : contractor.contractNames?.length
+                                ? contractor.contractNames.join(', ')
+                                : null;
+
+                        return (
+                            <div
+                                key={contractor.ContractorID}
+                                className="flex items-center gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/15 rounded-lg border border-amber-100 dark:border-amber-800/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/25 transition-colors cursor-pointer group"
+                                onClick={() => onViewContractor?.(contractor.ContractorID)}
+                            >
+                                <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                                    <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">
+                                        {contractor.FullName}
                                     </p>
-                                )}
+                                    {displayInfo && (
+                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 truncate mt-0.5" title={displayInfo}>
+                                            📦 {displayInfo}
+                                        </p>
+                                    )}
+                                    {contractor.TaxCode && (
+                                        <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate">
+                                            MST: {contractor.TaxCode}
+                                        </p>
+                                    )}
+                                </div>
+                                <ExternalLink className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <ExternalLink className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                    ))}
+                        );
+                    })}
+
+                    {contractors.length > MAX_SHOW && (
+                        <button
+                            onClick={() => setShowAllContractors(!showAllContractors)}
+                            className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline py-1.5"
+                        >
+                            {showAllContractors ? (
+                                <><ChevronUp className="w-3.5 h-3.5" /> Thu gọn</>
+                            ) : (
+                                <><ChevronDown className="w-3.5 h-3.5" /> Xem tất cả {contractors.length} nhà thầu</>
+                            )}
+                        </button>
+                    )}
                 </div>
             )}
 

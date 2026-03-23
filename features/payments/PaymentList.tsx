@@ -19,7 +19,7 @@ import {
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
 
-const PaymentList: React.FC = () => {
+const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'all' }) => {
     const navigate = useNavigate();
     const { payments, isLoading } = usePayments();
     const { contracts } = useContracts();
@@ -74,21 +74,26 @@ const PaymentList: React.FC = () => {
         });
     }, [payments, contracts, biddingPackages, scopedProjectIds, userType, contractorId]);
 
-    // === Stats ===
+    // === Stats (filtered by project) ===
+    const projectFilteredPayments = useMemo(() => {
+        if (projectFilter === 'all') return scopedPayments;
+        return scopedPayments.filter(p => getProjectId(p.ContractID) === projectFilter);
+    }, [scopedPayments, projectFilter]);
+
     const stats = useMemo(() => {
-        const totalAmount = scopedPayments.reduce((sum, p) => sum + p.Amount, 0);
-        const byStatus = (s: PaymentStatus) => scopedPayments.filter(p => p.Status === s);
+        const totalAmount = projectFilteredPayments.reduce((sum, p) => sum + p.Amount, 0);
+        const byStatus = (s: PaymentStatus) => projectFilteredPayments.filter(p => p.Status === s);
         const sumAmount = (arr: Payment[]) => arr.reduce((sum, p) => sum + p.Amount, 0);
         const draft = byStatus(PaymentStatus.Draft);
         const pending = byStatus(PaymentStatus.Pending);
         const approved = byStatus(PaymentStatus.Approved);
         const transferred = byStatus(PaymentStatus.Transferred);
         const rejected = byStatus(PaymentStatus.Rejected);
-        const advancePayments = scopedPayments.filter(p => p.Type === PaymentType.Advance);
-        const volumePayments = scopedPayments.filter(p => p.Type === PaymentType.Volume);
-        const uniqueContracts = new Set(scopedPayments.map(p => p.ContractID)).size;
+        const advancePayments = projectFilteredPayments.filter(p => p.Type === PaymentType.Advance);
+        const volumePayments = projectFilteredPayments.filter(p => p.Type === PaymentType.Volume);
+        const uniqueContracts = new Set(projectFilteredPayments.map(p => p.ContractID)).size;
         return {
-            total: scopedPayments.length,
+            total: projectFilteredPayments.length,
             totalAmount,
             draftCount: draft.length, draftAmount: sumAmount(draft),
             pendingCount: pending.length, pendingAmount: sumAmount(pending),
@@ -99,7 +104,7 @@ const PaymentList: React.FC = () => {
             volumeAmount: sumAmount(volumePayments), volumeCount: volumePayments.length,
             uniqueContracts,
         };
-    }, [scopedPayments]);
+    }, [projectFilteredPayments]);
 
     // === Filtering ===
     const filteredPayments = useMemo(() => {
@@ -113,9 +118,10 @@ const PaymentList: React.FC = () => {
                 String(p.PaymentID).includes(qLower);
             const matchesStatus = filterStatus === 'all' || p.Status === filterStatus;
             const matchesType = filterType === 'all' || p.Type === filterType;
-            return matchesSearch && matchesStatus && matchesType;
+            const matchesProject = projectFilter === 'all' || getProjectId(p.ContractID) === projectFilter;
+            return matchesSearch && matchesStatus && matchesType && matchesProject;
         });
-    }, [scopedPayments, searchQuery, filterStatus, filterType, contracts]);
+    }, [scopedPayments, searchQuery, filterStatus, filterType, projectFilter, contracts]);
 
     const handleNavigateToSource = (contractId: string) => {
         const projectId = getProjectId(contractId);
@@ -147,11 +153,11 @@ const PaymentList: React.FC = () => {
         );
     }
 
-    const CARD_STYLES: Record<number, { bg: string; border: string }> = {
-        0: { bg: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
-        1: { bg: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', border: '#A89050' },
-        2: { bg: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', border: '#C4A035' },
-        3: { bg: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', border: '#D4A017' },
+    const CARD_STYLES: Record<number, string> = {
+        0: 'stat-card-blue',
+        1: 'stat-card-emerald',
+        2: 'stat-card-amber',
+        3: 'stat-card-violet',
     };
 
     const statCards = [
@@ -193,30 +199,31 @@ const PaymentList: React.FC = () => {
                         return (
                             <div
                                 key={idx}
-                                className="relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200"
-                                style={{ background: s.bg, borderTop: `3px solid ${s.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+                                className={`stat-card ${s} cursor-default`}
                             >
-                                <div className="absolute -right-2 -top-2 opacity-[0.12]">
-                                    <card.icon className="w-16 h-16" strokeWidth={1.2} />
-                                </div>
                                 {(card as any).highlight && (
                                     <div className="absolute top-2 right-2">
                                         <span className="flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-50"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/70"></span>
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                                         </span>
                                     </div>
                                 )}
-                                <div className="relative z-10">
-                                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">{card.label}</p>
-                                    <p className="text-xl font-black mt-1 tracking-tight drop-shadow-sm">{card.value}</p>
-                                    {(card as any).progressPercent !== undefined && (
-                                        <div className="mt-1.5 w-full bg-white/20 rounded-full h-1">
-                                            <div className="h-full bg-white/80 rounded-full transition-all duration-1000" style={{ width: `${Math.min((card as any).progressPercent, 100)}%` }}></div>
-                                        </div>
-                                    )}
-                                    <p className="text-[10px] text-white/70 mt-1 font-medium">{card.sub}</p>
+                                <div className="flex items-center justify-between w-full relative z-10">
+                                    <div>
+                                        <p className="stat-card-label">{card.label}</p>
+                                        <p className="stat-card-value tabular-nums mt-1">{card.value}</p>
+                                    </div>
+                                    <div className="stat-card-icon">
+                                        <card.icon className="w-6 h-6" />
+                                    </div>
                                 </div>
+                                {(card as any).progressPercent !== undefined && (
+                                    <div className="mt-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                        <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min((card as any).progressPercent, 100)}%` }}></div>
+                                    </div>
+                                )}
+                                <p className="text-xs text-slate-500 mt-2 font-medium">{card.sub}</p>
                             </div>
                         );
                     })}
@@ -400,7 +407,7 @@ const PaymentList: React.FC = () => {
                                                 {(() => {
                                                     const sc = PaymentService.getStatusColor(payment.Status);
                                                     return (
-                                                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase whitespace-nowrap ring-1 ${sc.bg} ${sc.text} ${sc.ring} ${sc.darkBg} ${sc.darkText} ${sc.darkRing}`}>
+                                                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold whitespace-nowrap ring-1 ${sc.bg} ${sc.text} ${sc.ring} ${sc.darkBg} ${sc.darkText} ${sc.darkRing}`}>
                                                             {payment.Status === PaymentStatus.Pending && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>}
                                                             {payment.Status === PaymentStatus.Transferred && <CheckCircle2 className="w-3 h-3" />}
                                                             {PaymentService.getStatusLabel(payment.Status)}

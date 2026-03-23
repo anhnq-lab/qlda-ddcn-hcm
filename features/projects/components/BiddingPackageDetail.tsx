@@ -20,6 +20,7 @@ import { DirectAppointmentSection } from './DirectAppointmentSection';
 import { SelfExecutionSection } from './SelfExecutionSection';
 import { ContractFormInline } from './ContractFormInline';
 import { PaymentFormInline } from './PaymentFormInline';
+import { useVariationOrders } from '../../../hooks/useVariationOrders';
 import { AcceptanceSection } from './AcceptanceSection';
 import { DocumentAttachments } from '../../../components/common/DocumentAttachments';
 import { SettlementSection } from './SettlementSection';
@@ -142,6 +143,9 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     const { payments } = usePayments();
     const { contractors } = useContractors();
 
+    const relatedContractInit = contracts.find(c => c.PackageID === pkg?.PackageID);
+    const { variationOrders } = useVariationOrders(relatedContractInit?.ContractID || '');
+
     if (!isOpen || !pkg) return null;
 
     // Get lifecycle stages based on package field type
@@ -151,16 +155,23 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     const currentStage = statusConfig.stage;
 
     // Get related data
-    const relatedContract = contracts.find(c => c.PackageID === pkg.PackageID);
+    const relatedContract = relatedContractInit;
     const relatedPayments = payments.filter(p => relatedContract && p.ContractID === relatedContract.ContractID);
     const winningContractor = pkg.WinningContractorID ? contractors.find(c => c.ContractorID === pkg.WinningContractorID) : null;
+
+    // Calculate sum of variation orders
+    const sumVariationOrders = variationOrders.reduce((sum, vo) => sum + (vo.AdjustedAmount || 0), 0);
+    const baseContractValue = relatedContract ? relatedContract.Value : 0;
+    const contractValue = baseContractValue + sumVariationOrders;
+
+    const totalPaid = relatedPayments
+        .filter(p => p.Status === PaymentStatus.Transferred)
+        .reduce((sum, p) => sum + p.Amount, 0);
+    const paymentProgress = contractValue > 0 ? (totalPaid / contractValue) * 100 : 0;
 
     // Calculate stats
     const savings = pkg.WinningPrice && pkg.Price ? pkg.Price - pkg.WinningPrice : 0;
     const savingsPercent = pkg.Price && savings > 0 ? ((savings / pkg.Price) * 100).toFixed(2) : '0';
-    const totalPaid = relatedPayments.reduce((sum, p) => sum + p.Amount, 0);
-    const contractValue = relatedContract?.Value || pkg.WinningPrice || 0; // Fixed: Value instead of ContractValue
-    const paymentProgress = contractValue > 0 ? (totalPaid / contractValue * 100) : 0;
 
     // Determine actual stage (including contract execution stages) based on field type
     const maxStage = lifecycleStages.length;
@@ -628,8 +639,8 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                         <p className="font-bold text-green-600 dark:text-green-400">{pkg.WinningPrice ? formatCurrency(pkg.WinningPrice) : '-'}</p>
                                     </div>
                                     <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá trị HĐ</p>
-                                        <p className="font-bold text-blue-600 dark:text-blue-400">{relatedContract ? formatCurrency(relatedContract.Value) : '-'}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá trị HĐ (sau ĐC)</p>
+                                        <p className="font-bold text-blue-600 dark:text-blue-400">{relatedContract ? formatCurrency(contractValue) : '-'}</p>
                                     </div>
                                     <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Tiết kiệm</p>

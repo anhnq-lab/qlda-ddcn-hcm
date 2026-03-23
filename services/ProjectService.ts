@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { dbToProject, projectToDb, dbToBiddingPackage, dbToCapitalAllocation, dbToProcurementPlan, procurementPlanToDb, biddingPackageToDb } from '../lib/dbMappers';
 import { Project, ProjectStatus, ProjectGroup, BiddingPackage, ProcurementPlan, CapitalAllocation, Disbursement } from '../types';
 import type { QueryParams } from '../types/api';
+import { CapitalService } from './CapitalService';
 
 export class ProjectService {
     /**
@@ -334,11 +335,12 @@ export class ProjectService {
             yearlyDisbursed: number;
         }
     }> {
-        // Fetch allocations from capital_plans table
-        const { data: allocationRows } = await supabase
+        // Fetch allocations from capital_plans table (Only Annual plans represent real allocations)
+        const { data: allocationRows } = await (supabase as any)
             .from('capital_plans')
             .select('*')
-            .eq('project_id', projectId);
+            .eq('project_id', projectId)
+            .eq('plan_type', 'annual');
 
         const allocations: CapitalAllocation[] = (allocationRows || []).map(dbToCapitalAllocation);
 
@@ -375,30 +377,35 @@ export class ProjectService {
             AdvanceBalance: Number(row.advance_balance) || 0,
         }));
 
+        // Ensure allocations have accurately computed disbursement amounts, ignoring stale db column
+        allocations.forEach(alloc => {
+            const relatedDisbs = disbursements.filter(d => {
+                const y = new Date(d.Date).getFullYear();
+                return y === alloc.Year;
+            });
+            alloc.DisbursedAmount = CapitalService.calculateTrueDisbursed(relatedDisbs);
+        });
+
         // Get project total investment
         const project = await this.getById(projectId);
         const totalInvestment = project?.TotalInvestment || 0;
 
         // Compute summary
-        const totalAdvance = disbursements
-            .filter(d => d.Type === 'TamUng' && d.Status === 'Approved')
-            .reduce((s, d) => s + d.Amount, 0);
-        const advanceRecovered = disbursements
-            .filter(d => d.Type === 'ThuHoiTamUng' && d.Status === 'Approved')
-            .reduce((s, d) => s + d.Amount, 0);
-        const completionPayment = disbursements
-            .filter(d => d.Type === 'ThanhToanKLHT' && d.Status === 'Approved')
-            .reduce((s, d) => s + d.Amount, 0);
-        const totalDisbursed = totalAdvance + completionPayment - advanceRecovered;
+        const totalAdvance = disbursements.filter(d => d.Type === 'TamUng' && d.Status === 'Approved').reduce((s, d) => s + d.Amount, 0);
+        const advanceRecovered = disbursements.filter(d => d.Type === 'ThuHoiTamUng' && d.Status === 'Approved').reduce((s, d) => s + d.Amount, 0);
+        const completionPayment = disbursements.filter(d => ((d.Type as string) === 'ThanhToanKLHT' || (d.Type as string) === 'ThanhToanTT') && d.Status === 'Approved').reduce((s, d) => s + d.Amount, 0);
+        
+        const totalDisbursed = CapitalService.calculateTrueDisbursed(disbursements);
         const totalAllocated = allocations.reduce((s, a) => s + a.Amount, 0);
 
         const currentYear = new Date().getFullYear();
         const yearlyTarget = allocations
             .filter(a => a.Year === currentYear)
             .reduce((s, a) => s + a.Amount, 0);
-        const yearlyDisbursed = disbursements
-            .filter(d => new Date(d.Date).getFullYear() === currentYear && d.Status === 'Approved')
-            .reduce((s, d) => s + d.Amount, 0);
+            
+        const yearlyDisbursed = CapitalService.calculateTrueDisbursed(
+            disbursements.filter(d => new Date(d.Date).getFullYear() === currentYear)
+        );
 
         return {
             allocations,

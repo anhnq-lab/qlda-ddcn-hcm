@@ -243,7 +243,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
                                         {/* Assignee */}
                                         {task.AssigneeID && (
                                             <span className="flex items-center gap-1 text-[10px] text-gray-500">
-                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold" >
                                                     {task.AssigneeID.slice(0, 2).toUpperCase()}
                                                 </div>
                                             </span>

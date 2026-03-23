@@ -1,6 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, DollarSign, AlertTriangle } from 'lucide-react';
-import { formatCurrency } from '@/utils/format';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface BudgetVarianceProps {
     totalInvestment: number;
@@ -9,6 +8,12 @@ interface BudgetVarianceProps {
     previousMonthDisbursed?: number;
 }
 
+const formatShort = (n: number) => {
+    if (n >= 1e9) return `${(n / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} tỷ`;
+    if (n >= 1e6) return `${(n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} tr`;
+    return n.toLocaleString('vi-VN');
+};
+
 export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
     totalInvestment,
     disbursedAmount,
@@ -16,140 +21,63 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
     previousMonthDisbursed
 }) => {
     const remaining = totalInvestment - disbursedAmount;
-    const disbursedPercent = totalInvestment > 0 ? (disbursedAmount / totalInvestment) * 100 : 0;
-    const plannedPercent = plannedDisbursement && totalInvestment > 0
-        ? (plannedDisbursement / totalInvestment) * 100
-        : null;
+    const pct = totalInvestment > 0 ? (disbursedAmount / totalInvestment) * 100 : 0;
+    const plannedPct = plannedDisbursement && totalInvestment > 0
+        ? (plannedDisbursement / totalInvestment) * 100 : null;
 
-    // Calculate variance
-    const variance = plannedDisbursement ? disbursedAmount - plannedDisbursement : null;
-    const variancePercent = plannedDisbursement && plannedDisbursement > 0
-        ? ((disbursedAmount - plannedDisbursement) / plannedDisbursement) * 100
-        : null;
-
-    // Calculate month-over-month change
     const momChange = previousMonthDisbursed !== undefined
-        ? disbursedAmount - previousMonthDisbursed
-        : null;
-
-    const getVarianceColor = () => {
-        if (variance === null) return 'text-gray-500';
-        if (variance >= 0) return 'text-emerald-600';
-        if (variance < 0 && Math.abs(variance) / (plannedDisbursement || 1) > 0.1) return 'text-red-600';
-        return 'text-amber-600';
-    };
+        ? disbursedAmount - previousMonthDisbursed : null;
 
     return (
         <div className="section-card">
-            {/* Header */}
             <div className="section-card-header">
                 <div className="flex items-center gap-2">
                     <div className="section-icon"><DollarSign className="w-3.5 h-3.5" /></div>
-                    <span>Phân tích ngân sách</span>
+                    <span>Tiến độ giải ngân</span>
                 </div>
-                {momChange !== null && (
-                    <div className={`flex items-center gap-1 text-xs font-bold ${momChange > 0 ? 'text-emerald-600' : momChange < 0 ? 'text-red-600' : 'text-gray-500'
-                        }`}>
-                        {momChange > 0 ? <TrendingUp className="w-3 h-3" /> :
-                            momChange < 0 ? <TrendingDown className="w-3 h-3" /> :
-                                <Minus className="w-3 h-3" />}
-                        {momChange > 0 ? '+' : ''}{formatCurrency(momChange)} so với tháng trước
-                    </div>
-                )}
             </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-4">
-                {/* Main Figures */}
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400 uppercase font-bold mb-1">Tổng mức ĐT</p>
-                        <p className="text-lg font-black text-gray-800 dark:text-slate-100">{formatCurrency(totalInvestment)}</p>
-                    </div>
-                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-                        <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-bold mb-1">Đã giải ngân</p>
-                        <p className="text-lg font-black text-blue-700 dark:text-blue-300">{formatCurrency(disbursedAmount)}</p>
-                        <p className="text-[10px] text-blue-500 dark:text-blue-400">{disbursedPercent.toFixed(1)}%</p>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400 uppercase font-bold mb-1">Còn lại</p>
-                        <p className="text-lg font-black text-gray-700 dark:text-slate-200">{formatCurrency(remaining)}</p>
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400">{(100 - disbursedPercent).toFixed(1)}%</p>
-                    </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                        <span className="text-gray-500 dark:text-slate-400">Tiến độ giải ngân</span>
-                        <span className="font-bold text-gray-800 dark:text-slate-200">{disbursedPercent.toFixed(1)}%</span>
-                    </div>
-                    <div className="relative h-4 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
-                        {/* Actual */}
-                        <div
-                            className="absolute h-full rounded-full transition-all duration-700 ease-out"
-                            style={{ background: 'linear-gradient(90deg, #A89050, #C4A035)', width: `${Math.min(disbursedPercent, 100)}%` }}
-                        />
-                        {/* Planned marker */}
-                        {plannedPercent !== null && (
-                            <div
-                                className="absolute top-0 bottom-0 w-0.5 bg-emerald-500"
-                                style={{ left: `${Math.min(plannedPercent, 100)}%` }}
-                                title={`Kế hoạch: ${plannedPercent.toFixed(1)}%`}
-                            >
-                                <div className="absolute -top-1 -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full" />
-                            </div>
+            <div className="p-3 space-y-2">
+                {/* Progress bar + percentage */}
+                <div>
+                    <div className="flex items-baseline justify-between mb-1">
+                        <span className="text-lg font-black tabular-nums text-amber-700 dark:text-amber-400">{pct.toFixed(1)}%</span>
+                        {momChange !== null && momChange !== 0 && (
+                            <span className={`flex items-center gap-0.5 text-[10px] font-bold ${momChange > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                {momChange > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                {momChange > 0 ? '+' : ''}{formatShort(momChange)}
+                            </span>
                         )}
                     </div>
-                    {plannedPercent !== null && (
-                        <div className="flex items-center gap-4 text-[10px]">
-                            <span className="flex items-center gap-1">
-                                <span className="w-2 h-2 bg-blue-500 rounded"></span>
-                                Thực tế
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <span className="w-2 h-2 bg-emerald-500 rounded"></span>
-                                Kế hoạch ({plannedPercent.toFixed(1)}%)
-                            </span>
-                        </div>
-                    )}
+                    <div className="relative h-2 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
+                        <div
+                            className="absolute h-full rounded-full transition-all duration-700"
+                            style={{ background: 'linear-gradient(90deg, #A89050, #D4A017)', width: `${Math.min(pct, 100)}%` }}
+                        />
+                        {plannedPct !== null && (
+                            <div
+                                className="absolute top-0 bottom-0 w-0.5 bg-emerald-500"
+                                style={{ left: `${Math.min(plannedPct, 100)}%` }}
+                                title={`KH: ${plannedPct.toFixed(1)}%`}
+                            />
+                        )}
+                    </div>
                 </div>
 
-                {/* Variance Section */}
-                {variance !== null && (
-                    <div className={`flex items-center justify-between p-3 rounded-xl ${variance >= 0 ? 'bg-emerald-50 border border-emerald-100' :
-                        Math.abs(variance) / (plannedDisbursement || 1) > 0.1 ? 'bg-red-50 border border-red-100' :
-                            'bg-amber-50 border border-amber-100'
-                        }`}>
-                        <div className="flex items-center gap-2">
-                            {variance < 0 && Math.abs(variance) / (plannedDisbursement || 1) > 0.1 && (
-                                <AlertTriangle className="w-4 h-4 text-red-500" />
-                            )}
-                            <div>
-                                <p className="text-xs text-gray-600 dark:text-slate-400">Chênh lệch so với kế hoạch</p>
-                                <p className={`text-sm font-bold ${getVarianceColor()}`}>
-                                    {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
-                                    {variancePercent !== null && (
-                                        <span className="ml-1 text-xs font-normal">
-                                            ({variancePercent >= 0 ? '+' : ''}{variancePercent.toFixed(1)}%)
-                                        </span>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${variance >= 0 ? 'bg-emerald-100' :
-                            Math.abs(variance) / (plannedDisbursement || 1) > 0.1 ? 'bg-red-100' :
-                                'bg-amber-100'
-                            }`}>
-                            {variance >= 0 ? (
-                                <TrendingUp className="w-5 h-5 text-emerald-600" />
-                            ) : (
-                                <TrendingDown className={`w-5 h-5 ${Math.abs(variance) / (plannedDisbursement || 1) > 0.1 ? 'text-red-600' : 'text-amber-600'
-                                    }`} />
-                            )}
-                        </div>
+                {/* Key figures — compact row */}
+                <div className="grid grid-cols-3 gap-1.5 text-center">
+                    <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg py-1.5 px-1">
+                        <p className="text-[8px] text-gray-400 dark:text-slate-500 uppercase font-bold tracking-wide">Tổng ĐT</p>
+                        <p className="text-[11px] font-black text-gray-700 dark:text-slate-200 tabular-nums">{formatShort(totalInvestment)}</p>
                     </div>
-                )}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg py-1.5 px-1">
+                        <p className="text-[8px] text-blue-500 dark:text-blue-400 uppercase font-bold tracking-wide">Đã GN</p>
+                        <p className="text-[11px] font-black text-blue-700 dark:text-blue-300 tabular-nums">{formatShort(disbursedAmount)}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg py-1.5 px-1">
+                        <p className="text-[8px] text-gray-400 dark:text-slate-500 uppercase font-bold tracking-wide">Còn lại</p>
+                        <p className="text-[11px] font-black text-gray-700 dark:text-slate-200 tabular-nums">{formatShort(remaining)}</p>
+                    </div>
+                </div>
             </div>
         </div>
     );

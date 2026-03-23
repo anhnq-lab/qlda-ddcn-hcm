@@ -26,16 +26,16 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
     );
 
     const kpiCards = [
-        { label: 'Tổng hồ sơ nộp', value: stats.total, icon: FileText, gradient: 'linear-gradient(135deg, #404040, #333)' },
-        { label: 'Đang chờ duyệt', value: stats.pending, icon: Clock, gradient: 'linear-gradient(135deg, #4A4535, #3D3A2D)' },
-        { label: 'Đã phê duyệt', value: stats.approved, icon: CheckCircle2, gradient: 'linear-gradient(135deg, #2D4A35, #254530)' },
-        { label: 'Bị từ chối', value: stats.rejected, icon: XCircle, gradient: 'linear-gradient(135deg, #4A2D35, #452530)' },
+        { label: 'Tổng hồ sơ nộp', value: stats.total, icon: FileText, className: 'stat-card-slate' },
+        { label: 'Đang chờ duyệt', value: stats.pending, icon: Clock, className: 'stat-card-amber' },
+        { label: 'Đã phê duyệt', value: stats.approved, icon: CheckCircle2, className: 'stat-card-emerald' },
+        { label: 'Bị từ chối', value: stats.rejected, icon: XCircle, className: 'stat-card-rose' },
     ];
 
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-3 duration-500">
             {/* Welcome Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 50%, #8B6914 100%)' }}>
+            <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br from-amber-500 to-yellow-600">
                 <div className="absolute -right-10 -top-10 w-40 h-40 opacity-10">
                     <Building2 className="w-full h-full" />
                 </div>
@@ -57,7 +57,7 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
             {/* KPI Cards */}
             <div className="grid grid-cols-4 gap-4">
                 {kpiCards.map((card, idx) => (
-                    <div key={idx} className="relative overflow-hidden rounded-2xl p-5 text-white shadow-xl hover:scale-[1.02] transition-all duration-200" style={{ background: card.gradient, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+                    <div key={idx} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 stat-card ${card.className}`}>
                         <card.icon className="absolute -right-3 -top-3 w-20 h-20 opacity-[0.12]" />
                         <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">{card.label}</p>
                         <p className="text-3xl font-black tracking-tight drop-shadow-sm">{card.value}</p>

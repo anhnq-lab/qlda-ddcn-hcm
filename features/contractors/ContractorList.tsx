@@ -127,24 +127,19 @@ const ContractorList: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {stats.map((stat, idx) => {
                     const CARD_STYLES = [
-                        { bg: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
-                        { bg: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', border: '#A89050' },
-                        { bg: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', border: '#D4A017' },
+                        'stat-card-blue',
+                        'stat-card-emerald',
+                        'stat-card-amber',
                     ];
                     const style = CARD_STYLES[idx] || CARD_STYLES[0];
 
                     return (
-                        <div key={stat.label} className="relative overflow-hidden rounded-2xl text-white p-5 shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300" style={{ background: style.bg, borderTop: `3px solid ${style.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                            <div className="absolute -right-3 -top-3 opacity-[0.12]">
-                                <stat.icon className="w-24 h-24" strokeWidth={1.2} />
-                            </div>
-                            <div className="relative z-10 flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-white/20 shadow-sm">
-                                    <stat.icon className="w-5 h-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-black text-white drop-shadow-sm">{stat.value}</p>
-                                    <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em]">{stat.label}</p>
+                        <div key={stat.label} className={`stat-card ${style}`}>
+                            <p className="stat-card-label">{stat.label}</p>
+                            <div className="flex items-center justify-between">
+                                <p className="stat-card-value tabular-nums">{stat.value}</p>
+                                <div className="stat-card-icon">
+                                    <stat.icon className="w-4 h-4" />
                                 </div>
                             </div>
                         </div>

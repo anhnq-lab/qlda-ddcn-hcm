@@ -19,10 +19,10 @@ export const KeyMetricsHeader: React.FC<KeyMetricsHeaderProps> = ({
         ? ((disbursedAmount / totalInvestment) * 100).toFixed(1)
         : '0';
 
-    const CARD_STYLES: Record<number, { bg: string; border: string }> = {
-        0: { bg: 'linear-gradient(135deg, #404040 0%, #333333 100%)', border: '#8A8A8A' },
-        1: { bg: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', border: '#A89050' },
-        2: { bg: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', border: '#C4A035' },
+    const CARD_STYLES: Record<number, string> = {
+        0: 'stat-card-blue',
+        1: 'stat-card-amber',
+        2: 'stat-card-emerald',
     };
 
     const metrics = [
@@ -51,27 +51,24 @@ export const KeyMetricsHeader: React.FC<KeyMetricsHeaderProps> = ({
                 return (
                     <div
                         key={idx}
-                        className="relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:scale-[1.02] hover:shadow-2xl transition-all duration-200 cursor-default"
-                        style={{ background: s.bg, borderTop: `3px solid ${s.border}`, boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}
+                        className={`stat-card ${s} cursor-default`}
                     >
-                        {/* Icon watermark */}
-                        <metric.icon className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                        <div className="relative z-10 flex items-start justify-between">
+                        <div className="flex items-center justify-between w-full relative z-10">
                             <div className="flex-1">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">
+                                <p className="stat-card-label">
                                     {metric.label}
                                 </p>
-                                <p className="text-2xl font-black tracking-tight text-white drop-shadow-sm tabular-nums">
+                                <p className="stat-card-value tabular-nums mt-1">
                                     {metric.value}
                                 </p>
                                 {metric.subValue && (
-                                    <p className="text-sm text-white/80 mt-1">
+                                    <p className="text-xs text-slate-500 mt-1">
                                         {metric.subValue} tổng mức
                                     </p>
                                 )}
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                                <metric.icon className="w-5 h-5 text-white" />
+                            <div className="stat-card-icon">
+                                <metric.icon className="w-6 h-6" />
                             </div>
                         </div>
                     </div>

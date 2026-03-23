@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Lock, User, Building2, Eye, EyeOff } from 'lucide-react';
 
@@ -11,6 +11,7 @@ const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,7 +19,9 @@ const Login: React.FC = () => {
 
         const success = await login(username, password);
         if (success) {
-            navigate('/');
+            // Redirect to intended URL or default to dashboard
+            const from = (location.state as any)?.from || '/dashboard';
+            navigate(from, { replace: true });
         } else {
             setError('Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng thử lại.');
         }

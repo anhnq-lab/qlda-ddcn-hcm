@@ -4,6 +4,8 @@ import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { useContractors } from '../../hooks/useContractors';
 import { PaymentType, PaymentStatus } from '../../types';
 import { useContracts } from '../../hooks/useContracts';
+import { useVariationOrders } from '../../hooks/useVariationOrders';
+import { usePayments } from '../../hooks/usePayments';
 
 interface PaymentFormProps {
     isOpen: boolean;
@@ -15,6 +17,7 @@ interface PaymentFormProps {
 export const PaymentForm: React.FC<PaymentFormProps> = ({ isOpen, onClose, onSubmit, contractId }) => {
     const { contracts } = useContracts();
     const { contractors } = useContractors();
+    const { payments } = usePayments();
     const [formData, setFormData] = useState({
         contractId: contractId || '',
         batchNo: 1,
@@ -32,10 +35,23 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ isOpen, onClose, onSub
     const selectedContract = contracts.find(c => c.ContractID === formData.contractId);
     const contractor = selectedContract ? contractors.find(ct => ct.ContractorID === selectedContract.ContractorID) : null;
 
+    const { variationOrders } = useVariationOrders(formData.contractId);
+
+    // Tính toán Remaining
+    const sumVariationOrders = variationOrders.reduce((sum, vo) => sum + vo.AdjustedAmount, 0);
+    const totalAdjustedValue = (selectedContract?.Value || 0) + sumVariationOrders;
+    
+    const relatedPayments = payments.filter(p => selectedContract && p.ContractID === selectedContract.ContractID);
+    const totalPaid = relatedPayments
+        .filter(p => p.Status === PaymentStatus.Transferred)
+        .reduce((sum, p) => sum + p.Amount, 0);
+    const remaining = totalAdjustedValue - totalPaid;
+
     const validate = () => {
         const errs: Record<string, string> = {};
         if (!formData.contractId) errs.contractId = 'Vui lòng chọn hợp đồng';
         if (!formData.amount || formData.amount <= 0) errs.amount = 'Số tiền phải lớn hơn 0';
+        if (formData.amount > remaining) errs.amount = `Số tiền vượt quá còn lại (${formatCurrency(remaining)})`;
         if (!formData.treasuryRef) errs.treasuryRef = 'Vui lòng nhập mã giao dịch kho bạc';
         setErrors(errs);
         return Object.keys(errs).length === 0;
@@ -131,23 +147,23 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ isOpen, onClose, onSub
 
                         {/* Contract Info */}
                         {selectedContract && (
-                            <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 border border-gray-200 dark:border-slate-600">
+                            <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 border border-gray-200 dark:border-slate-600 space-y-3">
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                         <span className="text-gray-500 dark:text-slate-400">Nhà thầu:</span>
                                         <p className="font-medium text-gray-800 dark:text-slate-100">{contractor?.FullName}</p>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 dark:text-slate-400">Giá trị HĐ:</span>
-                                        <p className="font-bold text-emerald-600">{formatCurrency(selectedContract.Value)}</p>
+                                        <span className="text-gray-500 dark:text-slate-400">Giá trị HĐ (sau phụ lục):</span>
+                                        <p className="font-bold text-emerald-600">{formatCurrency(totalAdjustedValue)}</p>
                                     </div>
                                     <div>
                                         <span className="text-gray-500 dark:text-slate-400">Tỷ lệ tạm ứng:</span>
                                         <p className="font-medium text-gray-800 dark:text-slate-100">{selectedContract.AdvanceRate}%</p>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 dark:text-slate-400">Bảo hành:</span>
-                                        <p className="font-medium text-gray-800 dark:text-slate-100">{selectedContract.Warranty} tháng</p>
+                                        <span className="text-gray-500 dark:text-slate-400">Còn lại thanh toán:</span>
+                                        <p className="font-bold text-orange-600">{formatCurrency(remaining)}</p>
                                     </div>
                                 </div>
                             </div>

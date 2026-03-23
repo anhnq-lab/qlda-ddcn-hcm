@@ -179,7 +179,7 @@ export const CdeExplorer: React.FC<CdeExplorerProps> = ({
                     ) : (
                         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50/80 dark:bg-slate-700/80 text-gray-500 dark:text-slate-400 font-bold text-[11px] uppercase border-b border-gray-200 dark:border-slate-600">
+                                <thead className="bg-slate-50/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-bold text-[11px] uppercase border-b border-slate-200 dark:border-slate-700">
                                     <tr>
                                         <th className="px-5 py-3 w-10"></th>
                                         <th className="px-5 py-3">Tên tài liệu</th>

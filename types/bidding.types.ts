@@ -133,6 +133,10 @@ export interface BiddingPackage {
     MSCPackageLink?: string;
     MSCPublishStatus?: 'NotRequired' | 'Pending' | 'Published' | 'Overdue';
     SortOrder?: number;
+    // Báo cáo đấu thầu — Biểu 01A PL2
+    BiddingScope?: 'Domestic' | 'International';    // Phạm vi: Trong nước / Quốc tế
+    BiddersCount?: number;                           // Số nhà thầu nộp HSDT/HSĐX
+    EvaluationBiddersCount?: number;                 // Số NTh vào bước đánh giá tài chính
 }
 
 /** Tài liệu cần đăng tải trên muasamcong.vn */

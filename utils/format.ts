@@ -12,12 +12,15 @@ export const formatCurrency = (amount: number | undefined | null): string => {
 /** Format currency with abbreviated units (Tỷ, Tr) — used in dashboards & cards */
 export const formatShortCurrency = (amount: number): string => {
     if (amount >= 1_000_000_000) {
-        return (amount / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + ' Tỷ';
+        const val = amount / 1_000_000_000;
+        const formatted = val.toLocaleString('vi-VN', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+        return formatted + ' Tỷ';
     }
     if (amount >= 1_000_000) {
-        return (amount / 1_000_000).toFixed(0) + ' Tr';
+        const val = amount / 1_000_000;
+        return val.toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' Tr';
     }
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + ' ₫';
 };
 
 /** Alias: full VND format */
@@ -58,8 +61,9 @@ export const formatNumber = (value: number | undefined | null): string => {
 /** Format a percentage value */
 export const formatPercent = (value: number | undefined | null, decimals = 1): string => {
     if (value === undefined || value === null || isNaN(value)) return '—';
-    return `${value.toFixed(decimals)}%`;
+    return `${value.toLocaleString('vi-VN', { maximumFractionDigits: decimals, minimumFractionDigits: 0 })}%`;
 };
+
 
 /** Format file size in human-readable format */
 export const formatFileSize = (bytes: number | undefined | null): string => {

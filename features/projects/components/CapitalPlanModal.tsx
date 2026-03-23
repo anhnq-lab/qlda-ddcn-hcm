@@ -10,6 +10,9 @@ interface CapitalPlanModalProps {
     editingPlan?: CapitalPlan | null;
     projectID: string;
     isSaving?: boolean;
+    planType?: 'mid_term' | 'annual';
+    totalInvestment?: number;
+    maxAllowable?: number;
 }
 
 const SOURCES = [
@@ -20,27 +23,37 @@ const SOURCES = [
 ];
 
 export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
-    isOpen, onClose, onSave, editingPlan, projectID, isSaving
+    isOpen, onClose, onSave, editingPlan, projectID, isSaving, planType = 'annual',
+    totalInvestment = 0, maxAllowable = Infinity
 }) => {
     const [year, setYear] = useState(new Date().getFullYear());
+    const [periodStart, setPeriodStart] = useState(new Date().getFullYear());
+    const [periodEnd, setPeriodEnd] = useState(new Date().getFullYear() + 4);
     const [amount, setAmount] = useState('');
     const [source, setSource] = useState('NganSachTrungUong');
     const [decisionNumber, setDecisionNumber] = useState('');
     const [dateAssigned, setDateAssigned] = useState('');
+    const [notes, setNotes] = useState('');
 
     useEffect(() => {
         if (editingPlan) {
-            setYear(editingPlan.Year);
-            setAmount(String(editingPlan.Amount));
-            setSource(editingPlan.Source);
+            setYear(editingPlan.Year || new Date().getFullYear());
+            setPeriodStart(editingPlan.PeriodStart || new Date().getFullYear());
+            setPeriodEnd(editingPlan.PeriodEnd || new Date().getFullYear() + 4);
+            setAmount(String(editingPlan.Amount || ''));
+            setSource(editingPlan.Source || 'NganSachTrungUong');
             setDecisionNumber(editingPlan.DecisionNumber || '');
             setDateAssigned(editingPlan.DateAssigned || '');
+            setNotes(editingPlan.Notes || '');
         } else {
             setYear(new Date().getFullYear());
+            setPeriodStart(new Date().getFullYear());
+            setPeriodEnd(new Date().getFullYear() + 4);
             setAmount('');
             setSource('NganSachTrungUong');
             setDecisionNumber('');
             setDateAssigned('');
+            setNotes('');
         }
     }, [editingPlan, isOpen]);
 
@@ -49,19 +62,27 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!amount || Number(amount) <= 0) return;
+        
+        const isMidTerm = editingPlan ? editingPlan.PlanType === 'mid_term' : planType === 'mid_term';
+        
         onSave({
             ProjectID: projectID,
-            Year: year,
+            Year: isMidTerm ? periodStart : year,
             Amount: Number(amount),
             Source: source,
             DecisionNumber: decisionNumber || undefined,
             DateAssigned: dateAssigned || undefined,
             DisbursedAmount: editingPlan?.DisbursedAmount || 0,
             Status: editingPlan?.Status || 'Approved',
+            PlanType: isMidTerm ? 'mid_term' : 'annual',
+            PeriodStart: isMidTerm ? periodStart : undefined,
+            PeriodEnd: isMidTerm ? periodEnd : undefined,
+            Notes: notes || undefined,
         });
     };
 
     const isEdit = !!editingPlan;
+    const isMidTermUI = editingPlan ? editingPlan.PlanType === 'mid_term' : planType === 'mid_term';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -77,7 +98,7 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">
-                                {isEdit ? 'Sửa kế hoạch vốn' : 'Bổ sung kế hoạch vốn'}
+                                {isEdit ? 'Sửa kế hoạch vốn' : (isMidTermUI ? 'Nhập kế hoạch trung hạn' : 'Nhập kế hoạch hằng năm')}
                             </h2>
                             <p className="text-xs text-gray-400 dark:text-slate-500"><LegalReferenceLink text="Luật ĐTC 58/2024/QH15" /></p>
                         </div>
@@ -90,20 +111,51 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Năm */}
-                        <div>
-                            <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                                Năm <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={year}
-                                onChange={e => setYear(Number(e.target.value))}
-                                min={2020} max={2035}
-                                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                required
-                            />
-                        </div>
+                        {/* Giai đoạn / Năm */}
+                        {isMidTermUI ? (
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
+                                        Từ năm <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={periodStart}
+                                        onChange={e => setPeriodStart(Number(e.target.value))}
+                                        min={2000} max={2050}
+                                        className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
+                                        Đến năm <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={periodEnd}
+                                        onChange={e => setPeriodEnd(Number(e.target.value))}
+                                        min={periodStart} max={2050}
+                                        className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
+                                    Năm <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    value={year}
+                                    onChange={e => setYear(Number(e.target.value))}
+                                    min={2020} max={2035}
+                                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    required
+                                />
+                            </div>
+                        )}
 
                         {/* Nguồn vốn */}
                         <div>
@@ -128,14 +180,35 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                             Vốn giao (VNĐ) <span className="text-red-500">*</span>
                         </label>
                         <input
-                            type="number"
-                            value={amount}
-                            onChange={e => setAmount(e.target.value)}
+                            type="text"
+                            value={amount ? Number(amount).toLocaleString('vi-VN') : ''}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setAmount(val);
+                            }}
                             placeholder="Nhập số tiền..."
-                            min={0}
                             className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                             required
                         />
+                        {(() => {
+                            const numAmount = Number(amount) || 0;
+                            const isOverMax = maxAllowable < Infinity && numAmount > maxAllowable;
+                            const isMidTermOver = isMidTermUI && totalInvestment > 0 && numAmount > totalInvestment;
+                            if (isMidTermOver) return (
+                                <p className="mt-1.5 text-xs font-medium text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800/50">
+                                    ⚠️ Vượt Tổng mức đầu tư ({Number(totalInvestment).toLocaleString('vi-VN')} đ)
+                                </p>
+                            );
+                            if (isOverMax) return (
+                                <p className="mt-1.5 text-xs font-medium text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800/50">
+                                    ⚠️ Vượt hạn mức cho phép ({Number(maxAllowable).toLocaleString('vi-VN')} đ). Còn lại: {Number(maxAllowable).toLocaleString('vi-VN')} đ
+                                </p>
+                            );
+                            if (numAmount > 0 && maxAllowable < Infinity) return (
+                                <p className="mt-1 text-[10px] text-gray-400 dark:text-slate-500">Hạn mức còn lại: {Number(maxAllowable).toLocaleString('vi-VN')} đ</p>
+                            );
+                            return null;
+                        })()}
                     </div>
 
                     {/* Quyết định */}
@@ -165,6 +238,20 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                         </div>
                     </div>
 
+                    {/* Ghi chú */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
+                            Ghi chú / Thuyết minh
+                        </label>
+                        <textarea
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            placeholder="Nhập ghi chú hoặc lý do điều chỉnh..."
+                            rows={2}
+                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                        />
+                    </div>
+
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-slate-700">
                         <button
@@ -176,7 +263,7 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                         </button>
                         <button
                             type="submit"
-                            disabled={isSaving || !amount}
+                            disabled={isSaving || !amount || ((Number(amount) || 0) > maxAllowable) || (isMidTermUI && totalInvestment > 0 && (Number(amount) || 0) > totalInvestment)}
                             className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm"
                         >
                             <Save className="w-4 h-4" />

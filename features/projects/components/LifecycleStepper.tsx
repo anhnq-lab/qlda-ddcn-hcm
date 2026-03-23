@@ -172,9 +172,9 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 
     return (
         <>
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
                         <Circle className="w-3 h-3" />
                         Vòng đời dự án (NĐ 175/2024)
@@ -203,7 +203,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                             <button
                                 onClick={handleAdvanceStage}
                                 className="flex items-center gap-1.5 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm"
-                                style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                                
                             >
                                 <ArrowRight className="w-3.5 h-3.5" />
                                 Chuyển giai đoạn
@@ -215,7 +215,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                 {/* Progress Steps */}
                 <div className="flex items-start justify-between relative">
                     {/* Progress line */}
-                    <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 dark:bg-slate-600 rounded-full" style={{ margin: '0 40px' }}>
+                    <div className="absolute top-[18px] left-0 right-0 h-0.5 bg-gray-200 dark:bg-slate-600 rounded-full" style={{ margin: '0 30px' }}>
                         <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{ background: 'linear-gradient(90deg, #3B82F6, #F97316, #10B981)', width: `${Math.max(0, (currentIndex / (STAGES.length - 1)) * 100)}%` }}
@@ -234,23 +234,23 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                             >
                                 {/* Circle/Icon — mỗi giai đoạn giữ màu riêng */}
                                 <div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
-                                        ${status === 'current' ? 'ring-4 scale-110' : ''}
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
+                                        ${status === 'current' ? 'ring-3 scale-110' : ''}
                                         ${status === 'upcoming' ? 'opacity-40' : ''}
                                     `}
-                                    style={{ background: `linear-gradient(135deg, ${stage.hex}, ${stage.hexDark})`, ...(status === 'current' ? { boxShadow: `0 0 0 4px ${stage.hex}30` } : {}) }}
+                                    style={{ background: `linear-gradient(135deg, ${stage.hex}, ${stage.hexDark})`, ...(status === 'current' ? { boxShadow: `0 0 0 3px ${stage.hex}30` } : {}) }}
                                     title={stage.description}
                                 >
                                     {status === 'completed' ? (
-                                        <CheckCircle2 className="w-6 h-6" />
+                                        <CheckCircle2 className="w-4 h-4" />
                                     ) : (
-                                        <Icon className="w-5 h-5" />
+                                        <Icon className="w-4 h-4" />
                                     )}
                                 </div>
 
                                 {/* Label */}
-                                <div className="mt-3 text-center">
-                                    <span className={`text-xs font-bold ${status === 'upcoming' ? 'opacity-40' : ''}`} style={{ color: stage.hex }}>
+                                <div className="mt-2 text-center">
+                                    <span className={`text-[10px] font-bold ${status === 'upcoming' ? 'opacity-40' : ''}`} style={{ color: stage.hex }}>
                                         {stage.label}
                                     </span>
                                 </div>

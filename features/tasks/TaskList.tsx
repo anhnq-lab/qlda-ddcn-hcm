@@ -1,39 +1,37 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Task, TaskStatus, TaskPriority } from '../../types';
-import { getTimelineStepLabel, getPhaseColor, getTimelineStepOptions } from '../../utils/timelineStepUtils';
+import { getTimelineStepLabel, getPhaseColor } from '../../utils/timelineStepUtils';
+import { TaskCreateEditModal, getStatusInfo, getPriorityInfo } from './TaskCreateEditModal';
 import {
     Search, Plus, Calendar, User, CheckCircle2, Clock, AlertCircle,
-    Trash2, Edit, Briefcase, Layers, ExternalLink, BarChart3, ChevronDown,
+    Trash2, Edit, Briefcase, Layers, ExternalLink, BarChart3, ChevronDown, ChevronUp,
     ListTodo, LayoutGrid, Filter, TrendingUp, Target, AlertTriangle,
-    ArrowUpRight, Sparkles, FolderOpen, X
+    ArrowUpRight, Sparkles, FolderOpen, X, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight
 } from 'lucide-react';
+
+// ═══════════════════════════════════════════════════
+// Sort / Pagination Types
+// ═══════════════════════════════════════════════════
+type SortField = 'Title' | 'ProgressPercent' | 'DueDate' | 'Priority' | 'Status';
+type SortDir = 'asc' | 'desc';
+
+const PRIORITY_ORDER: Record<string, number> = {
+    [TaskPriority.Urgent]: 0, [TaskPriority.High]: 1, [TaskPriority.Medium]: 2, [TaskPriority.Low]: 3,
+};
+
+const STATUS_ORDER: Record<string, number> = {
+    [TaskStatus.InProgress]: 0, [TaskStatus.Review]: 1, [TaskStatus.Todo]: 2, [TaskStatus.Done]: 3,
+};
+
+const PAGE_SIZES = [25, 50, 100] as const;
 
 // ═══════════════════════════════════════════════════
 // Helper Functions
 // ═══════════════════════════════════════════════════
-
-const getPriorityInfo = (p: TaskPriority) => {
-    switch (p) {
-        case TaskPriority.Urgent: return { label: 'KHẨN CẤP', color: 'bg-red-500/10 text-red-600 ring-1 ring-red-500/20', dot: 'bg-red-500' };
-        case TaskPriority.High: return { label: 'CAO', color: 'bg-orange-500/10 text-orange-600 ring-1 ring-orange-500/20', dot: 'bg-orange-500' };
-        case TaskPriority.Medium: return { label: 'TRUNG BÌNH', color: 'bg-sky-500/10 text-sky-600 ring-1 ring-sky-500/20', dot: 'bg-sky-500' };
-        case TaskPriority.Low: return { label: 'THẤP', color: 'bg-slate-500/10 text-slate-500 ring-1 ring-slate-500/20', dot: 'bg-slate-400' };
-        default: return { label: p, color: 'bg-slate-100 text-slate-500', dot: 'bg-slate-400' };
-    }
-};
-
-const getStatusInfo = (s: TaskStatus) => {
-    switch (s) {
-        case TaskStatus.Done: return { label: 'Hoàn thành', color: 'text-emerald-600', bg: 'bg-emerald-500', ring: 'ring-emerald-500/30', icon: <CheckCircle2 className="w-4 h-4" /> };
-        case TaskStatus.Review: return { label: 'Chờ duyệt', color: 'text-violet-600', bg: 'bg-violet-500', ring: 'ring-violet-500/30', icon: <AlertCircle className="w-4 h-4" /> };
-        case TaskStatus.InProgress: return { label: 'Đang thực hiện', color: 'text-blue-600', bg: 'bg-blue-500', ring: 'ring-blue-500/30', icon: <Clock className="w-4 h-4" /> };
-        default: return { label: 'Cần làm', color: 'text-slate-500', bg: 'bg-slate-300', ring: 'ring-slate-300/30', icon: <div className="w-4 h-4 rounded-full border-2 border-slate-300" /> };
-    }
-};
 
 const getProgressGradient = (percent: number) => {
     if (percent >= 100) return 'from-emerald-400 to-emerald-600';
@@ -57,6 +55,17 @@ const TaskList: React.FC = () => {
     const [currentTask, setCurrentTask] = useState<Partial<Task>>({});
     const [isEditMode, setIsEditMode] = useState(false);
 
+    // ── Sort ──
+    const [sortField, setSortField] = useState<SortField | null>(null);
+    const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+    // ── Pagination ──
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState<number>(50);
+
+    // ── Batch selection ──
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
     // Data
     const { data: tasks = [], isLoading } = useTasks();
     const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
@@ -78,15 +87,42 @@ const TaskList: React.FC = () => {
         return matchSearch && matchStatus && matchProject;
     }), [tasks, searchTerm, filterStatus, filterProject, scopedProjectIds]);
 
-    // ── Group by project ──
+    // ── Sort ──
+    const sortedTasks = useMemo(() => {
+        if (!sortField) return filteredTasks;
+        const sorted = [...filteredTasks].sort((a, b) => {
+            let cmp = 0;
+            switch (sortField) {
+                case 'Title': cmp = a.Title.localeCompare(b.Title, 'vi'); break;
+                case 'ProgressPercent': cmp = (a.ProgressPercent || 0) - (b.ProgressPercent || 0); break;
+                case 'DueDate': cmp = (a.DueDate || '9999').localeCompare(b.DueDate || '9999'); break;
+                case 'Priority': cmp = (PRIORITY_ORDER[a.Priority] ?? 9) - (PRIORITY_ORDER[b.Priority] ?? 9); break;
+                case 'Status': cmp = (STATUS_ORDER[a.Status] ?? 9) - (STATUS_ORDER[b.Status] ?? 9); break;
+            }
+            return sortDir === 'asc' ? cmp : -cmp;
+        });
+        return sorted;
+    }, [filteredTasks, sortField, sortDir]);
+
+    // ── Pagination ──
+    const totalPages = Math.ceil(sortedTasks.length / pageSize);
+    const paginatedTasks = useMemo(() =>
+        sortedTasks.slice(page * pageSize, (page + 1) * pageSize)
+    , [sortedTasks, page, pageSize]);
+
+    // Reset page when filters change
+    const filteredLen = filteredTasks.length;
+    useMemo(() => { setPage(0); }, [filteredLen, sortField, sortDir]);
+
+    // ── Group by project (paginated) ──
     const tasksByProject = useMemo(() =>
-        filteredTasks.reduce((acc, task) => {
+        paginatedTasks.reduce((acc, task) => {
             const pid = task.ProjectID;
             if (!acc[pid]) acc[pid] = [];
             acc[pid].push(task);
             return acc;
         }, {} as Record<string, Task[]>)
-        , [filteredTasks]);
+        , [paginatedTasks]);
 
     // ── Stats ──
     const stats = useMemo(() => {
@@ -106,6 +142,45 @@ const TaskList: React.FC = () => {
     // ── Helpers ──
     const getProjectName = (id: string) => projects.find(p => p.ProjectID === id)?.ProjectName || id;
     const getAssignee = (id: string) => employees.find(e => e.EmployeeID === id);
+
+    // ── Sort handler ──
+    const handleSort = useCallback((field: SortField) => {
+        if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortDir('asc'); }
+    }, [sortField]);
+
+    const SortIcon: React.FC<{ field: SortField }> = ({ field }) => {
+        if (sortField !== field) return <ChevronDown className="w-3 h-3 opacity-0 group-hover/th:opacity-40 transition-opacity" />;
+        return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-500" /> : <ChevronDown className="w-3 h-3 text-blue-500" />;
+    };
+
+    // ── Batch selection ──
+    const toggleSelect = useCallback((id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    }, []);
+
+    const toggleSelectAll = useCallback(() => {
+        if (selectedIds.size === paginatedTasks.length) setSelectedIds(new Set());
+        else setSelectedIds(new Set(paginatedTasks.map(t => t.TaskID)));
+    }, [selectedIds.size, paginatedTasks]);
+
+    const handleBatchDelete = async () => {
+        if (!window.confirm(`Xóa ${selectedIds.size} công việc đã chọn?`)) return;
+        await Promise.all(Array.from(selectedIds).map((id: string) => deleteTaskMutation.mutateAsync(id)));
+        setSelectedIds(new Set());
+    };
+
+    const handleBatchStatus = async (status: TaskStatus) => {
+        const tasksToUpdate = tasks.filter(t => selectedIds.has(t.TaskID));
+        await Promise.all(tasksToUpdate.map(t =>
+            updateTaskMutation.mutateAsync({ ...t, Status: status })
+        ));
+        setSelectedIds(new Set());
+    };
 
     // ── CRUD handlers ──
     const handleDelete = async (id: string) => {
@@ -132,9 +207,8 @@ const TaskList: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const taskToSave = { ...currentTask, TaskID: currentTask.TaskID || `TSK-${Date.now()}` } as Task;
+    const handleSave = async (taskData: Partial<Task>) => {
+        const taskToSave = { ...taskData, TaskID: taskData.TaskID || `TSK-${Date.now()}` } as Task;
         if (isEditMode) await updateTaskMutation.mutateAsync(taskToSave);
         else await createTaskMutation.mutateAsync(taskToSave);
         setIsModalOpen(false);
@@ -151,79 +225,78 @@ const TaskList: React.FC = () => {
             {/* ══════════ STATS DASHBOARD ══════════ */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Total */}
-                <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-3 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full -translate-y-6 translate-x-6" />
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Target className="w-4 h-4 text-white/80" />
+                <div className="col-span-2 lg:col-span-1 stat-card stat-card-blue cursor-default">
+                    <span className="stat-card-label">Tổng công việc</span>
+                    <div className="flex items-center justify-between">
+                        <p className="stat-card-value tabular-nums">{stats.total}</p>
+                        <div className="stat-card-icon">
+                            <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <span className="text-[10px] font-medium text-white/80 uppercase tracking-wider">Tổng công việc</span>
                     </div>
-                    <p className="text-2xl font-black">{stats.total}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{ background: 'linear-gradient(90deg, #C4A035, #D4A017)', width: `${stats.completion}%` }}
+                                className="h-full bg-blue-500 rounded-full transition-all duration-700"
+                                style={{ width: `${stats.completion}%` }}
                             />
                         </div>
-                        <span className="text-[10px] font-bold text-emerald-400">{stats.completion}%</span>
+                        <span className="text-[10px] font-bold text-emerald-500">{stats.completion}%</span>
                     </div>
                 </div>
 
                 {/* In Progress */}
-                <div className="relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200 cursor-pointer" style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+                <div className="stat-card stat-card-amber cursor-pointer hover:shadow-md"
                     onClick={() => setFilterStatus(filterStatus === TaskStatus.InProgress ? 'All' : TaskStatus.InProgress)}>
-                    <div className="absolute -right-2 -top-2 opacity-[0.12]">
-                        <TrendingUp className="w-16 h-16" strokeWidth={1.2} />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Đang thực hiện</p>
-                        <p className="text-xl font-black mt-1 tracking-tight drop-shadow-sm">{stats.inProgress}</p>
+                    <span className="stat-card-label">Đang thực hiện</span>
+                    <div className="flex items-center justify-between">
+                        <p className="stat-card-value tabular-nums">{stats.inProgress}</p>
+                        <div className="stat-card-icon">
+                            <TrendingUp className="w-4 h-4" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Review */}
-                <div className="relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200 cursor-pointer" style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+                <div className="stat-card stat-card-violet cursor-pointer hover:shadow-md"
                     onClick={() => setFilterStatus(filterStatus === TaskStatus.Review ? 'All' : TaskStatus.Review)}>
-                    <div className="absolute -right-2 -top-2 opacity-[0.12]">
-                        <AlertCircle className="w-16 h-16" strokeWidth={1.2} />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Chờ duyệt</p>
-                        <p className="text-xl font-black mt-1 tracking-tight drop-shadow-sm">{stats.review}</p>
+                    <span className="stat-card-label">Chờ duyệt</span>
+                    <div className="flex items-center justify-between">
+                        <p className="stat-card-value tabular-nums">{stats.review}</p>
+                        <div className="stat-card-icon">
+                            <AlertCircle className="w-4 h-4" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Done */}
-                <div className="relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200 cursor-pointer" style={{ background: 'linear-gradient(135deg, #5A4F35 0%, #4A4230 100%)', borderTop: '3px solid #C4A035', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+                <div className="stat-card stat-card-emerald cursor-pointer hover:shadow-md"
                     onClick={() => setFilterStatus(filterStatus === TaskStatus.Done ? 'All' : TaskStatus.Done)}>
-                    <div className="absolute -right-2 -top-2 opacity-[0.12]">
-                        <CheckCircle2 className="w-16 h-16" strokeWidth={1.2} />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Hoàn thành</p>
-                        <p className="text-xl font-black mt-1 tracking-tight drop-shadow-sm">{stats.done}</p>
+                    <span className="stat-card-label">Hoàn thành</span>
+                    <div className="flex items-center justify-between">
+                        <p className="stat-card-value tabular-nums">{stats.done}</p>
+                        <div className="stat-card-icon">
+                            <CheckCircle2 className="w-4 h-4" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Overdue */}
-                <div className="relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200 cursor-pointer" style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+                <div className="stat-card stat-card-rose cursor-pointer hover:shadow-md"
                     onClick={() => { /* custom overdue filter logic */ }}>
-                    <div className="absolute -right-2 -top-2 opacity-[0.12]">
-                        <AlertTriangle className="w-16 h-16" strokeWidth={1.2} />
-                    </div>
-                    {stats.overdue > 0 && (
-                        <div className="absolute top-2 right-2">
-                            <span className="flex h-2.5 w-2.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-50"></span>
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/70"></span>
+                    <div className="flex items-center justify-between">
+                        <span className="stat-card-label">Quá hạn</span>
+                        {stats.overdue > 0 && (
+                            <span className="flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-rose-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                             </span>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <p className="stat-card-value tabular-nums">{stats.overdue}</p>
+                        <div className="stat-card-icon">
+                            <AlertTriangle className="w-4 h-4" />
                         </div>
-                    )}
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Quá hạn</p>
-                        <p className="text-xl font-black mt-1 tracking-tight drop-shadow-sm">{stats.overdue}</p>
                     </div>
                 </div>
             </div>
@@ -310,7 +383,7 @@ const TaskList: React.FC = () => {
                         <button
                             onClick={openCreateModal}
                             className="flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg active:scale-[0.98]"
-                            style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
+                            
                         >
                             <Plus className="w-4 h-4" />
                             <span>Tạo công việc</span>
@@ -319,22 +392,72 @@ const TaskList: React.FC = () => {
                 </div>
             </div>
 
+            {/* ══════════ BATCH BAR ══════════ */}
+            {selectedIds.size > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl animate-in fade-in duration-200">
+                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                        {selectedIds.size} công việc được chọn
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <select
+                            onChange={(e) => { if (e.target.value) handleBatchStatus(e.target.value as TaskStatus); e.target.value = ''; }}
+                            className="text-xs px-3 py-1.5 bg-white dark:bg-slate-700 border border-blue-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 cursor-pointer"
+                            defaultValue=""
+                        >
+                            <option value="" disabled>Đổi trạng thái...</option>
+                            <option value={TaskStatus.Todo}>Cần làm</option>
+                            <option value={TaskStatus.InProgress}>Đang thực hiện</option>
+                            <option value={TaskStatus.Review}>Chờ duyệt</option>
+                            <option value={TaskStatus.Done}>Hoàn thành</option>
+                        </select>
+                        <button
+                            onClick={handleBatchDelete}
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg font-medium transition-colors"
+                        >
+                            <Trash2 className="w-3 h-3" /> Xóa
+                        </button>
+                        <button
+                            onClick={() => setSelectedIds(new Set())}
+                            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 px-2"
+                        >
+                            Bỏ chọn
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* ══════════ TASK LIST ══════════ */}
-            {viewMode === 'list' ? (
+            {viewMode === 'list' ? (<>
                 <div className="space-y-0">
                     {Object.keys(tasksByProject).length > 0 ? (
                         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="table-header-row">
-                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest w-12"></th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest max-w-[280px]">Công việc</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest hidden md:table-cell w-44">Bước thực hiện</th>
-                                        <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest w-24">Tiến độ</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest hidden lg:table-cell w-40">Phụ trách</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest hidden sm:table-cell w-28">Hạn chót</th>
-                                        <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest w-24">Ưu tiên</th>
-                                        <th className="px-4 py-3 w-20"></th>
+                                    <tr className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                        <th className="px-3 py-3 w-10 border-b border-slate-200 dark:border-slate-800 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={paginatedTasks.length > 0 && selectedIds.size === paginatedTasks.length}
+                                                onChange={toggleSelectAll}
+                                                className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500/30 cursor-pointer"
+                                            />
+                                        </th>
+                                        <th className="px-4 py-3 text-left w-12 border-b border-slate-200 dark:border-slate-800"></th>
+                                        <th onClick={() => handleSort('Title')} className="group/th px-4 py-3 text-left max-w-[280px] cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
+                                            <span className="flex items-center gap-1">Công việc <SortIcon field="Title" /></span>
+                                        </th>
+                                        <th className="px-4 py-3 text-left hidden md:table-cell w-44 border-b border-slate-200 dark:border-slate-800">Bước thực hiện</th>
+                                        <th onClick={() => handleSort('ProgressPercent')} className="group/th px-4 py-3 text-center w-24 cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
+                                            <span className="flex items-center justify-center gap-1">Tiến độ <SortIcon field="ProgressPercent" /></span>
+                                        </th>
+                                        <th className="px-4 py-3 text-left hidden lg:table-cell w-40 border-b border-slate-200 dark:border-slate-800">Phụ trách</th>
+                                        <th onClick={() => handleSort('DueDate')} className="group/th px-4 py-3 text-left hidden sm:table-cell w-28 cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
+                                            <span className="flex items-center gap-1">Hạn chót <SortIcon field="DueDate" /></span>
+                                        </th>
+                                        <th onClick={() => handleSort('Priority')} className="group/th px-4 py-3 text-center w-24 cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
+                                            <span className="flex items-center justify-center gap-1">Ưu tiên <SortIcon field="Priority" /></span>
+                                        </th>
+                                        <th className="px-4 py-3 w-20 border-b border-slate-200 dark:border-slate-800"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
@@ -342,9 +465,9 @@ const TaskList: React.FC = () => {
                                         <React.Fragment key={projectId}>
                                             {/* ── Project Group Separator ── */}
                                             <tr className="bg-slate-50/80 dark:bg-slate-700/30 border-t-2 border-slate-200 dark:border-slate-600">
-                                                <td colSpan={8} className="px-4 py-2.5">
+                                                <td colSpan={10} className="px-4 py-2.5">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="p-1.5 rounded-lg shadow-sm" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+                                                        <div className="p-1.5 rounded-lg shadow-sm" >
                                                             <Briefcase className="w-3.5 h-3.5 text-white" />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -375,8 +498,17 @@ const TaskList: React.FC = () => {
                                                     <tr
                                                         key={task.TaskID}
                                                         onClick={() => navigate(`/tasks/${task.TaskID}`)}
-                                                        className={`group cursor-pointer transition-all hover:bg-slate-50/80 dark:hover:bg-slate-700/50 ${isOverdue ? 'bg-red-50/40 dark:bg-red-900/10' : ''}`}
+                                                        className={`group cursor-pointer transition-all hover:bg-slate-50/80 dark:hover:bg-slate-700/50 ${isOverdue ? 'bg-red-50/40 dark:bg-red-900/10' : ''} ${selectedIds.has(task.TaskID) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                                                     >
+                                                        {/* Checkbox */}
+                                                        <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedIds.has(task.TaskID)}
+                                                                onChange={() => toggleSelect(task.TaskID)}
+                                                                className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500/30 cursor-pointer"
+                                                            />
+                                                        </td>
                                                         {/* Status */}
                                                         <td className="px-4 py-3.5">
                                                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${statusInfo.bg}/10 ${statusInfo.color}`}>
@@ -505,7 +637,46 @@ const TaskList: React.FC = () => {
                         </div>
                     )}
                 </div>
-            ) : (
+
+                {/* ══════════ PAGINATION ══════════ */}
+                {sortedTasks.length > pageSize && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                                Hiển thị {page * pageSize + 1}–{Math.min((page + 1) * pageSize, sortedTasks.length)} / {sortedTasks.length}
+                            </span>
+                            <select
+                                value={pageSize}
+                                onChange={e => { setPageSize(Number(e.target.value)); setPage(0); }}
+                                className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300 cursor-pointer"
+                            >
+                                {PAGE_SIZES.map(s => <option key={s} value={s}>{s} / trang</option>)}
+                            </select>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => setPage(0)} disabled={page === 0}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 disabled:opacity-30 transition-colors">
+                                <ChevronsLeft className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 disabled:opacity-30 transition-colors">
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <span className="px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg min-w-[60px] text-center">
+                                {page + 1} / {totalPages}
+                            </span>
+                            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 disabled:opacity-30 transition-colors">
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 disabled:opacity-30 transition-colors">
+                                <ChevronsRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </>) : (
                 /* ══════════ BOARD VIEW (Kanban-like columns) ══════════ */
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {[TaskStatus.Todo, TaskStatus.InProgress, TaskStatus.Review, TaskStatus.Done].map(status => {
@@ -579,184 +750,15 @@ const TaskList: React.FC = () => {
             )}
 
             {/* ══════════ MODAL ══════════ */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-slate-700">
-                        {/* Modal Header */}
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 sticky top-0 z-10">
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{isEditMode ? 'Cập nhật công việc' : 'Tạo công việc mới'}</h3>
-                                <p className="text-xs text-slate-400 mt-0.5">{isEditMode ? 'Chỉnh sửa thông tin' : 'Điền thông tin để tạo công việc'}</p>
-                            </div>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSave} className="p-6 space-y-5">
-                            {/* Title */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Tên công việc *</label>
-                                <input
-                                    required
-                                    value={currentTask.Title || ''}
-                                    onChange={e => setCurrentTask({ ...currentTask, Title: e.target.value })}
-                                    type="text"
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm dark:text-slate-200 font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
-                                    placeholder="Nhập tên đầu việc..."
-                                />
-                            </div>
-
-                            {/* Description */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Mô tả</label>
-                                <textarea
-                                    rows={3}
-                                    value={currentTask.Description || ''}
-                                    onChange={e => setCurrentTask({ ...currentTask, Description: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all resize-none"
-                                    placeholder="Mô tả nội dung công việc..."
-                                />
-                            </div>
-
-                            {/* Project + Assignee */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Dự án</label>
-                                    <select
-                                        value={currentTask.ProjectID}
-                                        onChange={e => setCurrentTask({ ...currentTask, ProjectID: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                    >
-                                        {projects.map(p => (
-                                            <option key={p.ProjectID} value={p.ProjectID}>{p.ProjectName.substring(0, 28)}...</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Phụ trách</label>
-                                    <select
-                                        value={currentTask.AssigneeID}
-                                        onChange={e => setCurrentTask({ ...currentTask, AssigneeID: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                    >
-                                        {employees.map(e => (
-                                            <option key={e.EmployeeID} value={e.EmployeeID}>{e.FullName}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* TimelineStep */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                                    <Layers className="w-3 h-3" /> Bước thực hiện
-                                </label>
-                                <select
-                                    value={currentTask.TimelineStep || ''}
-                                    onChange={e => setCurrentTask({ ...currentTask, TimelineStep: e.target.value || undefined })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                >
-                                    <option value="">-- Không chọn --</option>
-                                    {(() => {
-                                        const options = getTimelineStepOptions();
-                                        const groups = Array.from(new Set(options.map(o => o.group)));
-                                        return groups.map(group => (
-                                            <optgroup key={group} label={group}>
-                                                {options.filter(o => o.group === group).map(o => (
-                                                    <option key={o.value} value={o.value}>{o.label}</option>
-                                                ))}
-                                            </optgroup>
-                                        ));
-                                    })()}
-                                </select>
-                            </div>
-
-                            {/* Date + Status + Priority */}
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Hạn chót</label>
-                                    <input
-                                        type="date"
-                                        value={currentTask.DueDate || ''}
-                                        onChange={e => setCurrentTask({ ...currentTask, DueDate: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Trạng thái</label>
-                                    <select
-                                        value={currentTask.Status}
-                                        onChange={e => setCurrentTask({ ...currentTask, Status: e.target.value as TaskStatus })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                    >
-                                        {Object.values(TaskStatus).map(s => (
-                                            <option key={s} value={s}>{getStatusInfo(s).label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ưu tiên</label>
-                                    <select
-                                        value={currentTask.Priority}
-                                        onChange={e => setCurrentTask({ ...currentTask, Priority: e.target.value as TaskPriority })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                                    >
-                                        {Object.values(TaskPriority).map(s => (
-                                            <option key={s} value={s}>{getPriorityInfo(s).label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Progress */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                                        <BarChart3 className="w-3 h-3" /> Tiến độ
-                                    </label>
-                                    <span className="text-sm font-black text-blue-600">{currentTask.ProgressPercent || 0}%</span>
-                                </div>
-                                <div className="relative">
-                                    <input
-                                        type="range"
-                                        min={0}
-                                        max={100}
-                                        step={5}
-                                        value={currentTask.ProgressPercent || 0}
-                                        onChange={e => setCurrentTask({ ...currentTask, ProgressPercent: parseInt(e.target.value) })}
-                                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                    />
-                                    <div className="flex justify-between text-[9px] text-slate-300 mt-1 px-0.5">
-                                        <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-6 py-2.5 text-sm font-bold text-white rounded-xl shadow-lg transition-all active:scale-[0.98]"
-                                    style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
-                                >
-                                    {isEditMode ? 'Lưu thay đổi' : 'Tạo công việc'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <TaskCreateEditModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleSave}
+                initialData={currentTask}
+                isEditMode={isEditMode}
+                projects={projects}
+                employees={employees}
+            />
         </div>
     );
 };

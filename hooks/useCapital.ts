@@ -126,3 +126,51 @@ export const useDeleteDisbursement = () => {
         },
     });
 };
+
+export const useBulkSaveDisbursementPlans = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ projectId, year, plans }: { projectId: string; year: number; plans: { id?: string, month: number, plannedAmount: number, actualAmount: number, notes: string }[] }) =>
+            CapitalService.bulkSaveDisbursementPlans(projectId, year, plans),
+        onSuccess: (_data, variables) => {
+            CAPITAL_QUERY_KEYS(variables.projectId).forEach(k => qc.invalidateQueries({ queryKey: k }));
+        },
+    });
+};
+
+// ═══════════════════════════════════════════════════════════
+// MUTATIONS — Disbursement Plans
+// ═══════════════════════════════════════════════════════════
+
+export const useCreateDisbursementPlan = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (plan: Omit<import('../services/CapitalService').DisbursementPlanItem, 'Id'>) =>
+            CapitalService.createDisbursementPlan(plan),
+        onSuccess: (_data, variables) => {
+            qc.invalidateQueries({ queryKey: ['disbursementPlans', variables.ProjectID] });
+        },
+    });
+};
+
+export const useUpdateDisbursementPlan = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, updates, projectId }: { id: string; updates: Partial<import('../services/CapitalService').DisbursementPlanItem>; projectId: string }) =>
+            CapitalService.updateDisbursementPlan(id, updates),
+        onSuccess: (_data, variables) => {
+            qc.invalidateQueries({ queryKey: ['disbursementPlans', variables.projectId] });
+        },
+    });
+};
+
+export const useDeleteDisbursementPlan = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, projectId }: { id: string; projectId: string }) =>
+            CapitalService.deleteDisbursementPlan(id),
+        onSuccess: (_data, variables) => {
+            qc.invalidateQueries({ queryKey: ['disbursementPlans', variables.projectId] });
+        },
+    });
+};

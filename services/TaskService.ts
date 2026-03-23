@@ -1,7 +1,7 @@
 // Task Service - Supabase CRUD operations
 import { supabase } from '../lib/supabase';
 import { dbToTask, taskToDb } from '../lib/dbMappers';
-import { Task } from '../types';
+import { Task, TaskStatus } from '../types';
 
 export const TaskService = {
     getAllTasks: async (): Promise<Task[]> => {
@@ -12,6 +12,20 @@ export const TaskService = {
 
         if (error) throw new Error(`Failed to fetch tasks: ${error.message}`);
         return (data || []).map(dbToTask);
+    },
+
+    getTaskById: async (taskId: string): Promise<Task | null> => {
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('task_id', taskId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') return null; // Not found
+            throw new Error(`Failed to fetch task: ${error.message}`);
+        }
+        return data ? dbToTask(data) : null;
     },
 
     getTasksByProject: async (projectId: string): Promise<Task[]> => {
@@ -49,8 +63,8 @@ export const TaskService = {
         // Auto-set ActualEndDate when progress reaches 100%
         if (progress >= 100) {
             if (!task.ActualEndDate) task.ActualEndDate = today;
-            if (task.Status !== 'Done') {
-                task.Status = 'Done' as any;
+            if (task.Status !== TaskStatus.Done) {
+                task.Status = TaskStatus.Done;
             }
         } else if (task.ActualEndDate && progress < 100) {
             // Clear ActualEndDate if progress drops below 100%
@@ -75,9 +89,18 @@ export const TaskService = {
     },
 
     deleteTask: async (id: string): Promise<boolean> => {
-        // Xóa sub_tasks liên quan trước
-        await supabase.from('sub_tasks').delete().eq('task_id', id);
-        
+        // 1. Xóa sub_tasks liên quan
+        const { error: subError } = await supabase.from('sub_tasks').delete().eq('task_id', id);
+        if (subError) console.warn(`Warning: Failed to delete sub_tasks for ${id}:`, subError.message);
+
+        // 2. Xóa tham chiếu predecessor từ các task phụ thuộc
+        const { error: depError } = await supabase
+            .from('tasks')
+            .update({ predecessor_task_id: null })
+            .eq('predecessor_task_id', id);
+        if (depError) console.warn(`Warning: Failed to clear predecessor refs for ${id}:`, depError.message);
+
+        // 3. Xóa task chính
         const { error } = await supabase
             .from('tasks')
             .delete()

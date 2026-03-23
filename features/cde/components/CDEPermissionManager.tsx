@@ -163,7 +163,7 @@ const CDEPermissionManager: React.FC<{ projectId: string }> = ({ projectId }) =>
     const orgPermissions = (orgId: string) => permissions.filter(p => p.user_id.startsWith(orgId));
 
     // Get unique orgs from permissions
-    const projectOrgs = [...new Set(permissions.map(p => p.user_id.split('/')[0]))].map(id => {
+    const projectOrgs = (Array.from(new Set(permissions.map(p => p.user_id.split('/')[0]))) as string[]).map(id => {
         const org = contractors.find(c => c.contractor_id === id);
         return { id, name: org?.full_name || id, representative: org?.representative };
     });
@@ -185,7 +185,7 @@ const CDEPermissionManager: React.FC<{ projectId: string }> = ({ projectId }) =>
                         <p className="text-[10px] text-gray-400">Thêm đơn vị, tạo tài khoản đăng nhập cho nhân sự</p>
                     </div>
                 </div>
-                <button onClick={() => setShowAddOrg(true)} className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl text-xs font-bold shadow-lg hover:shadow-xl transition-all" style={{ background: 'linear-gradient(135deg, #5A4A25, #D4A017)' }}>
+                <button onClick={() => setShowAddOrg(true)} className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl text-xs font-bold shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-amber-600 to-yellow-600">
                     <Building2 className="w-4 h-4" /> Thêm đơn vị
                 </button>
             </div>
@@ -375,8 +375,7 @@ const CDEPermissionManager: React.FC<{ projectId: string }> = ({ projectId }) =>
                         <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3 bg-gray-50/80 dark:bg-slate-800/80">
                             <button onClick={() => setShowAddStaff(null)} className="px-4 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-600 rounded-xl text-xs font-bold">Hủy</button>
                             <button onClick={() => createStaffAccount(showAddStaff)} disabled={saving}
-                                className="px-5 py-2.5 text-white rounded-xl text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                                style={{ background: 'linear-gradient(135deg, #5A4A25, #D4A017)' }}>
+                                className="px-5 py-2.5 text-white rounded-xl text-xs font-bold flex items-center gap-2 disabled:opacity-50 bg-gradient-to-br from-amber-600 to-yellow-600">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                                 Tạo tài khoản
                             </button>

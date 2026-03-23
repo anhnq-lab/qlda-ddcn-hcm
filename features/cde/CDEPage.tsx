@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { useTabSearchParam } from '@/hooks/useTabSearchParam';
 import { useAuth } from '../../context/AuthContext';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useCDEFolders, useCDEDocuments, useCDEProjectDocuments, useCDEStats, useCDEWorkflowHistory, useUploadCDE, useProcessWorkflowStep, useDownloadCDE, useCDEUserPermission } from '../../hooks/useCDE';
@@ -52,7 +53,7 @@ const CDEPage: React.FC = () => {
     const [showTransmittal, setShowTransmittal] = useState(false);
     const [filters, setFilters] = useState<CDEFilters>(EMPTY_FILTERS);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [activeTab, setActiveTab] = useState<'explorer' | 'analytics' | 'permissions' | 'transmittals' | 'audit'>('explorer');
+    const [activeTab, setActiveTab] = useTabSearchParam('explorer', ['explorer', 'analytics', 'permissions', 'transmittals', 'audit'] as const);
     const [activePhase, setActivePhase] = useState('implementation');
     const [previewDoc, setPreviewDoc] = useState<CDEDocument | null>(null);
     const [signDoc, setSignDoc] = useState<CDEDocument | null>(null);

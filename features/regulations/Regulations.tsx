@@ -95,8 +95,7 @@ const OrgChart = () => {
 
                 {/* Level 1: Giám đốc Ban */}
                 <div className="relative z-10 mb-4 group">
-                    <div className="text-white px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-gray-200 text-center relative cursor-default hover:scale-105 transition-transform"
-                        style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)' }}>
+                    <div className="text-white px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-gray-200 text-center relative cursor-default hover:scale-105 transition-transform bg-gradient-to-br from-amber-500 to-yellow-600">
                         <h4 className="font-black text-sm uppercase tracking-tight">Giám đốc Ban</h4>
                         <div className="w-2 h-2 bg-white rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2"></div>
                     </div>
@@ -267,8 +266,7 @@ const RelationshipMap = () => {
                 </div>
 
                 {/* Center Node */}
-                <div className="relative z-20 w-32 h-32 rounded-full shadow-xl shadow-blue-200 flex flex-col items-center justify-center text-white border-4 border-white ring-4 ring-blue-50"
-                    style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)' }}>
+                <div className="relative z-20 w-32 h-32 rounded-full shadow-xl shadow-blue-200 flex flex-col items-center justify-center text-white border-4 border-white ring-4 ring-blue-50 bg-gradient-to-br from-amber-500 to-yellow-600">
                     <Layout className="w-8 h-8 mb-1" />
                     <span className="font-black text-xs text-center uppercase leading-tight">Ban QLDA<br />ĐTXD DDCN</span>
                 </div>

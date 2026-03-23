@@ -11,3 +11,4 @@ export * from './types/task.types';
 export * from './types/document.types';
 export * from './types/api';
 export * from './types/dashboard';
+export * from './types/inspection.types';

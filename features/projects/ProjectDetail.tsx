@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTabSearchParam } from '@/hooks/useTabSearchParam';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectService } from '@/services/ProjectService';
 import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
@@ -26,9 +27,10 @@ import { ProjectCapitalTab } from './components/tabs/ProjectCapitalTab';
 import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
 import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
 import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
+import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles } from 'lucide-react';
+import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2 } from 'lucide-react';
 import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
 import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
 import { AIForecastChart } from '@/components/ai/AIForecastChart';
@@ -38,16 +40,18 @@ import { generateMonthlyReport } from '@/services/aiService';
 
 // Tab definitions — extracted for reuse
 const TAB_DEFINITIONS = [
-    { id: 'info', label: 'TỔNG QUAN', shortLabel: 'T.QUAN', icon: Info },
-    { id: 'plan', label: 'KẾ HOẠCH/TIẾN ĐỘ', shortLabel: 'K.HOẠCH', icon: CalendarCheck },
-    { id: 'packages', label: 'GÓI THẦU', shortLabel: 'GÓI THẦU', icon: Briefcase },
-    { id: 'capital', label: 'VỐN & GIẢI NGÂN', shortLabel: 'VỐN', icon: Landmark },
-    { id: 'tt24', label: 'DỮ LIỆU TT24', shortLabel: 'TT24', icon: Database },
-    { id: 'documents', label: 'HỒ SƠ & PHÁP LÝ', shortLabel: 'HỒ SƠ', icon: FolderOpen },
-    { id: 'operations', label: 'VẬN HÀNH', shortLabel: 'V.HÀNH', icon: Settings2 },
+    { id: 'info', label: 'TỔNG QUAN', icon: Info },
+    { id: 'plan', label: 'KẾ HOẠCH', icon: CalendarCheck },
+    { id: 'packages', label: 'GÓI THẦU', icon: Briefcase },
+    { id: 'capital', label: 'VỐN & GIẢI NGÂN', icon: Landmark },
+    { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
+    { id: 'inspection', label: 'THANH TRA', icon: Shield },
+    { id: 'operations', label: 'VẬN HÀNH', icon: Settings2 },
+    { id: 'tt24', label: 'ĐỒNG BỘ CSDL', icon: Database },
 ] as const;
 
 type TabId = typeof TAB_DEFINITIONS[number]['id'];
+const TAB_IDS = TAB_DEFINITIONS.map(t => t.id) as unknown as readonly TabId[];
 
 // ─────── Skeleton Loading ───────
 const ProjectDetailSkeleton: React.FC = () => (
@@ -111,17 +115,18 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Read initial tab from navigation state (e.g. from TaskDetail breadcrumb)
-    const initialTab = (location.state as any)?.activeTab || 'info';
-    const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+    // Tab state synced with URL ?tab= (persists on reload)
+    const [activeTab, setActiveTab] = useTabSearchParam<TabId>('info', TAB_IDS);
 
-    // Sync activeTab when navigating from another page (e.g., PaymentList → Gói thầu tab)
+    // Support cross-page navigation via location.state (e.g., TaskDetail → plan tab)
     const openPackageId = (location.state as any)?.openPackageId || null;
     const initialDetailTab = (location.state as any)?.initialDetailTab || undefined;
     useEffect(() => {
-        const stateTab = (location.state as any)?.activeTab;
-        if (stateTab && stateTab !== activeTab) {
+        const stateTab = (location.state as any)?.activeTab as TabId | undefined;
+        if (stateTab && TAB_IDS.includes(stateTab) && stateTab !== activeTab) {
             setActiveTab(stateTab);
+            // Clear location.state to avoid re-triggering on back/forward
+            window.history.replaceState({}, '');
         }
     }, [location.state]);
 
@@ -133,6 +138,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     // AI Report Modal state
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [reportContent, setReportContent] = useState('');
+    const [showAISummary, setShowAISummary] = useState(false);
     const [reportLoading, setReportLoading] = useState(false);
     const [reportError, setReportError] = useState<string | undefined>();
 
@@ -147,33 +153,38 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [showDrafter, setShowDrafter] = useState(false);
 
     // Lazy-mount flags: once mounted, stay mounted to preserve state
-    const [opsMounted, setOpsMounted] = useState(initialTab === 'operations');
+    const [opsMounted, setOpsMounted] = useState(activeTab === 'operations');
+    const [planMounted, setPlanMounted] = useState(activeTab === 'plan');
+    const [packagesMounted, setPackagesMounted] = useState(activeTab === 'packages');
+    const [capitalMounted, setCapitalMounted] = useState(activeTab === 'capital');
 
-    // Mount Operations on first visit
+    // Mount heavy tabs on first visit
     useEffect(() => {
         if (activeTab === 'operations' && !opsMounted) setOpsMounted(true);
-    }, [activeTab, opsMounted]);
+        if (activeTab === 'plan' && !planMounted) setPlanMounted(true);
+        if (activeTab === 'packages' && !packagesMounted) setPackagesMounted(true);
+        if (activeTab === 'capital' && !capitalMounted) setCapitalMounted(true);
+    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted]);
 
-    // Keyboard: Arrow Left/Right to switch tabs when in panel
+    // Keyboard: Arrow Left/Right to switch tabs
+    const activeTabRef = React.useRef(activeTab);
+    activeTabRef.current = activeTab;
     useEffect(() => {
-        if (!inPanel) return;
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 e.preventDefault();
-                setActiveTab(prev => {
-                    const currentIdx = TAB_DEFINITIONS.findIndex(t => t.id === prev);
-                    if (currentIdx === -1) return prev;
-                    const nextIdx = e.key === 'ArrowRight'
-                        ? Math.min(currentIdx + 1, TAB_DEFINITIONS.length - 1)
-                        : Math.max(currentIdx - 1, 0);
-                    return TAB_DEFINITIONS[nextIdx].id;
-                });
+                const currentIdx = TAB_DEFINITIONS.findIndex(t => t.id === activeTabRef.current);
+                if (currentIdx === -1) return;
+                const nextIdx = e.key === 'ArrowRight'
+                    ? Math.min(currentIdx + 1, TAB_DEFINITIONS.length - 1)
+                    : Math.max(currentIdx - 1, 0);
+                setActiveTab(TAB_DEFINITIONS[nextIdx].id);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [inPanel]);
+    }, []);
 
     // Refetch project when switching to info tab (picks up DB-trigger stage/progress changes)
     useEffect(() => {
@@ -364,146 +375,215 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     return (
         <div className={`flex flex-col relative ${inPanel ? 'h-screen' : 'h-[calc(100vh-120px)]'} bg-[#F8FAFC] dark:bg-slate-900`}>
             {/* Fixed Header + Tabs — does NOT scroll */}
-            <div className={`shrink-0 px-4 ${activeTab === 'operations' ? 'pt-2' : inPanel ? 'pt-2' : 'pt-4'}`}>
-                {/* 1. Header — compact when in panel mode */}
-                <ProjectHeader
-                    project={project}
-                    onSync={handleSync}
-                    isSyncing={isSyncing}
-                    syncResult={syncResult}
-                    onDelete={() => setShowDeleteModal(true)}
-                    onEdit={() => setShowEditModal(true)}
-                    compact={activeTab === 'operations' || inPanel}
-                    hideBackButton={inPanel}
-                />
+            <div className={`shrink-0 px-4 ${activeTab === 'operations' ? 'pt-2' : inPanel ? 'pt-2' : 'pt-3'}`}>
+                {/* 1. Minimal Header — just title + actions */}
+                <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        {!inPanel && (
+                            <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors shrink-0">
+                                <ArrowLeft className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+                            </button>
+                        )}
+                        <h1 className="text-base font-black text-gray-900 dark:text-white truncate">{project.ProjectName}</h1>
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border ${
+                            Number(project.Status) === 3 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' :
+                            Number(project.Status) === 2 ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' :
+                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+                        }`}>
+                            {Number(project.Status) === 3 ? 'Kết thúc XD' : Number(project.Status) === 2 ? 'Đang triển khai' : 'Chuẩn bị dự án'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            onClick={() => setShowAISummary(true)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-900/15 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all text-[11px] font-bold text-blue-600 dark:text-blue-400"
+                        >
+                            <Sparkles className="w-3 h-3" />
+                            Tóm tắt AI
+                        </button>
+                        <button
+                            onClick={() => setShowEditModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 gradient-btn text-white rounded-lg text-[11px] font-bold shadow-sm transition-all hover:-translate-y-0.5"
+                        >
+                            <Pencil className="w-3 h-3" />
+                            Chỉnh sửa
+                        </button>
+                        <div className="relative group">
+                            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                                <MoreVertical className="w-4 h-4 text-gray-400" />
+                            </button>
+                            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 py-1 min-w-[140px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Xoá dự án
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* 2. Tab Navigation */}
-                <div className={`border-b border-gray-200 dark:border-slate-700 flex gap-1 ${activeTab === 'operations' ? 'mt-2' : inPanel ? 'mt-1' : 'mt-4'} overflow-x-auto scrollbar-hide`}>
-                    {TAB_DEFINITIONS.map(t => (
-                        <button
-                            key={t.id} onClick={() => setActiveTab(t.id)}
-                            className={`${activeTab === 'operations' || inPanel ? 'py-2' : 'py-3'} px-2 text-xs font-black border-b-2 transition-all flex items-center gap-1.5 tracking-wider whitespace-nowrap ${activeTab === t.id ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
-                            title={t.label}
-                        >
-                            <t.icon className="w-3.5 h-3.5" />
-                            <span className={inPanel ? '' : ''}>{inPanel ? t.shortLabel : t.label}</span>
-                        </button>
-                    ))}
+                <div className={`border-b border-gray-200 dark:border-slate-700 flex gap-0.5 overflow-x-auto scrollbar-hide scroll-smooth`}>
+                    {TAB_DEFINITIONS.map(t => {
+                        const isActive = activeTab === t.id;
+                        // Badge counts
+                        const badgeCount = t.id === 'packages' ? packages.length :
+                                           t.id === 'plan' ? tasks.length : 0;
+                        return (
+                            <button
+                                key={t.id} onClick={() => setActiveTab(t.id)}
+                                className={`${activeTab === 'operations' || inPanel ? 'py-2' : 'py-3'} px-3 text-xs font-black border-b-2 transition-all flex items-center gap-1.5 tracking-wider whitespace-nowrap ${isActive ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-500'}`}
+                                title={`${t.label} (← → chuyển tab)`}
+                            >
+                                <t.icon className="w-3.5 h-3.5" />
+                                {t.label}
+                                {badgeCount > 0 && (
+                                    <span className={`ml-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[9px] font-black ${isActive ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                        {badgeCount}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* 3. Tab Content — Operations stays mounted to avoid re-init */}
-            {activeTab !== 'operations' && (
+            {/* 3. Tab Content — Heavy tabs stay mounted after first visit */}
+            {/* Light tabs: info, documents, tt24, inspection — mount/unmount normally */}
+            {activeTab === 'info' && (
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
-                    {activeTab === 'info' && (
-                        <div className="space-y-4">
-                            <AISummaryWidget projectId={project.ProjectID} />
-                            <ProjectInfoTab
-                                project={project}
-                                projectMembers={projectMembers}
-                                projectPackages={packages}
-                                isSyncing={isSyncing}
-                                syncResult={syncResult}
-                                isGeneratingReport={isGeneratingReport}
-                                onGenerateReport={handleGenerateReport}
-                                onViewMember={(employeeId) => {
-                                    console.log('View member:', employeeId);
-                                }}
-                                onViewPackage={(packageId) => {
-                                    setActiveTab('packages');
-                                }}
-                                onStageChange={async (newStage, entry) => {
-                                    const stageToStatus: Record<string, number> = {
-                                        'Preparation': 1,
-                                        'Execution': 2,
-                                        'Completion': 3,
-                                    };
-                                    const newStatus = stageToStatus[newStage] || 1;
-                                    setProject(prev => prev ? {
-                                        ...prev,
+                    <div className="space-y-4">
+                        <ProjectInfoTab
+                            project={project}
+                            projectMembers={projectMembers}
+                            projectPackages={packages}
+                            isSyncing={isSyncing}
+                            syncResult={syncResult}
+                            isGeneratingReport={isGeneratingReport}
+                            onGenerateReport={handleGenerateReport}
+                            onViewMember={(employeeId) => {
+                                console.log('View member:', employeeId);
+                            }}
+                            onViewPackage={(packageId) => {
+                                setActiveTab('packages');
+                            }}
+                            onStageChange={async (newStage, entry) => {
+                                const stageToStatus: Record<string, number> = {
+                                    'Preparation': 1,
+                                    'Execution': 2,
+                                    'Completion': 3,
+                                };
+                                const newStatus = stageToStatus[newStage] || 1;
+                                setProject(prev => prev ? {
+                                    ...prev,
+                                    Stage: newStage,
+                                    Status: newStatus as any,
+                                    StageHistory: [...(prev.StageHistory || []), entry]
+                                } : null);
+                                try {
+                                    await ProjectService.update(project.ProjectID, {
                                         Stage: newStage,
                                         Status: newStatus as any,
-                                        StageHistory: [...(prev.StageHistory || []), entry]
-                                    } : null);
-                                    try {
-                                        await ProjectService.update(project.ProjectID, {
-                                            Stage: newStage,
-                                            Status: newStatus as any,
-                                        } as any);
-                                    } catch (err) {
-                                        console.error('Failed to persist stage change:', err);
-                                    }
-                                }}
-                                onHistoryUpdate={(history) => {
-                                    setProject(prev => prev ? { ...prev, StageHistory: history } : null);
-                                }}
-                                canEditLifecycle={true}
-                                onEditProject={() => setShowEditModal(true)}
-                            />
-                        </div>
-                    )}
-                    {activeTab === 'plan' && (
-                        <ProjectPlanTab
-                            tasks={tasks}
-                            projectID={project.ProjectID}
-                            onSaveTask={(t) => saveTask(t)}
-                            groupCode={project.GroupCode}
-                            isODA={project.IsODA}
-                            project={project}
+                                    } as any);
+                                } catch (err) {
+                                    console.error('Failed to persist stage change:', err);
+                                }
+                            }}
+                            onHistoryUpdate={(history) => {
+                                setProject(prev => prev ? { ...prev, StageHistory: history } : null);
+                            }}
+                            canEditLifecycle={true}
+                            onEditProject={() => setShowEditModal(true)}
                         />
-                    )}
-                    {activeTab === 'packages' && (
-                        <ProjectPackagesTab
+                    </div>
+                </div>
+            )}
+            {activeTab === 'documents' && (
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+                    <div className="space-y-4">
+                        <AICompliancePanel projectId={project.ProjectID} />
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setShowDrafter(true)}
+                                className="flex items-center gap-2 px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all"
+                                
+                            >
+                                <Sparkles className="w-4 h-4" /> Soạn văn bản AI
+                            </button>
+                        </div>
+                        <ProjectDocumentsTab
                             projectID={project.ProjectID}
-                            project={project}
-                            openPackageId={openPackageId}
-                            initialDetailTab={initialDetailTab}
+                            projectStage={project.Stage || ProjectStage.Execution}
+                            investmentPolicy={(project as any).InvestmentPolicy}
+                            feasibilityStudy={(project as any).FeasibilityStudy}
                         />
-                    )}
-                    {activeTab === 'capital' && (
-                        <div className="space-y-4">
-                            <AIForecastChart
-                                projectId={project.ProjectID}
-                                currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}
-                            />
-                            <ProjectCapitalTab projectID={project.ProjectID} />
-                        </div>
-                    )}
-                    {activeTab === 'documents' && (
-                        <div className="space-y-4">
-                            <AICompliancePanel projectId={project.ProjectID} />
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setShowDrafter(true)}
-                                    className="flex items-center gap-2 px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all"
-                                    style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}
-                                >
-                                    <Sparkles className="w-4 h-4" /> Soạn văn bản AI
-                                </button>
-                            </div>
-                            <ProjectDocumentsTab
-                                projectID={project.ProjectID}
-                                projectStage={project.Stage || ProjectStage.Execution}
-                                investmentPolicy={(project as any).InvestmentPolicy}
-                                feasibilityStudy={(project as any).FeasibilityStudy}
-                            />
-                        </div>
-                    )}
-                    {activeTab === 'tt24' && (
-                        <div className="space-y-4">
-                            <ProjectComplianceTab
-                                project={project}
-                                onUpdate={(updated) => {
-                                    setProject(prev => prev ? { ...prev, ...updated } : null);
-                                }}
-                            />
-                        </div>
-                    )}
+                    </div>
+                </div>
+            )}
+            {activeTab === 'tt24' && (
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+                    <div className="space-y-4">
+                        <ProjectComplianceTab
+                            project={project}
+                            onUpdate={(updated) => {
+                                setProject(prev => prev ? { ...prev, ...updated } : null);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+            {activeTab === 'inspection' && (
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+                    <ProjectInspectionTab projectID={project.ProjectID} />
                 </div>
             )}
 
-
-            {/* Operations tab: always mounted after first visit, hidden via visibility */}
+            {/* Heavy tabs: plan, packages, capital — lazy mounted, stay alive via CSS visibility */}
+            {planMounted && (
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'plan' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'plan' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <ProjectPlanTab
+                        tasks={tasks}
+                        projectID={project.ProjectID}
+                        onSaveTask={(t) => saveTask(t)}
+                        groupCode={project.GroupCode}
+                        isODA={project.IsODA}
+                        project={project}
+                    />
+                </div>
+            )}
+            {packagesMounted && (
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'packages' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'packages' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <ProjectPackagesTab
+                        projectID={project.ProjectID}
+                        project={project}
+                        openPackageId={openPackageId}
+                        initialDetailTab={initialDetailTab}
+                    />
+                </div>
+            )}
+            {capitalMounted && (
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'capital' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'capital' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <div className="space-y-4">
+                        <AIForecastChart
+                            projectId={project.ProjectID}
+                            currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}
+                        />
+                        <ProjectCapitalTab projectID={project.ProjectID} />
+                    </div>
+                </div>
+            )}
             {opsMounted && (
                 <div
                     className={`flex-1 min-h-0 ${activeTab === 'operations' ? '' : 'absolute inset-0 pointer-events-none'}`}
@@ -555,6 +635,26 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 projectName={project.ProjectName}
                 onRegenerate={() => handleGenerateReport('Monitoring')}
             />
+
+            {/* ─── AI Summary Popup Dialog ─── */}
+            {showAISummary && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowAISummary(false)}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-slate-700 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-blue-500" />
+                                <span className="text-sm font-bold text-gray-800 dark:text-slate-100">Tóm tắt AI</span>
+                            </div>
+                            <button onClick={() => setShowAISummary(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                                <X className="w-4 h-4 text-gray-400" />
+                            </button>
+                        </div>
+                        <div className="p-5 overflow-y-auto">
+                            <AISummaryWidget projectId={project.ProjectID} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -23,20 +23,22 @@ const ContractorAwareHome: React.FC = () => {
 };
 const ProjectList = React.lazy(() => import('./features/projects/ProjectList'));
 const ProjectDetail = React.lazy(() => import('./features/projects/ProjectDetail'));
+
 const PackageDetail = React.lazy(() => import('./features/projects/PackageDetail'));
-const ContractList = React.lazy(() => import('./features/contracts/ContractList'));
 const ContractDetail = React.lazy(() => import('./features/contracts/ContractDetail'));
+const BiddingContractPage = React.lazy(() => import('./features/bidding/BiddingContractPage'));
 const ContractorList = React.lazy(() => import('./features/contractors/ContractorList'));
 const ContractorDetail = React.lazy(() => import('./features/contractors/ContractorDetail'));
 const EmployeeList = React.lazy(() => import('./features/employees/EmployeeList'));
 const EmployeeDetail = React.lazy(() => import('./features/employees/EmployeeDetail'));
 const TaskList = React.lazy(() => import('./features/tasks/TaskList'));
 const TaskDetail = React.lazy(() => import('./features/tasks/TaskDetail'));
-const PaymentList = React.lazy(() => import('./features/payments/PaymentList'));
+// PaymentList now loaded inside BiddingContractPage
 // DocumentManager removed — integrated into CDE as 'Kho lưu trữ' tab
 const CDEPage = React.lazy(() => import('./features/cde/CDEPage'));
 const BimPage = React.lazy(() => import('./features/bim/BimPage'));
 const ReportCenter = React.lazy(() => import('./features/reports/ReportCenter'));
+const MidTermCapitalPage = React.lazy(() => import('./features/capital/MidTermCapitalPage'));
 const Regulations = React.lazy(() => import('./features/regulations/Regulations'));
 const LegalDocumentSearch = React.lazy(() => import('./features/legal-documents/LegalDocumentSearch'));
 const Settings = React.lazy(() => import('./features/settings/Settings'));
@@ -100,12 +102,13 @@ const App: React.FC = () => {
                                         <Route path="contractors" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorList /></React.Suspense>} />
                                         <Route path="contractors/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorDetail /></React.Suspense>} />
 
-                                        {/* Contract Routes */}
-                                        <Route path="contracts" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractList /></React.Suspense>} />
+                                        {/* Bidding & Contract Module (merged) */}
+                                        <Route path="bidding" element={<React.Suspense fallback={<PageLoadingFallback />}><BiddingContractPage /></React.Suspense>} />
                                         <Route path="contracts/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractDetail /></React.Suspense>} />
-
-                                        {/* Finance Routes */}
-                                        <Route path="payments" element={<React.Suspense fallback={<PageLoadingFallback />}><PaymentList /></React.Suspense>} />
+                                        {/* Backward-compatible redirects */}
+                                        <Route path="contracts" element={<Navigate to="/bidding?tab=contracts" replace />} />
+                                        <Route path="payments" element={<Navigate to="/bidding?tab=payments" replace />} />
+                                        <Route path="capital-planning" element={<React.Suspense fallback={<PageLoadingFallback />}><MidTermCapitalPage /></React.Suspense>} />
 
                                         {/* Documents & Reports */}
                                         <Route path="documents" element={<Navigate to="/cde" replace />} />

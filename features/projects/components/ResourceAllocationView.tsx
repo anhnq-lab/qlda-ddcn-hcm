@@ -142,7 +142,7 @@ export const ResourceAllocationView: React.FC<ResourceAllocationViewProps> = ({
                         <div className="flex items-center justify-between p-4 border-b border-gray-200">
                             <div className="flex items-center gap-3">
                                 {/* Avatar */}
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" >
                                     {employee.FullName.split(' ').slice(-1)[0].charAt(0)}
                                 </div>
                                 <div>

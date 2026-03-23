@@ -93,7 +93,7 @@ const ContractorDetail: React.FC = () => {
                     </h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600 dark:text-slate-300">
-                            <thead className="bg-gray-50 dark:bg-slate-700/50 text-xs uppercase font-bold text-gray-500 dark:text-slate-400">
+                            <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th className="px-4 py-3 rounded-tl-xl">Mã gói thầu</th>
                                     <th className="px-4 py-3">Tên gói thầu</th>

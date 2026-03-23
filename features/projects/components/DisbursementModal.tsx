@@ -196,11 +196,13 @@ export const DisbursementModal: React.FC<DisbursementModalProps> = ({
                                 Số tiền (VNĐ) <span className="text-red-500">*</span>
                             </label>
                             <input
-                                type="number"
-                                value={amount}
-                                onChange={e => setAmount(e.target.value)}
+                                type="text"
+                                value={amount ? Number(amount).toLocaleString('vi-VN') : ''}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '');
+                                    setAmount(val);
+                                }}
                                 placeholder="Nhập số tiền..."
-                                min={0}
                                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                                 required
                             />

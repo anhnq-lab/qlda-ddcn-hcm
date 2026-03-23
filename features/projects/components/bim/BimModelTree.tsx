@@ -261,7 +261,7 @@ export const BimModelTree: React.FC = () => {
                             <p className={`text-[9px] ${isDarkMode ? 'text-slate-600' : 'text-gray-400'}`}>
                                 {dm.model.status === 'ready'
                                     ? (dm.model.element_count && dm.model.element_count > 0
-                                        ? `${dm.model.element_count.toLocaleString()} elements`
+                                        ? `${dm.model.element_count.toLocaleString('vi-VN')} elements`
                                         : 'Ready')
                                     : dm.model.status}
                             </p>

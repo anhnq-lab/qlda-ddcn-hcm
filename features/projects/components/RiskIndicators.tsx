@@ -26,24 +26,24 @@ export const RiskIndicators: React.FC<RiskIndicatorsProps> = ({
 }) => {
     const alerts: RiskAlert[] = [];
 
-    // Check for schedule delay
-    if (physicalProgress < financialProgress - 10) {
+    // Check for schedule delay — Tiến độ thi công chậm hơn tiến độ dự án
+    if (financialProgress < physicalProgress - 10) {
         alerts.push({
             id: 'schedule-delay',
             type: 'critical',
             title: 'Tiến độ chậm',
-            description: `Tiến độ khối lượng (${physicalProgress}%) thấp hơn giải ngân (${financialProgress}%)`,
-            metric: `${(financialProgress - physicalProgress).toFixed(1)}% chênh lệch`
+            description: `Tiến độ thi công (${financialProgress}%) thấp hơn tiến độ dự án (${physicalProgress}%)`,
+            metric: `${(physicalProgress - financialProgress).toFixed(1)}% chênh lệch`
         });
     }
 
-    // Check for budget overrun risk
-    if (disbursedPercent > 80 && physicalProgress < 60) {
+    // Check for budget overrun risk — Giải ngân cao nhưng tiến độ thi công thấp
+    if (disbursedPercent > 80 && financialProgress < 60) {
         alerts.push({
             id: 'budget-risk',
             type: 'warning',
             title: 'Nguy cơ vượt ngân sách',
-            description: `Đã giải ngân ${disbursedPercent}% nhưng chỉ hoàn thành ${physicalProgress}%`,
+            description: `Đã giải ngân ${disbursedPercent.toFixed(0)}% nhưng tiến độ thi công chỉ ${financialProgress}%`,
             metric: 'Cần đánh giá lại'
         });
     }
@@ -84,13 +84,13 @@ export const RiskIndicators: React.FC<RiskIndicatorsProps> = ({
     // If no alerts, show success
     if (alerts.length === 0) {
         return (
-            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-xl">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-lg">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                    <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">Dự án hoạt động bình thường</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400">Không có cảnh báo nào</p>
+                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">Dự án hoạt động bình thường</p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Không có cảnh báo nào</p>
                 </div>
             </div>
         );
@@ -100,68 +100,68 @@ export const RiskIndicators: React.FC<RiskIndicatorsProps> = ({
     const warningCount = alerts.filter(a => a.type === 'warning').length;
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-2">
             {/* Summary Header */}
-            <div className={`flex items-center justify-between px-4 py-3 rounded-xl ${criticalCount > 0
+            <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${criticalCount > 0
                 ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'
                 : 'bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700'
                 }`}>
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${criticalCount > 0
+                <div className="flex items-center gap-2">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${criticalCount > 0
                         ? 'bg-red-100 dark:bg-red-800'
                         : 'bg-amber-100 dark:bg-amber-800'
                         }`}>
-                        <AlertTriangle className={`w-5 h-5 ${criticalCount > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+                        <AlertTriangle className={`w-3.5 h-3.5 ${criticalCount > 0 ? 'text-red-600' : 'text-amber-600'}`} />
                     </div>
                     <div>
-                        <p className={`text-sm font-bold ${criticalCount > 0 ? 'text-red-800 dark:text-red-300' : 'text-amber-800 dark:text-amber-300'}`}>
+                        <p className={`text-xs font-bold ${criticalCount > 0 ? 'text-red-800 dark:text-red-300' : 'text-amber-800 dark:text-amber-300'}`}>
                             {criticalCount > 0 ? 'Có cảnh báo nghiêm trọng' : 'Cần chú ý'}
                         </p>
-                        <p className={`text-xs ${criticalCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        <p className={`text-[10px] ${criticalCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
                             {criticalCount > 0 && `${criticalCount} nghiêm trọng`}
                             {criticalCount > 0 && warningCount > 0 && ' • '}
                             {warningCount > 0 && `${warningCount} cảnh báo`}
                         </p>
                     </div>
                 </div>
-                <span className={`text-2xl font-black ${criticalCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                <span className={`text-lg font-black ${criticalCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
                     {alerts.length}
                 </span>
             </div>
 
             {/* Alert List */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
                 {alerts.map(alert => (
                     <div
                         key={alert.id}
-                        className={`flex items-start gap-3 px-4 py-3 rounded-lg border ${alert.type === 'critical'
+                        className={`flex items-start gap-2 px-3 py-2 rounded-lg border ${alert.type === 'critical'
                             ? 'bg-red-50/50 dark:bg-red-900/20 border-red-100 dark:border-red-800'
                             : alert.type === 'warning'
                                 ? 'bg-amber-50/50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
                                 : 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800'
                             }`}
                     >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${alert.type === 'critical'
-                            ? 'bg-red-100'
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${alert.type === 'critical'
+                            ? 'bg-red-100 dark:bg-red-900/40'
                             : alert.type === 'warning'
-                                ? 'bg-amber-100'
-                                : 'bg-blue-100'
+                                ? 'bg-amber-100 dark:bg-amber-900/40'
+                                : 'bg-blue-100 dark:bg-blue-900/40'
                             }`}>
-                            {alert.type === 'critical' && <AlertTriangle className="w-4 h-4 text-red-600" />}
-                            {alert.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-600" />}
-                            {alert.type === 'info' && <FileWarning className="w-4 h-4 text-blue-600" />}
+                            {alert.type === 'critical' && <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />}
+                            {alert.type === 'warning' && <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
+                            {alert.type === 'info' && <FileWarning className="w-3 h-3 text-blue-600 dark:text-blue-400" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-bold ${alert.type === 'critical' ? 'text-red-800' :
-                                alert.type === 'warning' ? 'text-amber-800' : 'text-blue-800'
+                            <p className={`text-xs font-bold ${alert.type === 'critical' ? 'text-red-800 dark:text-red-300' :
+                                alert.type === 'warning' ? 'text-amber-800 dark:text-amber-300' : 'text-blue-800 dark:text-blue-300'
                                 }`}>
                                 {alert.title}
                             </p>
-                            <p className="text-xs text-gray-600 dark:text-slate-400 mt-0.5">{alert.description}</p>
+                            <p className="text-[10px] text-gray-600 dark:text-slate-400 mt-0.5">{alert.description}</p>
                         </div>
                         {alert.metric && (
-                            <span className={`text-xs font-bold px-2 py-1 rounded-full shrink-0 ${alert.type === 'critical' ? 'bg-red-100 text-red-700' :
-                                alert.type === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${alert.type === 'critical' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
+                                alert.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
                                 }`}>
                                 {alert.metric}
                             </span>

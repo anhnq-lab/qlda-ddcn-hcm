@@ -1,7 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formatFullCurrency } from '../../utils/format';
+import { useTabSearchParam } from '@/hooks/useTabSearchParam';
+import { formatFullCurrency, formatShortCurrency } from '../../utils/format';
 import { useContractors } from '../../hooks/useContractors';
 import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { ContractStatus, PaymentStatus } from '../../types';
@@ -18,11 +19,14 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
     AreaChart, Area, Legend
 } from 'recharts';
+import { useTasks } from '../../hooks/useTasks';
+import { useVariationOrders } from '../../hooks/useVariationOrders';
+import { VariationOrderTab } from './components/VariationOrderTab';
 
 const ContractDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'general' | 'boq' | 'payment' | 'progress'>('general');
+    const [activeTab, setActiveTab] = useTabSearchParam('general', ['general', 'variation', 'boq', 'payment', 'progress'] as const);
 
     // 1. Get Data with decoding to handle IDs containing slashes
     const contractId = decodeURIComponent(id || '');
@@ -33,6 +37,30 @@ const ContractDetail: React.FC = () => {
     const { biddingPackages: allBiddingPackages } = useAllBiddingPackages();
 
     const contract = contracts.find(c => c.ContractID === contractId);
+    const pkg = contract ? allBiddingPackages.find(p => p.PackageID === contract.PackageID) : undefined;
+    const project = pkg ? allProjects.find(p => p.ProjectID === pkg.ProjectID) : undefined;
+    const contractor = contract ? allContractors.find(c => c.ContractorID === contract.ContractorID) : undefined;
+    const payments = contract ? allPayments.filter(p => p.ContractID === contract.ContractID) : [];
+    
+    // Fetch variation orders
+    const { variationOrders } = useVariationOrders(contract?.ContractID || '');
+
+    // Get project tasks for milestones (must be before any early return)
+    const { data: projectTasks = [] } = useTasks({ projectId: project?.ProjectID || '' });
+
+    // 4. Real milestones from tasks
+    const milestones = useMemo(() => {
+        if (!projectTasks.length) return [];
+        return projectTasks
+            .filter(t => t.TimelineStep === 'IMPL_BIDDING' || t.TimelineStep === 'IMPL_CONSTRUCTION' || t.TimelineStep === 'COMPLETION')
+            .slice(0, 8)
+            .map((t, idx) => ({
+                id: idx + 1,
+                name: t.Title,
+                date: t.DueDate || '',
+                status: t.Status === 'Done' ? 'Done' : t.Status === 'InProgress' ? 'In Progress' : 'Pending',
+            }));
+    }, [projectTasks]);
 
     if (!contract) {
         return (
@@ -44,41 +72,25 @@ const ContractDetail: React.FC = () => {
         );
     }
 
-    const pkg = allBiddingPackages.find(p => p.PackageID === contract.PackageID);
-    const project = allProjects.find(p => p.ProjectID === pkg?.ProjectID);
-    const contractor = allContractors.find(c => c.ContractorID === contract.ContractorID);
-    const payments = allPayments.filter(p => p.ContractID === contract.ContractID);
+    // 2. Calculate Financials with Variation Orders
+    const sumVariationOrders = variationOrders.reduce((sum, vo) => sum + vo.AdjustedAmount, 0);
+    const totalAdjustedValue = contract.Value + sumVariationOrders;
+    
+    const sumDurationExtensions = variationOrders.reduce((sum, vo) => sum + (vo.AdjustedDuration || 0), 0);
+    const totalAdjustedDuration = (contract.DurationMonths || 0) + sumDurationExtensions;
 
-    // 2. Calculate Financials
     const totalPaid = payments
         .filter(p => p.Status === PaymentStatus.Transferred)
         .reduce((sum, p) => sum + p.Amount, 0);
-    const remaining = contract.Value - totalPaid;
-    const paymentPercent = (totalPaid / contract.Value) * 100;
+    const remaining = totalAdjustedValue - totalPaid;
+    const paymentPercent = totalAdjustedValue > 0 ? (totalPaid / totalAdjustedValue) * 100 : 0;
 
-    // 3. Mock BOQ Data (Bill of Quantities - Phụ lục khối lượng)
-    const boqItems = [
-        { id: 1, name: "Chi phí xây dựng lán trại, nhà tạm", unit: "Trọn gói", qty: 1, price: contract.Value * 0.02, total: contract.Value * 0.02 },
-        { id: 2, name: "Thi công phần móng và công trình ngầm", unit: "m3", qty: 500, price: contract.Value * 0.0005, total: contract.Value * 0.25 },
-        { id: 3, name: "Thi công phần thân (Kết cấu BTCT)", unit: "m2", qty: 1200, price: contract.Value * 0.0003, total: contract.Value * 0.36 },
-        { id: 4, name: "Công tác hoàn thiện (Xây, trát, ốp, lát)", unit: "m2", qty: 2500, price: contract.Value * 0.0001, total: contract.Value * 0.25 },
-        { id: 5, name: "Hệ thống điện nước (M&E)", unit: "Hệ thống", qty: 1, price: contract.Value * 0.1, total: contract.Value * 0.10 },
-        { id: 6, name: "Vệ sinh công nghiệp và bàn giao", unit: "Trọn gói", qty: 1, price: contract.Value * 0.02, total: contract.Value * 0.02 },
-    ];
-
-    // 4. Mock Progress Milestones
-    const milestones = [
-        { id: 1, name: "Ký kết hợp đồng & Tạm ứng", date: contract.SignDate, status: "Done" },
-        { id: 2, name: "Bàn giao mặt bằng thi công", date: "2024-03-01", status: "Done" },
-        { id: 3, name: "Nghiệm thu phần móng", date: "2024-05-15", status: "Done" },
-        { id: 4, name: "Nghiệm thu phần thân", date: "2024-09-30", status: "In Progress" },
-        { id: 5, name: "Hoàn thiện & Lắp đặt thiết bị", date: "2024-12-15", status: "Pending" },
-        { id: 6, name: "Bàn giao đưa vào sử dụng", date: "2025-01-20", status: "Pending" },
-    ];
+    // 3. BOQ Data — từ DB khi có, hiện tại hiển thị placeholder
+    const boqItems: { id: number; name: string; unit: string; qty: number; price: number; total: number }[] = [];
 
     // Chart Data
     const financialData = [
-        { name: 'Giá trị HĐ', value: contract.Value, fill: '#404040' },
+        { name: 'Giá trị HĐ (sau ĐC)', value: totalAdjustedValue, fill: '#404040' },
         { name: 'Đã thanh toán', value: totalPaid, fill: '#D4A017' },
         { name: 'Còn lại', value: remaining, fill: '#B8860B' },
     ];
@@ -88,7 +100,7 @@ const ContractDetail: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/contracts')} className="p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                    <button onClick={() => navigate('/bidding?tab=contracts')} className="p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                         <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                     </button>
                     <div>
@@ -115,34 +127,34 @@ const ContractDetail: React.FC = () => {
 
             {/* Financial Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="relative overflow-hidden rounded-2xl text-white p-5 shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300" style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+                <div className="stat-card stat-card-slate cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><DollarSign className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
                         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <FileDigit className="w-6 h-6 text-white" />
                         </div>
-                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Giá trị hợp đồng</p>
-                        <p className="text-xl font-black text-white drop-shadow-sm">{formatFullCurrency(contract.Value)}</p>
+                        <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Giá trị hợp đồng (Gốc + Phụ lục)</p>
+                        <p className="text-xl font-black text-white drop-shadow-sm">{formatShortCurrency(totalAdjustedValue)}</p>
                     </div>
                 </div>
-                <div className="relative overflow-hidden rounded-2xl text-white p-5 shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300" style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+                <div className="stat-card stat-card-emerald cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><TrendingUp className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
                         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <CheckCircle2 className="w-6 h-6 text-white" />
                         </div>
                         <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Đã thanh toán ({paymentPercent.toFixed(1)}%)</p>
-                        <p className="text-xl font-black text-white drop-shadow-sm">{formatFullCurrency(totalPaid)}</p>
+                        <p className="text-xl font-black text-white drop-shadow-sm">{formatShortCurrency(totalPaid)}</p>
                     </div>
                 </div>
-                <div className="relative overflow-hidden rounded-2xl text-white p-5 shadow-xl transition-transform hover:scale-[1.02] hover:shadow-2xl duration-300" style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017', boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+                <div className="stat-card stat-card-amber cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><Clock className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
                         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <AlertTriangle className="w-6 h-6 text-white" />
                         </div>
                         <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Giá trị còn lại</p>
-                        <p className="text-xl font-black text-white drop-shadow-sm">{formatFullCurrency(remaining)}</p>
+                        <p className="text-xl font-black text-white drop-shadow-sm">{formatShortCurrency(remaining)}</p>
                     </div>
                 </div>
             </div>
@@ -153,6 +165,7 @@ const ContractDetail: React.FC = () => {
                     {[
                         { id: 'general', label: 'Thông tin chung', icon: FileText },
                         { id: 'boq', label: 'Nội dung & Khối lượng', icon: Layers },
+                        { id: 'variation', label: 'Phụ lục hợp đồng', icon: FileDigit },
                         { id: 'payment', label: 'Thanh toán & Giải ngân', icon: DollarSign },
                         { id: 'progress', label: 'Tiến độ thực hiện', icon: Clock },
                     ].map(tab => (
@@ -183,7 +196,7 @@ const ContractDetail: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-sm">
                                     <div>
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Ngày ký hợp đồng</p>
-                                        <p className="font-medium text-gray-800 dark:text-slate-200">{contract.SignDate}</p>
+                                        <p className="font-medium text-gray-800 dark:text-slate-200">{contract.SignDate ? new Date(contract.SignDate).toLocaleDateString('vi-VN') : '—'}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Loại hợp đồng</p>
@@ -191,7 +204,18 @@ const ContractDetail: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Thời gian thực hiện</p>
-                                        <p className="font-medium text-gray-800 dark:text-slate-200">360 ngày</p>
+                                        <p className="font-medium text-gray-800 dark:text-slate-200">
+                                            {totalAdjustedDuration ? `${totalAdjustedDuration} tháng` : '—'} 
+                                            {sumDurationExtensions > 0 && <span className="text-[10px] text-green-600 ml-1">(+{sumDurationExtensions})</span>}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Ngày bắt đầu</p>
+                                        <p className="font-medium text-gray-800 dark:text-slate-200">{contract.StartDate ? new Date(contract.StartDate).toLocaleDateString('vi-VN') : '—'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Ngày kết thúc (dự kiến)</p>
+                                        <p className="font-medium text-gray-800 dark:text-slate-200">{contract.EndDate ? new Date(contract.EndDate).toLocaleDateString('vi-VN') : '—'}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-bold uppercase">Bảo hành công trình</p>
@@ -228,57 +252,71 @@ const ContractDetail: React.FC = () => {
                                     <div className="mt-4 p-4 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/40">
                                         <p className="font-bold text-blue-900 dark:text-blue-200 text-sm">{contractor?.FullName}</p>
                                         <div className="mt-2 space-y-1 text-xs text-blue-800/70 dark:text-blue-300/70">
-                                            <p>MST: {contractor?.ContractorID}</p>
+                                            <p>Mã số thuế: {contractor?.ContractorID}</p>
                                             <p>Địa chỉ: {contractor?.Address}</p>
-                                            <p>Liên hệ: {contractor?.ContactInfo}</p>
+                                            {contractor?.ContactInfo && <p>Liên hệ: {contractor.ContactInfo}</p>}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
+                    
+                    {/* TAB 2: VARIATION ORDERS (PHỤ LỤC HỢP ĐỒNG) */}
+                    {activeTab === 'variation' && (
+                        <VariationOrderTab contractId={contract.ContractID} />
+                    )}
 
-                    {/* TAB 2: BOQ */}
                     {activeTab === 'boq' && (
                         <div>
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200">Phụ lục khối lượng công việc</h3>
-                                <button className="text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
-                                    <Download className="w-4 h-4" /> Xuất Excel
-                                </button>
+                                {boqItems.length > 0 && (
+                                    <button className="text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
+                                        <Download className="w-4 h-4" /> Xuất Excel
+                                    </button>
+                                )}
                             </div>
-                            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-50 dark:bg-slate-700/50 text-gray-500 dark:text-slate-400 font-bold uppercase text-xs">
-                                        <tr>
-                                            <th className="px-6 py-4 w-16 text-center">STT</th>
-                                            <th className="px-6 py-4">Nội dung công việc</th>
-                                            <th className="px-6 py-4 w-32 text-center">Đơn vị</th>
-                                            <th className="px-6 py-4 w-32 text-right">Khối lượng</th>
-                                            <th className="px-6 py-4 w-40 text-right">Đơn giá</th>
-                                            <th className="px-6 py-4 w-40 text-right">Thành tiền</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                                        {boqItems.map((item, idx) => (
-                                            <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50">
-                                                <td className="px-6 py-4 text-center font-mono text-gray-400 dark:text-slate-500">{idx + 1}</td>
-                                                <td className="px-6 py-4 font-medium text-gray-800 dark:text-slate-200">{item.name}</td>
-                                                <td className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">{item.unit}</td>
-                                                <td className="px-6 py-4 text-right font-mono dark:text-slate-300">{item.qty.toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-600 dark:text-slate-400">{formatFullCurrency(item.price)}</td>
-                                                <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-slate-100">{formatFullCurrency(item.total)}</td>
+                            {boqItems.length > 0 ? (
+                                <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs border-b border-slate-200 dark:border-slate-700">
+                                            <tr>
+                                                <th className="px-6 py-4 w-16 text-center">STT</th>
+                                                <th className="px-6 py-4">Nội dung công việc</th>
+                                                <th className="px-6 py-4 w-32 text-center">Đơn vị</th>
+                                                <th className="px-6 py-4 w-32 text-right">Khối lượng</th>
+                                                <th className="px-6 py-4 w-40 text-right">Đơn giá</th>
+                                                <th className="px-6 py-4 w-40 text-right">Thành tiền</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                    <tfoot className="bg-gray-50 dark:bg-slate-700/50 font-bold text-gray-900 dark:text-slate-100 border-t border-gray-200 dark:border-slate-700">
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-4 text-right uppercase text-xs tracking-wider">Tổng giá trị hợp đồng</td>
-                                            <td className="px-6 py-4 text-right text-blue-600 dark:text-blue-400">{formatFullCurrency(contract.Value)}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                                            {boqItems.map((item, idx) => (
+                                                <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50">
+                                                    <td className="px-6 py-4 text-center font-mono text-gray-400 dark:text-slate-500">{idx + 1}</td>
+                                                    <td className="px-6 py-4 font-medium text-gray-800 dark:text-slate-200">{item.name}</td>
+                                                    <td className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">{item.unit}</td>
+                                                    <td className="px-6 py-4 text-right font-mono dark:text-slate-300">{item.qty.toLocaleString('vi-VN')}</td>
+                                                    <td className="px-6 py-4 text-right font-mono text-gray-600 dark:text-slate-400">{formatFullCurrency(item.price)}</td>
+                                                    <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-slate-100">{formatFullCurrency(item.total)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot className="bg-gray-50 dark:bg-slate-700/50 font-bold text-gray-900 dark:text-slate-100 border-t border-gray-200 dark:border-slate-700">
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-4 text-right uppercase text-xs tracking-wider">Tổng giá trị hợp đồng gốc</td>
+                                                <td className="px-6 py-4 text-right text-blue-600 dark:text-blue-400">{formatFullCurrency(contract.Value)}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-16 bg-gray-50 dark:bg-slate-700/30 rounded-xl border border-dashed border-gray-300 dark:border-slate-600">
+                                    <Layers className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
+                                    <p className="text-gray-600 dark:text-slate-400 font-bold text-sm">Chưa có phụ lục khối lượng</p>
+                                    <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">Dữ liệu BOQ sẽ được cập nhật khi quản lý khối lượng thi công</p>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -448,17 +486,17 @@ const ContractDetail: React.FC = () => {
 
                                 {/* Progress Stats */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                                    <div className="p-4 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #404040 0%, #333333 100%)', borderTop: '3px solid #8A8A8A', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+                                    <div className="p-4 rounded-xl text-white stat-card-slate shadow-lg">
                                         <p className="text-xs font-bold text-white/90 uppercase">Tiến độ kế hoạch</p>
                                         <p className="text-2xl font-black text-white mt-1">80%</p>
                                         <p className="text-xs text-white/70 mt-1">Tháng 8/2024</p>
                                     </div>
-                                    <div className="p-4 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #4A4535 0%, #3D3A2D 100%)', borderTop: '3px solid #A89050', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+                                    <div className="p-4 rounded-xl text-white stat-card-emerald shadow-lg">
                                         <p className="text-xs font-bold text-white/90 uppercase">Tiến độ thực tế</p>
                                         <p className="text-2xl font-black text-white mt-1">72%</p>
                                         <p className="text-xs text-white/70 mt-1">Cập nhật: Hôm nay</p>
                                     </div>
-                                    <div className="p-4 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #6B5A30 0%, #5A4A25 100%)', borderTop: '3px solid #D4A017', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+                                    <div className="p-4 rounded-xl text-white stat-card-amber shadow-lg">
                                         <p className="text-xs font-bold text-white/90 uppercase">Chênh lệch</p>
                                         <p className="text-2xl font-black text-white mt-1">-8%</p>
                                         <p className="text-xs text-white/70 mt-1">Chậm so với kế hoạch</p>

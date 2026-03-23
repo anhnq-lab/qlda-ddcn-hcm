@@ -12,20 +12,20 @@ import {
 
 // Department color map
 const DEPT_COLORS: Record<string, { bg: string; text: string; border: string; gradientStyle: string }> = {
-    'Văn phòng': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'linear-gradient(to right, #3B82F6, #2563EB)' },
-    'Phòng Kế hoạch – Đầu tư': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'linear-gradient(to right, #10B981, #059669)' },
-    'Phòng Tài chính – Kế toán': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'linear-gradient(to right, #8B5CF6, #7C3AED)' },
-    'Phòng Chính sách – Pháp chế': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'linear-gradient(to right, #F43F5E, #E11D48)' },
-    'Phòng Kỹ thuật – Chất lượng': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', gradientStyle: 'linear-gradient(to right, #A855F7, #9333EA)' },
-    'Ban Điều hành dự án 1': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'linear-gradient(to right, #3B82F6, #2563EB)' },
-    'Ban Điều hành dự án 2': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'linear-gradient(to right, #10B981, #059669)' },
-    'Ban Điều hành dự án 3': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'linear-gradient(to right, #8B5CF6, #7C3AED)' },
-    'Ban Điều hành dự án 4': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', gradientStyle: 'linear-gradient(to right, #F97316, #EA580C)' },
-    'Ban Điều hành dự án 5': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'linear-gradient(to right, #EF4444, #DC2626)' },
-    'Trung tâm Dịch vụ tư vấn': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', gradientStyle: 'linear-gradient(to right, #0EA5E9, #0284C7)' },
+    'Văn phòng': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'bg-gradient-to-r from-blue-500 to-blue-600' },
+    'Phòng Kế hoạch – Đầu tư': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'bg-gradient-to-r from-emerald-500 to-emerald-600' },
+    'Phòng Tài chính – Kế toán': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'bg-gradient-to-r from-violet-500 to-violet-600' },
+    'Phòng Chính sách – Pháp chế': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'bg-gradient-to-r from-rose-500 to-rose-600' },
+    'Phòng Kỹ thuật – Chất lượng': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', gradientStyle: 'bg-gradient-to-r from-purple-500 to-purple-600' },
+    'Ban Điều hành dự án 1': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'bg-gradient-to-r from-blue-500 to-blue-600' },
+    'Ban Điều hành dự án 2': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'bg-gradient-to-r from-emerald-500 to-emerald-600' },
+    'Ban Điều hành dự án 3': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'bg-gradient-to-r from-violet-500 to-violet-600' },
+    'Ban Điều hành dự án 4': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', gradientStyle: 'bg-gradient-to-r from-orange-500 to-orange-600' },
+    'Ban Điều hành dự án 5': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'bg-gradient-to-r from-rose-500 to-rose-600' },
+    'Trung tâm Dịch vụ tư vấn': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', gradientStyle: 'bg-gradient-to-r from-sky-500 to-sky-600' },
 };
 
-const defaultColor = { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', gradientStyle: 'linear-gradient(to right, #64748B, #475569)' };
+const defaultColor = { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', gradientStyle: 'bg-gradient-to-r from-slate-500 to-slate-600' };
 
 const OrgChartPage: React.FC = () => {
     const navigate = useNavigate();
@@ -67,7 +67,7 @@ const OrgChartPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Page Header */}
             <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)' }}>
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 shadow-sm">
                     <Network className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -93,8 +93,7 @@ const OrgChartPage: React.FC = () => {
 
                     {/* Level 1: Giám đốc Ban */}
                     <div className="relative z-10 mb-4 group">
-                        <div className="px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-gray-200 text-center relative cursor-default hover:scale-105 transition-transform text-white"
-                            style={{ background: 'linear-gradient(135deg, #D4A017 0%, #B8860B 100%)' }}>
+                        <div className="px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-amber-200 text-center relative cursor-default hover:scale-105 transition-transform text-white bg-gradient-to-br from-amber-500 to-yellow-600">
                             <div className="flex items-center gap-2 justify-center">
                                 <Crown className="w-4 h-4" />
                                 <h4 className="font-black text-sm uppercase tracking-tight">Giám đốc Ban</h4>
@@ -214,8 +213,7 @@ const OrgChartPage: React.FC = () => {
 
                         return (
                             <div key={dept} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-all">
-                                {/* Dept Header */}
-                                <div className="px-5 py-3 text-white" style={{ background: color.gradientStyle }}>
+                                <div className={`px-5 py-3 text-white ${color.gradientStyle}`}>
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-bold text-sm">{dept}</h3>

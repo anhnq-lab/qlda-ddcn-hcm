@@ -25,21 +25,35 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
+          manualChunks(id: string) {
             // 3D/BIM vendor (~5MB) — only loaded on BIM tab
-            'vendor-3d': ['three', 'web-ifc'],
+            if (id.includes('node_modules/three/') || id.includes('node_modules/web-ifc/')) {
+              return 'vendor-3d';
+            }
             // Charts vendor — loaded on Dashboard + Reports
-            'vendor-charts': ['recharts'],
+            if (id.includes('node_modules/recharts/')) {
+              return 'vendor-charts';
+            }
             // Map vendor — loaded on Dashboard + Project map views
-            'vendor-map': ['leaflet', 'react-leaflet'],
+            if (id.includes('node_modules/leaflet/') || id.includes('node_modules/react-leaflet/')) {
+              return 'vendor-map';
+            }
             // Document generation vendor — loaded on export
-            'vendor-docs': ['docx', 'jspdf', 'jspdf-autotable', 'file-saver'],
+            if (id.includes('node_modules/docx/') || id.includes('node_modules/jspdf') || id.includes('node_modules/file-saver/')) {
+              return 'vendor-docs';
+            }
             // Icons — shared across all pages
-            'vendor-icons': ['lucide-react'],
+            if (id.includes('node_modules/lucide-react/')) {
+              return 'vendor-icons';
+            }
             // React core — cached long-term
-            'vendor-react': ['react', 'react-dom', 'react-router-dom', 'react-router'],
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+              return 'vendor-react';
+            }
             // Data layer
-            'vendor-data': ['@supabase/supabase-js', '@tanstack/react-query'],
+            if (id.includes('node_modules/@supabase/') || id.includes('node_modules/@tanstack/')) {
+              return 'vendor-data';
+            }
           }
         }
       }

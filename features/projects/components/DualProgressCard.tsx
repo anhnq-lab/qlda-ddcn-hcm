@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { TrendingUp, Banknote, Activity } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { TrendingUp, Activity } from 'lucide-react';
 
 interface DualProgressCardProps {
     physicalProgress: number;    // 0-100
@@ -15,7 +15,7 @@ const ProgressRing: React.FC<{
     bgColor: string;
     size?: number;
     strokeWidth?: number;
-}> = ({ progress, color, bgColor, size = 72, strokeWidth = 6 }) => {
+}> = ({ progress, color, bgColor, size = 56, strokeWidth = 5 }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const offset = circumference - (Math.min(100, Math.max(0, progress)) / 100) * circumference;
@@ -40,10 +40,19 @@ const ProgressRing: React.FC<{
 export const DualProgressCard: React.FC<DualProgressCardProps> = ({
     physicalProgress,
     financialProgress,
-    physicalLabel = 'Khối lượng',
-    financialLabel = 'Giải ngân'
+    physicalLabel = 'Tiến độ dự án',
+    financialLabel = 'Tiến độ thi công'
 }) => {
-    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    // Reactive dark mode detection
+    const [isDark, setIsDark] = useState(() =>
+        typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+    );
+    useEffect(() => {
+        const el = document.documentElement;
+        const obs = new MutationObserver(() => setIsDark(el.classList.contains('dark')));
+        obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+        return () => obs.disconnect();
+    }, []);
     const ringBg = isDark ? '#374151' : '#E5E7EB';
     const avgProgress = (physicalProgress + financialProgress) / 2;
 
@@ -55,9 +64,9 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                     <span>Tiến độ thực hiện</span>
                 </div>
             </div>
-            <div className="p-4">
+            <div className="p-3">
                 {/* Dual Rings */}
-                <div className="flex items-center justify-around mb-4">
+                <div className="flex items-center justify-around mb-3">
                     {/* Physical */}
                     <div className="flex flex-col items-center">
                         <div className="relative">
@@ -67,19 +76,19 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                                 bgColor={ringBg}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-base font-black text-gray-800 dark:text-slate-100 tabular-nums">
+                                <span className="text-sm font-black text-gray-800 dark:text-slate-100 tabular-nums">
                                     {physicalProgress.toFixed(0)}%
                                 </span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <TrendingUp className="w-3.5 h-3.5 text-amber-600" />
-                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-400">{physicalLabel}</span>
+                        <div className="flex items-center gap-1 mt-1.5">
+                            <TrendingUp className="w-3 h-3 text-amber-600" />
+                            <span className="text-[10px] font-bold text-gray-600 dark:text-slate-400">{physicalLabel}</span>
                         </div>
                     </div>
 
                     {/* Divider */}
-                    <div className="w-px h-16 bg-gray-200 dark:bg-slate-600" />
+                    <div className="w-px h-12 bg-gray-200 dark:bg-slate-600" />
 
                     {/* Financial */}
                     <div className="flex flex-col items-center">
@@ -90,21 +99,21 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                                 bgColor={ringBg}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-base font-black text-gray-800 dark:text-slate-100 tabular-nums">
+                                <span className="text-sm font-black text-gray-800 dark:text-slate-100 tabular-nums">
                                     {financialProgress.toFixed(0)}%
                                 </span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <Banknote className="w-3.5 h-3.5 text-yellow-600" />
-                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-400">{financialLabel}</span>
+                        <div className="flex items-center gap-1 mt-1.5">
+                            <TrendingUp className="w-3 h-3 text-yellow-600" />
+                            <span className="text-[10px] font-bold text-gray-600 dark:text-slate-400">{financialLabel}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Summary Bar */}
-                <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg px-3 py-2">
-                    <div className="flex items-center justify-between text-[11px]">
+                <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg px-2.5 py-1.5">
+                    <div className="flex items-center justify-between text-[10px]">
                         <span className="text-gray-500 dark:text-slate-400 font-medium">Trung bình tiến độ</span>
                         <span className={`font-black tabular-nums ${avgProgress >= 50 ? 'text-emerald-600' : avgProgress > 20 ? 'text-amber-600' : 'text-red-600'}`}>
                             {avgProgress.toFixed(1)}%
@@ -130,8 +139,8 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                         : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                         }`}>
                         {physicalProgress > financialProgress
-                            ? '⚠️ Khối lượng vượt trước giải ngân'
-                            : 'ℹ️ Giải ngân vượt trước khối lượng'
+                            ? '⚠️ Tiến độ dự án vượt trước thi công'
+                            : 'ℹ️ Tiến độ thi công vượt trước dự án'
                         }
                     </div>
                 )}

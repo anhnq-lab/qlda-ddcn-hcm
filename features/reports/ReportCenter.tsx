@@ -74,7 +74,7 @@ const ReportCenter: React.FC = () => {
             </div>
 
             {/* BC-03: Đồng bộ CSDL Quốc gia */}
-            <div className="rounded-2xl shadow-lg p-6 text-white overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #333333 0%, #4A4230 50%, #5A4A25 100%)' }}>
+            <div className="rounded-2xl shadow-lg p-6 text-white overflow-hidden relative bg-gradient-to-br from-slate-800 via-amber-900 to-yellow-900">
                 <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10"></div>
                 <div className="flex justify-between items-start relative z-10">
                     <div>

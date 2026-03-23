@@ -3,9 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Project, ProjectStage, Employee, BiddingPackage, Contractor } from '@/types';
 import {
-    Landmark, FileBarChart, FileCheck, RefreshCw, Pencil,
-    Clock, CheckCircle2, AlertCircle, ExternalLink, ChevronDown, ChevronUp,
-    Hash, Building2, MapPin, Briefcase, Wallet, Calendar as CalendarIcon, Copy, Check
+    Pencil, Clock,
+    Hash, Building2, MapPin, Briefcase, Wallet, Copy, Check, Ruler
 } from 'lucide-react';
 import { SyncResult } from '@/services/NationalGatewayService';
 import { LifecycleStepper, StageHistoryEntry } from '../LifecycleStepper';
@@ -19,6 +18,12 @@ import { KeyDatesWidget, KeyDate } from '../KeyDatesWidget';
 import { QuickActionsPanel } from '../QuickActionsPanel';
 import { LegalReferenceLink } from '../../../../components/common/LegalReferenceLink';
 import { useSlidePanel } from '@/context/SlidePanelContext';
+
+// Extended contractor with package info for display
+interface ContractorWithPackages extends Contractor {
+    contractNames?: string[];
+    packageNames?: string[];
+}
 
 interface ProjectInfoTabProps {
     project: Project & {
@@ -62,16 +67,17 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
     canEditLifecycle = true,
     onEditProject
 }) => {
-    const [showSyncDetails, setShowSyncDetails] = useState(false);
+
     const { openPanel } = useSlidePanel();
 
-    // Fetch real contractors from contracts + contractors tables
-    const { data: projectContractors = [] } = useQuery<Contractor[]>({
+    // Fetch real contractors from contracts + contractors + bidding_packages tables
+    const { data: projectContractors = [] } = useQuery<ContractorWithPackages[]>({
         queryKey: ['project-contractors', project.ProjectID],
         queryFn: async () => {
+            // Get contracts with contractor_id AND package_id
             const { data: contractRows } = await supabase
                 .from('contracts')
-                .select('contractor_id')
+                .select('contractor_id, contract_name, package_id')
                 .eq('project_id', project.ProjectID)
                 .not('contractor_id', 'is', null);
             if (!contractRows || contractRows.length === 0) return [];
@@ -83,18 +89,42 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                 .in('contractor_id', uniqueIds);
             if (!contractors) return [];
 
-            return contractors.map((c: any) => ({
-                ContractorID: c.contractor_id,
-                FullName: c.full_name || '',
-                TaxCode: c.tax_code || '',
-                Address: c.address || '',
-                Representative: c.representative || '',
-                ContactInfo: c.contact_info || '',
-                IsForeign: c.is_foreign || false,
-                CapCertCode: c.cap_cert_code || '',
-                OpLicenseNo: c.op_license_no || '',
-                EstablishedYear: c.established_year,
-            }));
+            // Fetch package names for linked packages
+            const packageIds = [...new Set(contractRows.filter((r: any) => r.package_id).map((r: any) => r.package_id))];
+            let packageMap = new Map<string, string>();
+            if (packageIds.length > 0) {
+                const { data: packages } = await supabase
+                    .from('bidding_packages')
+                    .select('package_id, package_name')
+                    .in('package_id', packageIds);
+                if (packages) {
+                    packageMap = new Map(packages.map((p: any) => [p.package_id, p.package_name]));
+                }
+            }
+
+            return contractors.map((c: any) => {
+                // Find all contracts for this contractor
+                const relatedContracts = contractRows.filter((r: any) => r.contractor_id === c.contractor_id);
+                const contractNames = relatedContracts.map((r: any) => r.contract_name).filter(Boolean);
+                const packageNames = relatedContracts
+                    .map((r: any) => r.package_id ? packageMap.get(r.package_id) : null)
+                    .filter(Boolean) as string[];
+
+                return {
+                    ContractorID: c.contractor_id,
+                    FullName: c.full_name || '',
+                    TaxCode: c.tax_code || '',
+                    Address: c.address || '',
+                    Representative: c.representative || '',
+                    ContactInfo: c.contact_info || '',
+                    IsForeign: c.is_foreign || false,
+                    CapCertCode: c.cap_cert_code || '',
+                    OpLicenseNo: c.op_license_no || '',
+                    EstablishedYear: c.established_year,
+                    contractNames,
+                    packageNames,
+                };
+            });
         },
         enabled: !!project.ProjectID,
     });
@@ -115,16 +145,75 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
         });
     }, [openPanel, projectContractors, project.ProjectID]);
 
-    // Calculate disbursed amount from financial progress
-    const disbursedAmount = (project.FinancialProgress ?? 0) * project.TotalInvestment / 100;
+    // ═══ Calculate progress from TASKS plan data ═══
+    const { data: taskProgressData } = useQuery<{ projectProgress: number; constructionProgress: number }>({
+        queryKey: ['project-task-progress', project.ProjectID],
+        queryFn: async () => {
+            const { data: tasks } = await (supabase
+                .from('tasks')
+                .select('step_code, progress, status')
+                .eq('project_id', project.ProjectID) as any);
+
+            if (!tasks || tasks.length === 0) {
+                // No tasks → dùng progress dự án, thi công = 0 (chưa có tasks thi công)
+                return {
+                    projectProgress: project.PhysicalProgress ?? project.Progress ?? 0,
+                    constructionProgress: 0,
+                };
+            }
+
+            // All tasks → Tiến độ dự án (overall plan progress)
+            const allProgress = (tasks as any[]).map((t: any) => t.progress ?? (t.status === 'Done' ? 100 : 0));
+            const projectProg = allProgress.length > 0
+                ? Math.round(allProgress.reduce((a: number, b: number) => a + b, 0) / allProgress.length)
+                : 0;
+
+            // Only IMPL_ step_code tasks → Tiến độ thi công (Phase 2)
+            const implTasks = (tasks as any[]).filter((t: any) => t.step_code && t.step_code.startsWith('IMPL_'));
+            const implProgress = implTasks.map((t: any) => t.progress ?? (t.status === 'Done' ? 100 : 0));
+            const constructionProg = implProgress.length > 0
+                ? Math.round(implProgress.reduce((a: number, b: number) => a + b, 0) / implProgress.length)
+                : 0;
+
+            return { projectProgress: projectProg, constructionProgress: constructionProg };
+        },
+        enabled: !!project.ProjectID,
+        staleTime: 5 * 60 * 1000,
+    });
+    const physicalProgress = taskProgressData?.projectProgress ?? project.PhysicalProgress ?? project.Progress ?? 0;
+    const financialProgress = taskProgressData?.constructionProgress ?? 0;
+
+    // ═══ Calculate disbursed amount from real disbursement data ═══
+    const { data: realDisbursedTotal = 0 } = useQuery<number>({
+        queryKey: ['project-real-disbursed', project.ProjectID],
+        queryFn: async () => {
+            const { data: rows } = await (supabase
+                .from('disbursements')
+                .select('amount, type, status')
+                .eq('project_id', project.ProjectID)
+                .in('status', ['Approved', 'approved', 'completed', 'Completed']) as any);
+            if (!rows || rows.length === 0) return 0;
+            let total = 0;
+            for (const r of rows as any[]) {
+                const amt = Number(r.amount) || 0;
+                if (r.type === 'ThuHoiTamUng') {
+                    total -= amt;
+                } else {
+                    total += amt;
+                }
+            }
+            return Math.max(0, total);
+        },
+        enabled: !!project.ProjectID,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const disbursedAmount = realDisbursedTotal;
     const disbursedPercent = project.TotalInvestment > 0
         ? (disbursedAmount / project.TotalInvestment) * 100
         : 0;
 
-    // Determine sync status
-    const isSynced = project.SyncStatus?.IsSynced || syncResult?.success;
-    const nationalCode = syncResult?.nationalCode || project.SyncStatus?.NationalProjectCode;
-    const lastSyncTime = project.SyncStatus?.LastSyncTime;
+
 
     // ═══ FETCH KEY DATES FROM MULTIPLE SOURCES ═══
     const { data: keyDates = [] } = useQuery<KeyDate[]>({
@@ -267,6 +356,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
             return results;
         },
         enabled: !!project.ProjectID,
+        staleTime: 5 * 60 * 1000,
     });
 
     // Fetch real disbursement data for BudgetVarianceCard
@@ -299,10 +389,11 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
             return { planned, prevMonth };
         },
         enabled: !!project.ProjectID,
+        staleTime: 5 * 60 * 1000,
     });
 
     return (
-        <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-5 py-4">
+        <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-3 py-3">
 
             {/* ═══ LIFECYCLE STEPPER ═══ */}
             <LifecycleStepper
@@ -315,31 +406,24 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
 
             {/* ═══ RISK INDICATORS ═══ */}
             <RiskIndicators
-                physicalProgress={project.PhysicalProgress ?? 0}
-                financialProgress={project.FinancialProgress ?? 0}
+                physicalProgress={physicalProgress}
+                financialProgress={financialProgress}
                 disbursedPercent={disbursedPercent}
                 contractEndDate={project.ContractEndDate}
                 missingDocs={[]}
             />
 
-            {/* ═══ BUDGET ANALYSIS — Full Width (replaces old KeyMetricsHeader + BudgetVarianceCard duplicate) ═══ */}
-            <BudgetVarianceCard
-                totalInvestment={project.TotalInvestment}
-                disbursedAmount={disbursedAmount}
-                plannedDisbursement={project.PlannedDisbursement || disbursementData?.planned || 0}
-                previousMonthDisbursed={disbursementData?.prevMonth || 0}
-            />
 
             {/* ═══ MAIN CONTENT GRID ═══ */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
 
                 {/* ── LEFT COLUMN (2/3) ── */}
-                <div className="lg:col-span-2 space-y-5">
+                <div className="lg:col-span-2 space-y-3">
 
-                    {/* General Info — Upgraded with icons */}
+                    {/* ═══ THÔNG TIN DỰ ÁN ═══ */}
                     <div className="section-card">
                         <div className="section-card-header">
-                            <span>Thông tin chung</span>
+                            <span>Thông tin dự án</span>
                             <button
                                 onClick={onEditProject}
                                 className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline font-bold"
@@ -348,33 +432,64 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                                 Chỉnh sửa
                             </button>
                         </div>
-                        <div className="p-5">
+                        <div className="p-3">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                                 <EnhancedInfoItem icon={Hash} label="Số dự án" value={project.ProjectNumber || project.ProjectID} copyable />
                                 <EnhancedInfoItem icon={Briefcase} label="Nhóm dự án" value={`Nhóm ${project.GroupCode}`} highlight />
                                 <EnhancedInfoItem icon={Building2} label="Chủ đầu tư" value={project.InvestorName} />
                                 <EnhancedInfoItem icon={MapPin} label="Địa điểm" value={project.LocationCode} />
-                                <EnhancedInfoItem icon={Clock} label="Thời gian thực hiện" value={project.Duration || '5 Năm'} />
+                                <EnhancedInfoItem icon={Clock} label="Thời gian thực hiện" value={project.Duration || '—'} />
                                 <EnhancedInfoItem icon={Briefcase} label="Hình thức quản lý" value={project.ManagementForm || 'Chủ đầu tư trực tiếp quản lý'} />
                                 <EnhancedInfoItem icon={Wallet} label="Nguồn vốn" value={project.CapitalSource || 'Ngân sách tỉnh'} />
                             </div>
                         </div>
                     </div>
 
-                    {/* National Gateway — Compact inline */}
-                    <NationalGatewayCompact
-                        isSynced={!!isSynced}
-                        isSyncing={isSyncing}
-                        nationalCode={nationalCode}
-                        lastSyncTime={lastSyncTime}
-                        showSyncDetails={showSyncDetails}
-                        onToggleSyncDetails={() => setShowSyncDetails(!showSyncDetails)}
-                        onGenerateReport={onGenerateReport}
-                        isGeneratingReport={isGeneratingReport}
-                    />
+                    {/* ═══ QUY MÔ CÔNG TRÌNH (separate section) ═══ */}
+                    {(project.TotalEstimate || project.SiteArea || project.ConstructionArea || project.FloorArea || project.BuildingHeight || project.AboveGroundFloors || project.BasementFloors) ? (
+                        <div className="section-card">
+                            <div className="section-card-header">
+                                <span>Quy mô công trình</span>
+                            </div>
+                            <div className="p-3 space-y-2">
+                                {/* Stat cards row */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { label: 'Tổng dự toán', value: project.TotalEstimate, color: 'red' },
+                                        { label: 'Diện tích (m²)', value: project.SiteArea, color: 'blue' },
+                                        { label: 'DT xây dựng (m²)', value: project.ConstructionArea, color: 'emerald' },
+                                    ].map((item, i) => (
+                                        <div key={i} className={`rounded-lg border py-1.5 px-2 text-center
+                                            ${item.color === 'red' ? 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/15' :
+                                            item.color === 'blue' ? 'border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-900/15' :
+                                            'border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-900/15'}`}
+                                        >
+                                            <p className="text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide">{item.label}</p>
+                                            <p className={`text-sm font-black tabular-nums
+                                                ${item.color === 'red' ? 'text-red-600 dark:text-red-400' :
+                                                item.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                                                'text-emerald-600 dark:text-emerald-400'}`}
+                                            >
+                                                {item.value ? Number(item.value).toLocaleString('vi-VN') : '—'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Detail items */}
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-0">
+                                    {project.FloorArea ? <EnhancedInfoItem icon={Ruler} label="DT sàn sử dụng" value={`${Number(project.FloorArea).toLocaleString('vi-VN')} m²`} /> : null}
+                                    {project.BuildingHeight ? <EnhancedInfoItem icon={Ruler} label="Chiều cao" value={`${project.BuildingHeight} m`} /> : null}
+                                    {project.BuildingDensity ? <EnhancedInfoItem icon={Building2} label="Mật độ XD" value={`${project.BuildingDensity}%`} /> : null}
+                                    {project.LandUseCoefficient ? <EnhancedInfoItem icon={Building2} label="Hệ số SDĐ" value={`${project.LandUseCoefficient}`} /> : null}
+                                    {project.AboveGroundFloors ? <EnhancedInfoItem icon={Building2} label="Tầng nổi" value={`${project.AboveGroundFloors}`} /> : null}
+                                    {project.BasementFloors ? <EnhancedInfoItem icon={Building2} label="Tầng hầm" value={`${project.BasementFloors}`} /> : null}
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
 
                     {/* Project Team */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-5">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-3">
                         <ProjectTeamSection
                             members={projectMembers}
                             onViewMember={onViewMember}
@@ -383,32 +498,40 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                 </div>
 
                 {/* ── RIGHT COLUMN (1/3) ── */}
-                <div className="space-y-5">
+                <div className="space-y-3">
                     {/* Progress */}
                     <DualProgressCard
-                        physicalProgress={project.PhysicalProgress ?? 0}
-                        financialProgress={project.FinancialProgress ?? 0}
+                        physicalProgress={physicalProgress}
+                        financialProgress={financialProgress}
+                    />
+
+                    {/* ═══ Tiến độ giải ngân ═══ */}
+                    <BudgetVarianceCard
+                        totalInvestment={project.TotalInvestment}
+                        disbursedAmount={disbursedAmount}
+                        plannedDisbursement={project.PlannedDisbursement || disbursementData?.planned || 0}
+                        previousMonthDisbursed={disbursementData?.prevMonth || 0}
                     />
 
                     {/* Key Dates */}
                     <KeyDatesWidget
                         dates={keyDates}
                         maxItems={4}
-                        onViewAll={() => console.log('View all dates')}
+                        onViewAll={() => {}}
                     />
 
                     {/* Quick Actions — compact */}
                     <QuickActionsPanel
                         onGenerateMonthlyReport={() => onGenerateReport('Monitoring')}
-                        onSendReminder={() => console.log('Send reminder')}
-                        onExportExcel={() => console.log('Export Excel')}
-                        onScheduleMeeting={() => console.log('Schedule meeting')}
+                        onSendReminder={() => {}}
+                        onExportExcel={() => {}}
+                        onScheduleMeeting={() => {}}
                         onSync={onSync}
                         isSyncing={isSyncing}
                     />
 
                     {/* Contractors */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-5">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-3">
                         <ContractorsListSection
                             contractors={projectContractors}
                             packages={projectPackages}
@@ -441,13 +564,13 @@ const EnhancedInfoItem: React.FC<{
     }, [value]);
 
     return (
-        <div className="group flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-slate-700/50 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 transition-colors">
-                <Icon className="w-4 h-4 text-gray-400 dark:text-slate-500 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
+        <div className="group flex items-center gap-2 px-3 py-2 border-b border-gray-100 dark:border-slate-700/50 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+            <div className="w-6 h-6 rounded-md bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 transition-colors">
+                <Icon className="w-3 h-3 text-gray-400 dark:text-slate-500 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
             </div>
             <div className="flex-1 min-w-0">
-                <span className="text-[11px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{label}</span>
-                <p className={`text-sm mt-0.5 truncate ${highlight ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-gray-800 dark:text-slate-200 font-medium'}`}>
+                <span className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{label}</span>
+                <p className={`text-xs truncate ${highlight ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-gray-800 dark:text-slate-200 font-medium'}`}>
                     {value || '—'}
                 </p>
             </div>
@@ -466,111 +589,5 @@ const EnhancedInfoItem: React.FC<{
         </div>
     );
 };
-
-// ─── National Gateway Compact ───
-
-interface NationalGatewayCompactProps {
-    isSynced: boolean;
-    isSyncing: boolean;
-    nationalCode?: string;
-    lastSyncTime?: string;
-    showSyncDetails: boolean;
-    onToggleSyncDetails: () => void;
-    onGenerateReport: (type: 'Monitoring' | 'Settlement') => void;
-    isGeneratingReport: boolean;
-}
-
-const NationalGatewayCompact: React.FC<NationalGatewayCompactProps> = ({
-    isSynced, isSyncing, nationalCode, lastSyncTime,
-    showSyncDetails, onToggleSyncDetails, onGenerateReport, isGeneratingReport
-}) => (
-    <div className={`rounded-xl border overflow-hidden transition-all ${isSynced
-        ? 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
-        : 'bg-amber-50/60 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-    }`}>
-        <div className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-sm ${isSynced
-                    ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
-                    : 'bg-gradient-to-br from-amber-400 to-orange-500'
-                }`}>
-                    {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> :
-                        isSynced ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                </div>
-                <div>
-                    <div className="flex items-center gap-2">
-                        <Landmark className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wide">Cổng CSDLQG</span>
-                        {isSynced && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold rounded-full">
-                                <CheckCircle2 className="w-3 h-3" /> Đã đồng bộ
-                            </span>
-                        )}
-                        {!isSynced && !isSyncing && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-full">
-                                <AlertCircle className="w-3 h-3" /> Chưa đồng bộ
-                            </span>
-                        )}
-                        {nationalCode && (
-                            <span className="text-xs font-mono font-bold text-gray-600 dark:text-slate-300">{nationalCode}</span>
-                        )}
-                    </div>
-                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
-                        <LegalReferenceLink text="NĐ 111/2024 • TT 24/2024" />
-                    </p>
-                </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => onGenerateReport('Monitoring')}
-                    disabled={isGeneratingReport}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-[11px] font-bold rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-all disabled:opacity-50"
-                >
-                    <FileBarChart className="w-3 h-3" /> BC Giám sát
-                </button>
-                <button
-                    onClick={() => onGenerateReport('Settlement')}
-                    disabled={isGeneratingReport}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-[11px] font-bold rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-all disabled:opacity-50"
-                >
-                    <FileCheck className="w-3 h-3" /> BC Quyết toán
-                </button>
-                <button onClick={onToggleSyncDetails} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 rounded-lg hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors">
-                    {showSyncDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-            </div>
-        </div>
-        {showSyncDetails && (
-            <div className="px-4 py-3 bg-white/50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-slate-700">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    <div>
-                        <span className="text-gray-500 dark:text-slate-400">Lần đồng bộ cuối</span>
-                        <p className="font-bold text-gray-800 dark:text-slate-200 mt-0.5">
-                            {lastSyncTime ? new Date(lastSyncTime).toLocaleString('vi-VN') : 'Chưa có'}
-                        </p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500 dark:text-slate-400">Schema</span>
-                        <p className="font-bold text-gray-800 dark:text-slate-200 mt-0.5 font-mono">v2024.1</p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500 dark:text-slate-400">API</span>
-                        <p className="font-bold text-gray-800 dark:text-slate-200 mt-0.5">Production</p>
-                    </div>
-                    <div>
-                        <span className="text-gray-500 dark:text-slate-400">Kết nối</span>
-                        <p className="font-bold text-emerald-600 mt-0.5 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Online
-                        </p>
-                    </div>
-                </div>
-                <a href="https://csdlqg.mpi.gov.vn" target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-2">
-                    <ExternalLink className="w-3 h-3" /> Truy cập Cổng CSDLQG
-                </a>
-            </div>
-        )}
-    </div>
-);
 
 export default ProjectInfoTab;

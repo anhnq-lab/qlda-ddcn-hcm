@@ -25,9 +25,12 @@ export interface Task {
     DueDate: string;
     Status: TaskStatus;
     Priority: TaskPriority;
+    Phase?: string;
+    StepCode?: string;
     TimelineStep?: string;
     CreatedDate?: string;
     SortOrder?: number;
+    Progress?: number;
     LegalBasis?: string;
     OutputDocument?: string;
     DurationDays?: number;

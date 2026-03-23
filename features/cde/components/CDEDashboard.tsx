@@ -73,10 +73,10 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
     );
 
     const kpis = [
-        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, gradient: 'linear-gradient(135deg, #2D3A4A, #1a2332)', change: '+12%', up: true },
-        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, gradient: 'linear-gradient(135deg, #4A4535, #3D3A2D)', change: null, up: false },
-        { label: 'Tỷ lệ duyệt', value: `${analytics.approvalRate}%`, icon: CheckCircle2, gradient: 'linear-gradient(135deg, #2D4A35, #254530)', change: '+5%', up: true },
-        { label: 'Bị từ chối', value: analytics.totalRejected, icon: XCircle, gradient: 'linear-gradient(135deg, #4A2D35, #452530)', change: null, up: false },
+        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, className: 'stat-card-slate', change: '+12%', up: true },
+        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, className: 'stat-card-amber', change: null, up: false },
+        { label: 'Tỷ lệ duyệt', value: `${analytics.approvalRate}%`, icon: CheckCircle2, className: 'stat-card-emerald', change: '+5%', up: true },
+        { label: 'Bị từ chối', value: analytics.totalRejected, icon: XCircle, className: 'stat-card-rose', change: null, up: false },
     ];
 
     return (
@@ -95,7 +95,7 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
             {/* KPI Cards */}
             <div className="grid grid-cols-4 gap-4">
                 {kpis.map((kpi, idx) => (
-                    <div key={idx} className="relative overflow-hidden rounded-2xl p-5 text-white shadow-xl hover:scale-[1.02] transition-all" style={{ background: kpi.gradient, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+                    <div key={idx} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 stat-card ${kpi.className}`}>
                         <kpi.icon className="absolute -right-3 -top-3 w-20 h-20 opacity-[0.08]" />
                         <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/80 mb-1">{kpi.label}</p>
                         <div className="flex items-end gap-2">

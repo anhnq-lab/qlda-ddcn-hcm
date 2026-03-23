@@ -18,21 +18,18 @@ export const useTasks = (options: { projectId?: string } = {}) => {
     return useQuery({
         queryKey: taskKeys.list(options.projectId),
         queryFn: async () => {
-            if (!options.projectId) return [];
-            return TaskService.getTasksByProject(options.projectId);
+            if (options.projectId) {
+                return TaskService.getTasksByProject(options.projectId);
+            }
+            return TaskService.getAllTasks();
         },
-        enabled: !!options.projectId,
     });
 };
 
 export const useTask = (id: string | undefined) => {
     return useQuery({
         queryKey: taskKeys.detail(id || ''),
-        queryFn: async () => {
-            if (!id) return null;
-            const allTasks = await TaskService.getAllTasks();
-            return allTasks.find(t => t.TaskID === id) || null;
-        },
+        queryFn: () => TaskService.getTaskById(id!),
         enabled: !!id,
     });
 };
@@ -54,8 +51,25 @@ export const useUpdateTask = () => {
 
     return useMutation({
         mutationFn: (task: Task) => Promise.resolve(TaskService.saveTask(task)),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: taskKeys.detail(data.TaskID) });
+        onMutate: async (updatedTask) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+            // Snapshot previous state for rollback
+            const previousLists = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+            // Optimistically update all task lists
+            queryClient.setQueriesData<Task[]>({ queryKey: taskKeys.lists() }, (old) =>
+                old?.map(t => t.TaskID === updatedTask.TaskID ? { ...t, ...updatedTask } : t)
+            );
+            return { previousLists };
+        },
+        onError: (_err, _task, context) => {
+            // Rollback on error
+            context?.previousLists?.forEach(([key, data]) => {
+                queryClient.setQueryData(key, data);
+            });
+        },
+        onSettled: (_data, _err, task) => {
+            queryClient.invalidateQueries({ queryKey: taskKeys.detail(task.TaskID) });
             queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
             queryClient.invalidateQueries({ queryKey: taskKeys.stats() });
         },
@@ -67,7 +81,21 @@ export const useDeleteTask = () => {
 
     return useMutation({
         mutationFn: (id: string) => Promise.resolve(TaskService.deleteTask(id)),
-        onSuccess: () => {
+        onMutate: async (deletedId) => {
+            await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+            const previousLists = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+            // Optimistically remove from lists
+            queryClient.setQueriesData<Task[]>({ queryKey: taskKeys.lists() }, (old) =>
+                old?.filter(t => t.TaskID !== deletedId)
+            );
+            return { previousLists };
+        },
+        onError: (_err, _id, context) => {
+            context?.previousLists?.forEach(([key, data]) => {
+                queryClient.setQueryData(key, data);
+            });
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
             queryClient.invalidateQueries({ queryKey: taskKeys.stats() });
         },

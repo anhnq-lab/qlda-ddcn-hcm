@@ -42,3 +42,10 @@ model/
 
 temp_pptx/
 .env.production
+
+# Large resource files
+*.pptx
+resources/*.zip
+Slide_Bao*
+annual_tab*
+slide_content*
