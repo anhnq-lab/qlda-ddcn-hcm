@@ -22,34 +22,39 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
     }
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Thành viên dự án ({members.length})
-                </h3>
+        <div className="section-card">
+            {/* Header */}
+            <div className="section-card-header">
+                <div className="flex items-center gap-2">
+                    <div className="section-icon"><Users className="w-3.5 h-3.5" /></div>
+                    <span>Thành viên dự án</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({members.length})</span>
+                </div>
             </div>
 
-            <div className="space-y-2">
+            {/* Members List */}
+            <div className="divide-y divide-gray-50 dark:divide-slate-700">
                 {(showAll ? members : members.slice(0, MAX_SHOW)).map((member, idx) => (
                     <div
                         key={member.EmployeeID}
-                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/60 rounded-lg border border-gray-200 dark:border-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer group"
+                        className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-center gap-3"
                         onClick={() => onViewMember?.(member.EmployeeID)}
                     >
                         {/* Avatar */}
-                        <img
-                            src={member.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.FullName)}&background=random`}
-                            alt={member.FullName}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-600 shadow-sm"
-                        />
+                        <div className="shrink-0 relative">
+                            <img
+                                src={member.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.FullName)}&background=random`}
+                                alt={member.FullName}
+                                className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
+                            />
+                        </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                            <p className="text-[11px] font-bold text-gray-800 dark:text-slate-200 truncate">
                                 {member.FullName}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate mt-0.5">
                                 {member.Position} • {member.Department}
                             </p>
                         </div>
@@ -60,40 +65,43 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
                                 <a
                                     href={`mailto:${member.Email}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-md transition-colors"
+                                    className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                     title={member.Email}
                                 >
-                                    <Mail className="w-4 h-4" />
+                                    <Mail className="w-3.5 h-3.5" />
                                 </a>
                             )}
                             {member.Phone && (
                                 <a
                                     href={`tel:${member.Phone}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="p-1.5 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-md transition-colors"
+                                    className="p-1 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded transition-colors"
                                     title={member.Phone}
                                 >
-                                    <Phone className="w-4 h-4" />
+                                    <Phone className="w-3.5 h-3.5" />
                                 </a>
                             )}
-                            <ExternalLink className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-gray-400 dark:group-hover:text-slate-400" />
+                            <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 shrink-0 ml-1" />
                         </div>
                     </div>
                 ))}
+            </div>
 
-                {members.length > MAX_SHOW && (
+            {/* View All */}
+            {members.length > MAX_SHOW && (
+                <div className="px-3 py-2 border-t border-gray-100 dark:border-slate-700">
                     <button
                         onClick={() => setShowAll(!showAll)}
-                        className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline py-1.5"
+                        className="w-full flex items-center justify-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 py-0.5"
                     >
                         {showAll ? (
-                            <><ChevronUp className="w-3.5 h-3.5" /> Thu gọn</>
+                            <><ChevronUp className="w-3 h-3" /> Thu gọn</>
                         ) : (
-                            <><ChevronDown className="w-3.5 h-3.5" /> Xem tất cả {members.length} thành viên</>
+                            <><ChevronDown className="w-3 h-3" /> Xem tất cả {members.length} thành viên</>
                         )}
                     </button>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

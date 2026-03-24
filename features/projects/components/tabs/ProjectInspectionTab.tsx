@@ -476,9 +476,9 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                     { label: 'Đã hoàn thành', value: stats.completed, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
                     { label: 'Tổng xử phạt', value: formatFullCurrency(stats.totalPenalties), color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
                 ].map((s, i) => (
-                    <div key={i} className={`${s.bg} rounded-2xl p-4 border border-gray-200 dark:border-slate-700`}>
-                        <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-1">{s.label}</p>
+                    <div key={i} className={`${s.bg} rounded-xl p-3 border border-gray-200 dark:border-slate-700`}>
+                        <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">{s.label}</p>
                     </div>
                 ))}
             </div>

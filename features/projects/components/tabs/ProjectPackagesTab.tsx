@@ -17,7 +17,7 @@ import {
     MoreVertical, Eye, Edit, Trash2, ExternalLink,
     Copy, X, AlertTriangle, Loader2, Clock, Circle, Download, Upload,
     GripVertical, ChevronDown, ChevronRight, Globe, Bell, Link2,
-    FolderPlus, Settings, Save, Layers
+    FolderPlus, Settings, Save, Layers, MoreHorizontal
 } from 'lucide-react';
 
 // ========================================
@@ -102,6 +102,63 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     const [newPlanDecisionDate, setNewPlanDecisionDate] = useState('');
     const [newPlanMSC, setNewPlanMSC] = useState('');
     const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
+    const [confirmDeletePlan, setConfirmDeletePlan] = useState<{ planId: string; planName: string; packageCount: number } | null>(null);
+    const [showMoreActions, setShowMoreActions] = useState(false);
+    const moreActionsRef = useRef<HTMLDivElement>(null);
+    const [isMscDismissed, setIsMscDismissed] = useState(false);
+    const [showColumnPicker, setShowColumnPicker] = useState(false);
+    const columnPickerRef = useRef<HTMLDivElement>(null);
+    const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+        description: true,
+        price: true,
+        fundingSource: true,
+        selectionMethod: true,
+        selectionProcedure: true,
+        selectionDuration: true,
+        selectionStartDate: true,
+        contractType: true,
+        duration: true,
+        hasOption: false,
+        status: true,
+        msc: true,
+    });
+
+    const COLUMN_LABELS: Record<string, string> = {
+        description: 'Tóm tắt công việc',
+        price: 'Giá gói thầu',
+        fundingSource: 'Nguồn vốn',
+        selectionMethod: 'Hình thức LCNT',
+        selectionProcedure: 'Phương thức LCNT',
+        selectionDuration: 'TG tổ chức LCNT',
+        selectionStartDate: 'TG bắt đầu LCNT',
+        contractType: 'Loại hợp đồng',
+        duration: 'TG thực hiện',
+        hasOption: 'Tùy chọn mua thêm',
+        status: 'Trạng thái',
+        msc: 'MSC',
+    };
+
+    // Close more actions dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (moreActionsRef.current && !moreActionsRef.current.contains(e.target as Node)) {
+                setShowMoreActions(false);
+            }
+        };
+        if (showMoreActions) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMoreActions]);
+
+    // Close column picker on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (columnPickerRef.current && !columnPickerRef.current.contains(e.target as Node)) {
+                setShowColumnPicker(false);
+            }
+        };
+        if (showColumnPicker) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showColumnPicker]);
 
     // Accordion state for plan groups
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['__ungrouped__']));
@@ -136,11 +193,11 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     // Sort order mutation
     const updateSortMutation = useMutation({
         mutationFn: async (updates: { packageId: string; sortOrder: number }[]) => {
-            for (const u of updates) {
-                await (supabase.from('bidding_packages') as any)
+            await Promise.all(updates.map(u =>
+                (supabase.from('bidding_packages') as any)
                     .update({ sort_order: u.sortOrder })
-                    .eq('package_id', u.packageId);
-            }
+                    .eq('package_id', u.packageId)
+            ));
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-packages', projectID] });
@@ -386,12 +443,12 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     return (
         <div className="space-y-6">
             {/* Header / Statistics */}
-            <div className="rounded-xl p-5">
+            <div className="rounded-xl p-3">
                 {/* Main Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     {/* Total Packages */}
                     <div className="stat-card stat-card-blue cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
+                        <div className="flex items-center justify-between w-full relative z-10 mb-1">
                             <span className="stat-card-label">Tổng số gói thầu</span>
                             <div className="stat-card-icon"><Briefcase className="w-5 h-5" /></div>
                         </div>
@@ -434,22 +491,22 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mt-6 pt-5 border-t border-gray-200 dark:border-slate-700">
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Tiến độ hoàn thành Đấu thầu</span>
                         <span className="text-sm font-bold text-gray-800 dark:text-slate-100 tabular-nums">
-                            {packages?.length! > 0
+                            {(packages?.length ?? 0) > 0
                                 ? Math.round((packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100)
                                 : 0}%
                         </span>
                     </div>
                     <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
-                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100 : 0}%` }} title="Đã có kết quả" />
-                        <div className="h-full bg-amber-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Evaluating).length / packages!.length) * 100 : 0}%` }} title="Đang xét thầu" />
-                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Bidding).length / packages!.length) * 100 : 0}%` }} title="Đang mời thầu" />
-                        <div className="h-full bg-indigo-500 transition-all" style={{ width: `${packages?.length! > 0 ? (packages!.filter(p => p.Status === PackageStatus.Posted).length / packages!.length) * 100 : 0}%` }} title="Đã đăng tải" />
+                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100 : 0}%` }} title="Đã có kết quả" />
+                        <div className="h-full bg-amber-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Evaluating).length / packages!.length) * 100 : 0}%` }} title="Đang xét thầu" />
+                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Bidding).length / packages!.length) * 100 : 0}%` }} title="Đang mời thầu" />
+                        <div className="h-full bg-indigo-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Posted).length / packages!.length) * 100 : 0}%` }} title="Đã đăng tải" />
                     </div>
-                    <div className="flex flex-wrap gap-4 mt-3 text-xs">
+                    <div className="flex flex-wrap gap-4 mt-2 text-xs">
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-gray-600 dark:text-slate-400">Đã có kết quả ({packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0})</span></span>
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span className="text-gray-600 dark:text-slate-400">Đang xét thầu ({packages?.filter(p => p.Status === PackageStatus.Evaluating).length || 0})</span></span>
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span className="text-gray-600 dark:text-slate-400">Đang mời thầu ({packages?.filter(p => p.Status === PackageStatus.Bidding).length || 0})</span></span>
@@ -460,9 +517,16 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
             </div>
 
             {/* MSC Compliance Alert */}
-            {mscSummary && mscSummary.packagesNeedAction > 0 && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
+            {mscSummary && mscSummary.packagesNeedAction > 0 && !isMscDismissed && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 relative">
+                    <button
+                        onClick={() => setIsMscDismissed(true)}
+                        className="absolute top-2 right-2 p-1 text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+                        title="Ẩn thông báo"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-start gap-3 pr-6">
                         <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
                             <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                         </div>
@@ -495,6 +559,32 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
             {/* Controls */}
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="flex gap-2">
+                    <div className="relative"  ref={columnPickerRef}>
+                        <button
+                            onClick={() => setShowColumnPicker(!showColumnPicker)}
+                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                            title="Hiển thị/ẩn cột"
+                        >
+                            <Settings size={14} />
+                            <span className="hidden sm:inline">Cột</span>
+                        </button>
+                        {showColumnPicker && (
+                            <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 z-30 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                                <div className="px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Hiển thị cột</div>
+                                {Object.entries(COLUMN_LABELS).map(([key, label]) => (
+                                    <label key={key} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={visibleColumns[key]}
+                                            onChange={(e) => setVisibleColumns(prev => ({ ...prev, [key]: e.target.checked }))}
+                                            className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-xs text-gray-700 dark:text-slate-300">{label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -535,14 +625,27 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                         <Download size={16} />
                         <span>Export Excel</span>
                     </button>
-                    <button
-                        onClick={() => setIsDeleteAllConfirmOpen(true)}
-                        disabled={!packages || packages.length === 0}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                    >
-                        <Trash2 size={16} />
-                        <span>Xóa tất cả</span>
-                    </button>
+                    {/* More actions dropdown (contains dangerous actions) */}
+                    <div className="relative" ref={moreActionsRef}>
+                        <button
+                            onClick={() => setShowMoreActions(!showMoreActions)}
+                            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+                        >
+                            <MoreHorizontal size={16} />
+                        </button>
+                        {showMoreActions && (
+                            <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 z-30 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                                <button
+                                    onClick={() => { setIsDeleteAllConfirmOpen(true); setShowMoreActions(false); }}
+                                    disabled={!packages || packages.length === 0}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Trash2 size={14} />
+                                    Xóa tất cả gói thầu
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={() => setIsCreatePlanOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium shadow-sm shadow-primary-200"
@@ -665,10 +768,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                     </span>
                                     <button
                                         onClick={() => {
-                                            if (window.confirm(`Xóa KHLCNT "${plan.PlanName}" và tất cả ${planPackages.length} gói thầu thuộc kế hoạch này?\n\nHành động này không thể hoàn tác.`)) {
-                                                setDeletingPlanId(plan.PlanID);
-                                                deletePlanMutation.mutate(plan.PlanID);
-                                            }
+                                            setConfirmDeletePlan({ planId: plan.PlanID, planName: plan.PlanName, packageCount: planPackages.length });
                                         }}
                                         disabled={deletingPlanId === plan.PlanID}
                                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50"
@@ -719,23 +819,23 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                                 }} />
                                                         </th>
                                                         <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-10">TT</th>
-                                                        <th colSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Tên gói thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[110px]">Giá gói thầu<br />(Đồng)</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center min-w-[100px]">Nguồn vốn</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Hình thức<br />lựa chọn<br />nhà thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Phương thức<br />lựa chọn<br />nhà thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />tổ chức<br />LCNT</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />bắt đầu<br />tổ chức<br />LCNT</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Loại<br />hợp đồng</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />thực hiện<br />gói thầu</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">Tùy chọn<br />mua thêm</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Trạng thái</th>
-                                                        <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">MSC</th>
+                                                        <th colSpan={visibleColumns.description ? 2 : 1} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Tên gói thầu</th>
+                                                        {visibleColumns.price && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[110px]">Giá gói thầu<br />(Đồng)</th>}
+                                                        {visibleColumns.fundingSource && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center min-w-[100px]">Nguồn vốn</th>}
+                                                        {visibleColumns.selectionMethod && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Hình thức<br />lựa chọn<br />nhà thầu</th>}
+                                                        {visibleColumns.selectionProcedure && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Phương thức<br />lựa chọn<br />nhà thầu</th>}
+                                                        {visibleColumns.selectionDuration && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />tổ chức<br />LCNT</th>}
+                                                        {visibleColumns.selectionStartDate && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />bắt đầu<br />tổ chức<br />LCNT</th>}
+                                                        {visibleColumns.contractType && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center">Loại<br />hợp đồng</th>}
+                                                        {visibleColumns.duration && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Thời gian<br />thực hiện<br />gói thầu</th>}
+                                                        {visibleColumns.hasOption && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">Tùy chọn<br />mua thêm</th>}
+                                                        {visibleColumns.status && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[90px]">Trạng thái</th>}
+                                                        {visibleColumns.msc && <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-[60px]">MSC</th>}
                                                         <th rowSpan={2} className="border border-slate-200 dark:border-slate-800 px-2 py-3 text-center w-10">TT</th>
                                                     </tr>
                                                     <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">
                                                         <th className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-center min-w-[120px]">Tên gói thầu</th>
-                                                        <th className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-center min-w-[140px]">Tóm tắt công việc<br />chính của gói thầu</th>
+                                                        {visibleColumns.description && <th className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-center min-w-[140px]">Tóm tắt công việc<br />chính của gói thầu</th>}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -759,21 +859,21 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                                         }} />
                                                                 </td>
                                                                 <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center font-bold text-slate-500 dark:text-slate-400 align-top">{index + 1}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-3 py-3 align-top">
+                                                                <td className="border border-slate-200 dark:border-slate-700 px-3 py-3 align-top" title={pkg.PackageName}>
                                                                     <div className="font-semibold text-slate-800 dark:text-slate-200 leading-snug">{pkg.PackageName}</div>
                                                                     {pkg.NotificationCode && <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-mono text-blue-600 dark:text-blue-400"><Bell className="w-2.5 h-2.5" />{pkg.NotificationCode}</span>}
                                                                 </td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-3 py-3 text-slate-600 dark:text-slate-300 align-top leading-snug">{pkg.Description || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-right font-bold tabular-nums text-slate-800 dark:text-slate-200 align-top">{formatCurrency(pkg.Price)}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.FundingSource || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionMethod || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionProcedure || pkg.BidType || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionDuration || '45 ngày'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionStartDate || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.ContractType === 'LumpSum' ? 'Trọn gói' : pkg.ContractType === 'UnitPrice' ? 'Đơn giá CĐ' : pkg.ContractType === 'AdjustableUnitPrice' ? 'Đơn giá ĐC' : pkg.ContractType === 'Mixed' ? 'Hỗn hợp' : pkg.ContractType || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top font-medium">{pkg.Duration || '-'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.HasOption ? 'Có' : 'Không'}</td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center align-top">
+                                                                {visibleColumns.description && <td className="border border-slate-200 dark:border-slate-700 px-3 py-3 text-slate-600 dark:text-slate-300 align-top leading-snug">{pkg.Description || '-'}</td>}
+                                                                {visibleColumns.price && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-right font-bold tabular-nums text-slate-800 dark:text-slate-200 align-top">{formatCurrency(pkg.Price)}</td>}
+                                                                {visibleColumns.fundingSource && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.FundingSource || '-'}</td>}
+                                                                {visibleColumns.selectionMethod && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionMethod || '-'}</td>}
+                                                                {visibleColumns.selectionProcedure && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionProcedure || pkg.BidType || '-'}</td>}
+                                                                {visibleColumns.selectionDuration && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionDuration || '45 ngày'}</td>}
+                                                                {visibleColumns.selectionStartDate && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.SelectionStartDate || '-'}</td>}
+                                                                {visibleColumns.contractType && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.ContractType === 'LumpSum' ? 'Trọn gói' : pkg.ContractType === 'UnitPrice' ? 'Đơn giá CĐ' : pkg.ContractType === 'AdjustableUnitPrice' ? 'Đơn giá ĐC' : pkg.ContractType === 'Mixed' ? 'Hỗn hợp' : pkg.ContractType || '-'}</td>}
+                                                                {visibleColumns.duration && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top font-medium">{pkg.Duration || '-'}</td>}
+                                                                {visibleColumns.hasOption && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center text-slate-700 dark:text-slate-300 align-top">{pkg.HasOption ? 'Có' : 'Không'}</td>}
+                                                                {visibleColumns.status && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center align-top">
                                                                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-semibold ${getStatusColor(pkg.Status)}`}>
                                                                         {pkg.Status === PackageStatus.Planning && <Circle className="w-2.5 h-2.5" />}
                                                                         {pkg.Status === PackageStatus.Posted && <FileText className="w-2.5 h-2.5" />}
@@ -782,8 +882,8 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                                         {pkg.Status === PackageStatus.Awarded && <CheckCircle2 className="w-2.5 h-2.5" />}
                                                                         {getStatusLabel(pkg.Status)}
                                                                     </span>
-                                                                </td>
-                                                                <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center align-top" onClick={(e) => e.stopPropagation()}>
+                                                                </td>}
+                                                                {visibleColumns.msc && <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center align-top" onClick={(e) => e.stopPropagation()}>
                                                                     {pendingMSC > 0 ? (
                                                                         <button onClick={() => handleView(pkg)} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-[10px] font-bold hover:bg-red-200 transition-colors" title={`${pendingMSC} tài liệu cần đăng tải`}>
                                                                             <AlertTriangle className="w-3 h-3" />{pendingMSC}
@@ -793,7 +893,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                                             <CheckCircle2 className="w-3 h-3" />
                                                                         </span>
                                                                     )}
-                                                                </td>
+                                                                </td>}
                                                                 <td className="border border-slate-200 dark:border-slate-700 px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                                                                     <ActionDropdown pkg={pkg} isOpen={openDropdownId === pkg.PackageID} onToggle={() => setOpenDropdownId(openDropdownId === pkg.PackageID ? null : pkg.PackageID)} onClose={() => setOpenDropdownId(null)} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} onCopyTBMT={handleCopyTBMT} />
                                                                 </td>
@@ -804,34 +904,53 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                                                 {planPackages.length > 0 && (
                                                     <tfoot>
                                                         <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-200 dark:border-slate-700/50">
-                                                            <td colSpan={5} className="border border-slate-200 dark:border-slate-800 px-3 py-2 text-right text-xs uppercase tracking-wider">
+                                                            <td colSpan={4 + (visibleColumns.description ? 1 : 0)} className="border border-slate-200 dark:border-slate-800 px-3 py-2 text-right text-xs uppercase tracking-wider">
                                                                 Tổng ({planPackages.length} gói):
                                                             </td>
-                                                            <td className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-right text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                                                            {visibleColumns.price && <td className="border border-slate-200 dark:border-slate-800 px-2 py-2 text-right text-slate-900 dark:text-slate-100 tabular-nums text-sm">
                                                                 {formatCurrency(planTotal)}
-                                                            </td>
-                                                            <td colSpan={11} className="border border-slate-200 dark:border-slate-800"></td>
+                                                            </td>}
+                                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length - (visibleColumns.price ? 1 : 0) - (visibleColumns.description ? 1 : 0) + 1} className="border border-slate-200 dark:border-slate-800"></td>
                                                         </tr>
                                                     </tfoot>
                                                 )}
                                             </table>
                                         </div>
-                                    ) : (
-                                        <div className="p-6 text-center">
-                                            <FileText className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
-                                            <p className="text-sm text-gray-400 dark:text-slate-500 mb-3">Chưa có gói thầu trong KHLCNT này</p>
-                                            <div className="flex justify-center gap-2">
-                                                <button onClick={() => { setSelectedPlanId(plan.PlanID); setIsImportModalOpen(true); }}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-700 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 transition-colors">
-                                                    <Upload size={13} /> Import Excel
-                                                </button>
-                                                <button onClick={() => { setSelectedPlanId(plan.PlanID); setIsCreateModalOpen(true); }}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-                                                    <Plus size={13} /> Thêm gói thầu
-                                                </button>
+                                    ) : (() => {
+                                        const allPlanPkgs = packages?.filter(p => p.PlanID === plan.PlanID) || [];
+                                        const isFiltered = allPlanPkgs.length > 0 && planPackages.length === 0;
+                                        return (
+                                            <div className="p-6 text-center">
+                                                {isFiltered ? (
+                                                    <>
+                                                        <Search className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                                                        <p className="text-sm text-gray-400 dark:text-slate-500 mb-1">Không tìm thấy gói thầu phù hợp</p>
+                                                        <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Có {allPlanPkgs.length} gói trong KHLCNT nhưng không khớp bộ lọc</p>
+                                                        <button onClick={() => { setSearchTerm(''); setFilterStatus('all'); }}
+                                                            className="px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors">
+                                                            Xóa bộ lọc
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FileText className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                                                        <p className="text-sm text-gray-400 dark:text-slate-500 mb-3">Chưa có gói thầu trong KHLCNT này</p>
+                                                        <div className="flex justify-center gap-2">
+                                                            <button onClick={() => { setSelectedPlanId(plan.PlanID); setIsImportModalOpen(true); }}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-700 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 transition-colors">
+                                                                <Upload size={13} /> Import Excel
+                                                            </button>
+                                                            <button onClick={() => { setSelectedPlanId(plan.PlanID); setIsCreateModalOpen(true); }}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                                                                <Plus size={13} /> Thêm gói thầu
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
-                                        </div>
-                                    )}
+                                        );
+                                    })()}
+
                                 </>
                             )}
                         </div>
@@ -857,24 +976,6 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                 )}
             </div>
 
-            {/* Create Modal */}
-            <BiddingPackageModal
-                isOpen={isCreateModalOpen}
-                onClose={() => { setIsCreateModalOpen(false); setSelectedPlanId(null); }}
-                projectId={projectID}
-                planId={selectedPlanId || undefined}
-            />
-
-            {/* Edit Modal */}
-            <BiddingPackageModal
-                isOpen={isEditModalOpen}
-                onClose={() => {
-                    setIsEditModalOpen(false);
-                    setSelectedPackage(null);
-                }}
-                projectId={projectID}
-                packageToEdit={selectedPackage}
-            />
 
             {/* Detail Modal */}
             <BiddingPackageDetail
@@ -947,6 +1048,42 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                 </div>
             )}
 
+            {/* Confirm Delete KHLCNT Plan */}
+            {confirmDeletePlan && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmDeletePlan(null)} />
+                    <div className="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6 animate-scale-in">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                                <AlertTriangle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Xóa KHLCNT</h3>
+                                <p className="text-sm text-gray-500 dark:text-slate-400">Hành động này không thể hoàn tác</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-600 dark:text-slate-300 mb-6">
+                            Xóa KHLCNT <strong>"{confirmDeletePlan.planName}"</strong> và tất cả <strong className="text-red-600">{confirmDeletePlan.packageCount} gói thầu</strong> thuộc kế hoạch này?
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDeletePlan(null)} className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Hủy</button>
+                            <button
+                                onClick={() => {
+                                    setDeletingPlanId(confirmDeletePlan.planId);
+                                    deletePlanMutation.mutate(confirmDeletePlan.planId);
+                                    setConfirmDeletePlan(null);
+                                }}
+                                disabled={deletePlanMutation.isPending}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                            >
+                                {deletePlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                Xóa KHLCNT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* KHLCNT Export Modal */}
             <KHLCNTExportModal
                 isOpen={isExportModalOpen}
@@ -963,7 +1100,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
                 planId={selectedPlanId || undefined}
             />
 
-            {/* Package Create/Edit Modal */}
+            {/* Package Create/Edit Modal (single instance) */}
             <BiddingPackageModal
                 isOpen={isCreateModalOpen || isEditModalOpen}
                 onClose={() => {
@@ -1020,14 +1157,14 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({ pkg, isOpen, onToggle, 
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                     >
                         <Eye className="w-4 h-4" />
-                        Xem chi ti¿t
+                        Xem chi tiết
                     </button>
                     <button
                         onClick={() => onEdit(pkg)}
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                     >
                         <Edit className="w-4 h-4" />
-                        ChÉnh sía
+                        Chỉnh sửa
                     </button>
                     {pkg.NotificationCode && (
                         <>

@@ -357,27 +357,27 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800">
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">
                             {isEditMode ? 'Chỉnh sửa gói thầu' : 'Thêm gói thầu mới'}
                         </h2>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
                             <LegalReferenceLink text="Theo quy định NĐ 175/2024 và Luật Đấu thầu" />
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-gray-500" />
+                        <X className="w-5 h-5 text-gray-500 dark:text-slate-400" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-gray-200 px-6">
+                <div className="flex border-b border-gray-200 dark:border-slate-700 px-6">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
@@ -387,7 +387,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 border-b-2 transition-colors -mb-px
                                 ${activeTab === tab.id
                                     ? 'text-primary-600 border-primary-600'
-                                    : 'text-gray-500 border-transparent hover:text-gray-700'}
+                                    : 'text-gray-500 dark:text-slate-400 border-transparent hover:text-gray-700 dark:hover:text-slate-200'}
                             `}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -403,7 +403,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'basic' && (
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Số hiệu gói thầu <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -419,7 +419,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Trạng thái <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -434,7 +434,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Tên gói thầu <span className="text-red-500">*</span>
                                     </label>
                                     <textarea
@@ -450,7 +450,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Giá gói thầu (VNĐ) <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -471,7 +471,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Thời gian thực hiện <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -488,7 +488,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                 {/* Tóm tắt công việc */}
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Tóm tắt công việc chính
                                     </label>
                                     <textarea
@@ -502,13 +502,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                 {/* Nguồn vốn */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Nguồn vốn
                                     </label>
                                     <select
                                         value={formData.FundingSource}
                                         onChange={(e) => handleChange('FundingSource', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         {FUNDING_SOURCE_OPTIONS.map(opt => (
                                             <option key={opt} value={opt}>{opt}</option>
@@ -518,13 +518,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                 {/* Tùy chọn mua thêm */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Tùy chọn mua thêm
                                     </label>
                                     <select
                                         value={formData.HasOption}
                                         onChange={(e) => handleChange('HasOption', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         <option value="false">Không</option>
                                         <option value="true">Có</option>
@@ -536,14 +536,14 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                     <div className="col-span-2 space-y-3">
                                         {/* Auto-detected Guidance */}
                                         {methodGuidance && (
-                                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
                                                 <div className="flex items-start gap-3">
-                                                    <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                                    <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                                                     <div className="flex-1">
-                                                        <h5 className="text-sm font-semibold text-blue-800">
+                                                        <h5 className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                                                             Gợi ý phương án LCNT (NĐ 214/2025)
                                                         </h5>
-                                                        <p className="text-sm text-blue-700 mt-1">
+                                                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                                                             Nên áp dụng: <strong>{methodGuidance.label}</strong>
                                                         </p>
                                                         <p className="text-xs text-blue-600 mt-1">
@@ -556,10 +556,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         
                                         {/* Compliance Error */}
                                         {!complianceResult.isValid && (
-                                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                                            <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl">
                                                 <div className="flex items-start gap-3">
-                                                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                                                    <div className="flex-1 text-sm text-red-700">
+                                                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1 text-sm text-red-700 dark:text-red-300">
                                                         <ul className="list-disc pl-4 space-y-1">
                                                             {complianceResult.errors.map((err, i) => (
                                                                 <li key={i}>{err}</li>
@@ -572,10 +572,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                         {/* Compliance Suggestions */}
                                         {complianceResult.isValid && complianceResult.suggestions.length > 0 && (
-                                            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl">
                                                 <div className="flex items-start gap-3">
-                                                    <Lightbulb className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                                                    <div className="flex-1 text-sm text-emerald-700">
+                                                    <Lightbulb className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1 text-sm text-emerald-700 dark:text-emerald-300">
                                                         <ul className="list-disc pl-4 space-y-1">
                                                             {complianceResult.suggestions.map((sug, i) => (
                                                                 <li key={i}>{sug}</li>
@@ -594,13 +594,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'legal' && (
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Lĩnh vực
                                     </label>
                                     <select
                                         value={formData.Field}
                                         onChange={(e) => handleChange('Field', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         {FIELD_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -609,7 +609,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Hình thức lựa chọn nhà thầu
                                     </label>
                                     <select
@@ -629,13 +629,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Phương thức lựa chọn
                                     </label>
                                     <select
                                         value={formData.SelectionProcedure}
                                         onChange={(e) => handleChange('SelectionProcedure', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         {SELECTION_PROCEDURE_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -644,13 +644,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Hình thức đấu thầu
                                     </label>
                                     <select
                                         value={formData.BidType}
                                         onChange={(e) => handleChange('BidType', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         {BID_TYPE_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -659,13 +659,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Loại hợp đồng
                                     </label>
                                     <select
                                         value={formData.ContractType}
                                         onChange={(e) => handleChange('ContractType', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         {CONTRACT_TYPE_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -675,13 +675,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                 {/* Phạm vi đấu thầu */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Phạm vi đấu thầu
                                     </label>
                                     <select
                                         value={formData.BiddingScope}
                                         onChange={(e) => handleChange('BiddingScope', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     >
                                         <option value="Domestic">Trong nước</option>
                                         <option value="International">Quốc tế</option>
@@ -690,7 +690,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                                 {/* Số nhà thầu nộp HSDT */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Số NTh nộp HSDT/HSĐX
                                     </label>
                                     <input
@@ -699,13 +699,13 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         placeholder="0"
                                         value={formData.BiddersCount}
                                         onChange={(e) => handleChange('BiddersCount', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     />
                                 </div>
 
                                 {/* Số NTh vào đánh giá tài chính */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Số NTh vào đánh giá TC
                                     </label>
                                     <input
@@ -714,7 +714,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         placeholder="0"
                                         value={formData.EvaluationBiddersCount}
                                         onChange={(e) => handleChange('EvaluationBiddersCount', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                     />
                                 </div>
                             </div>
@@ -724,11 +724,11 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'timeline' && (
                             <div className="space-y-6">
                                 {/* KHLCNT Section */}
-                                <div className="p-4 bg-gray-50 rounded-xl">
-                                    <h4 className="font-semibold text-gray-800 mb-3">Kế hoạch lựa chọn nhà thầu</h4>
+                                <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                                    <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Kế hoạch lựa chọn nhà thầu</h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Mã KHLCNT
                                             </label>
                                             <input
@@ -736,11 +736,11 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: PL202400001"
                                                 value={formData.KHLCNTCode}
                                                 onChange={(e) => handleChange('KHLCNTCode', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Số QĐ phê duyệt KHLCNT
                                             </label>
                                             <input
@@ -748,22 +748,22 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: 123/QĐ-UBND"
                                                 value={formData.DecisionNumber}
                                                 onChange={(e) => handleChange('DecisionNumber', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Ngày phê duyệt KHLCNT
                                             </label>
                                             <input
                                                 type="date"
                                                 value={formData.DecisionDate}
                                                 onChange={(e) => handleChange('DecisionDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Thời gian tổ chức LCNT
                                             </label>
                                             <input
@@ -771,11 +771,11 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: 45 ngày"
                                                 value={formData.SelectionDuration}
                                                 onChange={(e) => handleChange('SelectionDuration', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Thời gian bắt đầu tổ chức LCNT
                                             </label>
                                             <input
@@ -783,19 +783,19 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: Quý I/2026 hoặc Tháng 3/2026"
                                                 value={formData.SelectionStartDate}
                                                 onChange={(e) => handleChange('SelectionStartDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Plan Group Section */}
-                                <div className="p-4 bg-indigo-50 rounded-xl">
-                                    <h4 className="font-semibold text-gray-800 mb-3">Nhóm Kế hoạch LCNT (giai đoạn)</h4>
-                                    <p className="text-xs text-gray-500 mb-3">Trên muasamcong.vn, mỗi KHLCNT (giai đoạn) có mã riêng. Dùng để group các gói thầu theo kế hoạch.</p>
+                                <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
+                                    <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Nhóm Kế hoạch LCNT (giai đoạn)</h4>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Trên muasamcong.vn, mỗi KHLCNT (giai đoạn) có mã riêng. Dùng để group các gói thầu theo kế hoạch.</p>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Tên nhóm kế hoạch
                                             </label>
                                             <input
@@ -803,11 +803,11 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: KHLCNT giai đoạn 1 - Tư vấn"
                                                 value={formData.PlanGroupName}
                                                 onChange={(e) => handleChange('PlanGroupName', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Số QĐ phê duyệt KH
                                             </label>
                                             <input
@@ -815,28 +815,28 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: 456/QĐ-UBND"
                                                 value={formData.PlanDecisionNumber}
                                                 onChange={(e) => handleChange('PlanDecisionNumber', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Ngày QĐ phê duyệt KH
                                             </label>
                                             <input
                                                 type="date"
                                                 value={formData.PlanDecisionDate}
                                                 onChange={(e) => handleChange('PlanDecisionDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                     </div>
                                 </div>
                                 {/* TBMT Section */}
-                                <div className="p-4 bg-blue-50 rounded-xl">
-                                    <h4 className="font-semibold text-gray-800 mb-3">Thông báo mời thầu (E-TBMT)</h4>
+                                <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+                                    <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Thông báo mời thầu (E-TBMT)</h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Mã TBMT
                                             </label>
                                             <input
@@ -844,40 +844,40 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 placeholder="VD: IB2400001234"
                                                 value={formData.NotificationCode}
                                                 onChange={(e) => handleChange('NotificationCode', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Ngày đăng tải
                                             </label>
                                             <input
                                                 type="date"
                                                 value={formData.PostingDate}
                                                 onChange={(e) => handleChange('PostingDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Thời điểm đóng thầu
                                             </label>
                                             <input
                                                 type="date"
                                                 value={formData.BidClosingDate}
                                                 onChange={(e) => handleChange('BidClosingDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                 Thời điểm mở thầu
                                             </label>
                                             <input
                                                 type="date"
                                                 value={formData.BidOpeningDate}
                                                 onChange={(e) => handleChange('BidOpeningDate', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                             />
                                         </div>
                                     </div>
@@ -889,27 +889,27 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'result' && (
                             <div className="space-y-4">
                                 {formData.Status !== PackageStatus.Awarded && formData.Status !== 'Awarded' ? (
-                                    <div className="p-8 text-center bg-gray-50 rounded-xl">
-                                        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                        <p className="text-gray-600">
+                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                                        <AlertCircle className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-3" />
+                                        <p className="text-gray-600 dark:text-slate-300">
                                             Chỉ nhập kết quả khi gói thầu có trạng thái <strong>"Đã có kết quả"</strong>
                                         </p>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
                                             Thay đổi trạng thái ở tab "Thông tin cơ bản"
                                         </p>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-green-50 rounded-xl">
-                                        <h4 className="font-semibold text-gray-800 mb-3">Kết quả lựa chọn nhà thầu</h4>
+                                    <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-xl">
+                                        <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Kết quả lựa chọn nhà thầu</h4>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                     Nhà thầu trúng thầu
                                                 </label>
                                                 <select
                                                     value={formData.WinningContractorID}
                                                     onChange={(e) => handleChange('WinningContractorID', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                    className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                                 >
                                                     <option value="">-- Chọn nhà thầu --</option>
                                                     {((contractors as any)?.data || contractors || []).map((c: any) => (
@@ -920,7 +920,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                     Giá trúng thầu (VNĐ)
                                                 </label>
                                                 <input
@@ -928,7 +928,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                     placeholder="0"
                                                     value={formData.WinningPrice}
                                                     onChange={(e) => handleChange('WinningPrice', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                    className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                                 />
                                                 {formData.WinningPrice && (
                                                     <p className="mt-1 text-xs text-green-600 font-medium">
@@ -937,14 +937,14 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                                     Ngày phê duyệt KQLCNT
                                                 </label>
                                                 <input
                                                     type="date"
                                                     value={formData.ApprovalDate_Result}
                                                     onChange={(e) => handleChange('ApprovalDate_Result', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                                    className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                                                 />
                                             </div>
                                         </div>
@@ -955,11 +955,11 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                            className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                         >
                             Hủy
                         </button>
@@ -985,7 +985,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                 {/* Error display */}
                 {(createMutation.isError || updateMutation.isError) && (
-                    <div className="absolute bottom-20 left-6 right-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    <div className="absolute bottom-20 left-6 right-6 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
                         Có lỗi xảy ra. Vui lòng thử lại.
                     </div>
                 )}

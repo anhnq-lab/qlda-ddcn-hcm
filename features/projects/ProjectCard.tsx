@@ -147,7 +147,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
             className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col cursor-pointer h-full"
         >
             {/* Image - Only badges */}
-            <div className="relative h-32 w-full overflow-hidden shrink-0">
+            <div className="relative h-28 w-full overflow-hidden shrink-0">
                 <LazyImage
                     src={project.ImageUrl || DEFAULT_IMAGE}
                     alt={project.ProjectName}
@@ -177,14 +177,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
             </div>
 
             {/* Content */}
-            <div className="p-3 flex-1 flex flex-col">
+            <div className="p-2.5 flex-1 flex flex-col">
                 {/* Title - fixed to 2 lines */}
-                <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100 leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1.5 min-h-[2.5rem]" title={project.ProjectName}>
+                <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100 leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1 min-h-[2.25rem]" title={project.ProjectName}>
                     {project.ProjectName}
                 </h3>
 
                 {/* Location + ID + Board */}
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 mb-3">
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 mb-2">
                     <span className="flex items-center gap-1 truncate">
                         <MapPin className="w-3 h-3 text-gray-400 dark:text-slate-500 shrink-0" />
                         <span className="truncate">{project.LocationCode}</span>
@@ -200,7 +200,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                 </div>
 
                 {/* Progress */}
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-2">
                     <div>
                         <div className="flex justify-between text-[11px] mb-1">
                             <span className="text-gray-500 dark:text-slate-400">Tiến độ</span>
@@ -218,7 +218,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                 </div>
 
                 {/* Total Investment Footer */}
-                <div className="mt-auto pt-3 border-t border-gray-200 dark:border-slate-700">
+                <div className="mt-auto pt-2 border-t border-gray-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-semibold tracking-wide">Tổng mức ĐT</span>
                         <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-yellow-700 bg-clip-text text-transparent dark:text-slate-100 dark:bg-none tabular-nums">{formatCurrency(project.TotalInvestment)}</span>

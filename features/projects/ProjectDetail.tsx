@@ -375,9 +375,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     return (
         <div className={`flex flex-col relative ${inPanel ? 'h-screen' : 'h-[calc(100vh-120px)]'} bg-[#F8FAFC] dark:bg-slate-900`}>
             {/* Fixed Header + Tabs — does NOT scroll */}
-            <div className={`shrink-0 px-4 ${activeTab === 'operations' ? 'pt-2' : inPanel ? 'pt-2' : 'pt-3'}`}>
+            <div className={`shrink-0 px-4 ${activeTab === 'operations' ? 'pt-1' : inPanel ? 'pt-1' : 'pt-2'}`}>
                 {/* 1. Minimal Header — just title + actions */}
-                <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center justify-between gap-3 mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
                         {!inPanel && (
                             <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors shrink-0">
@@ -454,8 +454,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             {/* 3. Tab Content — Heavy tabs stay mounted after first visit */}
             {/* Light tabs: info, documents, tt24, inspection — mount/unmount normally */}
             {activeTab === 'info' && (
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
-                    <div className="space-y-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
+                    <div className="space-y-3">
                         <ProjectInfoTab
                             project={project}
                             projectMembers={projectMembers}
@@ -497,13 +497,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                             }}
                             canEditLifecycle={true}
                             onEditProject={() => setShowEditModal(true)}
+                            onTabChange={(tab) => setActiveTab(tab)}
                         />
                     </div>
                 </div>
             )}
             {activeTab === 'documents' && (
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
-                    <div className="space-y-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
+                    <div className="space-y-3">
                         <AICompliancePanel projectId={project.ProjectID} />
                         <div className="flex justify-end">
                             <button
@@ -524,8 +525,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 </div>
             )}
             {activeTab === 'tt24' && (
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
-                    <div className="space-y-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
+                    <div className="space-y-3">
                         <ProjectComplianceTab
                             project={project}
                             onUpdate={(updated) => {
@@ -536,7 +537,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 </div>
             )}
             {activeTab === 'inspection' && (
-                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <ProjectInspectionTab projectID={project.ProjectID} />
                 </div>
             )}
@@ -544,7 +545,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             {/* Heavy tabs: plan, packages, capital — lazy mounted, stay alive via CSS visibility */}
             {planMounted && (
                 <div
-                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'plan' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'plan' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'plan' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ProjectPlanTab
@@ -559,7 +560,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             )}
             {packagesMounted && (
                 <div
-                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'packages' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'packages' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'packages' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ProjectPackagesTab
@@ -572,10 +573,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             )}
             {capitalMounted && (
                 <div
-                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-6 ${activeTab === 'capital' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'capital' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'capital' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         <AIForecastChart
                             projectId={project.ProjectID}
                             currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}

@@ -92,7 +92,7 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
     ];
 
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map((stat, index) => {
                 const s = CARD_STYLES[index] || CARD_STYLES[0];
                 return (

@@ -48,17 +48,18 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
     const getStatusInfo = (status: string) => STATUS_LABELS[status.toLowerCase()] || { label: status, color: 'text-gray-500 bg-gray-100' };
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                    <HardHat className="w-4 h-4" />
-                    Nhà thầu ({contractors.length > 0 ? contractors.length : packages.length})
-                </h3>
+        <div className="section-card">
+            <div className="section-card-header">
+                <div className="flex items-center gap-2">
+                    <div className="section-icon"><HardHat className="w-3.5 h-3.5" /></div>
+                    <span>Nhà thầu</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">({contractors.length > 0 ? contractors.length : packages.length})</span>
+                </div>
             </div>
 
             {/* Contractors from contracts table */}
             {contractors.length > 0 && (
-                <div className="space-y-2">
+                <div className="divide-y divide-gray-50 dark:divide-slate-700">
                     {(showAllContractors ? contractors : contractors.slice(0, MAX_SHOW)).map((contractor) => {
                         const displayInfo = contractor.packageNames?.length
                             ? contractor.packageNames.join(', ')
@@ -69,7 +70,7 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
                         return (
                             <div
                                 key={contractor.ContractorID}
-                                className="flex items-center gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/15 rounded-lg border border-amber-100 dark:border-amber-800/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/25 transition-colors cursor-pointer group"
+                                className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-center gap-3"
                                 onClick={() => onViewContractor?.(contractor.ContractorID)}
                             >
                                 <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
@@ -96,16 +97,18 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
                     })}
 
                     {contractors.length > MAX_SHOW && (
-                        <button
-                            onClick={() => setShowAllContractors(!showAllContractors)}
-                            className="w-full flex items-center justify-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline py-1.5"
-                        >
-                            {showAllContractors ? (
-                                <><ChevronUp className="w-3.5 h-3.5" /> Thu gọn</>
-                            ) : (
-                                <><ChevronDown className="w-3.5 h-3.5" /> Xem tất cả {contractors.length} nhà thầu</>
-                            )}
-                        </button>
+                        <div className="px-3 py-2 border-t border-gray-100 dark:border-slate-700">
+                            <button
+                                onClick={() => setShowAllContractors(!showAllContractors)}
+                                className="w-full flex items-center justify-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 py-0.5"
+                            >
+                                {showAllContractors ? (
+                                    <><ChevronUp className="w-3 h-3" /> Thu gọn</>
+                                ) : (
+                                    <><ChevronDown className="w-3 h-3" /> Xem tất cả {contractors.length} nhà thầu</>
+                                )}
+                            </button>
+                        </div>
                     )}
                 </div>
             )}

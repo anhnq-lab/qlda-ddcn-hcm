@@ -74,8 +74,8 @@ const ProjectList: React.FC = () => {
     }, [navigate]);
 
     return (
-        <div className="flex flex-col gap-6 animate-in fade-in duration-300 pb-20">
-            <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col gap-4 animate-in fade-in duration-300 pb-20">
+            <div className="flex flex-col lg:flex-row gap-4 items-start">
                 {/* 2. SIDEBAR FILTER (Premium Style) */}
                 <div className={`shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-full lg:w-72' : 'w-0 lg:w-10'}`}>
                     <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-6 ${!isSidebarOpen ? 'hidden lg:flex lg:items-center lg:justify-center lg:py-4' : ''}`}>
@@ -212,7 +212,7 @@ const ProjectList: React.FC = () => {
                 </div>
 
                 {/* 3. MAIN LIST AREA */}
-                <div className="flex-1 w-full space-y-6">
+                <div className="flex-1 w-full space-y-4">
                     {/* Toolbar */}
                     <div className="bg-white dark:bg-slate-800 p-2 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="relative w-full md:flex-1">
@@ -282,7 +282,7 @@ const ProjectList: React.FC = () => {
                     {/* Content */}
                     <div className="min-h-[400px]">
                         {isLoading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[1, 2, 3, 4, 5, 6].map(i => (
                                     <div key={i} className="bg-white dark:bg-slate-800 h-72 rounded-2xl p-4 space-y-4 border border-slate-200 dark:border-slate-700">
                                         <Skeleton className="h-40 w-full rounded-xl" />
@@ -331,7 +331,7 @@ const ProjectList: React.FC = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'flex flex-col gap-4'}>
+                            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'flex flex-col gap-3'}>
                                 {sortedProjects.map(project => (
                                     <ProjectCard
                                         key={project.ProjectID}

@@ -254,6 +254,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         return {
             policyApprovalDate: getCompletionDate('PREP_POLICY'),
             projectApprovalDate: getCompletionDate('PREP_DECISION'),
+            constructionDesignDate: getCompletionDate('IMPL_DESIGN'),
             groundbreakingDate: getCompletionDate('IMPL_CONSTRUCTION'),
             completionDate: getCompletionDate('IMPL_ACCEPTANCE'),
             handoverDate: getCompletionDate('CLOSE_HANDOVER')
@@ -373,10 +374,12 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (taskData.Status === TaskStatus.Done && (progress < 100)) {
             taskData.ProgressPercent = 100;
             (taskData as any).Progress = 100;
-        }
-        if (taskData.Status === TaskStatus.Todo && progress > 0) {
+        } else if (taskData.Status === TaskStatus.Todo && progress > 0) {
             taskData.ProgressPercent = 0;
             (taskData as any).Progress = 0;
+        } else {
+            taskData.ProgressPercent = progress;
+            (taskData as any).Progress = progress;
         }
 
         let updatedTask: Task;

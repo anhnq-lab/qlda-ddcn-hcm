@@ -6,7 +6,8 @@ import {
     Building,
     CheckCircle2,
     Circle,
-    Clock
+    Clock,
+    PenTool
 } from 'lucide-react';
 
 interface Milestone {
@@ -24,6 +25,7 @@ interface MilestoneTimelineProps {
     milestoneData?: {
         policyApprovalDate?: string;
         projectApprovalDate?: string;
+        constructionDesignDate?: string;
         groundbreakingDate?: string;
         completionDate?: string;
         handoverDate?: string;
@@ -35,10 +37,11 @@ export const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
     milestoneData = {} as MilestoneTimelineProps['milestoneData']
 }) => {
     // Determine which milestone is "current" (first one without a completion date)
-    const milestoneOrder = ['policy_approval', 'project_approval', 'groundbreaking', 'completion', 'handover'];
+    const milestoneOrder = ['policy_approval', 'project_approval', 'construction_design', 'groundbreaking', 'completion', 'handover'];
     const dateByMilestone: Record<string, string | undefined> = {
         policy_approval: milestoneData.policyApprovalDate,
         project_approval: milestoneData.projectApprovalDate,
+        construction_design: milestoneData.constructionDesignDate,
         groundbreaking: milestoneData.groundbreakingDate,
         completion: milestoneData.completionDate,
         handover: milestoneData.handoverDate,
@@ -70,6 +73,15 @@ export const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
             icon: FileSignature,
             date: milestoneData.projectApprovalDate,
             status: getStatus('project_approval', milestoneData.projectApprovalDate)
+        },
+        {
+            id: 'construction_design',
+            title: 'Thiết kế xây dựng triển khai sau khi dự án được phê duyệt',
+            description: 'Lập, thẩm định, phê duyệt thiết kế',
+            phaseCode: 'IMPL_DESIGN',
+            icon: PenTool,
+            date: milestoneData.constructionDesignDate,
+            status: getStatus('construction_design', milestoneData.constructionDesignDate)
         },
         {
             id: 'groundbreaking',

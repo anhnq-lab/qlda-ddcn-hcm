@@ -172,9 +172,9 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 
     return (
         <>
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
                         <Circle className="w-3 h-3" />
                         Vòng đời dự án (NĐ 175/2024)
@@ -234,7 +234,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                             >
                                 {/* Circle/Icon — mỗi giai đoạn giữ màu riêng */}
                                 <div
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
                                         ${status === 'current' ? 'ring-3 scale-110' : ''}
                                         ${status === 'upcoming' ? 'opacity-40' : ''}
                                     `}
@@ -249,7 +249,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                 </div>
 
                                 {/* Label */}
-                                <div className="mt-2 text-center">
+                                <div className="mt-1.5 text-center">
                                     <span className={`text-[10px] font-bold ${status === 'upcoming' ? 'opacity-40' : ''}`} style={{ color: stage.hex }}>
                                         {stage.label}
                                     </span>
@@ -271,7 +271,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                 )}
 
                                 {/* Required docs tooltip on hover */}
-                                <div className="absolute top-full mt-8 hidden group-hover:block z-20">
+                                <div className="absolute top-full mt-6 hidden group-hover:block z-20">
                                     <div className="bg-gray-900 text-white text-[10px] rounded-lg px-3 py-2 shadow-xl min-w-[140px]">
                                         <p className="font-bold mb-1.5 text-gray-300 uppercase">Văn bản cần có:</p>
                                         <ul className="space-y-1">
