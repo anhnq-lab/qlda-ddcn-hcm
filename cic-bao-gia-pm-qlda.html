@@ -44,7 +44,7 @@
         .slider-labels span { position: absolute; transform: translateX(-50%); }
 
         /* ── EXTRA INPUTS ROW ── */
-        .extra-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 24px auto 0; }
+        .extra-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px; margin: 24px auto 0; }
         .extra-row .eg { }
         .extra-row label { display: block; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
         .extra-row select, .extra-row input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--card); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
@@ -151,8 +151,8 @@
         <p class="sub">Kéo thanh trượt để chọn số lượng người dùng</p>
 
         <div class="slider-wrap">
-            <div class="slider-bubble" id="sliderBubble">30 người dùng</div>
-            <input type="range" class="user-slider" id="userSlider" min="10" max="200" value="30" step="5" oninput="onSliderChange()">
+            <div class="slider-bubble" id="sliderBubble">20 người dùng</div>
+            <input type="range" class="user-slider" id="userSlider" min="10" max="200" value="20" step="5" oninput="onSliderChange()">
             <div class="slider-labels" id="sliderLabels"></div>
         </div>
 
@@ -160,18 +160,17 @@
             <div class="eg">
                 <label>Thời hạn hợp đồng</label>
                 <select id="calcTerm" onchange="recalcAll()">
-                    <option value="1" selected>1 năm — Trải Nghiệm (tặng 1 tháng)</option>
-                    <option value="2">2 năm — Đồng Hành (tặng 3 tháng)</option>
-                    <option value="3">3 năm — Chiến Lược (tặng 5 tháng)</option>
+                    <option value="1" selected>1 năm</option>
+                    <option value="2">2 năm (tặng 1 tháng)</option>
+                    <option value="3">3 năm (tặng 2 tháng)</option>
                 </select>
             </div>
             <div class="eg">
                 <label>🎓 Đào tạo (2 ngày, theo gói)</label>
                 <input type="number" id="calcTrainees" value="0" min="0" max="200" placeholder="Số người" onchange="recalcAll()" oninput="recalcAll()">
             </div>
-            <div class="eg">
-                <label>💾 Lưu trữ bổ sung (50K/GB/tháng)</label>
-                <input type="number" id="calcStorage" value="0" min="0" max="5000" step="10" placeholder="GB" onchange="recalcAll()" oninput="recalcAll()">
+            <div class="eg" style="display:flex;align-items:end;">
+                <p style="font-size:11px;color:var(--text3);line-height:1.5;">💾 Dung lượng cơ bản: <strong style="color:var(--text2);">100 GB</strong>. Cần thêm? <a href="#contact" style="color:var(--accent);">Liên hệ</a></p>
             </div>
         </div>
     </div>
@@ -188,14 +187,13 @@
                 <h3 class="card-title">BASIC</h3>
                 <p class="card-desc">Số hóa nghiệp vụ quản lý dự án cốt lõi cho PMU quy mô nhỏ</p>
                 <div class="price-row">
-                    <div class="price-total" id="priceBasic">80.000.000<span class="price-total-unit"> VND</span></div>
-                    <p class="price-sub" id="subBasic">dành cho <strong>30</strong> tài khoản hàng năm</p>
-                    <p class="price-per-user" id="perUserBasic">225.000₫ hàng tháng cho một tài khoản</p>
+                    <div class="price-total" id="priceBasic">60.000.000<span class="price-total-unit"> VND</span></div>
+                    <p class="price-sub" id="subBasic">dành cho <strong>20</strong> tài khoản hàng năm</p>
+                    <p class="price-per-user" id="perUserBasic">250.000₫ / user / tháng</p>
                     <div class="price-extras" id="extrasBasic"></div>
                 </div>
                 <ul class="feature-list">
-                    <li>Không giới hạn tài khoản</li>
-                    <li>20 GB lưu trữ Cloud</li>
+                    <li>100 GB lưu trữ Cloud</li>
                     <li>Quản lý tối đa 15 dự án</li>
                     <li>Đăng nhập & Phân quyền đa cấp (RLS)</li>
                     <li>Dashboard cá nhân</li>
@@ -218,13 +216,12 @@
                 <h3 class="card-title">ADVANCE</h3>
                 <p class="card-desc">Tài chính, đấu thầu, tài liệu số & báo cáo chuyên sâu</p>
                 <div class="price-row">
-                    <div class="price-total" id="pricePro">120.000.000<span class="price-total-unit"> VND</span></div>
-                    <p class="price-sub" id="subPro">dành cho <strong>30</strong> tài khoản hàng năm</p>
-                    <p class="price-per-user" id="perUserPro">335.000₫ hàng tháng cho một tài khoản</p>
+                    <div class="price-total" id="pricePro">90.000.000<span class="price-total-unit"> VND</span></div>
+                    <p class="price-sub" id="subPro">dành cho <strong>20</strong> tài khoản hàng năm</p>
+                    <p class="price-per-user" id="perUserPro">375.000₫ / user / tháng</p>
                     <div class="price-extras" id="extrasPro"></div>
                 </div>
                 <ul class="feature-list">
-                    <li>Không giới hạn tài khoản</li>
                     <li>100 GB lưu trữ Cloud</li>
                     <li>Quản lý tối đa 60 dự án</li>
                     <li><strong>Toàn bộ tính năng gói BASIC</strong></li>
@@ -247,14 +244,13 @@
                 <h3 class="card-title">PREMIUM</h3>
                 <p class="card-desc">CDE ISO 19650, BIM 3D, AI & quản trị toàn diện</p>
                 <div class="price-row">
-                    <div class="price-total" id="priceEnt">160.000.000<span class="price-total-unit"> VND</span></div>
-                    <p class="price-sub" id="subEnt">dành cho <strong>30</strong> tài khoản hàng năm</p>
-                    <p class="price-per-user" id="perUserEnt">445.000₫ hàng tháng cho một tài khoản</p>
+                    <div class="price-total" id="priceEnt">135.000.000<span class="price-total-unit"> VND</span></div>
+                    <p class="price-sub" id="subEnt">dành cho <strong>20</strong> tài khoản hàng năm</p>
+                    <p class="price-per-user" id="perUserEnt">565.000₫ / user / tháng</p>
                     <div class="price-extras" id="extrasEnt"></div>
                 </div>
                 <ul class="feature-list">
-                    <li>Không giới hạn tài khoản</li>
-                    <li>500 GB lưu trữ Cloud</li>
+                    <li>100 GB lưu trữ Cloud</li>
                     <li>Không giới hạn số dự án</li>
                     <li><strong>Toàn bộ tính năng gói ADVANCE</strong></li>
                     <li>CDE — Môi trường Dữ liệu Chung (ISO 19650)</li>
@@ -340,21 +336,21 @@
         <div class="policy-grid">
             <div class="policy-card">
                 <div class="p-label">Gói 1 năm</div>
-                <div class="p-name">Trải Nghiệm</div>
-                <div class="p-gift" style="color:var(--basic);">Tặng 1 tháng</div>
-                <div class="p-note">Tương đương chiết khấu ~ 8.3%</div>
+                <div class="p-name">Cơ bản</div>
+                <div class="p-gift" style="color:var(--text3);">Không ưu đãi</div>
+                <div class="p-note">Thanh toán theo năm</div>
             </div>
             <div class="policy-card" style="border-color:rgba(245,158,11,0.25);">
                 <div class="p-label">Gói 2 năm</div>
                 <div class="p-name">Đồng Hành</div>
-                <div class="p-gift" style="color:var(--pro);">Tặng 3 tháng</div>
-                <div class="p-note">Tương đương chiết khấu ~ 13%</div>
+                <div class="p-gift" style="color:var(--pro);">Tặng 1 tháng</div>
+                <div class="p-note">Tương đương chiết khấu ~ 4.2%</div>
             </div>
             <div class="policy-card">
                 <div class="p-label">Gói 3 năm</div>
                 <div class="p-name">Chiến Lược</div>
-                <div class="p-gift" style="color:var(--ent);">Tặng 5 tháng</div>
-                <div class="p-note">Tương đương chiết khấu ~ 14%</div>
+                <div class="p-gift" style="color:var(--ent);">Tặng 2 tháng</div>
+                <div class="p-note">Tương đương chiết khấu ~ 5.6%</div>
             </div>
         </div>
     </div>
@@ -392,14 +388,14 @@
 </footer>
 
 <script>
-    // Giá gói cơ bản cho 30 user/năm
-    const BASE_PACK = { basic: 80000000, pro: 120000000, ent: 160000000 };
-    const PER_USER = { basic: 225000, pro: 335000, ent: 445000 };  // Đơn giá làm tròn
-    const INCLUDED_USERS = 30;
-    const BONUS = { 1: 1, 2: 3, 3: 5 };
-    const TRAINING_COST = { basic: 500000, pro: 800000, ent: 1200000 };  // Đào tạo 2 ngày/người
-    const STORAGE_COST = 50000;     // 50K/GB/tháng
-    const TICK_VALUES = [10, 30, 50, 80, 100, 150, 200];
+    // Giá gói cơ bản cho 20 user/năm
+    const BASE_PACK = { basic: 60000000, pro: 90000000, ent: 135000000 };
+    const PER_USER = { basic: 250000, pro: 375000, ent: 565000 };
+    const INCLUDED_USERS = 20;
+    const BONUS = { 1: 0, 2: 1, 3: 2 };
+    const TRAINING_COST = { basic: 500000, pro: 800000, ent: 1200000 };
+    const STORAGE_COST = 50000;
+    const TICK_VALUES = [10, 20, 50, 80, 100, 150, 200];
 
     function fmt(n) { return n.toLocaleString('vi-VN'); }
 
@@ -437,7 +433,6 @@
         const users = Math.max(10, parseInt(document.getElementById('userSlider').value));
         const term = parseInt(document.getElementById('calcTerm').value);
         const trainees = Math.max(0, parseInt(document.getElementById('calcTrainees').value) || 0);
-        const extraGB = Math.max(0, parseInt(document.getElementById('calcStorage').value) || 0);
         const bonusMonths = BONUS[term];
         const totalMonths = term * 12;
 
@@ -446,9 +441,9 @@
             const baseRate = PER_USER[tier];  // Đơn giá gốc user/tháng
 
             // ═══ Volume Discount (marginal) ═══
-            // 31-50: 0% | 51-80: −5% | 81-100: −10% | 101-150: −15% | 151+: −20%
+            // 21-50: 0% | 51-80: −5% | 81-100: −10% | 101-150: −15% | 151+: −20%
             const TIERS = [
-                { from: 31, to: 50,  discount: 0 },
+                { from: 21, to: 50,  discount: 0 },
                 { from: 51, to: 80,  discount: 0.05 },
                 { from: 81, to: 100, discount: 0.10 },
                 { from: 101, to: 150, discount: 0.15 },
@@ -479,18 +474,17 @@
                 softwareCost += extraUserCost;
             }
 
-            // Ưu đãi tặng tháng
+            // Ưu đãi tặng tháng (tối thiểu 5.000.000₫/tháng tặng)
             const hasDiscount = users > 50;  // Chiết khấu chỉ bắt đầu từ user 51
             const effectiveRate = hasDiscount ? Math.round(softwareCost / users / totalMonths) : baseRate;
-            const bonusValue = effectiveRate * users * bonusMonths;
+            const bonusValue = Math.max(5000000 * bonusMonths, effectiveRate * users * bonusMonths);
             const softwareAfterBonus = softwareCost - bonusValue;
 
             // Chi phí phát sinh (TÁCH RIÊNG)
             const trainingCost = trainees > 0 ? trainees * TRAINING_COST[tier] : 0;
-            const storageCost = extraGB > 0 ? extraGB * STORAGE_COST * totalMonths : 0;
 
             // Tổng cộng
-            const total = softwareAfterBonus + trainingCost + storageCost;
+            const total = softwareAfterBonus + trainingCost;
 
             const idMap = { basic: 'Basic', pro: 'Pro', ent: 'Ent' };
             const id = idMap[tier];
@@ -511,9 +505,6 @@
             if (trainingCost > 0) {
                 extrasHtml += '<div class="pe-line"><span>🎓 Đào tạo (' + trainees + ' người × ' + fmt(TRAINING_COST[tier]) + '₫)</span><span class="pe-val">' + fmt(trainingCost) + '₫</span></div>';
             }
-            if (storageCost > 0) {
-                extrasHtml += '<div class="pe-line"><span>💾 Lưu trữ bổ sung (' + extraGB + ' GB)</span><span class="pe-val">' + fmt(storageCost) + '₫</span></div>';
-            }
             document.getElementById('extras' + id).innerHTML = extrasHtml;
         });
 
@@ -525,10 +516,7 @@
         if (trainees > 0) {
             noteLines.push('🎓 Đào tạo (2 ngày): Basic <strong>' + fmt(TRAINING_COST.basic) + '₫</strong> | Advance <strong>' + fmt(TRAINING_COST.pro) + '₫</strong> | Premium <strong>' + fmt(TRAINING_COST.ent) + '₫</strong>/người');
         }
-        if (extraGB > 0) {
-            const sTotal = extraGB * STORAGE_COST * totalMonths;
-            noteLines.push('💾 Lưu trữ bổ sung: <strong>' + fmt(sTotal) + '₫</strong> — tách riêng');
-        }
+        noteLines.push('💾 Dung lượng cơ bản: <strong>100 GB</strong> cho tất cả các gói. Cần thêm dung lượng vui lòng <a href="#contact" style="color:var(--accent);">liên hệ tư vấn</a>.');
         noteLines.push('📌 <span style="color:var(--text3);">Giá chưa bao gồm VAT · Dùng thử miễn phí 30 ngày</span>');
         document.getElementById('extraCostNote').innerHTML = noteLines.join('<br>');
     }
