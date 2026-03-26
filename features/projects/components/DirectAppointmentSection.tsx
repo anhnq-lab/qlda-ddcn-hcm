@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useContractors } from '../../../hooks/useContractors';
 import { supabase } from '../../../lib/supabase';
+import ProjectService from '../../../services/ProjectService';
 import { formatCurrency } from '../../../utils/format';
 import { DocumentAttachments } from '../../../components/common/DocumentAttachments';
 import { Contractor } from '../../../types';
@@ -139,41 +140,17 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
 
             // Sync with Winning Contractor if marked as winner
             if (payload.status === 'winner') {
-                // 1. Update package
-                await supabase
-                    .from('bidding_packages')
-                    .update({
-                        winning_contractor_id: data.contractor_id,
-                        winning_price: data.proposed_price || 0
-                    })
-                    .eq('package_id', packageId);
-
-                // 2. Clear existing entries
-                await supabase
-                    .from('package_winning_contractors')
-                    .delete()
-                    .eq('package_id', packageId);
-
-                // 3. Insert into winning table
-                await supabase
-                    .from('package_winning_contractors')
-                    .insert({
-                        package_id: packageId,
-                        contractor_id: data.contractor_id,
-                        role: 'lead',
-                        share_percent: 100
-                    });
+                // 1. Update package via service (uses mapper correctly)
+                await ProjectService.updatePackage(packageId, {
+                    WinningContractorID: data.contractor_id,
+                    WinningPrice: data.proposed_price || 0,
+                });
             } else {
                 // If unset from winner, clear it
-                await supabase
-                    .from('bidding_packages')
-                    .update({ winning_contractor_id: null, winning_price: null })
-                    .eq('package_id', packageId);
-
-                await supabase
-                    .from('package_winning_contractors')
-                    .delete()
-                    .eq('package_id', packageId);
+                await ProjectService.updatePackage(packageId, {
+                    WinningContractorID: null as any,
+                    WinningPrice: null,
+                });
             }
         },
         onSuccess: () => {

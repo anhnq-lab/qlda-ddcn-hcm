@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, CalendarRange, Save } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, CalendarRange, Save, ListChecks } from 'lucide-react';
 import { DisbursementPlanItem } from '../../../services/CapitalService';
 import { formatCurrency } from '../../../utils/format';
+import { Task } from '../../../types';
 
 interface MonthEntry {
     id?: string;
@@ -20,13 +21,43 @@ interface DisbursementPlanModalProps {
     allPlans: DisbursementPlanItem[];
     annualLimit: number;
     isSaving?: boolean;
+    projectTasks?: Task[];
+}
+
+/** Compute tasks active in a given month/year based on date range overlap */
+function getTasksForMonth(tasks: Task[], month: number, year: number): string[] {
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0); // last day of month
+
+    return tasks
+        .filter(t => {
+            const taskStart = t.PlannedStartDate || t.StartDate || t.DueDate;
+            const taskEnd = t.PlannedEndDate || t.DueDate;
+            if (!taskEnd) return false;
+
+            const tStart = new Date(taskStart || taskEnd);
+            const tEnd = new Date(taskEnd);
+
+            // Check overlap: task range overlaps with month range
+            return tStart <= monthEnd && tEnd >= monthStart;
+        })
+        .map(t => t.Title);
 }
 
 export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
-    isOpen, onClose, onSave, projectID, defaultYear, allPlans, annualLimit, isSaving
+    isOpen, onClose, onSave, projectID, defaultYear, allPlans, annualLimit, isSaving, projectTasks = []
 }) => {
     const [year, setYear] = useState(defaultYear);
     const [entries, setEntries] = useState<MonthEntry[]>([]);
+
+    // Compute task labels for each month
+    const monthlyTasks = useMemo(() => {
+        const map: Record<number, string[]> = {};
+        for (let m = 1; m <= 12; m++) {
+            map[m] = getTasksForMonth(projectTasks, m, year);
+        }
+        return map;
+    }, [projectTasks, year]);
 
     const loadPlansForYear = (y: number) => {
         const initial: MonthEntry[] = [];
@@ -88,7 +119,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]"
+                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -136,42 +167,63 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                             <thead className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 dark:text-slate-400 rounded-lg border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th className="py-3 px-4 rounded-tl-lg rounded-bl-lg w-24">Tháng</th>
-                                    <th className="py-3 px-4 w-1/4">Kế hoạch (VNĐ)</th>
-                                    <th className="py-3 px-4 w-1/4">Thực tế (VNĐ)</th>
-                                    <th className="py-3 px-4 rounded-tr-lg rounded-br-lg">Ghi chú</th>
+                                    <th className="py-3 px-4 w-1/5">Kế hoạch (VNĐ)</th>
+                                    <th className="py-3 px-4 w-1/5">Thực tế (VNĐ)</th>
+                                    <th className="py-3 px-4 rounded-tr-lg rounded-br-lg">
+                                        <div className="flex items-center gap-1.5">
+                                            <ListChecks className="w-3.5 h-3.5 text-violet-500" />
+                                            Việc trong tháng
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {entries.map(e => (
-                                    <tr key={e.month} className="border-b border-gray-100 dark:border-slate-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="py-2.5 px-4 font-medium text-gray-700 dark:text-slate-300">
-                                            Tháng {e.month}
-                                        </td>
-                                        <td className="py-2.5 px-4">
-                                            <input
-                                                type="text"
-                                                value={e.plannedAmount ? Number(e.plannedAmount).toLocaleString('vi-VN') : ''}
-                                                onChange={ev => handleChange(e.month, 'plannedAmount', ev.target.value)}
-                                                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
-                                                placeholder="0"
-                                            />
-                                        </td>
-                                        <td className="py-2.5 px-4">
-                                            <span className="text-emerald-700 dark:text-emerald-400 font-mono font-medium block w-full px-3 py-1.5 bg-gray-50/50 dark:bg-slate-700/30 rounded-lg border border-transparent">
-                                                {formatCurrency(Number(e.actualAmount) || 0)}
-                                            </span>
-                                        </td>
-                                        <td className="py-2.5 px-4">
-                                            <input
-                                                type="text"
-                                                value={e.notes}
-                                                onChange={ev => handleChange(e.month, 'notes', ev.target.value)}
-                                                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
-                                                placeholder="Ghi chú..."
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
+                                {entries.map(e => {
+                                    const tasksInMonth = monthlyTasks[e.month] || [];
+                                    const autoTaskText = tasksInMonth.length > 0
+                                        ? tasksInMonth.join(', ')
+                                        : '';
+
+                                    return (
+                                        <tr key={e.month} className="border-b border-gray-100 dark:border-slate-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="py-2.5 px-4 font-medium text-gray-700 dark:text-slate-300">
+                                                Tháng {e.month}
+                                            </td>
+                                            <td className="py-2.5 px-4">
+                                                <input
+                                                    type="text"
+                                                    value={e.plannedAmount ? Number(e.plannedAmount).toLocaleString('vi-VN') : ''}
+                                                    onChange={ev => handleChange(e.month, 'plannedAmount', ev.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                                                    placeholder="0"
+                                                />
+                                            </td>
+                                            <td className="py-2.5 px-4">
+                                                <span className="text-emerald-700 dark:text-emerald-400 font-mono font-medium block w-full px-3 py-1.5 bg-gray-50/50 dark:bg-slate-700/30 rounded-lg border border-transparent">
+                                                    {formatCurrency(Number(e.actualAmount) || 0)}
+                                                </span>
+                                            </td>
+                                            <td className="py-2.5 px-4">
+                                                {tasksInMonth.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {tasksInMonth.slice(0, 3).map((taskName, i) => (
+                                                            <span key={i} className="inline-block px-2 py-0.5 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[11px] font-medium rounded-md border border-violet-200 dark:border-violet-800/50 truncate max-w-[180px]" title={taskName}>
+                                                                {taskName}
+                                                            </span>
+                                                        ))}
+                                                        {tasksInMonth.length > 3 && (
+                                                            <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 text-[11px] font-medium rounded-md" title={tasksInMonth.slice(3).join(', ')}>
+                                                                +{tasksInMonth.length - 3} việc
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-300 dark:text-slate-600 text-xs italic">Không có việc</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                                 {/* Tổng cộng footer */}
                                 <tr className="bg-gray-50 dark:bg-slate-700/30 font-bold border-t border-gray-200 dark:border-slate-600">
                                     <td className="py-3 px-4 text-gray-800 dark:text-slate-200">Tổng cộng</td>

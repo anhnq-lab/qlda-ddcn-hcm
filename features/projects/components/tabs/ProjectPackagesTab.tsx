@@ -8,6 +8,8 @@ import { BiddingPackageModal } from '../BiddingPackageModal';
 import { BiddingPackageDetail } from '../BiddingPackageDetail';
 import { BiddingImportModal } from '../BiddingImportModal';
 import { KHLCNTExportModal } from '../KHLCNTExportModal';
+import { PackageStatsDashboard } from './PackageStatsDashboard';
+import { CreatePlanForm } from './CreatePlanForm';
 import { getMSCSummary, countPendingRequirements, getMSCPlanLink, getMSCPackageLink } from '../../../../utils/mscCompliance';
 import { exportBiddingPackagesToExcel } from '../../../../utils/biddingExcelIO';
 import { supabase } from '../../../../lib/supabase';
@@ -95,12 +97,6 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<ProcurementPlan | null>(null);
     const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-    const [newPlanName, setNewPlanName] = useState('');
-    const [newPlanCode, setNewPlanCode] = useState('');
-    const [newPlanType, setNewPlanType] = useState<'EGP' | 'Legacy'>('EGP');
-    const [newPlanDecision, setNewPlanDecision] = useState('');
-    const [newPlanDecisionDate, setNewPlanDecisionDate] = useState('');
-    const [newPlanMSC, setNewPlanMSC] = useState('');
     const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
     const [confirmDeletePlan, setConfirmDeletePlan] = useState<{ planId: string; planName: string; packageCount: number } | null>(null);
     const [showMoreActions, setShowMoreActions] = useState(false);
@@ -180,12 +176,15 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     // Delete ALL packages mutation
     const deleteAllMutation = useMutation({
         mutationFn: async () => {
-            await (supabase.from('bidding_packages') as any)
-                .delete()
-                .eq('project_id', projectID);
+            // Use service for each package to respect safety checks
+            const pkgIds = packages.map(p => p.PackageID);
+            await Promise.all(pkgIds.map(id => 
+                supabase.from('bidding_packages').delete().eq('package_id', id)
+            ));
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-packages', projectID] });
+            queryClient.invalidateQueries({ queryKey: ['project-plans', projectID] });
             setIsDeleteAllConfirmOpen(false);
         },
     });
@@ -371,33 +370,6 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     };
 
     // KHLCNT Plan mutations
-    const createPlanMutation = useMutation({
-        mutationFn: async () => {
-            return ProjectService.createPlan({
-                ProjectID: projectID,
-                PlanName: newPlanName,
-                PlanCode: newPlanCode || undefined,
-                PlanType: newPlanType,
-                DecisionNumber: newPlanDecision || undefined,
-                DecisionDate: newPlanDecisionDate || undefined,
-                MSCPlanCode: newPlanMSC || undefined,
-                Status: 'Active',
-            });
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['project-plans', projectID] });
-            setIsCreatePlanOpen(false);
-            setNewPlanName(''); setNewPlanCode(''); setNewPlanDecision('');
-            setNewPlanDecisionDate(''); setNewPlanMSC('');
-
-            if (importAfterCreateRef.current && data?.PlanID) {
-                setSelectedPlanId(data.PlanID);
-                setIsImportModalOpen(true);
-            }
-            importAfterCreateRef.current = false;
-        },
-    });
-
     const deletePlanMutation = useMutation({
         mutationFn: async (planId: string) => {
             console.log('Deleting plan:', planId);
@@ -415,9 +387,13 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
         },
     });
 
-    const resetPlanForm = () => {
-        setNewPlanName(''); setNewPlanCode(''); setNewPlanDecision('');
-        setNewPlanDecisionDate(''); setNewPlanMSC(''); setNewPlanType('EGP');
+    const handlePlanCreated = (planIdForImport?: string) => {
+        queryClient.invalidateQueries({ queryKey: ['project-plans', projectID] });
+        setIsCreatePlanOpen(false);
+        if (planIdForImport) {
+            setSelectedPlanId(planIdForImport);
+            setIsImportModalOpen(true);
+        }
     };
 
     if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Đang tải dữ liệu gói thầu...</div>;
@@ -443,118 +419,9 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
     return (
         <div className="space-y-6">
             {/* Header / Statistics */}
-            <div className="rounded-xl p-3">
-                {/* Main Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {/* Total Packages */}
-                    <div className="stat-card stat-card-blue cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-1">
-                            <span className="stat-card-label">Tổng số gói thầu</span>
-                            <div className="stat-card-icon"><Briefcase className="w-5 h-5" /></div>
-                        </div>
-                        <h3 className="stat-card-value tabular-nums">{packages?.length || 0}</h3>
-                    </div>
+            <PackageStatsDashboard packages={packages || []} />
 
-                    {/* Total Value */}
-                    <div className="stat-card stat-card-amber cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Tổng giá trị (DT)</span>
-                            <div className="stat-card-icon"><FileText className="w-5 h-5" /></div>
-                        </div>
-                        <h3 className="stat-card-value tabular-nums text-2xl truncate">
-                            {formatCurrency(packages?.reduce((sum, p) => sum + (p.Price || 0), 0) || 0)}
-                        </h3>
-                    </div>
-
-                    {/* Awarded Packages */}
-                    <div className="stat-card stat-card-emerald cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Đã có kết quả</span>
-                            <div className="stat-card-icon"><CheckCircle2 className="w-5 h-5" /></div>
-                        </div>
-                        <h3 className="stat-card-value tabular-nums">
-                            {packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0}
-                            <span className="text-sm font-bold text-emerald-600/60 dark:text-emerald-400/60 ml-1">/{packages?.length || 0}</span>
-                        </h3>
-                    </div>
-
-                    {/* In Progress */}
-                    <div className="stat-card stat-card-violet cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Đang thực hiện</span>
-                            <div className="stat-card-icon"><Clock className="w-5 h-5" /></div>
-                        </div>
-                        <h3 className="stat-card-value tabular-nums">
-                            {packages?.filter(p => p.Status === PackageStatus.Bidding || p.Status === PackageStatus.Evaluating).length || 0}
-                        </h3>
-                    </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Tiến độ hoàn thành Đấu thầu</span>
-                        <span className="text-sm font-bold text-gray-800 dark:text-slate-100 tabular-nums">
-                            {(packages?.length ?? 0) > 0
-                                ? Math.round((packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100)
-                                : 0}%
-                        </span>
-                    </div>
-                    <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
-                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Awarded).length / packages!.length) * 100 : 0}%` }} title="Đã có kết quả" />
-                        <div className="h-full bg-amber-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Evaluating).length / packages!.length) * 100 : 0}%` }} title="Đang xét thầu" />
-                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Bidding).length / packages!.length) * 100 : 0}%` }} title="Đang mời thầu" />
-                        <div className="h-full bg-indigo-500 transition-all" style={{ width: `${(packages?.length ?? 0) > 0 ? (packages!.filter(p => p.Status === PackageStatus.Posted).length / packages!.length) * 100 : 0}%` }} title="Đã đăng tải" />
-                    </div>
-                    <div className="flex flex-wrap gap-4 mt-2 text-xs">
-                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-gray-600 dark:text-slate-400">Đã có kết quả ({packages?.filter(p => p.Status === PackageStatus.Awarded).length || 0})</span></span>
-                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span className="text-gray-600 dark:text-slate-400">Đang xét thầu ({packages?.filter(p => p.Status === PackageStatus.Evaluating).length || 0})</span></span>
-                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span className="text-gray-600 dark:text-slate-400">Đang mời thầu ({packages?.filter(p => p.Status === PackageStatus.Bidding).length || 0})</span></span>
-                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-400"></span><span className="text-gray-600 dark:text-slate-400">Đã đăng tải ({packages?.filter(p => p.Status === PackageStatus.Posted).length || 0})</span></span>
-                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-300"></span><span className="text-gray-600 dark:text-slate-400">Trong kế hoạch ({packages?.filter(p => p.Status === PackageStatus.Planning).length || 0})</span></span>
-                    </div>
-                </div>
-            </div>
-
-            {/* MSC Compliance Alert */}
-            {mscSummary && mscSummary.packagesNeedAction > 0 && !isMscDismissed && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 relative">
-                    <button
-                        onClick={() => setIsMscDismissed(true)}
-                        className="absolute top-2 right-2 p-1 text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
-                        title="Ẩn thông báo"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                    <div className="flex items-start gap-3 pr-6">
-                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
-                            <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">
-                                Cần đăng tải lên muasamcong.vn
-                            </h4>
-                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                                <span className="font-bold">{mscSummary.packagesNeedAction}</span> gói thầu có tài liệu cần đăng tải
-                                ({mscSummary.totalPending} tài liệu). Theo Luật Đấu thầu 2023, CDT phải đăng tải đúng thời hạn.
-                            </p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {mscSummary.details.slice(0, 3).map((d, i) => (
-                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 rounded text-[10px] font-medium">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        {d.packageName.length > 30 ? d.packageName.slice(0, 30) + '...' : d.packageName}: {d.items.join(', ')}
-                                    </span>
-                                ))}
-                                {mscSummary.details.length > 3 && (
-                                    <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                                        +{mscSummary.details.length - 3} gói khác...
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* MSC Compliance Alert - tạm ẩn, chưa cần thiết */}
 
             {/* Controls */}
             <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -660,58 +527,11 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
             <div className="space-y-3">
                 {/* Create Plan Form */}
                 {isCreatePlanOpen && (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border-2 border-amber-300 dark:border-amber-700 shadow-lg overflow-hidden">
-                        <div className="px-5 py-3 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border-b border-amber-200 dark:border-amber-800">
-                            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                                <FolderPlus size={16} />
-                                Tạo KHLCNT mới
-                            </h3>
-                        </div>
-                        <div className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <input type="text" placeholder="Tên KHLCNT *" value={newPlanName} onChange={(e) => setNewPlanName(e.target.value)}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500" />
-                                <input type="text" placeholder="Số hiệu KHLCNT (VD: PL2500231393)" value={newPlanCode} onChange={(e) => setNewPlanCode(e.target.value)}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500" />
-                                <select value={newPlanType} onChange={(e) => setNewPlanType(e.target.value as 'EGP' | 'Legacy')}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500">
-                                    <option value="EGP">KHLCNT trên hệ thống EGP mới</option>
-                                    <option value="Legacy">Hệ thống cũ</option>
-                                </select>
-                                <input type="text" placeholder="Số QĐ phê duyệt" value={newPlanDecision} onChange={(e) => setNewPlanDecision(e.target.value)}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500" />
-                                <input type="date" placeholder="Ngày QĐ" value={newPlanDecisionDate} onChange={(e) => setNewPlanDecisionDate(e.target.value)}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500" />
-                                <input type="text" placeholder="Mã trên muasamcong.vn" value={newPlanMSC} onChange={(e) => setNewPlanMSC(e.target.value)}
-                                    className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500" />
-                            </div>
-                            <div className="flex justify-end gap-2 mt-4">
-                                <button onClick={() => setIsCreatePlanOpen(false)} className="px-4 py-2 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Hủy</button>
-                                <button
-                                    onClick={() => {
-                                        importAfterCreateRef.current = false;
-                                        createPlanMutation.mutate();
-                                    }}
-                                    disabled={!newPlanName.trim() || createPlanMutation.isPending}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-700 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-400 rounded-lg disabled:opacity-50 hover:bg-amber-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
-                                >
-                                    {createPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={14} />}
-                                    <span>Lưu & Đóng</span>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        importAfterCreateRef.current = true;
-                                        createPlanMutation.mutate();
-                                    }}
-                                    disabled={!newPlanName.trim() || createPlanMutation.isPending}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium gradient-btn text-white rounded-lg disabled:opacity-50 transition-colors shadow-sm"
-                                >
-                                    {createPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload size={14} />}
-                                    <span>Lưu & Import từ Excel</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <CreatePlanForm
+                        projectId={projectID}
+                        onClose={() => setIsCreatePlanOpen(false)}
+                        onSuccess={handlePlanCreated}
+                    />
                 )}
 
                 {/* Plan Accordion Cards */}

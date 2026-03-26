@@ -18,6 +18,7 @@ import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { ContractModal } from './components/ContractModal';
 
 const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'all' }) => {
     const navigate = useNavigate();
@@ -28,6 +29,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
     const { biddingPackages } = useAllBiddingPackages();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | ContractStatus>('all');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // === Cross-module helpers ===
     const getContractorName = (contractorId: string): string => {
@@ -233,10 +235,20 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                         ))}
                     </div>
 
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="ml-auto flex items-center gap-3">
                         <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden lg:inline">
                             Hiển thị {filteredContracts.length} / {stats.total}
                         </span>
+                        
+                        {userType !== 'contractor' && (
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm shadow-blue-200 dark:shadow-blue-900/20 transition-all"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden sm:inline">Thêm hợp đồng</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -414,6 +426,12 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                     </div>
                 )}
             </Card>
+
+            {/* Modal Tạo mới hợp đồng */}
+            <ContractModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 };

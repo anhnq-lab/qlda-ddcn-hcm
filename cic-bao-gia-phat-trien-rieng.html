@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Báo Giá Phần Mềm CIC-QLDA — Mua / Thuê Bao | Quản lý Dự án ĐTXD</title>
+<meta name="description" content="Báo giá phần mềm CIC-QLDA — Chọn module, mua đứt hoặc thuê bao hằng năm.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0B1120;--bg2:#111827;--card:#1a2235;--cb:rgba(255,255,255,0.06);--t:#E2E8F0;--t2:#94A3B8;--t3:#64748B;--pr:#8B5CF6;--prg:rgba(139,92,246,0.15);--ac:#3B82F6;--acg:rgba(59,130,246,0.12);--ok:#22C55E;--wa:#F59E0B;--er:#EF4444}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t);line-height:1.6;-webkit-font-smoothing:antialiased}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* HERO */
+.hero{text-align:center;padding:72px 24px 48px;background:linear-gradient(180deg,#0f172a 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(139,92,246,0.1) 0%,transparent 70%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);color:#A78BFA;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 16px;border-radius:999px;margin-bottom:20px}
+.hero h1{font-size:clamp(26px,5vw,44px);font-weight:900;letter-spacing:-.02em;line-height:1.2;margin-bottom:14px;background:linear-gradient(135deg,#fff 30%,#A78BFA 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--t2);font-size:15px;max-width:620px;margin:0 auto 24px}
+.hero-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 14px;border-radius:10px}
+.tag.v{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);color:#A78BFA}
+.tag.b{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);color:#60A5FA}
+.tag.a{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);color:#FBBF24}
+
+/* PLAN SWITCHER */
+.switcher-wrap{display:flex;justify-content:center;margin:40px 0 32px}
+.switcher{display:inline-flex;background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:5px;gap:4px}
+.ptab{display:flex;align-items:center;gap:8px;padding:11px 32px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:all .25s}
+.ptab.active{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.ptab:not(.active):hover{background:rgba(255,255,255,.05);color:var(--t)}
+.new-badge{font-size:9px;font-weight:800;background:var(--wa);color:#000;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.mwgt{display:none!important}.mbar{display:none!important}
+
+/* PLAN MODES */
+.sub-only{display:none!important}.buy-only{display:block!important}
+body.sub-mode .sub-only{display:block!important}body.sub-mode .buy-only{display:none!important}
+.pbadge.sub-only{display:none!important}.pbadge.buy-only{display:inline-block!important}
+body.sub-mode .pbadge.sub-only{display:inline-block!important}body.sub-mode .pbadge.buy-only{display:none!important}
+.pincludes li.sub-only{display:none!important}.pincludes li.buy-only{display:flex!important}
+body.sub-mode .pincludes li.sub-only{display:flex!important}body.sub-mode .pincludes li.buy-only{display:none!important}
+.terms-box span.buy-only{display:unset!important}body.sub-mode .terms-box span.buy-only{display:none!important}
+.terms-box span.sub-only{display:none!important}body.sub-mode .terms-box span.sub-only{display:unset!important}
+body.sub-mode .price-card{border-color:rgba(245,158,11,.3)}
+body.sub-mode .price-card::before{background:linear-gradient(90deg,#F59E0B,#FBBF24)}
+body.sub-mode .price-card .pbadge{background:rgba(245,158,11,.12);color:var(--wa)}
+
+/* PRICE CARDS */
+.section{padding:56px 0;border-top:1px solid var(--cb)}
+.section-title{text-align:center;font-size:26px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+.section-sub{text-align:center;color:var(--t3);font-size:14px;margin-bottom:40px}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:820px;margin:0 auto 36px}
+@media(max-width:680px){.cards-grid{grid-template-columns:1fr}}
+.price-card{background:var(--card);border:1px solid rgba(139,92,246,.25);border-radius:22px;padding:32px 28px;position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s}
+.price-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px var(--prg)}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#8B5CF6,#A78BFA)}
+.setup-card{border-color:rgba(59,130,246,.2)}
+.setup-card::before{background:linear-gradient(90deg,#3B82F6,#60A5FA)}
+.setup-card .pamount{font-size:28px}
+.setup-card:hover{box-shadow:0 20px 60px var(--acg)}
+.pbadge{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:4px 12px;border-radius:6px;margin-bottom:12px;background:var(--prg);color:var(--pr)}
+.setup-card .pbadge{background:var(--acg);color:var(--ac)}
+.plabel{font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px}
+.pamount{font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.2}
+.pamount span{font-size:15px;font-weight:500;color:var(--t3)}
+.pnote{font-size:12px;color:var(--t3);margin-top:8px;line-height:1.6}
+.pincludes{list-style:none;margin-top:14px}
+.pincludes li{font-size:13px;color:var(--t2);padding:4px 0;display:flex;align-items:center;gap:8px}
+.pincludes li::before{content:'✓';flex-shrink:0;width:17px;height:17px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:800}
+.price-card .pincludes li::before{background:var(--prg);color:var(--pr)}
+.setup-card .pincludes li::before{background:var(--acg);color:var(--ac)}
+
+/* TOTAL SUMMARY */
+.total-box{max-width:820px;margin:0 auto 40px;background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.06));border:1px solid rgba(139,92,246,.15);border-radius:18px;padding:24px 28px}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;gap:20px}
+.trow.div{border-top:1px solid var(--cb);margin-top:8px;padding-top:14px}
+.trow .lbl{color:var(--t2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}.trow .val{font-weight:700;color:var(--t);white-space:nowrap;flex-shrink:0;text-align:right;min-width:180px;padding-left:16px}
+.trow.grand .lbl{font-size:15px;font-weight:800;color:var(--t)}.trow.grand .val{font-size:19px;font-weight:900;color:var(--pr)}
+.tnote{font-size:11px;color:var(--t3);margin-top:10px;line-height:1.6}
+
+/* MODULE TABLE */
+.tbl-wrap{max-width:1020px;margin:0 auto}
+.mod-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--cb)}
+.mod-table thead th{padding:14px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);border-bottom:1px solid var(--cb)}
+.mod-table thead th:first-child{text-align:center;width:52px}
+.mod-table thead th:nth-child(2){text-align:left;padding-left:8px}
+.mod-table thead th:nth-child(3){text-align:right;width:160px}
+.mod-table thead th:nth-child(4){text-align:right;width:80px;padding-right:20px}
+.mod-table tbody td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--t2);vertical-align:middle}
+.mod-table tbody td:nth-child(3){text-align:right;font-weight:700;color:var(--t);font-variant-numeric:tabular-nums}
+.mod-table tbody td:nth-child(4){text-align:right;padding-right:20px;font-weight:600;color:var(--t3);font-size:12px}
+.mod-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.mod-table tfoot td{padding:16px 16px;border-top:2px solid rgba(139,92,246,.2);font-weight:800;font-size:14px}
+.mod-table tfoot td:first-child{padding-left:20px;color:var(--t)}
+.mod-table tfoot td:nth-child(3){text-align:right;color:var(--pr);font-size:15px;font-weight:900}
+.mod-table tfoot td:nth-child(4){text-align:right;padding-right:20px;color:var(--pr)}
+.grp td{font-weight:700!important;color:var(--pr)!important;font-size:11px!important;text-transform:uppercase;letter-spacing:.08em;background:rgba(139,92,246,.04);padding:9px 16px!important}
+.mname{font-weight:600;color:var(--t);display:flex;align-items:center;gap:7px}
+.mbar{height:3px;border-radius:3px;background:rgba(139,92,246,.1);margin-top:5px;overflow:hidden}
+.mbar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--pr),#A78BFA)}
+.mdesc{font-size:12px;color:var(--t3);line-height:1.5;margin-top:2px}
+.cbx{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:2px solid rgba(139,92,246,.4);border-radius:5px;cursor:pointer;position:relative;transition:all .2s;background:rgba(139,92,246,.05)}
+.cbx:checked{background:var(--pr);border-color:var(--pr)}
+.cbx:checked::after{content:'✓';position:absolute;color:#fff;font-size:11px;font-weight:900;left:50%;top:50%;transform:translate(-50%,-50%)}
+.cbx:disabled{cursor:not-allowed;opacity:.5}
+.cbx:disabled:checked{background:var(--t3);border-color:var(--t3)}
+tr.sel{background:rgba(139,92,246,.04)!important}
+tr.unsel{opacity:.55;filter:grayscale(.4)}
+.tbl-note{margin-top:16px;font-size:12px;color:var(--t3);line-height:1.8;padding:0 4px}
+
+/* PAYMENT */
+.pay-grid{display:grid;gap:20px;max-width:900px;margin:0 auto}
+.pay-grid.buy{grid-template-columns:repeat(3,1fr)}
+.pay-grid.sub{grid-template-columns:repeat(2,1fr);max-width:560px}
+@media(max-width:680px){.pay-grid.buy,.pay-grid.sub{grid-template-columns:1fr}}
+.pay-card{background:var(--card);border:1px solid var(--cb);border-radius:16px;padding:24px 20px;text-align:center;transition:all .3s}
+.pay-card:hover{border-color:rgba(139,92,246,.3);transform:translateY(-3px)}
+.pp{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.pn{font-size:15px;font-weight:800;margin-bottom:4px}
+.pa{font-size:22px;font-weight:900;margin:10px 0 5px;color:var(--pr)}
+.pc{font-size:13px;color:var(--t2);font-weight:600}
+.pnt{font-size:12px;color:var(--t3);margin-top:7px}
+
+/* ADV / TECH */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:860px){.grid3{grid-template-columns:1fr}}
+.acard{background:var(--card);border:1px solid var(--cb);border-radius:16px;padding:24px 20px;transition:all .3s}
+.acard:hover{border-color:rgba(139,92,246,.3);transform:translateY(-3px)}
+.acard .ico{font-size:28px;margin-bottom:12px}
+.acard h4{font-size:14px;font-weight:700;margin-bottom:7px}
+.acard p{font-size:13px;color:var(--t3);line-height:1.6}
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:900px;margin:0 auto}
+.titem{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:20px;text-align:center;transition:all .3s}
+.titem:hover{border-color:rgba(139,92,246,.2)}
+.titem .ti{font-size:26px;margin-bottom:8px}
+.titem h4{font-size:13px;font-weight:700;margin-bottom:5px}
+.titem p{font-size:12px;color:var(--t3);line-height:1.5}
+
+/* TERMS */
+.terms-box{max-width:900px;margin:32px auto 0;background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:22px 26px}
+
+/* CTA */
+.cta{text-align:center;padding:72px 24px;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%)}
+.cta h2{font-size:30px;font-weight:900;margin-bottom:10px}
+.cta p{color:var(--t2);margin-bottom:28px;font-size:14px}
+.cbtn{display:inline-flex;align-items:center;gap:10px;padding:15px 38px;background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;font-size:15px;font-weight:700;border:none;border-radius:13px;cursor:pointer;box-shadow:0 8px 30px rgba(139,92,246,.3);transition:all .25s;text-decoration:none}
+.cbtn:hover{box-shadow:0 12px 40px rgba(139,92,246,.45);transform:translateY(-2px)}
+footer{padding:28px 24px;text-align:center;font-size:12px;color:var(--t3);border-top:1px solid var(--cb)}
+footer strong{color:var(--t2)}
+@media print{body{background:#fff;color:#1a1a1a}.hero h1{-webkit-text-fill-color:#1a1a1a}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">📦 Phần mềm CIC-QLDA — Sẵn sàng Triển khai</div>
+  <h1>Báo Giá Phần Mềm<br>Quản lý Dự án ĐTXD<br>CIC-QLDA</h1>
+  <p>Phần mềm đã hoàn thiện — Chọn module phù hợp, triển khai trong 4–6 tuần. Trả trước 1 lần để tiết kiệm, hoặc thuê bao hằng năm linh hoạt.</p>
+  <div class="hero-tags">
+    <span class="tag v">💰 Trả trước — Tiết kiệm vận hành</span>
+    <span class="tag v">🔄 Thuê bao — Linh hoạt chi phí</span>
+    <span class="tag b">⚡ React · Supabase · Vercel</span>
+    <span class="tag a">🤖 Google Gemini AI</span>
+  </div>
+</section>
+
+<!-- COST OVERVIEW -->
+<section class="section" style="border-top:none;padding-top:40px">
+  <div class="container">
+    <h2 class="section-title">Chi phí Đầu tư</h2>
+    <p class="section-sub">Chọn mô hình phù hợp — cùng tính năng, khác cách thanh toán</p>
+
+    <div class="switcher-wrap">
+      <div class="switcher">
+        <button class="ptab active" id="tab-buy" onclick="switchPlan('buy')">💰 Trả trước (1 lần)</button>
+        <button class="ptab" id="tab-sub" onclick="switchPlan('sub')">🔄 Thuê bao hằng năm <span class="new-badge">Mới</span></button>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="price-card">
+        <span class="pbadge buy-only">Trả trước — Tiết kiệm dài hạn</span>
+        <span class="pbadge sub-only">Thuê bao hằng năm</span>
+        <div class="plabel buy-only">Thanh toán 1 lần — Sở hữu trọn gói</div>
+        <div class="plabel sub-only">Phí năm — Bao gồm toàn bộ</div>
+        <div class="pamount"><span id="price-main">800.000.000</span> <span id="price-unit">VND</span></div>
+        <p class="pnote buy-only">Vận hành từ năm 2 chỉ 100 triệu/năm — rẻ hơn thuê bao</p>
+        <p class="pnote sub-only">All-in: hạ tầng + hỗ trợ + cập nhật · Giá cố định 3 năm</p>
+        <ul class="pincludes">
+          <li>14 module quản lý dự án ĐTXD</li>
+          <li>4 module Công nghệ Cao cấp</li>
+          <li>Không giới hạn tài khoản người dùng</li>
+          <li>Bảo hành 12 tháng sau triển khai</li>
+          <li class="buy-only">Vận hành từ năm 2: 100.000.000₫/năm</li>
+          <li class="sub-only">Hỗ trợ kỹ thuật 24/7 included</li>
+          <li class="sub-only">Cập nhật tính năng định kỳ</li>
+        </ul>
+      </div>
+      <div class="price-card setup-card">
+        <span class="pbadge">Triển khai & Cài đặt</span>
+        <div class="plabel">Thanh toán 1 lần · Cả 2 hình thức</div>
+        <div class="pamount"><span>200.000.000</span> <span>VND</span></div>
+        <p class="pnote">Khảo sát, cài đặt, tùy biến, đào tạo, nghiệm thu</p>
+        <ul class="pincludes">
+          <li>Khảo sát & phân tích nghiệp vụ</li>
+          <li>Cài đặt & cấu hình hệ thống Cloud</li>
+          <li>Chuẩn hóa biểu mẫu theo nghiệp vụ</li>
+          <li>Tùy biến giao diện theo yêu cầu</li>
+          <li>Import dữ liệu ban đầu</li>
+          <li>Đào tạo quản trị viên & người dùng</li>
+          <li>Kiểm thử UAT & nghiệm thu bàn giao</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Total Summary -->
+    <div class="total-box">
+      <div class="trow buy-only"><span class="lbl">💰 Trả trước bản quyền (trọn gói)</span><span class="val" id="sum-license">800.000.000₫</span></div>
+      <div class="trow sub-only"><span class="lbl">🔄 Phí thuê bao / năm (trọn gói)</span><span class="val" id="sum-sub">260.000.000₫/năm</span></div>
+      <div class="trow"><span class="lbl">🚀 Phí triển khai & cài đặt (1 lần)</span><span class="val">200.000.000₫</span></div>
+      <div class="trow"><span class="lbl">🎁 Bảo hành năm đầu tiên</span><span class="val" style="color:var(--ok)">Miễn phí</span></div>
+      <div class="trow div grand"><span class="lbl" id="sum-y1-lbl">💰 Tổng chi phí năm đầu</span><span class="val" id="sum-year1">1.000.000.000₫</span></div>
+      <div class="trow buy-only"><span class="lbl">🔄 Vận hành từ năm 2</span><span class="val" id="sum-maint">100.000.000₫/năm</span></div>
+      <div class="trow div"><span class="lbl">📊 Ước tính tổng 5 năm sử dụng</span><span class="val" style="font-size:16px;font-weight:800" id="sum-5yr">1.400.000.000₫</span></div>
+      <p class="tnote" id="sum-note">📌 Giá chưa VAT · Không giới hạn User · Vận hành rẻ hơn thuê bao</p>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE TABLE -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">📦 Chi tiết Hạng mục</h2>
+    <p class="section-sub">Tất cả tính năng được bao gồm trong gói bản quyền</p>
+    <div class="tbl-wrap">
+      <table class="mod-table">
+        <thead><tr>
+          <th style="text-align:center">✓</th>
+          <th style="text-align:left;padding-left:8px">Module</th>
+          <th style="text-align:left;width:34%">Mô tả tính năng</th>
+          <th>Giá</th>
+        </tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="4">📦 Phần mềm Quản lý Dự án ĐTXD — Trọn gói</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🔑 Xác thực & Phân quyền (auth)</div></td><td class="mdesc">Đăng nhập, đăng ký, phân quyền RLS đa cấp, quản lý phiên, Impersonation</td><td class="mprice" rowspan="14" style="vertical-align:middle;font-size:18px;font-weight:900;color:var(--pr);text-align:center;border-left:2px solid rgba(139,92,246,.15)">600.000.000₫</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🛡️ Quản trị Hệ thống (admin)</div></td><td class="mdesc">Quản lý tài khoản, phân quyền vai trò, audit log, giám sát hoạt động</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">⚙️ Cài đặt Hệ thống (settings)</div></td><td class="mdesc">Giao diện sáng/tối, cấu hình cá nhân, quản lý profile, tùy chỉnh thông báo</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">📈 Dashboard Tổng hợp & Cá nhân</div></td><td class="mdesc">Dashboard KPIs tổng hợp, cá nhân, bản đồ dự án, biểu đồ thống kê đa chiều</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">📋 Trung tâm Báo cáo (reports)</div></td><td class="mdesc">Báo cáo động, xuất XLSX / DOCX / PDF / PPTX, báo cáo theo dự án, tài chính, tiến độ</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🏢 Quản lý Dự án (projects)</div></td><td class="mdesc">Danh sách & chi tiết dự án, hồ sơ pháp lý, gói thầu, Gantt chart, mốc tiến độ</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">📝 Quản lý Hợp đồng (contracts)</div></td><td class="mdesc">Hợp đồng 5 trạng thái, phụ lục, điều chỉnh giá, variation orders, theo dõi thực hiện</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">✅ Quản lý Công việc (tasks)</div></td><td class="mdesc">Danh sách công việc, phân công, theo dõi tiến độ, lọc/sắp xếp, batch operations</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🏷️ Đấu thầu & Lựa chọn Nhà thầu</div></td><td class="mdesc">Quản lý gói thầu, quy trình lựa chọn nhà thầu, kết quả đấu thầu, tích hợp hợp đồng</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">💳 Thanh toán & Giải ngân</div></td><td class="mdesc">Đợt thanh toán, giải ngân, đề nghị thanh toán, theo dõi công nợ, đối soát</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">📊 Kế hoạch Vốn (capital)</div></td><td class="mdesc">Kế hoạch vốn trung hạn, phân bổ nguồn vốn theo năm, theo dõi giải ngân</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">👤 Quản lý Nhân sự (employees)</div></td><td class="mdesc">Danh sách nhân sự, hồ sơ chi tiết, chuyên môn, chứng chỉ, lịch sử công tác</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🏗️ Quản lý Nhà thầu (contractors)</div></td><td class="mdesc">Danh sách nhà thầu, hồ sơ năng lực, đánh giá, lịch sử hợp đồng, portal nhà thầu</td></tr>
+          <tr class="sel"><td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td><td><div class="mname">🏛️ Quy chế Tổ chức (organization)</div></td><td class="mdesc">Sơ đồ tổ chức, quy chế hoạt động, quy trình nghiệp vụ nội bộ, nội quy</td></tr>
+
+          <tr class="grp"><td colspan="4">📁 Tài liệu & Công nghệ Cao cấp</td></tr>
+          <tr class="sel tech-row" data-price="70000000" style="background:rgba(59,130,246,.04)"><td style="text-align:center"><input type="checkbox" class="cbx" checked></td><td><div class="mname">📂 CDE — Môi trường Dữ liệu Chung</div></td><td class="mdesc">Kho lưu trữ số, versioning, phê duyệt ISO 19650, transmittal, WIP/Shared/Published</td><td class="mprice" style="font-weight:700;color:var(--t)">70.000.000₫</td></tr>
+          <tr class="sel tech-row" data-price="20000000" style="background:rgba(59,130,246,.04)"><td style="text-align:center"><input type="checkbox" class="cbx" checked></td><td><div class="mname">⚖️ Tra cứu Văn bản Pháp luật</div></td><td class="mdesc">Tìm kiếm văn bản pháp luật xây dựng, quy chuẩn, tiêu chuẩn, thông tư, nghị định</td><td class="mprice" style="font-weight:700;color:var(--t)">20.000.000₫</td></tr>
+          <tr class="sel tech-row" data-price="60000000" style="background:rgba(59,130,246,.04)"><td style="text-align:center"><input type="checkbox" class="cbx" checked></td><td><div class="mname">🧊 BIM 3D Viewer</div></td><td class="mdesc">Xem mô hình IFC 3D trên trình duyệt, điều hướng, đo lường, gắn ghi chú, liên kết dự án</td><td class="mprice" style="font-weight:700;color:var(--t)">60.000.000₫</td></tr>
+          <tr class="sel tech-row" data-price="50000000" style="background:rgba(59,130,246,.04)"><td style="text-align:center"><input type="checkbox" class="cbx" checked></td><td><div class="mname">🤖 AI Hub (Google Gemini)</div></td><td class="mdesc">Trợ lý AI tóm tắt hồ sơ, cảnh báo rủi ro, phân tích dữ liệu, báo cáo nâng cao PPTX</td><td class="mprice" style="font-weight:700;color:var(--t)">50.000.000₫</td></tr>
+          <tr style="background:rgba(59,130,246,.06)"><td></td><td style="text-align:right;font-weight:800;color:var(--ac);font-size:13px;padding-right:8px" colspan="2">Tổng gói Công nghệ Cao cấp</td><td class="mprice" id="tech-total" style="font-size:15px;font-weight:900;color:var(--ac)">200.000.000₫</td></tr>
+
+          <tr class="grp"><td colspan="4">🚀 Dịch vụ Triển khai (Bắt buộc)</td></tr>
+          <tr class="sel" style="background:rgba(34,197,94,.04)">
+            <td style="text-align:center"><input type="checkbox" class="cbx" checked disabled></td>
+            <td><div class="mname">🎓 Cấu hình, Đào tạo & Kiểm thử</div></td>
+            <td class="mdesc">Khảo sát nghiệp vụ, cài đặt Cloud, import dữ liệu, tùy biến, đào tạo, UAT, nghiệm thu</td>
+            <td class="mprice" style="font-size:15px;font-weight:900;color:var(--ok)">200.000.000₫</td>
+          </tr>
+        </tbody>
+        <tfoot><tr>
+          <td colspan="3" id="foot-lbl">TỔNG CHI PHÍ ĐẦU TƯ (CHƯA VAT)</td>
+          <td id="foot-total" style="font-size:16px;font-weight:900;color:var(--pr)">1.000.000.000₫</td>
+        </tr></tfoot>
+      </table>
+      <p class="tbl-note">📌 Giá trọn gói · Không giới hạn User · Bảo hành 12 tháng · Giá có thể điều chỉnh theo yêu cầu cụ thể sau khảo sát thực tế</p>
+    </div>
+  </div>
+</section>
+
+<!-- PAYMENT + TERMS removed per user request -->
+
+<!-- TECH -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">⚡ Nền tảng Công nghệ</h2>
+    <p class="section-sub">Stack hiện đại, hiệu suất cao — dùng bởi các công ty hàng đầu thế giới</p>
+    <div class="tech-grid">
+      <div class="titem"><div class="ti">⚛️</div><h4>React + TypeScript</h4><p>Frontend hiện đại, component-based, type-safe</p></div>
+      <div class="titem"><div class="ti">🌐</div><h4>Supabase</h4><p>PostgreSQL, Auth, Storage, Realtime trên AWS</p></div>
+      <div class="titem"><div class="ti">🤖</div><h4>Google Gemini AI</h4><p>Phân tích, tóm tắt, cảnh báo rủi ro tự động</p></div>
+      <div class="titem"><div class="ti">🚀</div><h4>Vercel CDN</h4><p>Deploy toàn cầu, ~200ms, uptime 99.99%</p></div>
+      <div class="titem"><div class="ti">🔒</div><h4>Bảo mật ISO 27001</h4><p>Mã hóa end-to-end, RLS, audit log toàn diện</p></div>
+      <div class="titem"><div class="ti">🏗️</div><h4>BIM & CDE</h4><p>IFC 3D Viewer + ISO 19650 CDE tích hợp sẵn</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contact">
+  <h2>Sẵn sàng Triển khai?</h2>
+  <p>Liên hệ để được demo sản phẩm thực tế và nhận báo giá chi tiết theo nhu cầu của đơn vị.</p>
+  <a class="cbtn" href="mailto:contact@cic-qlda.vn">✉️ &nbsp;Liên hệ Tư vấn Ngay</a>
+  <p style="margin-top:14px;font-size:13px;color:var(--t3)">Demo miễn phí · Tư vấn kỹ thuật · Báo giá trong 24h</p>
+</section>
+<footer><p><strong>CIC-QLDA</strong> — Phần mềm Quản lý Dự án Đầu tư Xây dựng</p><p style="margin-top:5px">Báo Giá Bản Quyền Phần Mềm · Tháng 3/2026 · Giá chưa bao gồm VAT</p></footer>
+
+<script>
+/* === PRICING CONSTANTS === */
+const SETUP = 200000000;       // Triển khai: 200M (1 lần)
+const MAINT_FEE = 100000000;   // Vận hành/năm (chế độ trả trước): 100M
+const LICENSE_BUY = 800000000; // Trả trước: 600M core + 200M tech = 800M
+const LICENSE_SUB = 300000000; // Thuê bao: 300M/năm (cố định)
+let plan = 'buy';
+
+function fmt(n){ return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + '₫'; }
+function fmtN(n){ return new Intl.NumberFormat('vi-VN').format(Math.round(n)); }
+
+function switchPlan(p){
+  plan = p;
+  document.body.classList.toggle('sub-mode', p === 'sub');
+  document.getElementById('tab-buy').classList.toggle('active', p === 'buy');
+  document.getElementById('tab-sub').classList.toggle('active', p === 'sub');
+  updateTotals();
+}
+
+/* Save original price texts for buy/sub toggle */
+const origPrices = new Map();
+
+function updateTotals(){
+  /* ---- Module table: hide prices in sub mode ---- */
+  const modTable = document.querySelector('.mod-table');
+  if(modTable){
+    modTable.querySelectorAll('.mprice').forEach(cell => {
+      if(!origPrices.has(cell)) origPrices.set(cell, cell.textContent);
+      if(plan === 'sub'){
+        cell.textContent = 'Bao gồm';
+        cell.style.cssText = 'font-size:13px;font-weight:600;color:var(--ok)';
+      } else {
+        cell.textContent = origPrices.get(cell);
+        cell.style.cssText = '';
+      }
+    });
+    /* tfoot */
+    const footTd = modTable.querySelector('tfoot td:last-child');
+    const footLbl = modTable.querySelector('tfoot td:first-child');
+    if(plan === 'buy'){
+      if(footTd){ footTd.textContent = fmt(LICENSE_BUY + SETUP); footTd.style.cssText = 'font-size:16px;font-weight:900;color:var(--pr)'; }
+      if(footLbl) footLbl.textContent = 'TỔNG CHI PHÍ ĐẦU TƯ (CHƯA VAT)';
+    } else {
+      if(footTd){ footTd.textContent = 'Đã bao gồm trong thuê bao'; footTd.style.cssText = 'font-size:13px;font-weight:700;color:var(--ok)'; }
+      if(footLbl) footLbl.textContent = 'TỔNG GÓI THUÊ BAO';
+    }
+  }
+
+  /* ---- Price card + Total summary ---- */
+  const pm = document.getElementById('price-main');
+  const pu = document.getElementById('price-unit');
+  const sumL = document.getElementById('sum-license');
+  const sumS = document.getElementById('sum-sub');
+  const sumY1 = document.getElementById('sum-year1');
+  const sumM = document.getElementById('sum-maint');
+  const sum5 = document.getElementById('sum-5yr');
+  const sumY1L = document.getElementById('sum-y1-lbl');
+  const sumNote = document.getElementById('sum-note');
+
+  if(plan === 'buy'){
+    const y1 = LICENSE_BUY + SETUP;           // 800M + 200M = 1 tỷ
+    const y5 = y1 + MAINT_FEE * 4;            // 1 tỷ + 400M = 1.4 tỷ
+    if(pm) pm.textContent = fmtN(LICENSE_BUY); // 800.000.000
+    if(pu) pu.textContent = 'VND';
+    if(sumL) sumL.textContent = fmt(LICENSE_BUY);
+    if(sumY1) sumY1.textContent = fmt(y1);
+    if(sumM) sumM.textContent = fmt(MAINT_FEE) + '/năm';
+    if(sum5) sum5.textContent = fmt(y5);
+    if(sumY1L) sumY1L.textContent = '💰 Tổng chi phí năm đầu (trả trước + setup)';
+    if(sumNote) sumNote.textContent = '📌 Giá chưa VAT · Không giới hạn User · Vận hành rẻ hơn thuê bao';
+  } else {
+    const y1 = LICENSE_SUB + SETUP;            // 300M + 200M = 500M
+    const y5 = y1 + LICENSE_SUB * 4;           // 500M + 1.2 tỷ = 1.7 tỷ
+    if(pm) pm.textContent = fmtN(LICENSE_SUB); // 300.000.000
+    if(pu) pu.textContent = 'VND / năm';
+    if(sumS) sumS.textContent = fmt(LICENSE_SUB) + '/năm';
+    if(sumY1) sumY1.textContent = fmt(y1);
+    if(sum5) sum5.textContent = fmt(y5);
+    if(sumY1L) sumY1L.textContent = '💰 Tổng chi phí năm đầu (thuê bao + setup)';
+    if(sumNote) sumNote.textContent = '📌 Giá chưa VAT · All-in: hạ tầng + hỗ trợ · Giá cố định 3 năm đầu';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => { updateTotals(); });
+</script>
+</body>
+</html>

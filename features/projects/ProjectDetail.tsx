@@ -395,6 +395,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                         <button
+                            id="btn-ai-summary"
                             onClick={() => setShowAISummary(true)}
                             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-900/15 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all text-[11px] font-bold text-blue-600 dark:text-blue-400"
                         >
@@ -402,6 +403,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                             Tóm tắt AI
                         </button>
                         <button
+                            id="btn-edit-project"
                             onClick={() => setShowEditModal(true)}
                             className="flex items-center gap-1.5 px-3 py-1.5 gradient-btn text-white rounded-lg text-[11px] font-bold shadow-sm transition-all hover:-translate-y-0.5"
                         >
@@ -434,6 +436,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                                            t.id === 'plan' ? tasks.length : 0;
                         return (
                             <button
+                                id={`tab-${t.id}`}
                                 key={t.id} onClick={() => setActiveTab(t.id)}
                                 className={`${activeTab === 'operations' || inPanel ? 'py-2' : 'py-3'} px-3 text-xs font-black border-b-2 transition-all flex items-center gap-1.5 tracking-wider whitespace-nowrap ${isActive ? 'border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-500'}`}
                                 title={`${t.label} (← → chuyển tab)`}

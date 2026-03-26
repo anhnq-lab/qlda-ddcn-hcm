@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ProjectService from '../../../../services/ProjectService';
+import { TaskService } from '../../../../services/TaskService';
 
 import { formatCurrency } from '../../../../utils/format';
-import { Disbursement, CapitalAllocation, CapitalPlan } from '../../../../types';
+import { Disbursement, CapitalAllocation, CapitalPlan, Task } from '../../../../types';
 import { DisbursementPlanItem } from '../../../../services/CapitalService';
 import {
     Coins, TrendingUp, Wallet, AlertTriangle,
@@ -69,6 +70,12 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
     // Capital plans for linking in DisbursementModal
     const { data: capitalPlans = [] } = useCapitalPlans(projectID);
     const { data: disbursementPlanData = [] } = useDisbursementPlans(projectID);
+
+    // Project tasks for "Việc trong tháng" column
+    const { data: projectTasks = [] } = useQuery({
+        queryKey: ['project-tasks', projectID],
+        queryFn: () => TaskService.getTasksByProject(projectID),
+    });
 
     const [disbursementFilter, setDisbursementFilter] = useState<DisbursementFilter>('all');
     const [planYearFilter, setPlanYearFilter] = useState<number>(new Date().getFullYear());
@@ -872,7 +879,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                                     <th className="px-3 py-2 text-right">KH giải ngân</th>
                                     <th className="px-3 py-2 text-right">Thực tế</th>
                                     <th className="px-3 py-2 text-right">Tỷ lệ</th>
-                                    <th className="px-3 py-2 text-left">Ghi chú</th>
+                                    <th className="px-3 py-2 text-left">Việc trong tháng</th>
                                     <th className="px-3 py-2 text-center w-16">Thao tác</th>
                                 </tr>
                             </thead>
@@ -1160,6 +1167,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                 allPlans={disbursementPlanData}
                 annualLimit={capitalPlans.filter(p => p.PlanType === 'annual' && p.Year === planYearFilter).reduce((sum, p) => sum + (p.Amount || 0), 0)}
                 isSaving={bulkSaveDisbPlan.isPending}
+                projectTasks={projectTasks}
             />
 
             {/* Delete Confirmation Dialog */}

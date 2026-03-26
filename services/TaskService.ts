@@ -60,15 +60,12 @@ export const TaskService = {
             task.ActualStartDate = today;
         }
 
-        // Auto-set ActualEndDate when progress reaches 100%
-        if (progress >= 100) {
-            if (!task.ActualEndDate) task.ActualEndDate = today;
+        // (Removed auto-set Status to Done at 100% so we don't break the approval workflow)
+        if (task.ActualEndDate && progress < 100) {
+            // Clear ActualEndDate if progress drops below 100% AND it's not actually done
             if (task.Status !== TaskStatus.Done) {
-                task.Status = TaskStatus.Done;
+                task.ActualEndDate = '';
             }
-        } else if (task.ActualEndDate && progress < 100) {
-            // Clear ActualEndDate if progress drops below 100%
-            task.ActualEndDate = '';
         }
 
         const row = taskToDb(task);

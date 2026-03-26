@@ -468,7 +468,15 @@ const Dashboard: React.FC = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={capitalVsDisbursement} margin={{ top: 5, right: 10, left: -10, bottom: 0 }} barGap={4}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#E5E7EB'} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 11, fontWeight: 700 }} dy={6} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} dy={6} tick={(props: any) => {
+                                    const { x, y, payload } = props;
+                                    const item = capitalVsDisbursement?.find((d: any) => d.name === payload.value);
+                                    return (
+                                        <text x={x} y={y} textAnchor="middle" fontSize={11} fontWeight={700} fill={item?.color || (theme === 'dark' ? '#94A3B8' : '#6B7280')} dy={6}>
+                                            {payload.value}
+                                        </text>
+                                    );
+                                }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 10, fontWeight: 600 }} unit=" Tỷ" />
                                 <RechartsTooltip
                                     content={({ active, payload, label }: any) => {

@@ -137,10 +137,39 @@ export class ContractService {
         };
     }
 
+    /** In-memory contractor cache */
+    private static contractorCache: Map<string, string> | null = null;
+    private static cachePromise: Promise<void> | null = null;
+
     /**
-     * Get contractor name by ID
+     * Ensure contractor cache is loaded (call once before using getContractorName)
+     */
+    static async ensureContractorCache(): Promise<void> {
+        if (this.contractorCache) return;
+        if (this.cachePromise) return this.cachePromise;
+
+        this.cachePromise = (async () => {
+            const { data } = await supabase.from('contractors').select('contractor_id, full_name');
+            this.contractorCache = new Map();
+            (data || []).forEach((c: any) => {
+                this.contractorCache!.set(c.contractor_id, c.full_name);
+            });
+        })();
+
+        return this.cachePromise;
+    }
+
+    /**
+     * Get contractor name by ID (from in-memory cache).
+     * Falls back to localStorage for backward compatibility, then to ID.
      */
     static getContractorName(contractorId: string): string {
+        // Try in-memory cache first
+        if (this.contractorCache) {
+            return this.contractorCache.get(contractorId) || contractorId;
+        }
+
+        // Backward compat: try localStorage
         const cached = localStorage.getItem('cached_contractors');
         if (cached) {
             try {

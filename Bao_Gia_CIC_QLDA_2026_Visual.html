@@ -1,0 +1,1553 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Giá & Phương Án Triển Khai CIC-QLDA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;      /* Slate 900 */
+            --primary-light: #1e293b; /* Slate 800 */
+            --accent: #0ea5e9;       /* Light Blue 500 */
+            --accent-dark: #0284c7;  /* Light Blue 600 */
+            --bg-color: #f8fafc;     /* Slate 50 */
+            --surface: #ffffff;
+            --text-main: #334155;    /* Slate 700 */
+            --text-light: #64748b;   /* Slate 500 */
+            --border: #e2e8f0;       /* Slate 200 */
+            --zebra: #f1f5f9;        /* Slate 100 */
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; right: 0; height: 400px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            z-index: -1;
+            overflow: hidden;
+        }
+        .bg-pattern::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 32px 32px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Document Card */
+        .doc-wrapper {
+            background-color: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 60px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        /* Header Decor */
+        .header-decor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent) 0%, #38bdf8 100%);
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .heading { margin-bottom: 24px; }
+        .heading-1 {
+            font-size: 2.25rem;
+            text-align: center;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        .heading-2 {
+            font-size: 1.5rem;
+            margin-top: 48px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        /* Custom numbers for H2 */
+        h2.heading-2::before {
+            content: "✦";
+            color: var(--accent);
+            font-size: 1.25rem;
+        }
+
+        .heading-3 { font-size: 1.25rem; margin-top: 32px; color: var(--accent-dark); }
+        .heading-4 { font-size: 1.125rem; margin-top: 24px; color: var(--primary-light); }
+
+        p { margin-bottom: 16px; }
+        
+        strong { color: var(--primary); font-weight: 600; }
+        
+        a {
+            color: var(--accent-dark);
+            text-decoration: none;
+            transition: color 0.2s;
+            position: relative;
+        }
+        a:hover { color: var(--accent); }
+        a::after {
+            content: "";
+            position: absolute;
+            bottom: -2px; left: 0; right: 0; height: 1px;
+            background-color: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        a:hover::after { opacity: 1; }
+
+        /* Lists */
+        ul, ol { margin-bottom: 24px; padding-left: 24px; }
+        li { margin-bottom: 8px; }
+        li::marker { color: var(--accent); }
+
+        /* Tables */
+        .table-wrapper {
+            margin: 24px 0;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        /* Make first column bold/centered if it's STT */
+        tbody tr td:first-child {
+            font-weight: 500;
+            color: var(--primary);
+            text-align: center;
+            width: 60px;
+        }
+        thead tr th:first-child { text-align: center; }
+
+        /* Align numeric columns */
+        td:nth-last-child(-n+3), th:nth-last-child(-n+3) {
+            text-align: left; /* default */
+        }
+        
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background-color 0.15s; }
+        tbody tr:nth-child(even) { background-color: var(--zebra); }
+        tbody tr:hover { background-color: #e0f2fe; }
+
+        /* Callouts / Blockquotes */
+        .info-alert {
+            display: flex;
+            gap: 16px;
+            background-color: #f0f9ff;
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 24px 0;
+            color: var(--primary-light);
+        }
+        .info-alert p { margin-bottom: 0; }
+        .info-icon {
+            flex-shrink: 0;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+        
+        /* Code blocks / Inline code */
+        code {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--zebra);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.875em;
+            color: #be123c;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 40px 0;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* Print optimization */
+        @media print {
+            .bg-pattern { display: none; }
+            .container { padding: 0; max-width: 100%; }
+            .doc-wrapper { box-shadow: none; padding: 0; }
+            body { background: white; }
+            .table-wrapper { box-shadow: none; border: 1px solid #ccc; }
+            th { background-color: #f3f4f6; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .info-alert { background-color: #f9fafb !important; border-left: 4px solid #9ca3af !important; }
+        }
+
+        @media screen and (max-width: 768px) {
+            .doc-wrapper { padding: 24px; }
+            .heading-1 { font-size: 1.75rem; }
+            .heading-2 { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <div class="container">
+        <div class="doc-wrapper">
+            <div class="header-decor"></div>
+            
+            <h1 class="heading heading-1">BÁO GIÁ TỔNG HỢP</h1>
+<h2 class="heading heading-2">PHẦN MỀM QUẢN LÝ DỰ ÁN ĐẦU TƯ XÂY DỰNG (CIC-QLDA)</h2>
+<hr>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Mã báo giá</strong></td>
+<td>BG-QLDA-2026-001</td>
+</tr>
+<tr>
+<td><strong>Ngày lập</strong></td>
+<td>26/03/2026</td>
+</tr>
+<tr>
+<td><strong>Hiệu lực</strong></td>
+<td>30 ngày kể từ ngày lập</td>
+</tr>
+<tr>
+<td><strong>Đơn vị cung cấp</strong></td>
+<td>Công ty CIC</td>
+</tr>
+<tr>
+<td><strong>Quy mô triển khai</strong></td>
+<td>~200 người dùng</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 class="heading heading-2">PHẦN I — CHI PHÍ XÂY DỰNG PHẦN MỀM</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Hạng mục</th>
+<th align="right">Thành tiền (VNĐ)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td>Phân tích nghiệp vụ &amp; thiết kế hệ thống</td>
+<td align="right">300,000,000</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td>Xây dựng &amp; phát triển phần mềm</td>
+<td align="right">1,200,000,000</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td>Kiểm thử &amp; đảm bảo chất lượng (QA/QC)</td>
+<td align="right">200,000,000</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td>Triển khai, cài đặt &amp; đào tạo người dùng</td>
+<td align="right">200,000,000</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td>Tài liệu hướng dẫn &amp; chuyển giao</td>
+<td align="right">100,000,000</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td><strong>Cộng Phần I</strong></td>
+<td align="right"><strong>2,000,000,000</strong></td>
+</tr>
+</tbody></table></div>
+<h3 class="heading heading-3">MÔ TẢ TÍNH NĂNG CHI TIẾT THEO MODULE</h3>
+<h4 class="heading heading-4">Module 1 — Trung tâm điều hành (Dashboard)</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1.1</td>
+<td>Tổng quan KPI</td>
+<td>Số dự án, tổng vốn đầu tư, kế hoạch vốn, lũy kế giải ngân</td>
+</tr>
+<tr>
+<td align="center">1.2</td>
+<td>Bảng tổng hợp dự án</td>
+<td>Tên, Ban QLDA, giai đoạn, tiến độ, vốn ĐT, % giải ngân</td>
+</tr>
+<tr>
+<td align="center">1.3</td>
+<td>Biểu đồ phân tích</td>
+<td>Kế hoạch vốn vs thực giải ngân theo Ban QLDA</td>
+</tr>
+<tr>
+<td align="center">1.4</td>
+<td>Bản đồ dự án</td>
+<td>Vị trí dự án trên bản đồ tương tác</td>
+</tr>
+<tr>
+<td align="center">1.5</td>
+<td>Cảnh báo rủi ro</td>
+<td>Panel cảnh báo các rủi ro quan trọng cần xử lý</td>
+</tr>
+<tr>
+<td align="center">1.6</td>
+<td>Bộ lọc thông minh</td>
+<td>Lọc theo năm, Ban QLDA</td>
+</tr>
+<tr>
+<td align="center">1.7</td>
+<td><strong>AI Hub (5 widget)</strong></td>
+<td>Tóm tắt AI · Phân tích rủi ro · Phát hiện bất thường · Chấm điểm nhà thầu · Tối ưu nguồn lực</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 2 — Quản lý Dự án (8 phân hệ)</h4>
+<p><strong>2A. Danh sách dự án</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">2A.1</td>
+<td>Sidebar bộ lọc</td>
+<td>Lọc theo giai đoạn, nhóm DA (A/B/C), Ban QLDA — hiển thị số lượng</td>
+</tr>
+<tr>
+<td align="center">2A.2</td>
+<td>Tìm kiếm full-text</td>
+<td>Theo tên, mã dự án, chủ đầu tư</td>
+</tr>
+<tr>
+<td align="center">2A.3</td>
+<td>Chế độ hiển thị</td>
+<td>Grid / List, sắp xếp theo tên, ngân sách, tiến độ, mới nhất</td>
+</tr>
+<tr>
+<td align="center">2A.4</td>
+<td>Tạo dự án mới</td>
+<td>Form đa trường, gán thành viên ban QLDA</td>
+</tr>
+</tbody></table></div>
+<p><strong>2B. Tab Tổng quan</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">2B.1</td>
+<td>Lifecycle Stepper</td>
+<td>Chuẩn bị → Thực hiện → Kết thúc XD, lưu lịch sử chuyển giai đoạn</td>
+</tr>
+<tr>
+<td align="center">2B.2</td>
+<td>Thông tin dự án</td>
+<td>Mã, nhóm, chủ đầu tư, địa điểm, nguồn vốn, hình thức quản lý</td>
+</tr>
+<tr>
+<td align="center">2B.3</td>
+<td>Quy mô công trình</td>
+<td>Tổng dự toán, diện tích, chiều cao, số tầng, mật độ XD</td>
+</tr>
+<tr>
+<td align="center">2B.4</td>
+<td>Tiến độ giải ngân</td>
+<td>So sánh KH vs thực tế, giải ngân tháng trước</td>
+</tr>
+<tr>
+<td align="center">2B.5</td>
+<td>Gantt Chart</td>
+<td>Tổng quan tiến độ thực hiện dự án</td>
+</tr>
+<tr>
+<td align="center">2B.6</td>
+<td>Nhà thầu</td>
+<td>Danh sách nhà thầu liên kết hợp đồng, slide-panel chi tiết</td>
+</tr>
+<tr>
+<td align="center">2B.7</td>
+<td>Widget phụ trợ</td>
+<td>Key Dates, Quick Actions (tạo BC AI, nhắc nhở, xuất Excel)</td>
+</tr>
+<tr>
+<td align="center">2B.8</td>
+<td>Chỉ số rủi ro</td>
+<td>Risk Indicators — cảnh báo rủi ro tiến độ, tài chính</td>
+</tr>
+</tbody></table></div>
+<p><strong>2C. Tab Kế hoạch — NĐ 175 WBS</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">2C.1</td>
+<td>Cấu trúc WBS</td>
+<td>Theo Nghị định 175/NĐ-CP: 3 giai đoạn, 12+ bước pháp lý</td>
+</tr>
+<tr>
+<td align="center">2C.2</td>
+<td>Auto-phân bổ</td>
+<td>Tự động theo nhóm DA (A/B/C/Quan trọng quốc gia, ODA)</td>
+</tr>
+<tr>
+<td align="center">2C.3</td>
+<td>3 chế độ xem</td>
+<td><strong>WBS phân cấp</strong> · <strong>Gantt Chart</strong> · <strong>Kanban Board</strong></td>
+</tr>
+<tr>
+<td align="center">2C.4</td>
+<td>Bulk Create</td>
+<td>Tạo hàng loạt công việc theo bước hoặc toàn bộ kế hoạch</td>
+</tr>
+<tr>
+<td align="center">2C.5</td>
+<td>Quản lý công việc</td>
+<td>Trạng thái 4 bước (Todo → InProgress → Review → Done), tiến độ %</td>
+</tr>
+<tr>
+<td align="center">2C.6</td>
+<td>Auto-fill ngày</td>
+<td>Tự động ghi ngày bắt đầu/kết thúc thực tế khi chuyển trạng thái</td>
+</tr>
+<tr>
+<td align="center">2C.7</td>
+<td>Đính kèm tài liệu</td>
+<td>Upload file vào task, cross-reference với Hồ sơ &amp; TT24</td>
+</tr>
+<tr>
+<td align="center">2C.8</td>
+<td>Phân bổ nguồn lực</td>
+<td>Resource Allocation View — phân bổ nhân sự theo task</td>
+</tr>
+</tbody></table></div>
+<p><strong>2D–2I. Các tab chức năng khác</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Tính năng chính</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>2D. Gói thầu</strong></td>
+<td>CRUD gói thầu trong dự án, đánh giá HSDT</td>
+</tr>
+<tr>
+<td><strong>2E. Vốn &amp; Giải ngân</strong></td>
+<td>Kế hoạch vốn theo dự án + AI Forecast Chart dự báo</td>
+</tr>
+<tr>
+<td><strong>2F. Hồ sơ &amp; Tài liệu</strong></td>
+<td>Checklist hồ sơ tự động theo TT24 · AI Compliance Panel · AI Document Drafter</td>
+</tr>
+<tr>
+<td><strong>2G. Thanh tra / Kiểm toán</strong></td>
+<td>CRUD đợt thanh tra: QĐ, cơ quan, kết luận, xử phạt · Workflow 3 bước · File đính kèm</td>
+</tr>
+<tr>
+<td><strong>2H. Vận hành (FM)</strong></td>
+<td>KPI tài sản · Biểu đồ danh mục/trạng thái · Lịch bảo trì · Kiểm kê · Liên kết BIM</td>
+</tr>
+<tr>
+<td><strong>2I. Đồng bộ CSDL QG</strong></td>
+<td>Đồng bộ Cổng thông tin quốc gia ĐTXD · Tạo báo cáo giám sát AI</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 3 — Đấu thầu, Hợp đồng &amp; Thanh toán</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">3.1</td>
+<td>Quản lý gói thầu</td>
+<td>Danh sách toàn dự án, thống kê giá trị, lọc 6 trạng thái (Trong KH / Đã đăng / Mời thầu / Xét thầu / Có KQ / Hủy)</td>
+</tr>
+<tr>
+<td align="center">3.2</td>
+<td>Xuất báo cáo</td>
+<td>Theo các biểu mẫu nhà nước</td>
+</tr>
+<tr>
+<td align="center">3.3</td>
+<td>Quản lý hợp đồng</td>
+<td>Chi tiết, phụ lục, trạng thái (Đang thực hiện / Thanh lý / Tạm dừng)</td>
+</tr>
+<tr>
+<td align="center">3.4</td>
+<td>Quản lý thanh toán</td>
+<td>Đề nghị thanh toán, trạng thái duyệt, giải ngân</td>
+</tr>
+<tr>
+<td align="center">3.5</td>
+<td>Hình thức LCNT</td>
+<td>Hỗ trợ 8 hình thức: Đấu thầu rộng rãi, hạn chế, chỉ định thầu…</td>
+</tr>
+<tr>
+<td align="center">3.6</td>
+<td>Loại hợp đồng</td>
+<td>Hỗ trợ 7 loại: Trọn gói, Đơn giá CĐ/ĐC, Hỗn hợp…</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 4 — Kế hoạch Vốn &amp; Giải ngân</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">4.1</td>
+<td>KH trung hạn</td>
+<td>Theo giai đoạn, nguồn vốn (NSĐP/NSTW/ODA), QĐ giao vốn, phê duyệt</td>
+</tr>
+<tr>
+<td align="center">4.2</td>
+<td>KH hàng năm</td>
+<td>Phân bổ theo dự án, theo dõi giải ngân</td>
+</tr>
+<tr>
+<td align="center">4.3</td>
+<td>KH giải ngân tháng</td>
+<td>Grid dự án × 12 tháng, kế hoạch giải ngân từng tháng</td>
+</tr>
+<tr>
+<td align="center">4.4</td>
+<td>Tiến độ giải ngân</td>
+<td>So sánh KH vs thực tế, highlight tháng hiện tại</td>
+</tr>
+<tr>
+<td align="center">4.5</td>
+<td>Xuất dữ liệu</td>
+<td>Xuất Excel tất cả các tab, lọc theo nguồn vốn</td>
+</tr>
+<tr>
+<td align="center">4.6</td>
+<td>Căn cứ pháp lý</td>
+<td>Luật ĐTC 58/2024/QH15, NĐ 99/2021/NĐ-CP</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 5 — Môi trường dữ liệu chung (CDE) — ISO 19650</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">5.1</td>
+<td>Quản lý thư mục</td>
+<td>Theo giai đoạn dự án: Chuẩn bị / Thực hiện / Kết thúc</td>
+</tr>
+<tr>
+<td align="center">5.2</td>
+<td>Upload &amp; xem trước</td>
+<td>Hỗ trợ PDF, Word, ảnh, CAD — download tài liệu</td>
+</tr>
+<tr>
+<td align="center">5.3</td>
+<td>Workflow phê duyệt</td>
+<td>Theo ISO 19650: S0 → S1 → S2 → S3 → A1</td>
+</tr>
+<tr>
+<td align="center">5.4</td>
+<td>Duyệt hàng loạt</td>
+<td>Batch approve/reject nhiều tài liệu cùng lúc</td>
+</tr>
+<tr>
+<td align="center">5.5</td>
+<td>Phiếu chuyển giao</td>
+<td>Transmittal — phát hành &amp; theo dõi tài liệu</td>
+</tr>
+<tr>
+<td align="center">5.6</td>
+<td>Phân quyền</td>
+<td>Truy cập theo dự án, theo vai trò</td>
+</tr>
+<tr>
+<td align="center">5.7</td>
+<td>Ký số</td>
+<td>Digital Signature — ký điện tử tài liệu</td>
+</tr>
+<tr>
+<td align="center">5.8</td>
+<td>Nhật ký kiểm toán</td>
+<td>Audit Log toàn bộ thao tác trên tài liệu</td>
+</tr>
+<tr>
+<td align="center">5.9</td>
+<td>Dashboard thống kê</td>
+<td>Tổng hợp số lượng, trạng thái tài liệu</td>
+</tr>
+<tr>
+<td align="center">5.10</td>
+<td>Contractor Portal</td>
+<td>Tài khoản nhà thầu: nộp hồ sơ, xem tài liệu</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 6 — BIM Viewer</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">6.1</td>
+<td>Xem 3D trên trình duyệt</td>
+<td>Engine xeokit — không cần cài phần mềm</td>
+</tr>
+<tr>
+<td align="center">6.2</td>
+<td>Liên kết dự án</td>
+<td>Gắn mô hình BIM với dự án cụ thể</td>
+</tr>
+<tr>
+<td align="center">6.3</td>
+<td>Chuyển đổi IFC</td>
+<td>Tự động chuyển IFC → glTF qua API</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 7 — Quản lý Nhân sự &amp; Tổ chức</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">7.1</td>
+<td>Danh sách nhân viên</td>
+<td>Hồ sơ, phòng ban, chức vụ, tìm kiếm &amp; lọc</td>
+</tr>
+<tr>
+<td align="center">7.2</td>
+<td>Chi tiết nhân viên</td>
+<td>Thông tin cá nhân, lịch sử công tác</td>
+</tr>
+<tr>
+<td align="center">7.3</td>
+<td>Sơ đồ tổ chức</td>
+<td>Cấu trúc phòng ban trực quan</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 8 — Quản lý Nhà thầu</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">8.1</td>
+<td>Danh sách nhà thầu</td>
+<td>Thông tin chi tiết, MST, giấy phép, năng lực</td>
+</tr>
+<tr>
+<td align="center">8.2</td>
+<td>Tài khoản nhà thầu</td>
+<td>Đăng nhập, truy cập CDE, nộp hồ sơ</td>
+</tr>
+<tr>
+<td align="center">8.3</td>
+<td>Liên kết</td>
+<td>Gắn nhà thầu với hợp đồng &amp; gói thầu</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 9 — Quản lý Công việc (Tasks)</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">9.1</td>
+<td>Danh sách công việc</td>
+<td>Tạo, giao, theo dõi — lọc theo dự án, trạng thái</td>
+</tr>
+<tr>
+<td align="center">9.2</td>
+<td>Chi tiết công việc</td>
+<td>Mô tả, người thực hiện, deadline, trạng thái, tiến độ %</td>
+</tr>
+<tr>
+<td align="center">9.3</td>
+<td>Liên kết dự án</td>
+<td>Gắn công việc với dự án &amp; giai đoạn kế hoạch</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 10 — Báo cáo &amp; Xuất dữ liệu</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">10.1</td>
+<td>Trung tâm báo cáo</td>
+<td>Báo cáo HTML, báo cáo nhúng (Google Docs/Sheets)</td>
+</tr>
+<tr>
+<td align="center">10.2</td>
+<td>Xuất Excel</td>
+<td>Đấu thầu, kế hoạch vốn, giải ngân</td>
+</tr>
+<tr>
+<td align="center">10.3</td>
+<td>Biểu mẫu nhà nước</td>
+<td>Các loại biểu mẫu theo yêu cầu</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 11 — Văn bản pháp luật &amp; Quy định</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">11.1</td>
+<td>Tra cứu VBPL</td>
+<td>Văn bản pháp luật liên quan đầu tư xây dựng</td>
+</tr>
+<tr>
+<td align="center">11.2</td>
+<td>Quy định nội bộ</td>
+<td>Quản lý &amp; tra cứu quy định nội bộ đơn vị</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h4 class="heading heading-4">Module 12 — Quản trị hệ thống</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Tính năng</th>
+<th>Mô tả chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">12.1</td>
+<td>Quản lý tài khoản</td>
+<td>Tạo, khóa, reset mật khẩu (nội bộ + nhà thầu)</td>
+</tr>
+<tr>
+<td align="center">12.2</td>
+<td>Phân quyền RBAC</td>
+<td>Quản lý quyền theo vai trò, resource-based</td>
+</tr>
+<tr>
+<td align="center">12.3</td>
+<td>Nhật ký hệ thống</td>
+<td>Audit log toàn bộ thao tác người dùng</td>
+</tr>
+<tr>
+<td align="center">12.4</td>
+<td>User Impersonation</td>
+<td>Hỗ trợ kỹ thuật — xem dưới vai người dùng khác</td>
+</tr>
+<tr>
+<td align="center">12.5</td>
+<td>Xác thực</td>
+<td>Google OAuth + Email/Password</td>
+</tr>
+<tr>
+<td align="center">12.6</td>
+<td>Giao diện</td>
+<td>Dark mode / Light mode tùy chọn</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 class="heading heading-2">PHẦN II — CHI PHÍ HẠ TẦNG (NĂM 1)</h2>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p>Triển khai trên Cloud Server tại Việt Nam — Self-host PostgreSQL — 200 users</p>
+<p><em>Giá đã khảo sát thực tế từ website nhà cung cấp, cập nhật tháng 03/2026. Chưa bao gồm VAT.</em></p>
+</div></div>
+<h3 class="heading heading-3">Bảng giá so sánh 3 nhà cung cấp</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Hạng mục</th>
+<th align="right"><a href="https://vngcloud.vn/product/vserver">VNG Cloud</a></th>
+<th align="right"><a href="https://viettelidc.com.vn/Home/PriceList">Viettel IDC</a></th>
+<th align="right"><a href="https://fptcloud.com/cloud-server/">FPT Cloud</a></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"></td>
+<td><em>Cấu hình tham chiếu</em></td>
+<td align="right"><em>a1-standard-8x32</em></td>
+<td align="right"><em>T2.Mem Burst</em></td>
+<td align="right"><em>Standard-03</em></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td><strong>Cloud Server</strong></td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— vCPU</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">8</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— RAM (GB)</td>
+<td align="right">32</td>
+<td align="right">32</td>
+<td align="right">16 ¹</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— SSD (GB)</td>
+<td align="right">200 ²</td>
+<td align="right">160 ²</td>
+<td align="right">500</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— Đơn giá/tháng</td>
+<td align="right">2,858,400</td>
+<td align="right">4,100,000</td>
+<td align="right">3,600,000</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— <strong>Giá/năm</strong></td>
+<td align="right"><strong>34,300,800</strong></td>
+<td align="right"><strong>49,200,000</strong></td>
+<td align="right"><strong>43,200,000</strong></td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><strong>Object Storage</strong> (200 GB)</td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— Đơn giá</td>
+<td align="right">1,000đ/GB/tháng (Gold)</td>
+<td align="right">600đ/GB/tháng</td>
+<td align="right">3,500,000đ/tháng (gói 2TB)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— <strong>Giá/năm</strong></td>
+<td align="right"><strong>2,400,000</strong></td>
+<td align="right"><strong>1,440,000</strong></td>
+<td align="right"><strong>3,500,000</strong> ³</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><strong>Backup tự động</strong> (200 GB)</td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— Gói sử dụng</td>
+<td align="right">Backup Vault</td>
+<td align="right">CS-Medium (200GB)</td>
+<td align="right">Backup Service</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— Đơn giá/tháng</td>
+<td align="right">~194,400 ⁴</td>
+<td align="right">490,000</td>
+<td align="right">~350,000 ⁵</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td>— <strong>Giá/năm</strong></td>
+<td align="right"><strong>2,332,800</strong></td>
+<td align="right"><strong>5,880,000</strong></td>
+<td align="right"><strong>4,200,000</strong></td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><strong>Tên miền <code>.vn</code></strong> (năm 1)</td>
+<td align="right">450,000</td>
+<td align="right">450,000</td>
+<td align="right">450,000</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><strong>SSL Certificate</strong></td>
+<td align="right">0 (Let&#39;s Encrypt)</td>
+<td align="right">0 (Let&#39;s Encrypt)</td>
+<td align="right">0 (Let&#39;s Encrypt)</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><strong>Cài đặt &amp; cấu hình</strong> (1 lần)</td>
+<td align="right">2,000,000</td>
+<td align="right">2,000,000</td>
+<td align="right">2,000,000</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td></td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td><strong>CỘNG PHẦN II / NĂM</strong></td>
+<td align="right"><strong>41,483,600</strong></td>
+<td align="right"><strong>58,970,000</strong></td>
+<td align="right"><strong>53,350,000</strong></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td><strong>Trung bình / tháng</strong></td>
+<td align="right"><strong>~3,457,000</strong></td>
+<td align="right"><strong>~4,914,000</strong></td>
+<td align="right"><strong>~4,446,000</strong></td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p><strong>Ghi chú:</strong></p>
+<p>¹ FPT Cloud Standard-03 đi kèm 16GB RAM + 500GB SSD. Nâng lên 32GB RAM (gói HIGH PERFORMANCE) sẽ có giá cao hơn, cần liên hệ FPT để báo giá chính xác.</p>
+<p>² VNG Cloud &amp; Viettel IDC: SSD đi kèm nhỏ hơn 500GB. Dung lượng còn thiếu sẽ dùng Object Storage cho file/documents, hoặc mua thêm Block Volume (liên hệ NCC).</p>
+<p>³ FPT Cloud Object Storage bán theo gói tối thiểu 2TB (3.5tr/tháng). Chi phí thực tế ghi nhận theo gói tối thiểu, dùng 200GB trong 2TB.</p>
+<p>⁴ VNG Cloud Backup Vault tính theo giờ: 1.35đ/GB/giờ × 200GB × 720h = ~194,400đ/tháng.</p>
+<p>⁵ FPT Cloud Backup Service ước tính theo mức tương đương, cần xác nhận giá chính xác với NCC.</p>
+</div></div>
+<h3 class="heading heading-3">Thông số kỹ thuật chung</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Chi tiết</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OS / Web Server</td>
+<td>Ubuntu 22.04 LTS / Nginx</td>
+</tr>
+<tr>
+<td>Ứng dụng</td>
+<td>Node.js + React (SPA)</td>
+</tr>
+<tr>
+<td>CSDL</td>
+<td>PostgreSQL 16 (self-hosted)</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td>Redis 7</td>
+</tr>
+<tr>
+<td>Container</td>
+<td>Docker + Docker Compose</td>
+</tr>
+<tr>
+<td>Data Center</td>
+<td>Tier III — TP. HCM</td>
+</tr>
+<tr>
+<td>Uptime SLA</td>
+<td>99.9% (VNG, Viettel) / 99.99% (FPT)</td>
+</tr>
+<tr>
+<td>Bảo mật</td>
+<td>Anti-DDoS, Firewall, SSL/TLS</td>
+</tr>
+</tbody></table></div>
+<h3 class="heading heading-3">So sánh ưu/nhược điểm</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th>VNG Cloud</th>
+<th>Viettel IDC</th>
+<th>FPT Cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Giá</strong></td>
+<td>✅ Rẻ nhất</td>
+<td>Cao nhất</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td><strong>RAM</strong></td>
+<td>✅ 32GB đầy đủ</td>
+<td>✅ 32GB đầy đủ</td>
+<td>⚠️ 16GB (gói standard)</td>
+</tr>
+<tr>
+<td><strong>SSD</strong></td>
+<td>⚠️ 200GB (cần thêm)</td>
+<td>⚠️ 160GB (cần thêm)</td>
+<td>✅ 500GB đủ dùng</td>
+</tr>
+<tr>
+<td><strong>Object Storage</strong></td>
+<td>✅ Linh hoạt theo GB</td>
+<td>✅ Rẻ nhất</td>
+<td>⚠️ Gói tối thiểu 2TB</td>
+</tr>
+<tr>
+<td><strong>Backup</strong></td>
+<td>✅ Rẻ nhất</td>
+<td>Cao nhất</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td><strong>SLA</strong></td>
+<td>99.9%</td>
+<td>99.9%</td>
+<td>✅ 99.99%</td>
+</tr>
+<tr>
+<td><strong>Hệ sinh thái AI</strong></td>
+<td>–</td>
+<td>–</td>
+<td>✅ FPT AI MaaS tích hợp</td>
+</tr>
+<tr>
+<td><strong>Hỗ trợ</strong></td>
+<td>Tiếng Việt 24/7</td>
+<td>✅ Hotline 1800 miễn phí</td>
+<td>Tiếng Việt 24/7</td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p>[!TIP]<br><strong>Khuyến nghị</strong>: <strong>VNG Cloud</strong> cho chi phí thấp nhất (~41.5tr/năm). <strong>FPT Cloud</strong> nếu muốn tích hợp AI MaaS cùng hệ sinh thái và SSD đầy đủ 500GB (~53.4tr/năm). <strong>Viettel IDC</strong> cho doanh nghiệp nhà nước cần ưu tiên nhà cung cấp Viettel (~59tr/năm).</p>
+</div></div>
+<hr>
+<h2 class="heading heading-2">PHẦN III — CHI PHÍ AI (FPT AI MaaS)</h2>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p>Nền tảng: <a href="https://ai.fptcloud.com">FPT AI Factory</a> — Model as a Service, trả theo lượng sử dụng thực tế.</p>
+</div></div>
+<h3 class="heading heading-3">Bảng giá FPT AI Cloud — LLM &amp; Vision</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Mô hình</th>
+<th>Loại</th>
+<th align="right">Input (VNĐ/1M tokens)</th>
+<th align="right">Output (VNĐ/1M tokens)</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SaoLa-Llama3.1-planner</strong></td>
+<td>LLM</td>
+<td align="right">1,450</td>
+<td align="right">2,320</td>
+<td>✅ FPT tối ưu cho tiếng Việt, giá rẻ nhất</td>
+</tr>
+<tr>
+<td><strong>Qwen3-32B</strong></td>
+<td>LLM</td>
+<td align="right">4,350</td>
+<td align="right">4,930</td>
+<td>Đa ngôn ngữ, hiệu năng cao</td>
+</tr>
+<tr>
+<td><strong>DeepSeek-V3.2</strong></td>
+<td>LLM</td>
+<td align="right">8,700</td>
+<td align="right">14,500</td>
+<td>Context 128k, mạnh cho phân tích</td>
+</tr>
+<tr>
+<td><strong>Llama-3.3-70B</strong></td>
+<td>LLM</td>
+<td align="right">5,510</td>
+<td align="right">11,890</td>
+<td>Meta model, đa năng</td>
+</tr>
+<tr>
+<td><strong>DeepSeek-OCR</strong></td>
+<td>VLM</td>
+<td align="right">1,160</td>
+<td align="right">3,480</td>
+<td>✅ Đọc tài liệu scan, bản vẽ</td>
+</tr>
+<tr>
+<td><strong>FPT.AI-KIE-v1.7</strong></td>
+<td>VLM</td>
+<td align="right">20,300</td>
+<td align="right">20,300</td>
+<td>Trích xuất thông tin từ ảnh</td>
+</tr>
+</tbody></table></div>
+<h3 class="heading heading-3">Bảng giá FPT AI Cloud — Audio &amp; Embedding</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Mô hình</th>
+<th align="right">Giá</th>
+<th>Đơn vị</th>
+<th>Ứng dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>FPT.AI-whisper (STT)</strong></td>
+<td align="right">783</td>
+<td>VNĐ/phút</td>
+<td>Chuyển giọng nói → văn bản</td>
+</tr>
+<tr>
+<td><strong>FPT.AI-VITs (TTS)</strong></td>
+<td align="right">435,006</td>
+<td>VNĐ/1M tokens</td>
+<td>Chuyển văn bản → giọng nói</td>
+</tr>
+<tr>
+<td><strong>Vietnamese_Embedding</strong></td>
+<td align="right">290</td>
+<td>VNĐ/1M tokens</td>
+<td>✅ Tìm kiếm ngữ nghĩa tiếng Việt</td>
+</tr>
+<tr>
+<td><strong>bge-reranker-v2-m3</strong></td>
+<td align="right">580</td>
+<td>VNĐ/1M tokens</td>
+<td>Xếp hạng kết quả tìm kiếm</td>
+</tr>
+</tbody></table></div>
+<h3 class="heading heading-3">Ước tính chi phí AI cho CIC-QLDA (200 users)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Tính năng AI</th>
+<th>Model sử dụng</th>
+<th>Ước tính sử dụng/tháng</th>
+<th align="right">Chi phí/tháng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Trợ lý AI phân tích hồ sơ</td>
+<td>SaoLa-Llama3.1</td>
+<td>~20M tokens</td>
+<td align="right">~75,000</td>
+</tr>
+<tr>
+<td>OCR tài liệu scan/bản vẽ</td>
+<td>DeepSeek-OCR</td>
+<td>~10M tokens</td>
+<td align="right">~45,000</td>
+</tr>
+<tr>
+<td>Tìm kiếm thông minh</td>
+<td>Vietnamese_Embedding</td>
+<td>~50M tokens</td>
+<td align="right">~15,000</td>
+</tr>
+<tr>
+<td>Tóm tắt báo cáo, hợp đồng</td>
+<td>Qwen3-32B</td>
+<td>~15M tokens</td>
+<td align="right">~140,000</td>
+</tr>
+<tr>
+<td><strong>Tổng AI / tháng</strong></td>
+<td></td>
+<td></td>
+<td align="right"><strong>~275,000</strong></td>
+</tr>
+<tr>
+<td><strong>Tổng AI / năm</strong></td>
+<td></td>
+<td></td>
+<td align="right"><strong>~3,300,000</strong></td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p>[!TIP]<br>Chi phí AI cực kỳ tiết kiệm khi dùng FPT AI MaaS so với tự dựng GPU server. Với 200 users dùng mức trung bình, chi phí AI chỉ khoảng <strong>3.3 triệu/năm</strong> — rẻ hơn rất nhiều so với thuê GPU riêng (~30-50 triệu/tháng).</p>
+</div></div>
+<hr>
+<h2 class="heading heading-2">PHẦN IV — CHI PHÍ BẢO TRÌ &amp; VẬN HÀNH (HÀNG NĂM, từ Năm 2)</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">STT</th>
+<th>Hạng mục</th>
+<th align="right">Thành tiền (VNĐ)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td>Duy trì &amp; bảo trì hệ thống phần mềm</td>
+<td align="right">40,000,000</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td>Cập nhật, nâng cấp tính năng (minor)</td>
+<td align="right">25,000,000</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td>Hỗ trợ kỹ thuật &amp; xử lý sự cố</td>
+<td align="right">20,000,000</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td>Quản trị server &amp; bảo mật</td>
+<td align="right">15,000,000</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td><strong>Cộng Phần IV</strong></td>
+<td align="right"><strong>100,000,000</strong></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 class="heading heading-2">BẢNG TỔNG HỢP THEO NHÀ CUNG CẤP</h2>
+<h3 class="heading heading-3">Tổng đầu tư Năm 1</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hạng mục</th>
+<th align="right">VNG Cloud</th>
+<th align="right">Viettel IDC</th>
+<th align="right">FPT Cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Phần I — Xây dựng PM</td>
+<td align="right">2,000,000,000</td>
+<td align="right">2,000,000,000</td>
+<td align="right">2,000,000,000</td>
+</tr>
+<tr>
+<td>Phần II — Hạ tầng</td>
+<td align="right">41,483,600</td>
+<td align="right">58,970,000</td>
+<td align="right">53,350,000</td>
+</tr>
+<tr>
+<td>Phần III — AI (FPT MaaS)</td>
+<td align="right">3,300,000</td>
+<td align="right">3,300,000</td>
+<td align="right">3,300,000</td>
+</tr>
+<tr>
+<td><strong>TỔNG NĂM 1</strong></td>
+<td align="right"><strong>2,044,783,600</strong></td>
+<td align="right"><strong>2,062,270,000</strong></td>
+<td align="right"><strong>2,056,650,000</strong></td>
+</tr>
+</tbody></table></div>
+<h3 class="heading heading-3">Chi phí vận hành hàng năm (từ Năm 2)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hạng mục</th>
+<th align="right">VNG Cloud</th>
+<th align="right">Viettel IDC</th>
+<th align="right">FPT Cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hạ tầng server</td>
+<td align="right">39,033,600</td>
+<td align="right">56,520,000</td>
+<td align="right">50,900,000</td>
+</tr>
+<tr>
+<td>FPT AI MaaS</td>
+<td align="right">3,300,000</td>
+<td align="right">3,300,000</td>
+<td align="right">3,300,000</td>
+</tr>
+<tr>
+<td>Bảo trì vận hành</td>
+<td align="right">100,000,000</td>
+<td align="right">100,000,000</td>
+<td align="right">100,000,000</td>
+</tr>
+<tr>
+<td><strong>Tổng / năm</strong></td>
+<td align="right"><strong>142,333,600</strong></td>
+<td align="right"><strong>159,820,000</strong></td>
+<td align="right"><strong>154,200,000</strong></td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p><em>Từ Năm 2 không tính phí cài đặt ban đầu (2tr) và tên miền chỉ ~350,000đ/năm gia hạn.</em></p>
+</div></div>
+<hr>
+<h2 class="heading heading-2">TỔNG CHI PHÍ SỞ HỮU 5 NĂM</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">Năm</th>
+<th align="right">VNG Cloud</th>
+<th align="right">Viettel IDC</th>
+<th align="right">FPT Cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Năm 1</strong></td>
+<td align="right">2,044,783,600</td>
+<td align="right">2,062,270,000</td>
+<td align="right">2,056,650,000</td>
+</tr>
+<tr>
+<td align="center"><strong>Năm 2</strong></td>
+<td align="right">142,333,600</td>
+<td align="right">159,820,000</td>
+<td align="right">154,200,000</td>
+</tr>
+<tr>
+<td align="center"><strong>Năm 3</strong></td>
+<td align="right">145,000,000</td>
+<td align="right">163,000,000</td>
+<td align="right">157,000,000</td>
+</tr>
+<tr>
+<td align="center"><strong>Năm 4</strong></td>
+<td align="right">148,000,000</td>
+<td align="right">166,000,000</td>
+<td align="right">160,000,000</td>
+</tr>
+<tr>
+<td align="center"><strong>Năm 5</strong></td>
+<td align="right">151,000,000</td>
+<td align="right">170,000,000</td>
+<td align="right">163,000,000</td>
+</tr>
+<tr>
+<td align="center"><strong>LŨY KẾ 5 NĂM</strong></td>
+<td align="right"><strong>2,631,117,200</strong></td>
+<td align="right"><strong>2,721,090,000</strong></td>
+<td align="right"><strong>2,690,850,000</strong></td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p><em>Hạ tầng tăng nhẹ ~3-5% mỗi năm do tăng dung lượng lưu trữ. AI tính ổn định.</em></p>
+</div></div>
+<hr>
+<h2 class="heading heading-2">LỘ TRÌNH THANH TOÁN (ĐỀ XUẤT)</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="center">Đợt</th>
+<th>Thời điểm</th>
+<th align="center">Tỷ lệ</th>
+<th align="right">Số tiền (VNĐ)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td>Ký hợp đồng</td>
+<td align="center">30%</td>
+<td align="right">600,000,000</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td>Nghiệm thu GĐ1 (sau 3 tháng)</td>
+<td align="center">30%</td>
+<td align="right">600,000,000</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td>Nghiệm thu GĐ2 (sau 6 tháng)</td>
+<td align="center">30%</td>
+<td align="right">600,000,000</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td>Nghiệm thu cuối &amp; bàn giao (sau 8 tháng)</td>
+<td align="center">10%</td>
+<td align="right">200,000,000</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td><strong>Tổng</strong></td>
+<td align="center"><strong>100%</strong></td>
+<td align="right"><strong>2,000,000,000</strong></td>
+</tr>
+</tbody></table></div>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p><em>Chi phí hạ tầng + AI thanh toán riêng theo kỳ hàng tháng/năm cho nhà cung cấp dịch vụ.</em></p>
+</div></div>
+<hr>
+<h2 class="heading heading-2">NGUỒN THAM CHIẾU GIÁ</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Nhà cung cấp</th>
+<th>URL tham chiếu</th>
+<th>Ngày khảo sát</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VNG Cloud</td>
+<td><a href="https://vngcloud.vn/product/vserver">vngcloud.vn/product/vserver</a></td>
+<td>26/03/2026</td>
+</tr>
+<tr>
+<td>Viettel IDC</td>
+<td><a href="https://viettelidc.com.vn/Home/PriceList">viettelidc.com.vn</a></td>
+<td>26/03/2026</td>
+</tr>
+<tr>
+<td>FPT Cloud</td>
+<td><a href="https://fptcloud.com/cloud-server/">fptcloud.com/cloud-server</a></td>
+<td>26/03/2026</td>
+</tr>
+<tr>
+<td>FPT AI MaaS</td>
+<td><a href="https://ai.fptcloud.com/AI-FOQXE611Q/pricing/maas">ai.fptcloud.com/pricing/maas</a></td>
+<td>26/03/2026</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 class="heading heading-2">ĐIỀU KHOẢN &amp; CAM KẾT</h2>
+<ol>
+<li><strong>Bảo hành</strong>: 12 tháng kể từ ngày nghiệm thu</li>
+<li><strong>Bản quyền</strong>: Khách hàng sở hữu toàn bộ mã nguồn sau bàn giao</li>
+<li><strong>Quy mô</strong>: Tối đa 200 người dùng đồng thời</li>
+<li><strong>Thời gian triển khai</strong>: 6–8 tháng</li>
+<li><strong>Đào tạo</strong>: 2 đợt cho quản trị viên và người dùng cuối</li>
+<li><strong>Dữ liệu</strong>: Lưu trữ tại Data Center Tier III trong nước</li>
+<li><strong>AI</strong>: Sử dụng FPT AI MaaS, dữ liệu xử lý tại Việt Nam</li>
+</ol>
+<hr>
+<div class="info-alert"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><div class="info-content">
+<p><em>Tất cả giá trên chưa bao gồm thuế VAT 8%.</em></p>
+<p><em>Báo giá có giá trị 30 ngày kể từ ngày lập.</em></p>
+</div></div>
+
+
+            <div class="footer">
+                <p>Tài liệu được kết xuất tự động từ Hệ thống phần mềm quản lý dự án CIC-QLDA.</p>
+                <p>&copy; 2026 CIC</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

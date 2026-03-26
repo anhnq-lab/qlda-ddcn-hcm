@@ -9,9 +9,11 @@ import { ContractStatus, PaymentStatus } from '../../types';
 import { useContracts } from '../../hooks/useContracts';
 import { usePayments } from '../../hooks/usePayments';
 import { useProjects } from '../../hooks/useProjects';
+import { ContractService } from '../../services/ContractService';
+import { ContractModal } from './components/ContractModal';
 import {
     ArrowLeft, FileText, Calendar, DollarSign,
-    Building2, Printer, Download, Edit3,
+    Building2, Printer, Download, Edit3, Trash2,
     CheckCircle2, Clock, AlertTriangle,
     TrendingUp, Layers, FileDigit, Briefcase, ShieldCheck
 } from 'lucide-react';
@@ -27,6 +29,8 @@ const ContractDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useTabSearchParam('general', ['general', 'variation', 'boq', 'payment', 'progress'] as const);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // 1. Get Data with decoding to handle IDs containing slashes
     const contractId = decodeURIComponent(id || '');
@@ -95,6 +99,28 @@ const ContractDetail: React.FC = () => {
         { name: 'Còn lại', value: remaining, fill: '#B8860B' },
     ];
 
+    const handleDelete = async () => {
+        if (payments.length > 0) {
+            alert('Không thể xóa hợp đồng đã có dữ liệu thanh toán!');
+            return;
+        }
+        if (variationOrders.length > 0) {
+            alert('Không thể xóa hợp đồng đã có phụ lục!');
+            return;
+        }
+
+        if (window.confirm(`Bạn có chắc muốn xóa hợp đồng "${contract.ContractID}"? Hành động này không thể hoàn tác.`)) {
+            setIsDeleting(true);
+            try {
+                await ContractService.delete(contract.ContractID);
+                navigate('/contracts');
+            } catch (error: any) {
+                alert('Lỗi xóa hợp đồng: ' + error.message);
+                setIsDeleting(false);
+            }
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-300 pb-10">
             {/* Header */}
@@ -119,8 +145,19 @@ const ContractDetail: React.FC = () => {
                     <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 text-sm transition-colors">
                         <Printer className="w-4 h-4" /> In Hợp đồng
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 text-sm shadow-lg shadow-blue-200 dark:shadow-blue-900/30 transition-colors">
+                    <button 
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 text-sm shadow-lg shadow-blue-200 dark:shadow-blue-900/30 transition-colors"
+                    >
                         <Edit3 className="w-4 h-4" /> Điều chỉnh
+                    </button>
+                    <button 
+                        onClick={handleDelete}
+                        disabled={isDeleting || payments.length > 0 || variationOrders.length > 0}
+                        title={(payments.length > 0 || variationOrders.length > 0) ? "Không thể xóa hợp đồng đã có thanh toán hoặc phụ lục" : "Xóa hợp đồng"}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <Trash2 className="w-4 h-4" /> {isDeleting ? 'Đang xóa...' : 'Xóa HĐ'}
                     </button>
                 </div>
             </div>
@@ -536,6 +573,14 @@ const ContractDetail: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Modal Điều Chỉnh */}
+            <ContractModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                existingContract={contract}
+                initialPackageId={pkg?.PackageID}
+            />
         </div>
     );
 };

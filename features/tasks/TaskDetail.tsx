@@ -53,8 +53,15 @@ const getPrevStatus = (c: TaskStatus): TaskStatus | null => { const i = STATUS_O
 // ═══════════════════════════════════════════════════
 // Component
 // ═══════════════════════════════════════════════════
-const TaskDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+interface TaskDetailProps {
+    taskId?: string;
+    isPanel?: boolean;
+    onClose?: () => void;
+}
+
+const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, onClose }) => {
+    const { id: paramId } = useParams<{ id: string }>();
+    const id = propTaskId || paramId;
     const navigate = useNavigate();
 
     const { data: task, isLoading } = useTask(id);
@@ -92,7 +99,9 @@ const TaskDetail: React.FC = () => {
                         <AlertTriangle className="w-6 h-6 text-red-400" />
                     </div>
                     <p className="text-slate-600 dark:text-slate-400 font-medium">Không tìm thấy công việc!</p>
-                    <button onClick={() => navigate('/tasks')} className="text-sm text-blue-600 dark:text-blue-400 mt-2 hover:underline">← Quay lại</button>
+                    {!isPanel && (
+                        <button onClick={() => navigate('/tasks')} className="text-sm text-blue-600 dark:text-blue-400 mt-2 hover:underline">← Quay lại</button>
+                    )}
                 </div>
             </div>
         );
@@ -160,11 +169,12 @@ const TaskDetail: React.FC = () => {
             <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
 
                 {/* ══════════ BREADCRUMB ══════════ */}
-                <nav className="flex items-center gap-1.5 text-sm text-slate-400 dark:text-slate-500 flex-wrap">
-                    <button onClick={() => navigate('/tasks')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium flex items-center gap-1">
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        Công việc
-                    </button>
+                {!isPanel && (
+                    <nav className="flex items-center gap-1.5 text-sm text-slate-400 dark:text-slate-500 flex-wrap">
+                        <button onClick={() => navigate('/tasks')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium flex items-center gap-1">
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            Công việc
+                        </button>
                     {project && (
                         <>
                             <ChevronRight className="w-3 h-3" />
@@ -179,6 +189,7 @@ const TaskDetail: React.FC = () => {
                     <ChevronRight className="w-3 h-3" />
                     <span className="text-slate-700 dark:text-slate-200 font-bold truncate max-w-[300px]">{task.Title}</span>
                 </nav>
+                )}
 
                 {/* ══════════ HEADER CARD ══════════ */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -331,7 +342,18 @@ const TaskDetail: React.FC = () => {
                                                     return (
                                                         <button
                                                             key={idx}
-                                                            onClick={() => navigate(`/tasks/${dep.TaskID}`)}
+                                                            onClick={() => {
+                                                                if (isPanel) {
+                                                                    // Update the URL or handle dependency navigation
+                                                                    // For now, if we are in panel mode, maybe we don't navigate away, or maybe we open another panel?
+                                                                    // Let's just navigate which changes route and unmounts the panel (if route mismatch)
+                                                                    // Or better, let's open it in another panel if we have `isPanel`. 
+                                                                    navigate(`/tasks/${dep.TaskID}`);
+                                                                    if (onClose) onClose();
+                                                                } else {
+                                                                    navigate(`/tasks/${dep.TaskID}`);
+                                                                }
+                                                            }}
                                                             className="flex items-center gap-1.5 text-xs bg-slate-50 dark:bg-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-1.5 rounded-lg transition-all group/dep w-full text-left ring-1 ring-slate-100 dark:ring-slate-600 hover:ring-blue-200 dark:hover:ring-blue-700"
                                                         >
                                                             <Link2 className="w-3 h-3 shrink-0 text-slate-400 group-hover/dep:text-blue-500 transition-colors" />
@@ -617,6 +639,52 @@ const TaskDetail: React.FC = () => {
                             setIsSubTaskModalOpen(false);
                             setEditingSubTask(null);
                         }} className="p-6 space-y-4">
+
+                            {/* ── Parent task deadline banner ── */}
+                            {task.DueDate && (
+                                <div className={`flex items-center gap-3 p-3.5 rounded-xl border ${
+                                    new Date(task.DueDate) < new Date()
+                                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50'
+                                        : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50'
+                                }`}>
+                                    <div className={`p-2 rounded-lg ${
+                                        new Date(task.DueDate) < new Date()
+                                            ? 'bg-red-100 dark:bg-red-900/40'
+                                            : 'bg-amber-100 dark:bg-amber-900/40'
+                                    }`}>
+                                        <AlertTriangle className={`w-4 h-4 ${
+                                            new Date(task.DueDate) < new Date()
+                                                ? 'text-red-500'
+                                                : 'text-amber-500'
+                                        }`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            Hạn công việc cha
+                                        </p>
+                                        <p className={`text-sm font-black ${
+                                            new Date(task.DueDate) < new Date()
+                                                ? 'text-red-600 dark:text-red-400'
+                                                : 'text-amber-700 dark:text-amber-400'
+                                        }`}>
+                                            {new Date(task.DueDate).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            {new Date(task.DueDate) < new Date() && (
+                                                <span className="ml-2 text-[10px] font-bold text-red-500 animate-pulse">ĐÃ QUÁ HẠN</span>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        {(() => {
+                                            const diffMs = new Date(task.DueDate).getTime() - new Date().getTime();
+                                            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                                            if (diffDays < 0) return <span className="text-xs font-bold text-red-500">Quá {Math.abs(diffDays)} ngày</span>;
+                                            if (diffDays === 0) return <span className="text-xs font-bold text-red-500">Hôm nay</span>;
+                                            return <span className={`text-xs font-bold ${diffDays <= 7 ? 'text-amber-600' : 'text-emerald-600'}`}>Còn {diffDays} ngày</span>;
+                                        })()}
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Nội dung</label>
                                 <input defaultValue={editingSubTask?.Title || ''} name="title" required className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 placeholder:text-slate-400" placeholder="Nhập tên công việc..." />
@@ -632,11 +700,23 @@ const TaskDetail: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Hạn hoàn thành</label>
-                                <input defaultValue={editingSubTask?.DueDate || ''} type="date" name="dueDate" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
+                                <input
+                                    defaultValue={editingSubTask?.DueDate || ''}
+                                    type="date"
+                                    name="dueDate"
+                                    max={task.DueDate || undefined}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                                />
+                                {task.DueDate && (
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        Không được vượt quá hạn công việc cha ({new Date(task.DueDate).toLocaleDateString('vi-VN')})
+                                    </p>
+                                )}
                             </div>
                             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                                 <button type="button" onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">Hủy</button>
-                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-lg active:scale-[0.98]" >
+                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all" >
                                     {editingSubTask ? 'Lưu' : 'Thêm mới'}
                                 </button>
                             </div>

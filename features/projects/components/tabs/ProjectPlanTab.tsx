@@ -361,12 +361,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             const currentTask = tasks.find(t => t.TaskID === taskData.TaskID);
             const statusExplicitlyChanged = taskData.Status !== undefined && taskData.Status !== currentTask?.Status;
             if (!statusExplicitlyChanged) {
-                if (progress === 100) {
-                    taskData.Status = TaskStatus.Review; // 100% → Đang kiểm tra (chờ GĐ duyệt)
-                } else if (progress >= 1) {
-                    taskData.Status = TaskStatus.InProgress; // 1-99% → Đang thực hiện
+                // Keep InProgress at 100% — user must click "Báo cáo hoàn thành" to move to Review
+                if (progress >= 1) {
+                    taskData.Status = TaskStatus.InProgress;
                 } else {
-                    taskData.Status = TaskStatus.Todo; // 0% → Chưa bắt đầu
+                    taskData.Status = TaskStatus.Todo;
                 }
             }
         }

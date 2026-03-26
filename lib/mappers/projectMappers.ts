@@ -261,6 +261,23 @@ export const biddingPackageToDb = (bp: Partial<BiddingPackage>) => ({
     ...(bp.DecisionNumber !== undefined && { decision_number: bp.DecisionNumber }),
     ...(bp.DecisionDate !== undefined && { decision_date: bp.DecisionDate }),
     ...(bp.DecisionAgency !== undefined && { decision_agency: bp.DecisionAgency }),
+    ...(bp.DecisionFile !== undefined && { decision_file: bp.DecisionFile }),
+    // Bidding timeline
+    ...(bp.PostingDate !== undefined && { posting_date: bp.PostingDate }),
+    ...(bp.BidClosingDate !== undefined && { bid_closing_date: bp.BidClosingDate }),
+    ...(bp.BidOpeningDate !== undefined && { bid_opening_date: bp.BidOpeningDate }),
+    // Winning result
+    ...(bp.WinningContractorID !== undefined && { winning_contractor_id: bp.WinningContractorID }),
+    ...(bp.WinningPrice !== undefined && { winning_price: bp.WinningPrice }),
+    ...(bp.ApprovalDate_Result !== undefined && { approval_date_result: bp.ApprovalDate_Result }),
+    ...(bp.ContractID !== undefined && { contract_id: bp.ContractID }),
+    // Pricing & fees
+    ...(bp.EstimatePrice !== undefined && { estimate_price: bp.EstimatePrice }),
+    ...(bp.BidFee !== undefined && { bid_fee: bp.BidFee }),
+    // Reporting (Biểu 01A PL2)
+    ...(bp.BiddingScope !== undefined && { bidding_scope: bp.BiddingScope }),
+    ...(bp.BiddersCount !== undefined && { bidders_count: bp.BiddersCount }),
+    ...(bp.EvaluationBiddersCount !== undefined && { evaluation_bidders_count: bp.EvaluationBiddersCount }),
 });
 
 export const dbToProcurementPlan = (row: any): ProcurementPlan => ({

@@ -160,7 +160,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                                     {b.rank || idx + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">
+                                    <p className="text-xs font-medium text-gray-800 dark:text-slate-200 truncate">
                                         {b.contractor?.FullName || b.contractor_id}
                                     </p>
                                 </div>
@@ -223,7 +223,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                                 >
                                     <Building2 className="w-4 h-4 text-blue-500 shrink-0" />
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{c.FullName}</p>
+                                        <p className="text-xs font-medium text-gray-800 dark:text-slate-200 truncate">{c.FullName}</p>
                                         <p className="text-[10px] text-gray-500 dark:text-slate-400">MST: {c.TaxCode || c.ContractorID}</p>
                                     </div>
                                     <Plus className="w-4 h-4 text-blue-400 shrink-0" />
@@ -262,6 +262,19 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
 };
 
 // ────────────────────────────────────────
+// Utilities for formatting price inputs
+// ────────────────────────────────────────
+const formatPriceInput = (val: string | number | undefined | null) => {
+    if (val === undefined || val === null || val === '') return '';
+    const numStr = val.toString().replace(/[^\d]/g, '');
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+const parsePriceInput = (val: string) => {
+    return val.replace(/\./g, '');
+};
+
+// ────────────────────────────────────────
 // Inline Edit Row for a bidder
 // ────────────────────────────────────────
 const EditBidderRow: React.FC<{
@@ -280,11 +293,12 @@ const EditBidderRow: React.FC<{
         notes: bidder.notes ?? '',
     });
 
-    // Auto-calculate combined_score = KT * 0.4 + TC * 0.6
+    // Auto-calculate combined_score = KT * ktW + TC * tcW
     useEffect(() => {
         const kt = Number(form.technical_score);
         const tc = Number(form.financial_score);
         if (kt > 0 && tc > 0) {
+            // Weight will be recalculated server-side; use placeholder 0.4/0.6 for preview
             const combined = Math.round((kt * 0.4 + tc * 0.6) * 100) / 100;
             setForm(p => ({ ...p, combined_score: combined }));
         }
@@ -311,9 +325,9 @@ const EditBidderRow: React.FC<{
                 <div>
                     <label className={labelClass}>Giá dự thầu (VND)</label>
                     <input
-                        type="number"
-                        value={form.bid_price}
-                        onChange={e => setForm(p => ({ ...p, bid_price: e.target.value }))}
+                        type="text"
+                        value={formatPriceInput(form.bid_price)}
+                        onChange={e => setForm(p => ({ ...p, bid_price: parsePriceInput(e.target.value) }))}
                         placeholder="0"
                         className={inputClass}
                     />
@@ -342,7 +356,7 @@ const EditBidderRow: React.FC<{
                     <input type="number" step="0.01" value={form.financial_score} onChange={e => setForm(p => ({ ...p, financial_score: e.target.value }))} placeholder="0" className={inputClass} />
                 </div>
                 <div>
-                    <label className={labelClass}>Điểm TH (KT×0.4+TC×0.6)</label>
+                    <label className={labelClass}>Điểm tổng hợp (TH)</label>
                     <input type="number" step="0.01" value={form.combined_score} onChange={e => setForm(p => ({ ...p, combined_score: e.target.value }))} placeholder="Tự tính" className={`${inputClass} bg-blue-50 dark:bg-blue-950/20 font-bold text-blue-600 dark:text-blue-400`} />
                 </div>
             </div>
@@ -373,6 +387,141 @@ const EditBidderRow: React.FC<{
                 </button>
             </div>
         </div>
+    );
+};
+
+// ────────────────────────────────────────
+// Inline editable score row for evaluation table
+// ────────────────────────────────────────
+const InlineScoreRow: React.FC<{
+    bidder: Bidder;
+    packageId: string;
+    ktWeight: number;
+    tcWeight: number;
+    onFileSelect: (bidderId: string) => void;
+    isUploading: boolean;
+}> = ({ bidder, packageId, ktWeight, tcWeight, onFileSelect, isUploading }) => {
+    const queryClient = useQueryClient();
+    const [kt, setKt] = useState(bidder.technical_score?.toString() ?? '');
+    const [tc, setTc] = useState(bidder.financial_score?.toString() ?? '');
+    const [bidPrice, setBidPrice] = useState(bidder.bid_price?.toString() ?? '');
+
+    // Sync from server when bidder data changes
+    useEffect(() => {
+        setKt(bidder.technical_score?.toString() ?? '');
+        setTc(bidder.financial_score?.toString() ?? '');
+        setBidPrice(bidder.bid_price?.toString() ?? '');
+    }, [bidder.technical_score, bidder.financial_score, bidder.bid_price]);
+
+    // Auto-calc TH with configurable weights
+    const ktNum = parseFloat(kt) || 0;
+    const tcNum = parseFloat(tc) || 0;
+    const th = ktNum > 0 && tcNum > 0 ? Math.round((ktNum * ktWeight + tcNum * tcWeight) * 100) / 100 : null;
+
+    const saveMutation = useMutation({
+        mutationFn: async (updates: Record<string, any>) => {
+            // @ts-ignore
+            const { error } = await (supabase as any)
+                .from('package_bidders')
+                .update(updates)
+                .eq('id', bidder.id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['package-bidders', packageId] });
+        },
+    });
+
+    const handleBlur = (field: string, value: string) => {
+        const num = parseFloat(value) || null;
+        const currentVal = field === 'technical_score' ? bidder.technical_score
+            : field === 'financial_score' ? bidder.financial_score
+            : bidder.bid_price;
+
+        if (num !== currentVal) {
+            const updates: Record<string, any> = { [field]: num };
+            // Auto-calc combined_score with configurable weights
+            if (field === 'technical_score' || field === 'financial_score') {
+                const newKt = field === 'technical_score' ? (num || 0) : (bidder.technical_score || 0);
+                const newTc = field === 'financial_score' ? (num || 0) : (bidder.financial_score || 0);
+                if (newKt > 0 && newTc > 0) {
+                    updates.combined_score = Math.round((newKt * ktWeight + newTc * tcWeight) * 100) / 100;
+                }
+            }
+            saveMutation.mutate(updates);
+        }
+    };
+
+    const inputClass = "w-full text-center px-1 py-1 text-xs bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-slate-600 focus:border-blue-400 focus:bg-white dark:focus:bg-slate-900 focus:ring-1 focus:ring-blue-400 rounded outline-none transition-colors tabular-nums";
+
+    return (
+        <tr className={`border-b border-gray-100 dark:border-slate-800 ${bidder.status === 'winner' ? 'bg-amber-50/50 dark:bg-amber-950/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'}`}>
+            <td className="py-1.5 px-2">
+                <div className="flex items-center gap-1.5">
+                    {bidder.status === 'winner' && <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                    <span className="font-medium text-gray-800 dark:text-slate-200 truncate" title={bidder.contractor?.FullName}>
+                        {bidder.contractor?.FullName || bidder.contractor_id}
+                    </span>
+                </div>
+            </td>
+            <td className="py-1.5 px-1">
+                <input
+                    type="text"
+                    value={formatPriceInput(bidPrice)}
+                    onChange={e => setBidPrice(parsePriceInput(e.target.value))}
+                    onBlur={e => handleBlur('bid_price', parsePriceInput(e.target.value))}
+                    placeholder="-"
+                    className={`${inputClass} text-right`}
+                />
+            </td>
+            <td className="py-1.5 px-1">
+                <input
+                    type="number"
+                    step="0.01"
+                    value={kt}
+                    onChange={e => setKt(e.target.value)}
+                    onBlur={e => handleBlur('technical_score', e.target.value)}
+                    placeholder="-"
+                    className={inputClass}
+                />
+            </td>
+            <td className="py-1.5 px-1">
+                <input
+                    type="number"
+                    step="0.01"
+                    value={tc}
+                    onChange={e => setTc(e.target.value)}
+                    onBlur={e => handleBlur('financial_score', e.target.value)}
+                    placeholder="-"
+                    className={inputClass}
+                />
+            </td>
+            <td className="py-1.5 px-1 text-center font-bold text-blue-600 dark:text-blue-400 text-xs tabular-nums">
+                {th ?? '-'}
+            </td>
+            <td className="py-1.5 px-1 text-center">
+                {bidder.rank ? (
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${bidder.rank === 1 ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' :
+                        'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400'
+                        }`}>{bidder.rank}</span>
+                ) : '-'}
+            </td>
+            <td className="py-1.5 px-1 text-center">
+                {bidder.evaluation_file_url ? (
+                    <a href={bidder.evaluation_file_url} target="_blank" rel="noopener noreferrer" title={bidder.evaluation_file_name}>
+                        <FileText className="w-3.5 h-3.5 text-blue-500 inline" />
+                    </a>
+                ) : (
+                    <button
+                        onClick={() => onFileSelect(bidder.id!)}
+                        disabled={isUploading}
+                        className="text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                        <Upload className="w-3.5 h-3.5 inline" />
+                    </button>
+                )}
+            </td>
+        </tr>
     );
 };
 
@@ -447,6 +596,10 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
         }
         e.target.value = '';
     };
+
+    // Configurable scoring weights
+    const [ktWeight, setKtWeight] = useState(0.4);
+    const tcWeight = Math.round((1 - ktWeight) * 10) / 10;
 
     const scoredBidders = bidders.filter(b => b.technical_score || b.financial_score || b.combined_score);
     const hasAnyScores = scoredBidders.length > 0;
@@ -550,7 +703,7 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
             {unscoredBidders.length > 0 && bidders.length > 0 && hasAnyScores && (
                 <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
                     <AlertTriangleIcon className="w-3.5 h-3.5 shrink-0" />
-                    <span>{unscoredBidders.length} nhà thầu chưa có điểm: {unscoredBidders.map(b => b.contractor?.FullName?.split(' ').slice(-2).join(' ') || b.contractor_id).join(', ')}</span>
+                    <span>{unscoredBidders.length} nhà thầu chưa có điểm: {unscoredBidders.map(b => b.contractor?.FullName || b.contractor_id).join(', ')}</span>
                 </div>
             )}
 
@@ -562,89 +715,50 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                 </div>
             )}
 
-            {/* Score table */}
-            {hasAnyScores ? (
+            {/* ALWAYS show editable score table */}
+            {bidders.length > 0 && (
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400">
                                 <th className="text-left py-2 px-2 font-medium">Nhà thầu</th>
-                                <th className="text-right py-2 px-1 font-medium">Giá dự thầu</th>
-                                <th className="text-center py-2 px-1 font-medium">KT</th>
-                                <th className="text-center py-2 px-1 font-medium">TC</th>
-                                <th className="text-center py-2 px-1 font-medium">TH</th>
-                                <th className="text-center py-2 px-1 font-medium">Hạng</th>
-                                <th className="text-center py-2 px-1 font-medium">File</th>
+                                <th className="text-right py-2 px-2 font-medium w-[140px]">Giá dự thầu</th>
+                                <th className="text-center py-2 px-2 font-medium w-[70px]">KT</th>
+                                <th className="text-center py-2 px-2 font-medium w-[70px]">TC</th>
+                                <th className="text-center py-2 px-2 font-medium w-[100px]">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <span>TH</span>
+                                        <select
+                                            value={ktWeight}
+                                            onChange={e => setKtWeight(parseFloat(e.target.value))}
+                                            className="text-[10px] bg-transparent border border-gray-300 dark:border-slate-600 rounded px-0.5 py-0 font-normal text-blue-600 dark:text-blue-400 cursor-pointer focus:ring-1 focus:ring-blue-400 outline-none"
+                                            title="Tỷ trọng KT/TC"
+                                        >
+                                            <option value={0.2}>2/8</option>
+                                            <option value={0.3}>3/7</option>
+                                            <option value={0.4}>4/6</option>
+                                            <option value={0.5}>5/5</option>
+                                        </select>
+                                    </div>
+                                </th>
+                                <th className="text-center py-2 px-1 font-medium w-[50px]">Hạng</th>
+                                <th className="text-center py-2 px-1 font-medium w-[40px]">File</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {bidders.map((b, idx) => (
-                                <tr key={b.id} className={`border-b border-gray-50 dark:border-slate-800 ${b.status === 'winner' ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}>
-                                    <td className="py-2 px-2">
-                                        <div className="flex items-center gap-1.5">
-                                            {b.status === 'winner' && <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                                            <span className="font-medium text-gray-800 dark:text-slate-200 truncate max-w-[120px]">
-                                                {b.contractor?.FullName?.split(' ').slice(-3).join(' ') || b.contractor_id}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="text-right py-2 px-1 text-gray-600 dark:text-slate-300 whitespace-nowrap">
-                                        {b.bid_price ? formatCurrency(b.bid_price) : '-'}
-                                    </td>
-                                    <td className="text-center py-2 px-1 font-medium text-gray-700 dark:text-slate-300">{b.technical_score ?? '-'}</td>
-                                    <td className="text-center py-2 px-1 font-medium text-gray-700 dark:text-slate-300">{b.financial_score ?? '-'}</td>
-                                    <td className="text-center py-2 px-1 font-bold text-blue-600 dark:text-blue-400">{b.combined_score ?? '-'}</td>
-                                    <td className="text-center py-2 px-1">
-                                        {b.rank ? (
-                                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${b.rank === 1 ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' :
-                                                'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400'
-                                                }`}>{b.rank}</span>
-                                        ) : '-'}
-                                    </td>
-                                    <td className="text-center py-2 px-1">
-                                        {b.evaluation_file_url ? (
-                                            <a href={b.evaluation_file_url} target="_blank" rel="noopener noreferrer" title={b.evaluation_file_name}>
-                                                <FileText className="w-3.5 h-3.5 text-blue-500 inline" />
-                                            </a>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleFileSelect(b.id!)}
-                                                disabled={uploadMutation.isPending}
-                                                className="text-gray-400 hover:text-blue-500 transition-colors"
-                                            >
-                                                <Upload className="w-3.5 h-3.5 inline" />
-                                            </button>
-                                        )}
-                                    </td>
-                                </tr>
+                            {bidders.map((b) => (
+                                <InlineScoreRow
+                                    key={b.id}
+                                    bidder={b}
+                                    packageId={packageId}
+                                    ktWeight={ktWeight}
+                                    tcWeight={tcWeight}
+                                    onFileSelect={handleFileSelect}
+                                    isUploading={uploadMutation.isPending}
+                                />
                             ))}
                         </tbody>
                     </table>
-                </div>
-            ) : (
-                <div className="space-y-2">
-                    {bidders.map(b => (
-                        <div key={b.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4 text-gray-400 shrink-0" />
-                                <span className="text-sm text-gray-700 dark:text-slate-300 truncate">{b.contractor?.FullName || b.contractor_id}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {b.bid_price && <span className="text-xs text-gray-500">{formatCurrency(b.bid_price)}</span>}
-                                <button
-                                    onClick={() => handleFileSelect(b.id!)}
-                                    disabled={uploadMutation.isPending}
-                                    className="flex items-center gap-1 px-2 py-1 text-[10px] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded transition-colors"
-                                >
-                                    <Upload className="w-3 h-3" />
-                                    {b.evaluation_file_url ? 'Đổi file' : 'Upload'}
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                    <p className="text-center text-[10px] text-gray-400 dark:text-slate-500 pt-1">
-                        Nhập điểm đánh giá ở phần "Nhà thầu tham gia" → click vào nhà thầu
-                    </p>
                 </div>
             )}
         </div>

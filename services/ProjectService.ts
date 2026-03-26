@@ -220,6 +220,108 @@ export class ProjectService {
         return (data || []).map(dbToBiddingPackage);
     }
 
+    /**
+     * Create a new bidding package
+     */
+    static async createPackage(packageData: Partial<BiddingPackage>): Promise<BiddingPackage> {
+        const insertData = biddingPackageToDb({
+            PackageID: packageData.PackageID || `PKG-${Date.now()}`,
+            Status: packageData.Status || 'Planning' as any,
+            BidType: packageData.BidType || 'Online',
+            ...packageData,
+        });
+
+        const { data, error } = await supabase
+            .from('bidding_packages')
+            .insert(insertData as any)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to create package: ${error.message}`);
+
+        // Recalculate plan total if assigned to a plan
+        if (packageData.PlanID) {
+            await this.recalculatePlanTotal(packageData.PlanID);
+        }
+
+        return dbToBiddingPackage(data);
+    }
+
+    /**
+     * Update an existing bidding package
+     */
+    static async updatePackage(packageId: string, updates: Partial<BiddingPackage>): Promise<BiddingPackage> {
+        const updateData = biddingPackageToDb(updates);
+
+        const { data: updated, error } = await supabase
+            .from('bidding_packages')
+            .update(updateData as any)
+            .eq('package_id', packageId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to update package: ${error.message}`);
+
+        const result = dbToBiddingPackage(updated);
+
+        // Recalculate plan total if price changed
+        if (updates.Price !== undefined && result.PlanID) {
+            await this.recalculatePlanTotal(result.PlanID);
+        }
+
+        return result;
+    }
+
+    /**
+     * Delete a bidding package (blocks if has contract or awarded status)
+     */
+    static async deletePackage(packageId: string): Promise<void> {
+        // Safety check: don't delete packages with contracts
+        const { data: contracts } = await supabase
+            .from('contracts')
+            .select('contract_id')
+            .eq('package_id', packageId)
+            .limit(1);
+
+        if (contracts && contracts.length > 0) {
+            throw new Error('Không thể xóa gói thầu đã có hợp đồng. Hãy xóa hợp đồng trước.');
+        }
+
+        // Get package to check status and get PlanID for recalculation
+        const { data: pkg } = await supabase
+            .from('bidding_packages')
+            .select('plan_id, status')
+            .eq('package_id', packageId)
+            .single();
+
+        if (pkg?.status === 'Awarded') {
+            throw new Error('Không thể xóa gói thầu đã có kết quả lựa chọn nhà thầu.');
+        }
+
+        // Delete associated payments first
+        const { data: pkgContracts } = await supabase
+            .from('contracts')
+            .select('contract_id')
+            .eq('package_id', packageId);
+        
+        if (pkgContracts && pkgContracts.length > 0) {
+            const contractIds = pkgContracts.map(c => c.contract_id);
+            await supabase.from('payments').delete().in('contract_id', contractIds);
+        }
+
+        const { error } = await supabase
+            .from('bidding_packages')
+            .delete()
+            .eq('package_id', packageId);
+
+        if (error) throw new Error(`Failed to delete package: ${error.message}`);
+
+        // Recalculate plan total after deletion
+        if (pkg?.plan_id) {
+            await this.recalculatePlanTotal(pkg.plan_id);
+        }
+    }
+
     // ============================================================
     // PROCUREMENT PLANS (KHLCNT)
     // ============================================================
@@ -263,9 +365,38 @@ export class ProjectService {
         return dbToProcurementPlan(data);
     }
 
-    /** Delete a KHLCNT */
+    /** Delete a KHLCNT — with safety check for Awarded/contracted packages */
     static async deletePlan(planId: string): Promise<void> {
-        // 1. First, delete all bidding packages associated with this plan
+        // Safety: check if plan has packages with Awarded status or contracts
+        const { data: packages } = await supabase
+            .from('bidding_packages')
+            .select('package_id, status')
+            .eq('plan_id', planId);
+
+        if (packages && packages.length > 0) {
+            const awardedPkgs = packages.filter(p => p.status === 'Awarded');
+            if (awardedPkgs.length > 0) {
+                throw new Error(
+                    `Không thể xóa KHLCNT: có ${awardedPkgs.length} gói thầu đã có kết quả LCNT. Hãy hủy kết quả trước.`
+                );
+            }
+
+            // Check if any package has contracts
+            const pkgIds = packages.map(p => p.package_id);
+            const { data: contracts } = await supabase
+                .from('contracts')
+                .select('contract_id')
+                .in('package_id', pkgIds)
+                .limit(1);
+
+            if (contracts && contracts.length > 0) {
+                throw new Error(
+                    'Không thể xóa KHLCNT: có gói thầu đã ký hợp đồng. Hãy xóa hợp đồng trước.'
+                );
+            }
+        }
+
+        // 1. Delete all bidding packages associated with this plan
         const { error: pkgError } = await supabase
             .from('bidding_packages')
             .delete()

@@ -95,6 +95,7 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
                 {quickValues.map(qv => (
                     <button
                         key={qv}
+                        type="button"
                         onClick={() => !disabled && onChange(qv)}
                         disabled={disabled}
                         className={`flex-1 px-2 py-1 text-[10px] font-bold rounded transition-all ${value === qv
@@ -126,6 +127,7 @@ export const ProgressBadge: React.FC<{
 
     return (
         <button
+            type="button"
             onClick={onClick}
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border font-bold transition-all hover:scale-105 ${getColor(value)} ${size === 'sm' ? 'text-[10px]' : 'text-xs'
                 }`}

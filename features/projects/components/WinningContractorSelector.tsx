@@ -7,6 +7,7 @@ import {
 import { Contractor } from '../../../types';
 import { useContractors } from '../../../hooks/useContractors';
 import { supabase } from '../../../lib/supabase';
+import ProjectService from '../../../services/ProjectService';
 
 // ========================================
 // WINNING CONTRACTOR SELECTOR
@@ -23,11 +24,13 @@ interface WinningMember {
 
 interface WinningContractorSelectorProps {
     packageId: string;
+    filterByBidders?: boolean;
     onSaved?: () => void;
 }
 
 export const WinningContractorSelector: React.FC<WinningContractorSelectorProps> = ({
     packageId,
+    filterByBidders = false,
     onSaved,
 }) => {
     const queryClient = useQueryClient();
@@ -39,85 +42,102 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
 
-    // Fetch existing winning contractors
-    const { data: existingMembers, isLoading } = useQuery({
-        queryKey: ['package-winning-contractors', packageId],
+    // Fetch bidding package to see if a winning contractor is already selected
+    const { data: pkg, isLoading } = useQuery({
+        queryKey: ['bidding-package-winner', packageId],
         queryFn: async () => {
-            // @ts-ignore — table not yet in generated types
-            const { data, error } = await (supabase as any)
-                .from('package_winning_contractors')
-                .select('*')
+            const { data, error } = await supabase
+                .from('bidding_packages')
+                .select('winning_contractor_id')
                 .eq('package_id', packageId)
-                .order('role', { ascending: true });
+                .single();
             if (error) throw error;
-            return (data || []) as { id: string; contractor_id: string; role: 'lead' | 'member'; share_percent: number | null }[];
+            return {
+                WinningContractorID: data.winning_contractor_id
+            };
         },
     });
 
     // Sync existing data when loaded
     useEffect(() => {
-        if (existingMembers && contractors.length > 0) {
-            setMembers(existingMembers.map(m => ({
-                id: m.id,
-                contractor_id: m.contractor_id,
-                contractor: contractors.find(c => c.ContractorID === m.contractor_id),
-                role: m.role,
-                share_percent: m.share_percent ?? undefined,
-            })));
+        if (pkg && contractors.length > 0) {
+            if (pkg.WinningContractorID) {
+                setMembers([{
+                    id: pkg.WinningContractorID, // Temporary ID since we don't have a join table
+                    contractor_id: pkg.WinningContractorID,
+                    contractor: contractors.find(c => c.ContractorID === pkg.WinningContractorID),
+                    role: 'lead',
+                    share_percent: 100,
+                }]);
+            } else {
+                setMembers([]);
+            }
         }
-    }, [existingMembers, contractors]);
+    }, [pkg, contractors]);
 
     // Save mutation
     const saveMutation = useMutation({
         mutationFn: async (newMembers: WinningMember[]) => {
-            // Delete all existing records
-            // @ts-ignore — table not yet in generated types
-            await (supabase as any)
-                .from('package_winning_contractors')
-                .delete()
-                .eq('package_id', packageId);
-
-            // Insert new ones
             if (newMembers.length > 0) {
-                const rows = newMembers.map(m => ({
-                    package_id: packageId,
-                    contractor_id: m.contractor_id,
-                    role: m.role,
-                    share_percent: m.share_percent ?? null,
-                }));
-                // @ts-ignore — table not yet in generated types
-                const { error } = await (supabase as any)
-                    .from('package_winning_contractors')
-                    .insert(rows);
-                if (error) throw error;
-
-                // Also update winning_contractor_id on bidding_packages (backward compat — use lead)
+                // If the user selected multiple, we still only save the lead in bidding_packages
                 const leadContractor = newMembers.find(m => m.role === 'lead') || newMembers[0];
-                await supabase
-                    .from('bidding_packages')
-                    .update({ winning_contractor_id: leadContractor.contractor_id })
-                    .eq('package_id', packageId);
+                
+                // Try to get bid price from package_bidders
+                let winningPrice = 0;
+                // @ts-ignore
+                const { data } = await (supabase as any)
+                    .from('package_bidders')
+                    .select('bid_price')
+                    .eq('package_id', packageId)
+                    .eq('contractor_id', leadContractor.contractor_id)
+                    .single();
+                
+                if (data && data.bid_price) {
+                    winningPrice = data.bid_price;
+                }
+
+                await ProjectService.updatePackage(packageId, {
+                    WinningContractorID: leadContractor.contractor_id,
+                    WinningPrice: winningPrice,
+                });
             } else {
                 // Clear winning_contractor_id
-                await supabase
-                    .from('bidding_packages')
-                    .update({ winning_contractor_id: null })
-                    .eq('package_id', packageId);
+                await ProjectService.updatePackage(packageId, {
+                    WinningContractorID: null as any,
+                    WinningPrice: null,
+                });
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['package-winning-contractors', packageId] });
+            queryClient.invalidateQueries({ queryKey: ['bidding-package-winner', packageId] });
+            queryClient.invalidateQueries({ queryKey: ['bidding-package', packageId] });
             queryClient.invalidateQueries({ queryKey: ['project-packages'] });
             setIsEditing(false);
             onSaved?.();
         },
     });
 
+    // Fetch participating contractors
+    const { data: participatingBidders = [] } = useQuery({
+        queryKey: ['package-bidders-ids', packageId],
+        queryFn: async () => {
+            const { data, error } = await (supabase as any)
+                .from('package_bidders')
+                .select('contractor_id')
+                .eq('package_id', packageId);
+            if (error) throw error;
+            return data.map((b: any) => b.contractor_id) as string[];
+        },
+    });
+
     // Filter contractors for search
     const filteredContractors = useMemo(() => {
         const selectedIds = new Set(members.map(m => m.contractor_id));
+        const participatingIds = new Set(participatingBidders);
+        
         return contractors
             .filter(c => !selectedIds.has(c.ContractorID))
+            .filter(c => !filterByBidders || participatingIds.has(c.ContractorID))
             .filter(c => {
                 if (!searchText.trim()) return true;
                 const search = searchText.toLowerCase();
@@ -128,7 +148,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                 );
             })
             .slice(0, 10);
-    }, [contractors, members, searchText]);
+    }, [contractors, members, searchText, participatingBidders, filterByBidders]);
 
     // Click outside to close dropdown
     useEffect(() => {
@@ -219,14 +239,14 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-800 dark:text-slate-100 text-sm truncate">
+                            <p className="font-semibold text-gray-800 dark:text-slate-100 text-xs truncate">
                                 {m.contractor?.FullName || m.contractor_id}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[11px] text-gray-500 dark:text-slate-400">
                                     MST: {m.contractor?.TaxCode || m.contractor_id}
                                 </span>
-                                {m.role === 'lead' && (
+                                {m.role === 'lead' && members.length > 1 && (
                                     <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded font-medium">
                                         Đứng đầu liên danh
                                     </span>
@@ -260,7 +280,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                 >
                     <button
                         onClick={() => toggleRole(m.contractor_id)}
-                        title={m.role === 'lead' ? 'Đứng đầu liên danh' : 'Click để đặt làm đứng đầu liên danh'}
+                        title={members.length > 1 ? (m.role === 'lead' ? 'Đứng đầu liên danh' : 'Click để đặt làm đứng đầu liên danh') : 'Nhà thầu trúng thầu'}
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${m.role === 'lead'
                             ? 'bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-900/60'
                             : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600'
@@ -273,11 +293,11 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                         )}
                     </button>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">
+                        <p className="text-xs font-medium text-gray-800 dark:text-slate-200 truncate">
                             {m.contractor?.FullName || m.contractor_id}
                         </p>
                         <span className="text-[10px] text-gray-500 dark:text-slate-400">
-                            {m.role === 'lead' ? '⭐ Đứng đầu liên danh' : 'Thành viên liên danh'}
+                            {members.length > 1 ? (m.role === 'lead' ? '⭐ Đứng đầu liên danh' : 'Thành viên liên danh') : 'Nhà thầu trúng thầu'}
                         </span>
                     </div>
                     <button
@@ -326,7 +346,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                                         <Building2 className="w-4 h-4 text-blue-500" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{c.FullName}</p>
+                                        <p className="text-xs font-medium text-gray-800 dark:text-slate-200 truncate">{c.FullName}</p>
                                         <p className="text-[10px] text-gray-500 dark:text-slate-400">MST: {c.TaxCode || c.ContractorID}</p>
                                     </div>
                                     <Plus className="w-4 h-4 text-blue-400 shrink-0" />
@@ -342,20 +362,24 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
             </div>
 
             {/* Actions */}
-            {(members.length > 0 || existingMembers && existingMembers.length > 0) && (
+            {(members.length > 0 || !!pkg?.WinningContractorID) && (
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200 dark:border-slate-700">
                     {isEditing && (
                         <button
                             onClick={() => {
                                 // Reset to existing data
-                                if (existingMembers && contractors.length > 0) {
-                                    setMembers(existingMembers.map(m => ({
-                                        id: m.id,
-                                        contractor_id: m.contractor_id,
-                                        contractor: contractors.find(c => c.ContractorID === m.contractor_id),
-                                        role: m.role,
-                                        share_percent: m.share_percent ?? undefined,
-                                    })));
+                                if (pkg && contractors.length > 0) {
+                                    if (pkg.WinningContractorID) {
+                                        setMembers([{
+                                            id: pkg.WinningContractorID,
+                                            contractor_id: pkg.WinningContractorID,
+                                            contractor: contractors.find(c => c.ContractorID === pkg.WinningContractorID),
+                                            role: 'lead',
+                                            share_percent: 100,
+                                        }]);
+                                    } else {
+                                        setMembers([]);
+                                    }
                                 }
                                 setIsEditing(false);
                             }}

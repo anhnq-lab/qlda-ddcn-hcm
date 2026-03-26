@@ -496,15 +496,17 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
 
                         // Mode: Đấu thầu cạnh tranh (OpenBidding, LimitedBidding, CompetitiveShopping, etc.)
                         return (
-                            <div className="grid grid-cols-2 gap-6">
-                                {/* Left: Bidders + Result */}
-                                <div className="space-y-4">
+                            <div className="space-y-6">
+                                {/* Row 1: Bidders + KQLCNT side by side */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Left: Nhà thầu tham gia */}
                                     <SectionCard title="Nhà thầu tham gia" icon={Users} color="blue">
                                         <BidderListSection packageId={pkg.PackageID} />
                                     </SectionCard>
 
+                                    {/* Right: Kết quả lựa chọn nhà thầu */}
                                     <SectionCard title="Kết quả lựa chọn nhà thầu" icon={Award} color="green">
-                                        <WinningContractorSelector packageId={pkg.PackageID} />
+                                        <WinningContractorSelector packageId={pkg.PackageID} filterByBidders={true} />
                                         {pkg.WinningPrice ? (
                                             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
                                                 <InfoRow label="Giá trúng thầu" value={<span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(pkg.WinningPrice)}</span>} />
@@ -515,12 +517,10 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                     </SectionCard>
                                 </div>
 
-                                {/* Right: Evaluation */}
-                                <div className="space-y-4">
-                                    <SectionCard title="Đánh giá HSDT" icon={BarChart3} color="yellow">
-                                        <EvaluationSection packageId={pkg.PackageID} />
-                                    </SectionCard>
-                                </div>
+                                {/* Row 2: Đánh giá HSDT — full width */}
+                                <SectionCard title="Đánh giá HSDT" icon={BarChart3} color="yellow">
+                                    <EvaluationSection packageId={pkg.PackageID} />
+                                </SectionCard>
                             </div>
                         );
                     })()}

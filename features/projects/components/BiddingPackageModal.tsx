@@ -401,7 +401,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                     <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
                         {/* Tab: Basic Info */}
                         {activeTab === 'basic' && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Số hiệu gói thầu <span className="text-red-500">*</span>
@@ -411,7 +411,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         placeholder="VD: XL-01"
                                         value={formData.PackageNumber}
                                         onChange={(e) => handleChange('PackageNumber', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${errors.PackageNumber ? 'border-red-500' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all dark:bg-slate-700 dark:text-slate-100 ${errors.PackageNumber ? 'border-red-500' : 'border-gray-200 dark:border-slate-600'}`}
                                     />
                                     {errors.PackageNumber && (
                                         <p className="mt-1 text-xs text-red-500">{errors.PackageNumber}</p>
@@ -425,7 +425,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                     <select
                                         value={formData.Status}
                                         onChange={(e) => handleChange('Status', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                     >
                                         {STATUS_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -442,7 +442,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         value={formData.PackageName}
                                         onChange={(e) => handleChange('PackageName', e.target.value)}
                                         rows={2}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${errors.PackageName ? 'border-red-500' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none dark:bg-slate-700 dark:text-slate-100 ${errors.PackageName ? 'border-red-500' : 'border-gray-200 dark:border-slate-600'}`}
                                     />
                                     {errors.PackageName && (
                                         <p className="mt-1 text-xs text-red-500">{errors.PackageName}</p>
@@ -458,10 +458,10 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         placeholder="0"
                                         value={formData.Price ? Number(formData.Price).toLocaleString('vi-VN') : ''}
                                         onChange={(e) => handleChange('Price', e.target.value.replace(/\D/g, ''))}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.Price ? 'border-red-500' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 ${errors.Price ? 'border-red-500' : 'border-gray-200 dark:border-slate-600'}`}
                                     />
                                     {formData.Price && (
-                                        <p className="mt-1 text-xs text-gray-500">
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                             {formatCurrency(parseFloat(formData.Price) || 0)}
                                         </p>
                                     )}
@@ -479,7 +479,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         placeholder="VD: 360 ngày"
                                         value={formData.Duration}
                                         onChange={(e) => handleChange('Duration', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.Duration ? 'border-red-500' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 ${errors.Duration ? 'border-red-500' : 'border-gray-200 dark:border-slate-600'}`}
                                     />
                                     {errors.Duration && (
                                         <p className="mt-1 text-xs text-red-500">{errors.Duration}</p>
@@ -496,7 +496,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                         value={formData.Description}
                                         onChange={(e) => handleChange('Description', e.target.value)}
                                         rows={2}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                                     />
                                 </div>
 
@@ -592,7 +592,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                         {/* Tab: Legal Classification */}
                         {activeTab === 'legal' && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                                         Lĩnh vực
@@ -615,7 +615,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                     <select
                                         value={formData.SelectionMethod}
                                         onChange={(e) => handleChange('SelectionMethod', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${!complianceResult.isValid ? 'border-red-500' : 'border-gray-200'}`}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors dark:bg-slate-700 dark:text-slate-100 ${!complianceResult.isValid ? 'border-red-500' : 'border-gray-200 dark:border-slate-600'}`}
                                     >
                                         {SELECTION_METHOD_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
