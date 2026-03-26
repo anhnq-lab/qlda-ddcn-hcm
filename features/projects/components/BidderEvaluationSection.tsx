@@ -153,8 +153,18 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                         <div key={b.id || b.contractor_id} className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
                             {/* Bidder header */}
                             <div
-                                className="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-750"
+                                draggable
+                                onDragStart={(e) => {
+                                    e.dataTransfer.setData('application/json', JSON.stringify({
+                                        type: 'contractor',
+                                        contractor_id: b.contractor_id,
+                                        fullName: b.contractor?.FullName || b.contractor_id
+                                    }));
+                                    e.dataTransfer.effectAllowed = 'copy';
+                                }}
+                                className="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 cursor-grab active:cursor-grabbing hover:bg-gray-50 dark:hover:bg-slate-750"
                                 onClick={() => setEditingBidder(editingBidder === b.id ? null : b.id!)}
+                                title="Kéo thả nhà thầu này sang Kết quả lựa chọn nhà thầu hoặc click để xem chi tiết"
                             >
                                 <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400">
                                     {b.rank || idx + 1}

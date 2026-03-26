@@ -30,6 +30,8 @@ export const TIMELINE_STEPS: Record<string, TimelineStepInfo> = {
     'IMPL_SUPERVISION': { label: 'Giám sát thi công', phase: 'Thực hiện dự án', phaseId: 'PHASE_2' },
     'IMPL_PAYMENT': { label: 'Tạm ứng, thanh toán KLHT', phase: 'Thực hiện dự án', phaseId: 'PHASE_2' },
     'IMPL_ACCEPTANCE': { label: 'Nghiệm thu hoàn thành CT', phase: 'Thực hiện dự án', phaseId: 'PHASE_2' },
+    'IMPL_TRIAL_RUN': { label: 'Vận hành, chạy thử', phase: 'Thực hiện dự án', phaseId: 'PHASE_2' },
+    'IMPL_MONITORING': { label: 'Giám sát, đánh giá dự án đầu tư', phase: 'Thực hiện dự án', phaseId: 'PHASE_2' },
 
     // Phase 3: Kết thúc xây dựng
     'CLOSE_CONTRACT_SETTLEMENT': { label: 'Quyết toán hợp đồng XD', phase: 'Kết thúc XD', phaseId: 'PHASE_3' },
@@ -37,6 +39,7 @@ export const TIMELINE_STEPS: Record<string, TimelineStepInfo> = {
     'CLOSE_HANDOVER': { label: 'Bàn giao công trình', phase: 'Kết thúc XD', phaseId: 'PHASE_3' },
     'CLOSE_WARRANTY': { label: 'Bảo hành công trình', phase: 'Kết thúc XD', phaseId: 'PHASE_3' },
     'CLOSE_ARCHIVE': { label: 'Bàn giao hồ sơ lưu trữ', phase: 'Kết thúc XD', phaseId: 'PHASE_3' },
+    'CLOSE_MONITORING': { label: 'Giám sát, đánh giá sau hoàn thành', phase: 'Kết thúc XD', phaseId: 'PHASE_3' },
 };
 
 /** Get label for a TimelineStep code */

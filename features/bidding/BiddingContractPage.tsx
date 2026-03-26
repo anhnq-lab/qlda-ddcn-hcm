@@ -337,10 +337,10 @@ const BiddingPackagesTab: React.FC<ProjectFilterProps> = ({ projectFilter }) => 
     }
 
     const CARD_CLASSES: Record<number, string> = {
-        0: 'stat-card stat-card-slate',
-        1: 'stat-card stat-card-emerald',
-        2: 'stat-card stat-card-amber',
-        3: 'stat-card stat-card-blue',
+        0: 'bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-700 dark:to-slate-900',
+        1: 'bg-gradient-to-br from-emerald-500 to-emerald-700 dark:from-emerald-600 dark:to-emerald-800',
+        2: 'bg-gradient-to-br from-amber-500 to-amber-700 dark:from-amber-600 dark:to-amber-800',
+        3: 'bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-800',
     };
 
     const statCards = [
@@ -384,7 +384,7 @@ const BiddingPackagesTab: React.FC<ProjectFilterProps> = ({ projectFilter }) => 
                     return (
                         <div
                             key={idx}
-                            className={`relative overflow-hidden rounded-xl text-white p-3 shadow-lg transition-all duration-200 hover:shadow-xl cursor-default ${cardClass}`}
+                            className={`relative overflow-hidden rounded-xl text-white p-4 shadow-lg transition-all duration-200 hover:shadow-xl cursor-default ${cardClass}`}
                         >
                             <div className="absolute -right-2 -top-2 opacity-[0.12]">
                                 <card.icon className="w-16 h-16" strokeWidth={1.2} />
@@ -396,11 +396,11 @@ const BiddingPackagesTab: React.FC<ProjectFilterProps> = ({ projectFilter }) => 
                                     {(card as any).suffix && <span className="text-xs font-semibold ml-1 text-white/80">{(card as any).suffix}</span>}
                                 </p>
                                 {(card as any).progressPercent !== undefined && (
-                                    <div className="mt-1.5 w-full bg-white/20 rounded-full h-1">
-                                        <div className="h-full bg-white/80 rounded-full transition-all duration-1000" style={{ width: `${Math.min((card as any).progressPercent, 100)}%` }}></div>
+                                    <div className="mt-2 w-full bg-white/20 rounded-full h-1">
+                                        <div className="h-full bg-white/90 rounded-full transition-all duration-1000" style={{ width: `${Math.min((card as any).progressPercent, 100)}%` }}></div>
                                     </div>
                                 )}
-                                <p className="text-[10px] text-white/70 mt-1 font-medium">{card.sub}</p>
+                                <p className="text-[10px] text-white/80 mt-1.5 font-medium">{card.sub}</p>
                             </div>
                         </div>
                     );

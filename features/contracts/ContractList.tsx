@@ -207,7 +207,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                         <input
                             type="text"
                             placeholder="Tìm mã HĐ, nhà thầu, dự án..."
-                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500 shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -287,12 +287,12 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         <td className="px-3 py-4 text-center text-xs text-slate-500 dark:text-slate-400 font-medium">{rowIdx + 1}</td>
                                         {/* Contract ID */}
                                         <td className="px-6 py-4">
-                                            <div className="flex items-start justify-between gap-4 relative z-10">
-                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-100 flex items-center justify-center ring-1 ring-amber-200/50 group-hover:ring-amber-300 transition-colors">
-                                                    <Briefcase className="w-4 h-4 text-amber-600" />
+                                            <div className="flex items-center gap-3 relative z-10">
+                                                <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/40 dark:to-amber-900/20 flex items-center justify-center ring-1 ring-amber-200/50 dark:ring-amber-800/50 group-hover:ring-amber-400 dark:group-hover:ring-amber-600 transition-colors">
+                                                    <Briefcase className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                                 </div>
-                                                <div>
-                                                    <span className="font-bold text-blue-700 group-hover:text-blue-800 text-xs block whitespace-nowrap">{contract.ContractID}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-blue-700 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 text-xs block whitespace-nowrap leading-tight mb-0.5">{contract.ContractID}</span>
                                                     <span className="text-[10px] text-slate-500 dark:text-slate-400">Gói {contract.PackageID?.split('-').pop() || '—'}</span>
                                                 </div>
                                             </div>
@@ -301,10 +301,10 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         {/* Contractor */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600">
+                                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm">
                                                     <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                                                 </div>
-                                                <span className="font-medium text-slate-800 dark:text-slate-200 max-w-[200px] truncate text-[13px]" title={contractorName}>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200 max-w-[200px] truncate leading-tight text-xs" title={contractorName}>
                                                     {contractorName}
                                                 </span>
                                             </div>
@@ -312,7 +312,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
 
                                         {/* Project */}
                                         <td className="px-6 py-4">
-                                            <span className="text-slate-500 dark:text-slate-400 text-xs max-w-[200px] truncate block leading-relaxed" title={projectName}>
+                                            <span className="text-slate-600 dark:text-slate-300 font-medium text-[11px] max-w-[200px] truncate block leading-tight" title={projectName}>
                                                 {projectName}
                                             </span>
                                         </td>

@@ -41,6 +41,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
 
     // Fetch bidding package to see if a winning contractor is already selected
     const { data: pkg, isLoading } = useQuery({
@@ -161,6 +162,50 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        try {
+            const dataStr = e.dataTransfer.getData('application/json');
+            if (!dataStr) return;
+            const data = JSON.parse(dataStr);
+            if (data.type === 'contractor' && data.contractor_id) {
+                // Ignore if already selected
+                if (members.some(m => m.contractor_id === data.contractor_id)) {
+                    return;
+                }
+                
+                const contractor = contractors.find(c => c.ContractorID === data.contractor_id);
+                if (!contractor) return;
+                
+                // Set as the only lead member and update db immediately
+                const newMembers = [{
+                    id: data.contractor_id,
+                    contractor_id: data.contractor_id,
+                    contractor: contractor,
+                    role: 'lead' as const,
+                    share_percent: 100
+                }];
+                setMembers(newMembers);
+                setIsEditing(false);
+                saveMutation.mutate(newMembers);
+            }
+        } catch (err) {
+            console.error('Drop error:', err);
+        }
+    };
+
     const addContractor = (c: Contractor) => {
         const role = members.length === 0 ? 'lead' : 'member';
         setMembers(prev => [...prev, {
@@ -211,7 +256,12 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
     // View mode — display consortium
     if (!isEditing && members.length > 0) {
         return (
-            <div className="space-y-3">
+            <div 
+                className={`space-y-3 p-2 -mx-2 rounded-xl transition-all duration-200 border-2 ${isDragOver ? 'border-dashed border-green-500 bg-green-50/30' : 'border-transparent'}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
                 {members.length > 1 && (
                     <div className="flex items-center gap-2 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                         <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -268,7 +318,12 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
 
     // Edit mode / Empty state
     return (
-        <div className="space-y-3">
+        <div 
+            className={`space-y-3 p-2 -mx-2 rounded-xl transition-all duration-200 border-2 ${isDragOver ? 'border-dashed border-green-500 bg-green-50/30' : 'border-transparent'}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             {/* Selected members */}
             {members.map(m => (
                 <div

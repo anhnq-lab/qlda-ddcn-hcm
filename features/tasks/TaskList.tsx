@@ -5,8 +5,8 @@ import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Task, TaskStatus, TaskPriority } from '../../types';
 import { getTimelineStepLabel, getPhaseColor } from '../../utils/timelineStepUtils';
-import { TaskCreateEditModal, getStatusInfo, getPriorityInfo } from './TaskCreateEditModal';
-import TaskDetail from './TaskDetail';
+import { getStatusInfo, getPriorityInfo } from './TaskCreateEditModal';
+import { ProjectTaskModal } from '../projects/components/ProjectTaskModal';
 import { useSlidePanel } from '../../context/SlidePanelContext';
 import {
     Search, Plus, Calendar, User, CheckCircle2, Clock, AlertCircle,
@@ -500,11 +500,7 @@ const TaskList: React.FC = () => {
                                                 return (
                                                     <tr
                                                         key={task.TaskID}
-                                                        onClick={() => openPanel({
-                                                            id: `task-${task.TaskID}`,
-                                                            title: task.Title,
-                                                            component: <TaskDetail taskId={task.TaskID} isPanel={true} />
-                                                        })}
+                                                        onClick={() => openEditModal(task)}
                                                         className={`group cursor-pointer transition-all hover:bg-slate-50/80 dark:hover:bg-slate-700/50 ${isOverdue ? 'bg-red-50/40 dark:bg-red-900/10' : ''} ${selectedIds.has(task.TaskID) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                                                     >
                                                         {/* Checkbox */}
@@ -706,11 +702,7 @@ const TaskList: React.FC = () => {
                                         return (
                                             <div
                                                 key={task.TaskID}
-                                                onClick={() => openPanel({
-                                                    id: `task-${task.TaskID}`,
-                                                    title: task.Title,
-                                                    component: <TaskDetail taskId={task.TaskID} isPanel={true} />
-                                                })}
+                                                onClick={() => openEditModal(task)}
                                                 className={`bg-white dark:bg-slate-800 rounded-xl border p-4 cursor-pointer hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all group ${isOverdue ? 'border-red-200 bg-red-50/30 dark:bg-red-900/10 dark:border-red-900/30' : 'border-slate-100 dark:border-slate-700'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -761,14 +753,12 @@ const TaskList: React.FC = () => {
             )}
 
             {/* ══════════ MODAL ══════════ */}
-            <TaskCreateEditModal
+            <ProjectTaskModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSave}
                 initialData={currentTask}
-                isEditMode={isEditMode}
-                projects={projects}
-                employees={employees}
+                allTasks={tasks}
             />
         </div>
     );
