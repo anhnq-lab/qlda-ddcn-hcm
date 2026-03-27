@@ -14,12 +14,13 @@ import { getMSCSummary, countPendingRequirements, getMSCPlanLink, getMSCPackageL
 import { exportBiddingPackagesToExcel } from '../../../../utils/biddingExcelIO';
 import { supabase } from '../../../../lib/supabase';
 import { biddingPackageToDb } from '../../../../lib/dbMappers';
+import { useSlidePanel } from '../../../../context/SlidePanelContext';
 import {
     Briefcase, CheckCircle2, FileText, Search, Plus,
     MoreVertical, Eye, Edit, Trash2, ExternalLink,
     Copy, X, AlertTriangle, Loader2, Clock, Circle, Download, Upload,
     GripVertical, ChevronDown, ChevronRight, Globe, Bell, Link2,
-    FolderPlus, Settings, Save, Layers, MoreHorizontal
+    FolderPlus, Settings, Save, Layers, MoreHorizontal, Package2
 } from 'lucide-react';
 
 // ========================================
@@ -46,6 +47,7 @@ interface PlanGroup {
 
 export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectID, project, openPackageId, initialDetailTab }) => {
     const queryClient = useQueryClient();
+    const { openPanel, closePanel } = useSlidePanel();
 
     const { data: packages, isLoading, error } = useQuery({
         queryKey: ['project-packages', projectID],
@@ -78,8 +80,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
             // Find the package by ID, or find via contract's PackageID
             const targetPkg = packages.find(p => p.PackageID === openPackageId);
             if (targetPkg) {
-                setSelectedPackage(targetPkg);
-                setIsDetailModalOpen(true);
+                handleView(targetPkg);
                 setAutoOpenProcessed(openPackageId);
             }
         }
@@ -283,8 +284,24 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
 
     // Handlers
     const handleView = (pkg: BiddingPackage) => {
-        setSelectedPackage(pkg);
-        setIsDetailModalOpen(true);
+        openPanel({
+            title: pkg.PackageName,
+            icon: <Package2 className="w-5 h-5 text-indigo-500" />,
+            component: (
+                <BiddingPackageDetail
+                    isOpen={true}
+                    onClose={() => closePanel()}
+                    package_data={pkg}
+                    projectId={projectID}
+                    initialTab={initialDetailTab}
+                    asSlidePanel={true}
+                    onEdit={(p) => {
+                        closePanel();
+                        handleEdit(p);
+                    }}
+                />
+            )
+        });
         setOpenDropdownId(null);
     };
 
@@ -797,21 +814,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
             </div>
 
 
-            {/* Detail Modal */}
-            <BiddingPackageDetail
-                isOpen={isDetailModalOpen}
-                onClose={() => {
-                    setIsDetailModalOpen(false);
-                    setSelectedPackage(null);
-                }}
-                package_data={selectedPackage}
-                onEdit={(pkg) => {
-                    setIsDetailModalOpen(false);
-                    handleEdit(pkg);
-                }}
-                initialTab={initialDetailTab}
-            />
-
+            {/* Detail Modal (Now handled by SlidePanel) */}
             {/* Delete Confirmation */}
             {isDeleteConfirmOpen && selectedPackage && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">

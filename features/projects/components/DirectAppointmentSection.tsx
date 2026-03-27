@@ -95,12 +95,13 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
     useEffect(() => {
         if (bidders.length > 0) {
             const b = bidders[0];
+            const contractor = contractors?.find(c => c.ContractorID === b.contractor_id);
             setFormData({
                 contractor_id: b.contractor_id || '',
-                contractor_name: b.contractor_name || '',
+                contractor_name: contractor?.FullName || '',
                 proposed_price: b.bid_price || null,
                 negotiated_price: b.negotiated_price || null,
-                appointment_reason: b.notes || '',
+                appointment_reason: b.appointment_reason || b.notes || '',
                 decision_number: b.decision_number || '',
                 decision_date: b.decision_date || '',
                 decision_agency: b.decision_agency || '',
@@ -120,9 +121,17 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
                 package_id: packageId,
                 contractor_id: data.contractor_id,
                 bid_price: data.proposed_price,
+                negotiated_price: data.negotiated_price,
+                appointment_reason: data.appointment_reason,
+                decision_number: data.decision_number,
+                decision_date: data.decision_date || null,
+                decision_agency: data.decision_agency,
+                legal_basis: data.legal_basis,
+                hsyc_date: data.hsyc_date || null,
+                hsdx_date: data.hsdx_date || null,
                 status: data.evaluation_result === 'qualified' ? 'winner' :
                     data.evaluation_result === 'not_qualified' ? 'invalid' : 'submitted',
-                notes: data.appointment_reason || data.notes,
+                notes: data.notes || data.appointment_reason,
             };
 
             if (bidders.length > 0) {
@@ -518,6 +527,18 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
                             <div className="col-span-2">
                                 <span className="text-gray-500 dark:text-slate-400">Lý do:</span>
                                 <span className="ml-2 text-gray-800 dark:text-slate-200">{formData.appointment_reason}</span>
+                            </div>
+                        )}
+                        {formData.hsyc_date && (
+                            <div>
+                                <span className="text-gray-500 dark:text-slate-400">Ngày HSYC:</span>
+                                <span className="ml-2 text-gray-800 dark:text-slate-200">{formData.hsyc_date}</span>
+                            </div>
+                        )}
+                        {formData.hsdx_date && (
+                            <div>
+                                <span className="text-gray-500 dark:text-slate-400">Ngày HSĐX:</span>
+                                <span className="ml-2 text-gray-800 dark:text-slate-200">{formData.hsdx_date}</span>
                             </div>
                         )}
                     </div>

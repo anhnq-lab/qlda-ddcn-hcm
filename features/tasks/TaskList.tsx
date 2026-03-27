@@ -446,14 +446,14 @@ const TaskList: React.FC = () => {
                                             />
                                         </th>
                                         <th className="px-4 py-3 text-left w-12 border-b border-slate-200 dark:border-slate-800"></th>
-                                        <th onClick={() => handleSort('Title')} className="group/th px-4 py-3 text-left max-w-[280px] cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
+                                        <th onClick={() => handleSort('Title')} className="group/th px-4 py-3 text-left w-[35%] min-w-[250px] cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
                                             <span className="flex items-center gap-1">Công việc <SortIcon field="Title" /></span>
                                         </th>
-                                        <th className="px-4 py-3 text-left hidden md:table-cell w-44 border-b border-slate-200 dark:border-slate-800">Bước thực hiện</th>
+                                        <th className="px-4 py-3 text-left hidden md:table-cell w-[20%] min-w-[150px] border-b border-slate-200 dark:border-slate-800">Bước thực hiện</th>
                                         <th onClick={() => handleSort('ProgressPercent')} className="group/th px-4 py-3 text-center w-24 cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
                                             <span className="flex items-center justify-center gap-1">Tiến độ <SortIcon field="ProgressPercent" /></span>
                                         </th>
-                                        <th className="px-4 py-3 text-left hidden lg:table-cell w-40 border-b border-slate-200 dark:border-slate-800">Phụ trách</th>
+                                        <th className="px-4 py-3 text-left hidden lg:table-cell w-[15%] min-w-[140px] border-b border-slate-200 dark:border-slate-800">Phụ trách</th>
                                         <th onClick={() => handleSort('DueDate')} className="group/th px-4 py-3 text-left hidden sm:table-cell w-28 cursor-pointer select-none hover:text-blue-600 transition-colors border-b border-slate-200 dark:border-slate-800">
                                             <span className="flex items-center gap-1">Hạn chót <SortIcon field="DueDate" /></span>
                                         </th>
@@ -520,7 +520,7 @@ const TaskList: React.FC = () => {
                                                         </td>
 
                                                         {/* Title + Description */}
-                                                        <td className="px-4 py-3.5 max-w-[280px]">
+                                                        <td className="px-4 py-3.5 pr-8">
                                                             <div className="flex items-center gap-2 mb-0.5">
                                                                 <h4 className={`text-sm font-semibold group-hover:text-blue-600 transition-colors line-clamp-1 ${task.Status === TaskStatus.Done ? 'text-slate-400' : isOverdue ? 'text-red-700 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'
                                                                     }`}>
@@ -531,7 +531,7 @@ const TaskList: React.FC = () => {
                                                                 )}
                                                             </div>
                                                             {task.Description && (
-                                                                <p className="text-xs text-slate-400 line-clamp-1 max-w-[300px]">{task.Description}</p>
+                                                                <p className="text-xs text-slate-400 line-clamp-1 pr-4">{task.Description}</p>
                                                             )}
                                                         </td>
 
@@ -539,8 +539,8 @@ const TaskList: React.FC = () => {
                                                         <td className="px-4 py-3.5 hidden md:table-cell">
                                                             {task.TimelineStep ? (
                                                                 <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg ${phaseColor.bg} ${phaseColor.text} ring-1 ${phaseColor.border}`}>
-                                                                    <Layers className="w-3 h-3" />
-                                                                    <span className="line-clamp-1 max-w-[120px]">{stepLabel}</span>
+                                                                    <Layers className="w-3 shrink-0 h-3" />
+                                                                    <span className="line-clamp-1">{stepLabel}</span>
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-[10px] text-slate-300">—</span>

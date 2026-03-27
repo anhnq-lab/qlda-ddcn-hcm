@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Layers,
   CalendarRange,
+  GitBranch,
 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
   { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase, resource: 'contracts' },
   { name: 'KH Vốn & Giải ngân', path: '/capital-planning', icon: CalendarRange, resource: 'projects' },
+  { name: 'Quy trình mẫu', path: '/workflow-master', icon: GitBranch, resource: 'projects' },
   { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
   { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'projects' },
   { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },

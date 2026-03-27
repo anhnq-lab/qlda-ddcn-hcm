@@ -16,8 +16,8 @@ export class ContractorService {
             query = query.or(`full_name.ilike.%${s}%,contractor_id.ilike.%${s}%,address.ilike.%${s}%`);
         }
 
-        if (params?.filters?.isForeign !== undefined) {
-            query = query.eq('is_foreign', params.filters.isForeign);
+        if (params?.filters?.contractorType) {
+            query = query.eq('contractor_type', params.filters.contractorType);
         }
 
         const { data, error } = await query.order('created_at', { ascending: false });
@@ -61,11 +61,13 @@ export class ContractorService {
      * Create a new contractor
      */
     static async create(contractorData: Partial<Contractor>): Promise<Contractor> {
+        // Let DB generate contractor_id via default if not provided
+        const { ContractorID, ...rest } = contractorData;
         const insertData = contractorToDb({
-            ContractorID: contractorData.ContractorID || `NT${Date.now()}`,
-            FullName: contractorData.FullName || 'Nhà thầu mới',
-            IsForeign: contractorData.IsForeign || false,
-            ...contractorData,
+            FullName: rest.FullName || 'Nhà thầu mới',
+            IsForeign: rest.IsForeign || false,
+            ContractorType: rest.ContractorType || 'Construction',
+            ...rest,
         });
 
         const { data, error } = await supabase
@@ -108,23 +110,23 @@ export class ContractorService {
     }
 
     /**
-     * Get contractor statistics
+     * Get contractor statistics by type
      */
     static async getStatistics(): Promise<{
         total: number;
-        domestic: number;
-        foreign: number;
+        byType: Record<string, number>;
     }> {
         const contractors = await this.getAll();
 
         // Cache for getNameById sync fallback
         localStorage.setItem('cached_contractors', JSON.stringify(contractors));
 
-        return {
-            total: contractors.length,
-            domestic: contractors.filter(c => !c.IsForeign).length,
-            foreign: contractors.filter(c => c.IsForeign).length,
-        };
+        const byType: Record<string, number> = {};
+        contractors.forEach(c => {
+            byType[c.ContractorType] = (byType[c.ContractorType] || 0) + 1;
+        });
+
+        return { total: contractors.length, byType };
     }
 }
 

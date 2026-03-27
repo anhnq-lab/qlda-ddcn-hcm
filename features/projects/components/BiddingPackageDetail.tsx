@@ -24,6 +24,8 @@ import { useVariationOrders } from '../../../hooks/useVariationOrders';
 import { AcceptanceSection } from './AcceptanceSection';
 import { DocumentAttachments } from '../../../components/common/DocumentAttachments';
 import { SettlementSection } from './SettlementSection';
+import ContractDetail from '../../contracts/ContractDetail';
+import { useSlidePanel } from '../../../context/SlidePanelContext';
 
 // ========================================
 // BIDDING PACKAGE DETAIL - Full Lifecycle Management
@@ -39,6 +41,7 @@ interface BiddingPackageDetailProps {
     package_data: BiddingPackage | null;
     onEdit?: (pkg: BiddingPackage) => void;
     initialTab?: TabType;
+    asSlidePanel?: boolean;
 }
 
 type TabType = 'khlcnt' | 'selection' | 'contract' | 'settlement';
@@ -127,11 +130,13 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     package_data: pkg,
     onEdit,
     initialTab,
+    asSlidePanel
 }) => {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'khlcnt');
     const [isCreatingContract, setIsCreatingContract] = useState(false);
     const [isEditingContract, setIsEditingContract] = useState(false);
     const [isAddingPayment, setIsAddingPayment] = useState(false);
+    const { openPanel } = useSlidePanel();
 
     // Sync activeTab when initialTab prop changes (deep-link from PaymentList)
     React.useEffect(() => {
@@ -191,20 +196,13 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
         { id: 'settlement', label: 'Thanh quyết toán', icon: Calculator, stages: [7, 8, 9] },
     ] as const;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-                onClick={onClose}
-            />
-
-            {/* Modal - Full width */}
-            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col">
-                {/* Header with Package Info */}
-                <div className="shrink-0 px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
+    const content = (
+        <div className={asSlidePanel ? "flex flex-col h-full bg-white dark:bg-slate-900" : "relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col"}>
+            {/* Header with Package Info */}
+            <div className="shrink-0 px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800">
+                <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                        {!asSlidePanel && (
                             <button
                                 onClick={onClose}
                                 className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-2"
@@ -212,8 +210,9 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                 <ArrowLeft className="w-4 h-4" />
                                 Quay lại danh sách
                             </button>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="text-2xl font-bold text-gray-800 dark:text-slate-100">{pkg.PackageNumber}</span>
+                        )}
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl font-bold text-gray-800 dark:text-slate-100">{pkg.PackageNumber}</span>
                                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
                                     {statusConfig.label}
                                 </span>
@@ -548,7 +547,22 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                 <SectionCard title="Hợp đồng" icon={FileSignature} color="blue">
                                     {relatedContract && !isEditingContract ? (
                                         <div className="space-y-2">
-                                            <InfoRow label="Số hợp đồng" value={<span className="font-mono font-semibold">{relatedContract.ContractID}</span>} />
+                                            <InfoRow label="Số hợp đồng" value={
+                                                <button
+                                                    onClick={() => {
+                                                        openPanel({
+                                                            title: `Hợp đồng ${relatedContract.ContractID}`,
+                                                            icon: <FileSignature className="w-5 h-5 text-blue-500" />,
+                                                            component: <ContractDetail contractId={relatedContract.ContractID} asSlidePanel={true} />,
+                                                        });
+                                                    }}
+                                                    className="font-mono font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline flex items-center gap-1 transition-colors"
+                                                    title="Xem chi tiết hợp đồng"
+                                                >
+                                                    {relatedContract.ContractID}
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </button>
+                                            } />
                                             <InfoRow label="Tên HĐ" value={relatedContract.ContractName || '-'} />
                                             <InfoRow label="Giá trị HĐ" value={<span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(relatedContract.Value)}</span>} />
                                             <InfoRow label="Ngày ký" value={formatDate(relatedContract.SignDate)} />
@@ -781,6 +795,20 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                     )}
                 </div>
             </div>
+    );
+
+    if (asSlidePanel) {
+        return content;
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+                onClick={onClose}
+            />
+            {content}
         </div>
     );
 };

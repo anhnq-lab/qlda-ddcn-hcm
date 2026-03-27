@@ -4,6 +4,7 @@ import { ProjectGroup, InvestmentType, Project, Employee, MANAGEMENT_BOARDS } fr
 import { generateProjectCode, ConstructionType, PermitType } from '../../../utils/projectCodeGenerator';
 import EmployeeService from '../../../services/EmployeeService';
 import { extractProjectFromImage, fileToBase64, ExtractedProjectData } from '../../../services/ai/aiImageExtractor';
+import { supabase } from '../../../lib/supabase';
 
 export interface SelectedMember {
     employeeId: string;
@@ -72,6 +73,13 @@ const PROVINCES = [
     { code: '96', name: 'Cà Mau' },
 ];
 
+const PROJ_TABS = [
+    { id: 'general', label: 'Thông tin chung', icon: Building2 },
+    { id: 'investment', label: 'Đầu tư & Phê duyệt', icon: DollarSign },
+    { id: 'scale', label: 'Quy mô xây dựng', icon: Ruler },
+    { id: 'contractors', label: 'Nhà thầu & Tiêu chuẩn', icon: HardHat },
+];
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSave, editProject }) => {
     const isEditMode = !!editProject;
     const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +87,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
     const [memberSearch, setMemberSearch] = useState('');
     const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+    const [showCapitalDropdown, setShowCapitalDropdown] = useState(false);
 
     // ── AI Image Extraction ──
     const [aiStatus, setAiStatus] = useState<'idle' | 'extracting' | 'done' | 'error'>('idle');
@@ -86,6 +95,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
     const [aiError, setAiError] = useState('');
     const aiFileInputRef = useRef<HTMLInputElement>(null);
+    const [activeTab, setActiveTab] = useState<'general' | 'investment' | 'scale' | 'contractors' | 'members'>('general');
     const [formData, setFormData] = useState({
         // Section 1 - Thông tin cơ bản
         ProjectID: '',
@@ -104,6 +114,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         InvestorName: 'Ban QLDA ĐTXD CN',
         Duration: '',
         ManagementBoard: 0,
+        ApprovalDate: '',
+        DecisionNumber: '',
         // Section 3 - Nhà thầu & Tiêu chuẩn
         ApplicableStandards: '',
         FeasibilityContractor: '',
@@ -140,6 +152,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 InvestorName: editProject.InvestorName || 'Ban QLDA ĐTXD CN',
                 Duration: editProject.Duration || '',
                 ManagementBoard: editProject.ManagementBoard || 0,
+                ApprovalDate: editProject.ApprovalDate ? new Date(editProject.ApprovalDate).toISOString().split('T')[0] : '',
+                DecisionNumber: editProject.DecisionNumber || '',
                 ApplicableStandards: editProject.ApplicableStandards || '',
                 FeasibilityContractor: editProject.FeasibilityContractor || '',
                 SurveyContractor: editProject.SurveyContractor || '',
@@ -157,10 +171,25 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         }
     }, [isOpen, editProject]);
 
-    // Fetch employees when modal opens
+    // Fetch employees when modal opens + load existing members in edit mode
     useEffect(() => {
         if (isOpen) {
             EmployeeService.getAll().then(setEmployees).catch(console.error);
+            // Load existing members when editing
+            if (editProject?.ProjectID) {
+                supabase
+                    .from('project_members')
+                    .select('employee_id, role')
+                    .eq('project_id', editProject.ProjectID)
+                    .then(({ data, error }) => {
+                        if (!error && data && data.length > 0) {
+                            setSelectedMembers(data.map((m: any) => ({
+                                employeeId: m.employee_id,
+                                role: m.role || 'Thành viên',
+                            })));
+                        }
+                    });
+            }
         } else {
             setSelectedMembers([]);
             setMemberSearch('');
@@ -170,7 +199,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
             setAiFilledFields(new Set());
             setAiError('');
         }
-    }, [isOpen]);
+    }, [isOpen, editProject]);
 
     // ── AI: Listen for paste events ──
     useEffect(() => {
@@ -324,10 +353,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         setSelectedMembers(prev => prev.map(m => m.employeeId === empId ? { ...m, role } : m));
     };
 
-    const filteredEmployees = employees.filter(e =>
-        e.FullName.toLowerCase().includes(memberSearch.toLowerCase()) ||
-        e.Department.toLowerCase().includes(memberSearch.toLowerCase())
-    );
+    const filteredEmployees = employees.filter(e => {
+        const dept = e.Department || 'Khác';
+        const isSearchMatch = e.FullName.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                              dept.toLowerCase().includes(memberSearch.toLowerCase());
+        const matchOtherBan = dept.match(/Ban.*([1-5])/i);
+        const currentBan = String(formData.ManagementBoard);
+        const isOtherBan = matchOtherBan && currentBan !== '0' && matchOtherBan[1] !== currentBan;
+        return isSearchMatch && !isOtherBan;
+    });
 
     const groupedEmployees = filteredEmployees.reduce((acc, emp) => {
         const dept = emp.Department || 'Khác';
@@ -357,6 +391,56 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const FormattedInput = ({ value, onChange, placeholder, className, isDecimal = false, icon: Icon }: any) => {
+        const [localVal, setLocalVal] = useState(() => {
+            if (value == null || value === '' || value === 0) return '';
+            return new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value);
+        });
+        
+        useEffect(() => {
+            if (value == null || value === '' || value === 0) {
+                setLocalVal('');
+            }
+        }, [value]);
+
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            let val = e.target.value;
+            if (!/^[0-9.,]*$/.test(val)) return;
+            setLocalVal(val);
+            
+            let parsed: number;
+            if (isDecimal) {
+                const clean = val.replace(/\./g, '').replace(/,/g, '.');
+                parsed = parseFloat(clean);
+            } else {
+                parsed = parseInt(val.replace(/\D/g, ''), 10);
+            }
+            
+            if (!isNaN(parsed)) onChange(parsed);
+            else if (val === '') onChange('');
+        };
+
+        const handleBlur = () => {
+            if (value != null && value !== '' && value !== 0) {
+                setLocalVal(new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value));
+            }
+        };
+
+        return (
+            <div className={Icon ? "relative" : ""}>
+                <input
+                    type="text"
+                    placeholder={placeholder}
+                    className={className}
+                    value={localVal}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                />
+                {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />}
+            </div>
+        );
+    };
+
     const SectionHeader = ({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle: string }) => (
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-slate-700">
             <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -382,7 +466,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden border border-gray-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden border border-gray-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800">
@@ -504,11 +588,36 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     </div>
                 )}
 
+                {/* Tabs Navigation */}
+                <div className="flex flex-wrap px-6 pt-3 pb-1 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 gap-y-2 gap-x-1">
+                    {PROJ_TABS.map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                                    isActive 
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-600'
+                                }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                <span className="hidden sm:inline">{tab.label}</span>
+                                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {/* Body */}
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-8">
+                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto min-h-[50vh]">
 
                     {/* ═══ SECTION 1: Thông tin cơ bản ═══ */}
-                    <div>
+                    {activeTab === 'general' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
                         <SectionHeader icon={Building2} title="Thông tin cơ bản" subtitle="Định danh và phân loại dự án" />
 
                         {/* Project Code (Auto) */}
@@ -614,327 +723,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             <span className="inline-block w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
                             Nhóm dự án tự động áp dụng thời gian chuẩn theo Luật ĐTC
                         </p>
-                    </div>
-
-                    {/* ═══ SECTION 2: Thông tin đầu tư ═══ */}
-                    <div>
-                        <SectionHeader icon={DollarSign} title="Thông tin đầu tư" subtitle="Vốn, địa điểm và thời gian thực hiện" />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Total Investment */}
-                            <div>
-                                <label className={labelClass}>Tổng mức đầu tư (VNĐ)</label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        placeholder="0"
-                                        className={inputWithIconClass + aiHighlight('TotalInvestment')}
-                                        value={formData.TotalInvestment}
-                                        onChange={e => updateField('TotalInvestment', Number(e.target.value))}
-                                    />
-                                    <DollarSign className={iconClass} />
+                        {/* Thành viên dự án */}
+                        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700/50">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Users className="w-5 h-5 text-blue-500" />
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-100">Thành viên dự án</h4>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">Chọn nhân sự tham gia quản lý dự án</p>
                                 </div>
                             </div>
-
-                            {/* Start Date */}
-                            <div>
-                                <label className={labelClass}>Ngày bắt đầu dự kiến</label>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        className={inputWithIconClass + aiHighlight('StartDate')}
-                                        value={formData.StartDate}
-                                        onChange={e => updateField('StartDate', e.target.value)}
-                                    />
-                                    <Calendar className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Capital Source */}
-                            <div>
-                                <label className={labelClass}>Nguồn vốn đầu tư</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ngân sách Tỉnh, NSTW..."
-                                    className={inputClass + aiHighlight('CapitalSource')}
-                                    value={formData.CapitalSource}
-                                    onChange={e => updateField('CapitalSource', e.target.value)}
-                                />
-                            </div>
-
-                            {/* Province */}
-                            <div>
-                                <label className={labelClass}>Tỉnh/Thành phố <span className="text-red-500">*</span></label>
-                                <div className="relative">
-                                    <select
-                                        className={selectWithIconClass}
-                                        value={formData.ProvinceCode}
-                                        onChange={e => updateField('ProvinceCode', e.target.value)}
-                                    >
-                                        {PROVINCES.map(p => (
-                                            <option key={p.code} value={p.code}>{p.name} ({p.code})</option>
-                                        ))}
-                                    </select>
-                                    <MapPin className={iconClass} />
-                                </div>
-                                <p className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
-                                    <span className="inline-block w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
-                                    Mã tỉnh dùng cho mã dự án tự động
-                                </p>
-                            </div>
-
-                            {/* Location (free text) */}
-                            <div>
-                                <label className={labelClass}>Địa điểm xây dựng</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="VD: Xã Thạch Hạ, TP. Hà Tĩnh"
-                                        className={inputWithIconClass + aiHighlight('LocationCode')}
-                                        value={formData.LocationCode}
-                                        onChange={e => updateField('LocationCode', e.target.value)}
-                                    />
-                                    <MapPin className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Duration */}
-                            <div>
-                                <label className={labelClass}>Thời gian thực hiện</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="VD: 36 tháng (2025-2028)"
-                                        className={inputWithIconClass + aiHighlight('Duration')}
-                                        value={formData.Duration}
-                                        onChange={e => updateField('Duration', e.target.value)}
-                                    />
-                                    <Clock className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Competent Authority */}
-                            <div>
-                                <label className={labelClass}>Người quyết định đầu tư</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="VD: UBND TP.HCM"
-                                        className={inputWithIconClass + aiHighlight('CompetentAuthority')}
-                                        value={formData.CompetentAuthority}
-                                        onChange={e => updateField('CompetentAuthority', e.target.value)}
-                                    />
-                                    <Shield className={iconClass} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Investor Name - full width */}
-                        <div className="mt-4">
-                            <label className={labelClass}>Tên chủ đầu tư</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="VD: Ban QLDA Đầu tư xây dựng khu vực..."
-                                    className={inputWithIconClass + aiHighlight('InvestorName')}
-                                    value={formData.InvestorName}
-                                    onChange={e => updateField('InvestorName', e.target.value)}
-                                />
-                                <User className={iconClass} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ═══ SECTION 2.5: Quy mô công trình ═══ */}
-                    <div>
-                        <SectionHeader icon={Ruler} title="Quy mô công trình" subtitle="Thông tin kỹ thuật: diện tích, tầng, chiều cao" />
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Tổng dự toán */}
-                            <div>
-                                <label className={labelClass}>Tổng dự toán (VNĐ)</label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        placeholder="0"
-                                        className={inputWithIconClass}
-                                        value={formData.TotalEstimate || ''}
-                                        onChange={e => updateField('TotalEstimate', Number(e.target.value))}
-                                    />
-                                    <DollarSign className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Diện tích (m²) */}
-                            <div>
-                                <label className={labelClass}>Diện tích khu đất (m²)</label>
-                                <input
-                                    type="number" min="0" step="0.01" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.SiteArea || ''}
-                                    onChange={e => updateField('SiteArea', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* DT xây dựng (m²) */}
-                            <div>
-                                <label className={labelClass}>DT xây dựng (m²)</label>
-                                <input
-                                    type="number" min="0" step="0.01" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.ConstructionArea || ''}
-                                    onChange={e => updateField('ConstructionArea', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* DT sàn SD (m²) */}
-                            <div>
-                                <label className={labelClass}>DT sàn sử dụng (m²)</label>
-                                <input
-                                    type="number" min="0" step="0.01" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.FloorArea || ''}
-                                    onChange={e => updateField('FloorArea', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* Chiều cao (m) */}
-                            <div>
-                                <label className={labelClass}>Chiều cao (m)</label>
-                                <input
-                                    type="number" min="0" step="0.1" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.BuildingHeight || ''}
-                                    onChange={e => updateField('BuildingHeight', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* Mật độ XD (%) */}
-                            <div>
-                                <label className={labelClass}>Mật độ xây dựng (%)</label>
-                                <input
-                                    type="number" min="0" max="100" step="0.1" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.BuildingDensity || ''}
-                                    onChange={e => updateField('BuildingDensity', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* Hệ số SDĐ */}
-                            <div>
-                                <label className={labelClass}>Hệ số sử dụng đất</label>
-                                <input
-                                    type="number" min="0" step="0.01" placeholder="0"
-                                    className={inputClass}
-                                    value={formData.LandUseCoefficient || ''}
-                                    onChange={e => updateField('LandUseCoefficient', Number(e.target.value))}
-                                />
-                            </div>
-
-                            {/* Số tầng nổi */}
-                            <div>
-                                <label className={labelClass}>Số tầng nổi</label>
-                                <div className="relative">
-                                    <input
-                                        type="number" min="0" step="1" placeholder="0"
-                                        className={inputWithIconClass}
-                                        value={formData.AboveGroundFloors || ''}
-                                        onChange={e => updateField('AboveGroundFloors', Number(e.target.value))}
-                                    />
-                                    <Layers className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Số tầng hầm */}
-                            <div>
-                                <label className={labelClass}>Số tầng hầm</label>
-                                <div className="relative">
-                                    <input
-                                        type="number" min="0" step="1" placeholder="0"
-                                        className={inputWithIconClass}
-                                        value={formData.BasementFloors || ''}
-                                        onChange={e => updateField('BasementFloors', Number(e.target.value))}
-                                    />
-                                    <Layers className={iconClass} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ═══ SECTION 3: Nhà thầu & Tiêu chuẩn ═══ */}
-                    <div>
-                        <SectionHeader icon={HardHat} title="Nhà thầu & Tiêu chuẩn" subtitle="Theo mục I.10-13 Mẫu 05 Phụ lục I" />
-
-                        {/* Applicable Standards - full width */}
-                        <div className="mb-4">
-                            <label className={labelClass}>
-                                Tiêu chuẩn, quy chuẩn áp dụng
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="VD: TCVN 5574:2018, QCVN 03:2022/BXD..."
-                                    className={inputWithIconClass + aiHighlight('ApplicableStandards')}
-                                    value={formData.ApplicableStandards}
-                                    onChange={e => updateField('ApplicableStandards', e.target.value)}
-                                />
-                                <FileText className={iconClass} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Feasibility Contractor */}
-                            <div>
-                                <label className={labelClass}>NT lập BCNCKT</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Tên nhà thầu..."
-                                        className={inputWithIconClass}
-                                        value={formData.FeasibilityContractor}
-                                        onChange={e => updateField('FeasibilityContractor', e.target.value)}
-                                    />
-                                    <HardHat className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Survey Contractor */}
-                            <div>
-                                <label className={labelClass}>NT khảo sát XD</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Tên nhà thầu..."
-                                        className={inputWithIconClass}
-                                        value={formData.SurveyContractor}
-                                        onChange={e => updateField('SurveyContractor', e.target.value)}
-                                    />
-                                    <Search className={iconClass} />
-                                </div>
-                            </div>
-
-                            {/* Review Contractor */}
-                            <div>
-                                <label className={labelClass}>NT thẩm tra</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Tên nhà thầu..."
-                                        className={inputWithIconClass}
-                                        value={formData.ReviewContractor}
-                                        onChange={e => updateField('ReviewContractor', e.target.value)}
-                                    />
-                                    <Shield className={iconClass} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ═══ SECTION 4: Thành viên dự án ═══ */}
-                    <div>
-                        <SectionHeader icon={Users} title="Thành viên dự án" subtitle="Chọn nhân sự tham gia quản lý dự án" />
 
                         {/* Selected Members Chips */}
                         {selectedMembers.length > 0 && (
@@ -1044,6 +841,392 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             </p>
                         )}
                     </div>
+                    </div>
+                    )}
+
+                    {/* ═══ SECTION 2: Thông tin đầu tư ═══ */}
+                    {activeTab === 'investment' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <SectionHeader icon={DollarSign} title="Thông tin đầu tư" subtitle="Vốn, địa điểm và thời gian thực hiện" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Total Investment */}
+                            <div>
+                                <label className={labelClass}>Tổng mức đầu tư (VNĐ)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputWithIconClass + aiHighlight('TotalInvestment')}
+                                    value={formData.TotalInvestment}
+                                    onChange={(v: number) => updateField('TotalInvestment', v)}
+                                    icon={DollarSign}
+                                    isDecimal={false}
+                                />
+                            </div>
+
+                            {/* Start Date */}
+                            <div>
+                                <label className={labelClass}>Ngày bắt đầu dự kiến</label>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        className={inputWithIconClass + aiHighlight('StartDate')}
+                                        value={formData.StartDate}
+                                        onChange={e => updateField('StartDate', e.target.value)}
+                                    />
+                                    <Calendar className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Capital Source */}
+                            <div className="relative z-20">
+                                <label className={labelClass}>Nguồn vốn đầu tư</label>
+                                <div 
+                                    className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 cursor-pointer flex justify-between items-center transition-all ${showCapitalDropdown ? 'ring-2 ring-blue-500/20 border-blue-500 dark:border-blue-400' : ''}`}
+                                    onClick={() => setShowCapitalDropdown(!showCapitalDropdown)}
+                                >
+                                    <span className={formData.CapitalSource ? 'text-gray-800 dark:text-slate-100 line-clamp-1' : 'text-gray-500 dark:text-slate-500'}>
+                                        {formData.CapitalSource || 'Chọn nguồn vốn...'}
+                                    </span>
+                                    <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform ${showCapitalDropdown ? 'rotate-180' : ''}`} />
+                                </div>
+
+                                {showCapitalDropdown && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setShowCapitalDropdown(false)} />
+                                        <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden py-1">
+                                            {['Ngân sách Trung ương', 'Ngân sách Tỉnh', 'Ngân sách Huyện', 'Ngân sách Xã', 'Vốn ODA', 'Vốn tư nhân', 'Khác'].map(source => {
+                                                const currentSources = formData.CapitalSource ? formData.CapitalSource.split(',').map(s => s.trim()).filter(Boolean) : [];
+                                                const isSelected = currentSources.includes(source);
+                                                return (
+                                                    <div 
+                                                        key={source}
+                                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                                                        onClick={() => {
+                                                            const newSources = isSelected 
+                                                                ? currentSources.filter(s => s !== source)
+                                                                : [...currentSources, source];
+                                                            updateField('CapitalSource', newSources.join(', '));
+                                                        }}
+                                                    >
+                                                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 dark:border-slate-500'}`}>
+                                                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                                                        </div>
+                                                        <span className="text-sm text-gray-700 dark:text-slate-200">{source}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Province */}
+                            <div>
+                                <label className={labelClass}>Tỉnh/Thành phố <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <select
+                                        className={selectWithIconClass}
+                                        value={formData.ProvinceCode}
+                                        onChange={e => updateField('ProvinceCode', e.target.value)}
+                                    >
+                                        {PROVINCES.map(p => (
+                                            <option key={p.code} value={p.code}>{p.name} ({p.code})</option>
+                                        ))}
+                                    </select>
+                                    <MapPin className={iconClass} />
+                                </div>
+                                <p className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                                    <span className="inline-block w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
+                                    Mã tỉnh dùng cho mã dự án tự động
+                                </p>
+                            </div>
+
+                            {/* Location (free text) */}
+                            <div>
+                                <label className={labelClass}>Địa điểm xây dựng</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="VD: Xã Thạch Hạ, TP. Hà Tĩnh"
+                                        className={inputWithIconClass + aiHighlight('LocationCode')}
+                                        value={formData.LocationCode}
+                                        onChange={e => updateField('LocationCode', e.target.value)}
+                                    />
+                                    <MapPin className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Duration */}
+                            <div>
+                                <label className={labelClass}>Thời gian thực hiện</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="VD: 36 tháng (2025-2028)"
+                                        className={inputWithIconClass + aiHighlight('Duration')}
+                                        value={formData.Duration}
+                                        onChange={e => updateField('Duration', e.target.value)}
+                                    />
+                                    <Clock className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Competent Authority */}
+                            <div>
+                                <label className={labelClass}>Người quyết định đầu tư</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="VD: UBND TP.HCM"
+                                        className={inputWithIconClass + aiHighlight('CompetentAuthority')}
+                                        value={formData.CompetentAuthority}
+                                        onChange={e => updateField('CompetentAuthority', e.target.value)}
+                                    />
+                                    <Shield className={iconClass} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Investor Name - full width */}
+                        <div className="mt-4">
+                            <label className={labelClass}>Tên chủ đầu tư</label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="VD: Ban QLDA Đầu tư xây dựng khu vực..."
+                                    className={inputWithIconClass + aiHighlight('InvestorName')}
+                                    value={formData.InvestorName}
+                                    onChange={e => updateField('InvestorName', e.target.value)}
+                                />
+                                <User className={iconClass} />
+                            </div>
+                        </div>
+
+                        {/* Quyết định phê duyệt */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label className={labelClass}>Số quyết định phê duyệt dự án</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Số QĐ phê duyệt..."
+                                        className={inputWithIconClass + aiHighlight('DecisionNumber')}
+                                        value={formData.DecisionNumber}
+                                        onChange={e => updateField('DecisionNumber', e.target.value)}
+                                    />
+                                    <FileText className={iconClass} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Ngày phê duyệt dự án</label>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        className={inputWithIconClass + aiHighlight('ApprovalDate')}
+                                        value={formData.ApprovalDate}
+                                        onChange={e => updateField('ApprovalDate', e.target.value)}
+                                    />
+                                    <Calendar className={iconClass} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    )}
+
+                    {/* ═══ SECTION 2.5: Quy mô công trình ═══ */}
+                    {activeTab === 'scale' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <SectionHeader icon={Ruler} title="Quy mô công trình" subtitle="Thông tin kỹ thuật: diện tích, tầng, chiều cao" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Tổng dự toán */}
+                            <div>
+                                <label className={labelClass}>Tổng dự toán (VNĐ)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputWithIconClass}
+                                    value={formData.TotalEstimate}
+                                    onChange={(v: number) => updateField('TotalEstimate', v)}
+                                    icon={DollarSign}
+                                    isDecimal={false}
+                                />
+                            </div>
+
+                            {/* Diện tích (m²) */}
+                            <div>
+                                <label className={labelClass}>Diện tích khu đất (m²)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.SiteArea}
+                                    onChange={(v: number) => updateField('SiteArea', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* DT xây dựng (m²) */}
+                            <div>
+                                <label className={labelClass}>DT xây dựng (m²)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.ConstructionArea}
+                                    onChange={(v: number) => updateField('ConstructionArea', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* DT sàn SD (m²) */}
+                            <div>
+                                <label className={labelClass}>DT sàn sử dụng (m²)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.FloorArea}
+                                    onChange={(v: number) => updateField('FloorArea', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* Chiều cao (m) */}
+                            <div>
+                                <label className={labelClass}>Chiều cao (m)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.BuildingHeight}
+                                    onChange={(v: number) => updateField('BuildingHeight', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* Mật độ XD (%) */}
+                            <div>
+                                <label className={labelClass}>Mật độ xây dựng (%)</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.BuildingDensity}
+                                    onChange={(v: number) => updateField('BuildingDensity', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* Hệ số SDĐ */}
+                            <div>
+                                <label className={labelClass}>Hệ số sử dụng đất</label>
+                                <FormattedInput
+                                    placeholder="0"
+                                    className={inputClass}
+                                    value={formData.LandUseCoefficient}
+                                    onChange={(v: number) => updateField('LandUseCoefficient', v)}
+                                    isDecimal={true}
+                                />
+                            </div>
+
+                            {/* Số tầng nổi */}
+                            <div>
+                                <label className={labelClass}>Số tầng nổi</label>
+                                <div className="relative">
+                                    <input
+                                        type="number" min="0" step="1" placeholder="0"
+                                        className={inputWithIconClass}
+                                        value={formData.AboveGroundFloors || ''}
+                                        onChange={e => updateField('AboveGroundFloors', Number(e.target.value))}
+                                    />
+                                    <Layers className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Số tầng hầm */}
+                            <div>
+                                <label className={labelClass}>Số tầng hầm</label>
+                                <div className="relative">
+                                    <input
+                                        type="number" min="0" step="1" placeholder="0"
+                                        className={inputWithIconClass}
+                                        value={formData.BasementFloors || ''}
+                                        onChange={e => updateField('BasementFloors', Number(e.target.value))}
+                                    />
+                                    <Layers className={iconClass} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    )}
+
+                    {/* ═══ SECTION 3: Nhà thầu & Tiêu chuẩn ═══ */}
+                    {activeTab === 'contractors' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <SectionHeader icon={HardHat} title="Nhà thầu & Tiêu chuẩn" subtitle="Theo mục I.10-13 Mẫu 05 Phụ lục I" />
+
+                        {/* Applicable Standards - full width */}
+                        <div className="mb-4">
+                            <label className={labelClass}>
+                                Tiêu chuẩn, quy chuẩn áp dụng
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="VD: TCVN 5574:2018, QCVN 03:2022/BXD..."
+                                    className={inputWithIconClass + aiHighlight('ApplicableStandards')}
+                                    value={formData.ApplicableStandards}
+                                    onChange={e => updateField('ApplicableStandards', e.target.value)}
+                                />
+                                <FileText className={iconClass} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Feasibility Contractor */}
+                            <div>
+                                <label className={labelClass}>NT lập BCNCKT</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Tên nhà thầu..."
+                                        className={inputWithIconClass}
+                                        value={formData.FeasibilityContractor}
+                                        onChange={e => updateField('FeasibilityContractor', e.target.value)}
+                                    />
+                                    <HardHat className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Survey Contractor */}
+                            <div>
+                                <label className={labelClass}>NT khảo sát XD</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Tên nhà thầu..."
+                                        className={inputWithIconClass}
+                                        value={formData.SurveyContractor}
+                                        onChange={e => updateField('SurveyContractor', e.target.value)}
+                                    />
+                                    <Search className={iconClass} />
+                                </div>
+                            </div>
+
+                            {/* Review Contractor */}
+                            <div>
+                                <label className={labelClass}>NT thẩm tra</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Tên nhà thầu..."
+                                        className={inputWithIconClass}
+                                        value={formData.ReviewContractor}
+                                        onChange={e => updateField('ReviewContractor', e.target.value)}
+                                    />
+                                    <Shield className={iconClass} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    )}
+
+
 
                 </form>
 

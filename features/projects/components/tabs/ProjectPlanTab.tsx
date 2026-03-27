@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Task, TaskStatus, TaskPriority, Employee, ProjectGroup, Project } from '@/types';
 import {
     Layers, CheckCircle2, Circle, Clock, ChevronDown, ChevronRight,
-    FileText, AlertCircle, Plus, Calendar, User, Flag, Zap, Building2, Scale, Info, ExternalLink, ListPlus, Paperclip, Upload, X
+    FileText, AlertCircle, Plus, Calendar, User, Flag, Zap, Building2, Scale, Info, ExternalLink, ListPlus, Paperclip, Upload, X, Trash2
 } from 'lucide-react';
 import { ProjectGanttChart } from '../ProjectGanttChart';
 import { ProjectTaskModal } from '../ProjectTaskModal';
@@ -25,6 +25,7 @@ import { getProjectPhases, getGroupLabel } from '@/utils/projectPhases';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { useStepAggregates } from '../../hooks/useStepAggregates';
 import { usePlanPersist } from '../../hooks/usePlanPersist';
+import { PlanDateRangeModal, PlanDateRange } from '../PlanDateRangeModal';
 
 
 interface ProjectPlanTabProps {
@@ -39,6 +40,12 @@ interface ProjectPlanTabProps {
 }
 
 // getProjectPhases and getGroupLabel imported from @/utils/projectPhases
+
+// ── Plan trigger type for date range modal ──
+type PlanTrigger =
+    | { type: 'all' }
+    | { type: 'phase'; phaseId: string }
+    | { type: 'step'; stepCode: string; stepTitle: string };
 
 export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     tasks: initialTasks,
@@ -126,6 +133,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [pendingUploadTaskId, setPendingUploadTaskId] = useState<string | null>(null);
+
+    // ── Date Range Modal State ──
+    const [planModalOpen, setPlanModalOpen] = useState(false);
+    const [planModalLoading, setPlanModalLoading] = useState(false);
+    const [planTrigger, setPlanTrigger] = useState<PlanTrigger | null>(null);
+    const [planModalTitle, setPlanModalTitle] = useState('');
+    const [planModalDesc, setPlanModalDesc] = useState('');
+    const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
     // Toast notifications
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -459,43 +474,60 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setIsTaskModalOpen(false);
     };
 
-    // ── Bulk create tasks from workflow sub-steps ──
-    const handleBulkCreateFromSubTasks = async (stepCode: string, stepTitle: string) => {
+    // ── Bulk create tasks from workflow sub-steps (with custom date range) ──
+    const handleBulkCreateFromSubTasks = async (stepCode: string, stepTitle: string, dateRange?: PlanDateRange) => {
         if (!projectID) return;
         setBulkCreatingStep(stepCode);
         try {
             const subTaskDefs = getSubTasksForStep(stepCode, groupCode);
             if (subTaskDefs.length === 0) return;
 
-            // Calculate base date (same logic as date display)
+            // Calculate base date: from custom range or project defaults
             const getBaseDate = (): Date => {
+                if (dateRange) return new Date(dateRange.startDate);
                 if (project?.StartDate) return new Date(project.StartDate);
                 if (project?.ApprovalDate) return new Date(project.ApprovalDate);
                 return new Date();
             };
 
+            // Total available days for this step
+            const getTotalDays = (): number => {
+                if (dateRange) return dateRange.totalDays;
+                return subTaskDefs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+            };
+
             // Already-linked step codes to avoid duplicates
             const existingTitles = new Set(tasks.filter(t => t.TimelineStep === stepCode).map(t => t.Title));
 
-            // Calculate cumulative days before this step
+            // Calculate cumulative proportion offset (0 if custom range given)
             const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
             const currentIdx = allPhaseItems.findIndex(i => i.code === stepCode);
-            let cumulativeDaysBefore = 0;
-            for (let i = 0; i < currentIdx; i++) {
-                const prevSubs = getSubTasksForStep(allPhaseItems[i].code, groupCode);
-                cumulativeDaysBefore += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+            let proportionOffset = 0;
+            if (!dateRange) {
+                for (let i = 0; i < currentIdx; i++) {
+                    const prevSubs = getSubTasksForStep(allPhaseItems[i].code, groupCode);
+                    proportionOffset += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                }
             }
 
             const baseDate = getBaseDate();
-            let runningDays = cumulativeDaysBefore;
+            const totalDays = getTotalDays();
+            // Sum of estimatedDays for this step (denominator for proportional allocation)
+            const stepTotalEstimated = subTaskDefs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+
+            let runningDays = proportionOffset;
             const newTasks: Task[] = [];
 
             for (let idx = 0; idx < subTaskDefs.length; idx++) {
                 const st = subTaskDefs[idx];
-                // Skip if task already exists with same title
                 if (existingTitles.has(st.title)) continue;
 
-                const days = st.estimatedDays || 10;
+                // Proportional day allocation within the custom range
+                const estimated = st.estimatedDays || 10;
+                const days = dateRange
+                    ? Math.max(1, Math.round((estimated / stepTotalEstimated) * totalDays))
+                    : estimated;
+
                 const startDate = new Date(baseDate);
                 startDate.setDate(startDate.getDate() + runningDays);
                 const dueDate = new Date(startDate);
@@ -505,7 +537,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 const shortId = Math.random().toString(36).substring(2, 10);
                 const task: Task = {
                     TaskID: `T-${shortId}${idx}`,
-                    // idx added for uniqueness within batch
                     ProjectID: projectID,
                     Title: st.title,
                     Description: st.description || `Bước trong quy trình: ${stepTitle}. Phụ trách: ${st.responsible}.${st.legalBasis ? ` Căn cứ: ${st.legalBasis}` : ''}`,
@@ -528,10 +559,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 return;
             }
 
-            // Save to DB
             await TaskService.saveTasks(newTasks);
-
-            // Update local state + invalidate react-query cache
             setTasks(prev => [...prev, ...newTasks]);
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
         } catch (error) {
@@ -542,21 +570,86 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     };
 
     // ── Bulk create ALL tasks across ALL steps ──
-    const handleBulkCreateAll = async () => {
+    const handleBulkCreateAll = async (dateRange?: PlanDateRange) => {
         if (!projectID) return;
         setBulkCreatingAll(true);
         try {
             const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
-            for (const item of allPhaseItems) {
-                const subTasks = getSubTasksForStep(item.code, groupCode);
-                if (subTasks.length > 0) {
-                    await handleBulkCreateFromSubTasks(item.code, item.title);
+            const allSteps = allPhaseItems.filter(item => getSubTasksForStep(item.code, groupCode).length > 0);
+            const totalSteps = allSteps.length;
+
+            for (let si = 0; si < allSteps.length; si++) {
+                const item = allSteps[si];
+                // When custom range: split date range proportionally among steps
+                let stepRange: PlanDateRange | undefined;
+                if (dateRange) {
+                    const allSubTasks = allPhaseItems.flatMap(i => getSubTasksForStep(i.code, groupCode));
+                    const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const stepSubTasks = getSubTasksForStep(item.code, groupCode);
+                    const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const prevEstimated = allSteps.slice(0, si).flatMap(i => getSubTasksForStep(i.code, groupCode)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
+                    const stepStart = new Date(dateRange.startDate);
+                    stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
+                    const stepEnd = new Date(stepStart);
+                    stepEnd.setDate(stepEnd.getDate() + stepDays);
+                    stepRange = {
+                        startDate: stepStart.toISOString().split('T')[0],
+                        endDate: stepEnd.toISOString().split('T')[0],
+                        totalDays: stepDays,
+                    };
                 }
+                await handleBulkCreateFromSubTasks(item.code, item.title, stepRange);
             }
+            showToast(`✅ Đã tạo kế hoạch cho ${totalSteps} giai đoạn`, 'success');
         } catch (error) {
             console.error('Failed to bulk create all tasks:', error);
+            showToast('❌ Tạo kế hoạch thất bại', 'error');
         } finally {
             setBulkCreatingAll(false);
+        }
+    };
+
+    // ── Open Date Range Modal (intercept triggers) ──
+    const openPlanModal = (trigger: PlanTrigger, title: string, desc: string) => {
+        setPlanTrigger(trigger);
+        setPlanModalTitle(title);
+        setPlanModalDesc(desc);
+        setPlanModalOpen(true);
+    };
+
+    const handlePlanModalConfirm = async (range: PlanDateRange) => {
+        if (!planTrigger) return;
+        setPlanModalLoading(true);
+        try {
+            if (planTrigger.type === 'all') {
+                await handleBulkCreateAll(range);
+            } else if (planTrigger.type === 'phase') {
+                await handleBulkCreatePhase(planTrigger.phaseId, range);
+            } else if (planTrigger.type === 'step') {
+                await handleBulkCreateFromSubTasks(planTrigger.stepCode, planTrigger.stepTitle, range);
+            }
+            setPlanModalOpen(false);
+        } finally {
+            setPlanModalLoading(false);
+        }
+    };
+
+    // ── Delete single task ──
+    const handleDeleteTask = async (e: React.MouseEvent, taskId: string, taskTitle: string) => {
+        e.stopPropagation();
+        if (!confirm(`Xóa công việc "${taskTitle}"?`)) return;
+        setDeletingTaskId(taskId);
+        try {
+            await (supabase.from('tasks') as any).delete().eq('task_id', taskId);
+            setTasks(prev => prev.filter(t => t.TaskID !== taskId));
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            showToast(`🗑️ Đã xóa "${taskTitle}"`, 'info');
+        } catch (err) {
+            console.error('Failed to delete task:', err);
+            showToast('❌ Xóa thất bại', 'error');
+        } finally {
+            setDeletingTaskId(null);
         }
     };
 
@@ -606,19 +699,36 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         }
     };
 
-    // ── Bulk create tasks for a specific PHASE ──
+    // ── Bulk create tasks for a specific PHASE (with custom date range) ──
     const [bulkCreatingPhase, setBulkCreatingPhase] = useState<string | null>(null);
-    const handleBulkCreatePhase = async (phaseId: string) => {
+    const handleBulkCreatePhase = async (phaseId: string, dateRange?: PlanDateRange) => {
         if (!projectID) return;
         const phase = DECREE_175_PHASES.find(p => p.id === phaseId);
         if (!phase) return;
         setBulkCreatingPhase(phaseId);
         try {
-            for (const item of phase.items) {
-                const subTasks = getSubTasksForStep(item.code, groupCode);
-                if (subTasks.length > 0) {
-                    await handleBulkCreateFromSubTasks(item.code, item.title);
+            const steps = phase.items.filter(item => getSubTasksForStep(item.code, groupCode).length > 0);
+            for (let si = 0; si < steps.length; si++) {
+                const item = steps[si];
+                let stepRange: PlanDateRange | undefined;
+                if (dateRange) {
+                    const allSubTasks = steps.flatMap(i => getSubTasksForStep(i.code, groupCode));
+                    const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const stepSubTasks = getSubTasksForStep(item.code, groupCode);
+                    const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const prevEstimated = steps.slice(0, si).flatMap(i => getSubTasksForStep(i.code, groupCode)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
+                    const stepStart = new Date(dateRange.startDate);
+                    stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
+                    const stepEnd = new Date(stepStart);
+                    stepEnd.setDate(stepEnd.getDate() + stepDays);
+                    stepRange = {
+                        startDate: stepStart.toISOString().split('T')[0],
+                        endDate: stepEnd.toISOString().split('T')[0],
+                        totalDays: stepDays,
+                    };
                 }
+                await handleBulkCreateFromSubTasks(item.code, item.title, stepRange);
             }
         } catch (error) {
             console.error('Failed to bulk create phase tasks:', error);
@@ -675,7 +785,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     </button>
                     {/* Tạo tất cả công việc Button */}
                     <button
-                        onClick={handleBulkCreateAll}
+                        onClick={() => openPlanModal(
+                            { type: 'all' },
+                            'Tạo kế hoạch tổng thể',
+                            'Hệ thống sẽ tự động phân bổ công việc cho tất cả giai đoạn theo tỷ lệ thời gian'
+                        )}
                         disabled={bulkCreatingAll}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${bulkCreatingAll
                             ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 cursor-wait'
@@ -753,7 +867,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             tasks={filteredTasks}
                             isExpanded={expandedPhases[phase.id]}
                             onToggle={() => togglePhase(phase.id)}
-                            onBulkCreatePhase={() => handleBulkCreatePhase(phase.id)}
+                            onBulkCreatePhase={() => openPlanModal(
+                                { type: 'phase', phaseId: phase.id },
+                                `Tạo công việc: ${phase.title || phase.id}`,
+                                'Phân bổ thời gian cho các công việc trong giai đoạn này'
+                            )}
                             isBulkCreatingPhase={bulkCreatingPhase === phase.id}
                             phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getSubTasksForStep(item.code, groupCode).length, 0)}
                         />
@@ -868,6 +986,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                 <th className="px-2 py-2 text-left w-24 hidden sm:table-cell">Hạn</th>
                                                                 <th className="px-2 py-2 text-center w-16">Ưu tiên</th>
                                                                 <th className="px-2 py-2 text-center w-16">Tài liệu</th>
+                                                                <th className="px-2 py-2 text-center w-8"></th>
                                                                 <th className="px-2 py-2 text-center w-8"></th>
                                                             </tr>
                                                         </thead>
@@ -999,6 +1118,20 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                             <ExternalLink className="w-3 h-3" />
                                                                         </button>
                                                                     </td>
+                                                                    {/* Delete Task */}
+                                                                    <td className="px-2 py-2 text-center">
+                                                                        <button
+                                                                            onClick={(e) => handleDeleteTask(e, t.TaskID, t.Title)}
+                                                                            disabled={deletingTaskId === t.TaskID}
+                                                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-gray-300 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-50"
+                                                                            title="Xóa công việc này"
+                                                                        >
+                                                                            {deletingTaskId === t.TaskID
+                                                                                ? <div className="w-3 h-3 border-2 border-red-300 border-t-red-600 rounded-full animate-spin" />
+                                                                                : <Trash2 className="w-3 h-3" />
+                                                                            }
+                                                                        </button>
+                                                                    </td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -1069,7 +1202,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleBulkCreateFromSubTasks(item.code, item.title);
+                                                                                openPlanModal(
+                                                                                    { type: 'step', stepCode: item.code, stepTitle: item.title },
+                                                                                    `Tạo công việc: ${item.title}`,
+                                                                                    'Phân bổ thời gian cho các bước trong quy trình này'
+                                                                                );
                                                                             }}
                                                                             disabled={bulkCreatingStep === item.code || allCreated}
                                                                             className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg flex items-center gap-1 transition-all ${allCreated
@@ -1456,6 +1593,19 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     <button onClick={() => setToast(null)} className="ml-2 text-white/60 hover:text-white text-lg leading-none">&times;</button>
                 </div>
             )}
+            {/* Plan Date Range Modal */}
+            <PlanDateRangeModal
+                isOpen={planModalOpen}
+                onClose={() => setPlanModalOpen(false)}
+                onConfirm={handlePlanModalConfirm}
+                title={planModalTitle}
+                description={planModalDesc}
+                defaultStartDate={project?.StartDate
+                    ? new Date(project.StartDate).toISOString().split('T')[0]
+                    : undefined}
+                isLoading={planModalLoading}
+            />
         </div>
+
     );
 };

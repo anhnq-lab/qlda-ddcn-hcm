@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Building2, MapPin, Phone, Hash, Calendar, FileText, CircleDollarSign, User, Globe, Award, Briefcase } from 'lucide-react';
+import { 
+    Building2, MapPin, Phone, Hash, Calendar, FileText, CircleDollarSign, 
+    User, Globe, Award, Briefcase, Package2, Files, Info, ChevronRight
+} from 'lucide-react';
 import { formatShortCurrency } from '@/utils/format';
-
+import { useSlidePanel } from '@/context/SlidePanelContext';
+import { BiddingPackageDetail } from './BiddingPackageDetail';
 interface ContractorDetailPanelProps {
     contractorId: string;
-    /** Optional: filter contracts to this project only */
     projectId?: string;
 }
 
@@ -17,23 +20,12 @@ interface ContractorData {
     address: string | null;
     representative: string | null;
     contact_info: string | null;
+    email: string | null;
+    website: string | null;
     established_year: number | null;
-    is_foreign: boolean;
+    contractor_type: string | null;
     cap_cert_code: string | null;
     op_license_no: string | null;
-}
-
-interface ContractData {
-    contract_id: string;
-    contract_name: string;
-    contract_type: string;
-    value: number;
-    sign_date: string | null;
-    start_date: string | null;
-    end_date: string | null;
-    status: number;
-    project_id: string;
-    project_name: string;
 }
 
 const CONTRACT_STATUS_MAP: Record<number, { label: string; color: string }> = {
@@ -45,62 +37,27 @@ const CONTRACT_STATUS_MAP: Record<number, { label: string; color: string }> = {
 };
 
 export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ contractorId, projectId }) => {
+    const [activeTab, setActiveTab] = useState<'overview' | 'contracts' | 'packages' | 'documents'>('overview');
 
     // Fetch contractor details
     const { data: contractor, isLoading: loadingContractor } = useQuery<ContractorData | null>({
         queryKey: ['contractor-detail', contractorId],
-        queryFn: async () => {
+        queryFn: async (): Promise<ContractorData | null> => {
             const { data } = await supabase
                 .from('contractors')
                 .select('*')
                 .eq('contractor_id', contractorId)
                 .single();
-            return data;
+            return (data as unknown) as ContractorData | null;
         },
         enabled: !!contractorId,
     });
 
-    // Fetch contracts for this contractor
-    const { data: contracts = [], isLoading: loadingContracts } = useQuery<ContractData[]>({
-        queryKey: ['contractor-contracts', contractorId, projectId],
-        queryFn: async () => {
-            let query = supabase
-                .from('contracts')
-                .select('contract_id, contract_name, contract_type, value, sign_date, start_date, end_date, status, project_id')
-                .eq('contractor_id', contractorId)
-                .order('sign_date', { ascending: false });
-
-            if (projectId) {
-                query = query.eq('project_id', projectId);
-            }
-
-            const { data: contractRows } = await query;
-            if (!contractRows || contractRows.length === 0) return [];
-
-            // Get project names
-            const projectIds = [...new Set(contractRows.map((c: any) => c.project_id))];
-            const { data: projects } = await supabase
-                .from('projects')
-                .select('project_id, project_name')
-                .in('project_id', projectIds);
-
-            const projectMap = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
-
-            return contractRows.map((c: any) => ({
-                ...c,
-                project_name: projectMap.get(c.project_id) || c.project_id,
-            }));
-        },
-        enabled: !!contractorId,
-    });
-
-    const isLoading = loadingContractor || loadingContracts;
-
-    if (isLoading) {
+    if (loadingContractor) {
         return (
             <div className="p-6 space-y-4 animate-pulse">
+                <div className="h-16 bg-gray-200 dark:bg-slate-700 rounded-lg w-full mb-6" />
                 <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded-lg w-2/3" />
-                <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-1/2" />
                 <div className="space-y-3 mt-6">
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="h-12 bg-gray-100 dark:bg-slate-700 rounded-lg" />
@@ -118,144 +75,437 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
         );
     }
 
-    const totalContractValue = contracts.reduce((sum, c) => sum + (c.value || 0), 0);
-    const statusInfo = (status: number) => CONTRACT_STATUS_MAP[status] || { label: `Trạng thái ${status}`, color: 'text-gray-500 bg-gray-100' };
+    const tabs = [
+        { id: 'overview', label: 'Tổng quan', icon: Info },
+        { id: 'contracts', label: 'Hợp đồng', icon: Briefcase },
+        { id: 'packages', label: 'Gói thầu', icon: Package2 },
+        { id: 'documents', label: 'Tài liệu', icon: Files },
+    ] as const;
 
     return (
-        <div className="p-5 space-y-5">
-
-            {/* ═══ HEADER ═══ */}
-            <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-                    <Building2 className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100 leading-tight">
-                        {contractor.full_name}
-                    </h2>
-                    {contractor.tax_code && (
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                            <Hash className="w-3 h-3" /> MST: {contractor.tax_code}
-                        </p>
-                    )}
-                    {contractor.is_foreign && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-full">
-                            <Globe className="w-3 h-3" /> Nhà thầu nước ngoài
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* ═══ THỐNG KÊ NHANH ═══ */}
-            <div className="grid grid-cols-2 gap-3">
-                <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl p-3">
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">Số hợp đồng</p>
-                    <p className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-0.5">{contracts.length}</p>
-                </div>
-                <div className="bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wide">Tổng giá trị</p>
-                    <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-0.5">{formatShortCurrency(totalContractValue)}</p>
-                </div>
-            </div>
-
-            {/* ═══ THÔNG TIN CHUNG ═══ */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-4 py-2.5 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
-                    <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Thông tin tổ chức</h3>
-                </div>
-                <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                    {contractor.representative && (
-                        <InfoRow icon={User} label="Người đại diện" value={contractor.representative} />
-                    )}
-                    {contractor.address && (
-                        <InfoRow icon={MapPin} label="Địa chỉ" value={contractor.address} />
-                    )}
-                    {contractor.contact_info && (
-                        <InfoRow icon={Phone} label="Liên hệ" value={contractor.contact_info} />
-                    )}
-                    {contractor.established_year && (
-                        <InfoRow icon={Calendar} label="Năm thành lập" value={String(contractor.established_year)} />
-                    )}
-                    {contractor.cap_cert_code && (
-                        <InfoRow icon={Award} label="Mã chứng nhận năng lực" value={contractor.cap_cert_code} />
-                    )}
-                    {contractor.op_license_no && (
-                        <InfoRow icon={FileText} label="Giấy phép hoạt động" value={contractor.op_license_no} />
-                    )}
-                </div>
-            </div>
-
-            {/* ═══ DANH SÁCH HỢP ĐỒNG ═══ */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-4 py-2.5 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                        <Briefcase className="w-3.5 h-3.5" />
-                        Hợp đồng ({contracts.length})
-                    </h3>
-                </div>
-                {contracts.length === 0 ? (
-                    <div className="p-6 text-center">
-                        <p className="text-sm text-gray-400 dark:text-slate-500">Chưa có hợp đồng</p>
+        <div className="flex flex-col h-full bg-white dark:bg-slate-900 relative">
+            
+            {/* ═══ STICKY HEADER ═══ */}
+            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+                <div className="p-5 pb-4">
+                    <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                            <Building2 className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100 leading-tight">
+                                {contractor.full_name}
+                            </h2>
+                            <div className="flex flex-wrap items-center gap-3 mt-2">
+                                {contractor.tax_code && (
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-md font-medium">
+                                        <Hash className="w-3 h-3 text-gray-400" /> MST: {contractor.tax_code}
+                                    </p>
+                                )}
+                                {contractor.contractor_type && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-full uppercase tracking-wider border border-blue-200 dark:border-blue-800">
+                                        <Briefcase className="w-3 h-3" /> {contractor.contractor_type}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                        {contracts.map((ct) => {
-                            const st = statusInfo(ct.status);
-                            return (
-                                <div key={ct.contract_id} className="p-3.5 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 leading-tight">
-                                                {ct.contract_name}
-                                            </p>
-                                            <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5 truncate">
-                                                {ct.project_name}
-                                            </p>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <div className="flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400">
-                                                <CircleDollarSign className="w-3 h-3" />
-                                                {formatShortCurrency(ct.value)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>
-                                            {st.label}
-                                        </span>
-                                        {ct.contract_type && (
-                                            <span className="text-[9px] font-medium text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-600 px-1.5 py-0.5 rounded">
-                                                {ct.contract_type}
-                                            </span>
-                                        )}
-                                        {ct.sign_date && (
-                                            <span className="text-[9px] text-gray-400 dark:text-slate-500 flex items-center gap-0.5">
-                                                <Calendar className="w-2.5 h-2.5" />
-                                                {new Date(ct.sign_date).toLocaleDateString('vi-VN')}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+                </div>
+
+                {/* ═══ TABS NAVIGATION ═══ */}
+                <div className="flex items-center px-5 gap-6 overflow-x-auto no-scrollbar">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 pb-3 px-1 border-b-2 font-bold text-sm transition-colors whitespace-nowrap ${
+                                    isActive 
+                                        ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                }`}
+                            >
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500'}`} />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ═══ TAB CONTENT ═══ */}
+            <div className="flex-1 overflow-y-auto p-5 pb-20">
+                {activeTab === 'overview' && <OverviewTab contractor={contractor} contractorId={contractorId} projectId={projectId} />}
+                {activeTab === 'contracts' && <ContractsTab contractorId={contractorId} projectId={projectId} />}
+                {activeTab === 'packages' && <PackagesTab contractorId={contractorId} />}
+                {activeTab === 'documents' && <DocumentsTab contractorId={contractorId} />}
             </div>
         </div>
     );
 };
 
-// ─── Info Row ───
+// ==========================================
+// TABS CONTENT COMPONENTS
+// ==========================================
+
+// ─── 1. OVERVIEW TAB ───
+const OverviewTab: React.FC<{ contractor: ContractorData, contractorId: string, projectId?: string }> = ({ contractor, contractorId, projectId }) => {
+    
+    // Quick stats fetch
+    const { data: stats } = useQuery({
+        queryKey: ['contractor-stats-quick', contractorId, projectId],
+        queryFn: async () => {
+            // Count contracts & Total Value
+            let query = supabase.from('contracts').select('value').eq('contractor_id', contractorId);
+            if (projectId) query = query.eq('project_id', projectId);
+            const { data: ctData } = await query;
+            
+            const totalContracts = ctData?.length || 0;
+            const totalValue = (ctData || []).reduce((sum, c) => sum + (c.value || 0), 0);
+
+            // Count won packages
+            const { count: totalPkgs } = await supabase.from('bidding_packages').select('package_id', { count: 'exact', head: true }).eq('winning_contractor_id', contractorId);
+
+            return { totalContracts, totalValue, totalPkgs: totalPkgs || 0 };
+        },
+        enabled: !!contractorId,
+    });
+
+    return (
+        <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-3 gap-3">
+                <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl p-3">
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">Số hợp đồng</p>
+                    <p className="text-xl font-black text-amber-700 dark:text-amber-300 mt-1">{stats?.totalContracts ?? '-'}</p>
+                </div>
+                <div className="bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wide">Tổng giá trị</p>
+                    <p className="text-xl font-black text-emerald-700 dark:text-emerald-300 mt-1">{stats ? formatShortCurrency(stats.totalValue) : '-'}</p>
+                </div>
+                <div className="bg-purple-50/80 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl p-3">
+                    <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wide">Gói thầu đã trúng</p>
+                    <p className="text-xl font-black text-purple-700 dark:text-purple-300 mt-1">{stats?.totalPkgs ?? '-'}</p>
+                </div>
+            </div>
+
+            {/* General Information */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Thông tin tổ chức</h3>
+                </div>
+                <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                    {contractor.representative && <InfoRow icon={User} label="Người đại diện" value={contractor.representative} />}
+                    {contractor.address && <InfoRow icon={MapPin} label="Địa chỉ trụ sở" value={contractor.address} />}
+                    {contractor.contact_info && <InfoRow icon={Phone} label="Điện thoại liên hệ" value={contractor.contact_info} />}
+                    {contractor.email && <InfoRow icon={User} label="Email" value={contractor.email} />}
+                    {contractor.website && <InfoRow icon={Globe} label="Website" value={contractor.website} />}
+                </div>
+            </div>
+
+            {/* Legal Information */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Hồ sơ năng lực & pháp lý</h3>
+                </div>
+                <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                    {contractor.cap_cert_code ? (
+                        <InfoRow icon={Award} label="Mã chứng chỉ năng lực" value={contractor.cap_cert_code} />
+                    ) : (
+                        <EmptyRow icon={Award} label="Mã chứng chỉ năng lực" />
+                    )}
+                    {contractor.op_license_no ? (
+                        <InfoRow icon={FileText} label="Giấy phép kinh doanh/hoạt động" value={contractor.op_license_no} />
+                    ) : (
+                        <EmptyRow icon={FileText} label="Giấy phép kinh doanh/hoạt động" />
+                    )}
+                    {contractor.established_year ? (
+                        <InfoRow icon={Calendar} label="Năm thành lập" value={String(contractor.established_year)} />
+                    ) : (
+                        <EmptyRow icon={Calendar} label="Năm thành lập" />
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── 2. CONTRACTS TAB ───
+const ContractsTab: React.FC<{ contractorId: string, projectId?: string }> = ({ contractorId, projectId }) => {
+    const { data: contracts = [], isLoading } = useQuery({
+        queryKey: ['contractor-contracts', contractorId, projectId],
+        queryFn: async () => {
+            let query = supabase
+                .from('contracts')
+                .select('contract_id, contract_name, contract_type, value, sign_date, status, project_id')
+                .eq('contractor_id', contractorId)
+                .order('sign_date', { ascending: false });
+
+            if (projectId) query = query.eq('project_id', projectId);
+
+            const { data } = await query;
+            if (!data || data.length === 0) return [];
+
+            // Fetch projects
+            const pIds = [...new Set(data.map(c => c.project_id))];
+            const { data: projs } = await supabase.from('projects').select('project_id, project_name').in('project_id', pIds);
+            const pMap = new Map((projs || []).map(p => [p.project_id, p.project_name]));
+
+            return data.map(c => ({ ...c, project_name: pMap.get(c.project_id) || c.project_id }));
+        },
+        enabled: !!contractorId,
+    });
+
+    if (isLoading) return <LoadingList />;
+
+    if (contracts.length === 0) {
+        return <EmptyState icon={Briefcase} title="Chưa có hợp đồng" message="Nhà thầu này chưa tham gia hợp đồng nào." />;
+    }
+
+    return (
+        <div className="space-y-3">
+            {contracts.map(ct => {
+                const st = CONTRACT_STATUS_MAP[ct.status] || { label: 'Không xác định', color: 'bg-gray-100 text-gray-500' };
+                return (
+                    <div key={ct.contract_id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start gap-4">
+                            <div>
+                                <h4 className="font-bold text-blue-700 dark:text-blue-400 text-sm leading-tight hover:underline cursor-pointer">{ct.contract_name}</h4>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {ct.project_name}</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 whitespace-nowrap ${st.color}`}>
+                                {st.label}
+                            </span>
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                <CircleDollarSign className="w-3.5 h-3.5" /> {formatShortCurrency(ct.value)}
+                            </span>
+                            {ct.contract_type && (
+                                <span className="text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded-md">
+                                    {ct.contract_type}
+                                </span>
+                            )}
+                            {ct.sign_date && (
+                                <span className="text-gray-500 dark:text-slate-400 flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" /> Ký: {new Date(ct.sign_date).toLocaleDateString('vi-VN')}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+// ─── 3. PACKAGES TAB ───
+const PackagesTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
+    const { openPanel, closePanel } = useSlidePanel();
+    const { data: packages = [], isLoading } = useQuery({
+        queryKey: ['contractor-packages', contractorId],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('bidding_packages')
+                .select('*')
+                .eq('winning_contractor_id', contractorId)
+                .order('created_at', { ascending: false });
+
+            if (!data || data.length === 0) return [];
+
+            // Fetch projects
+            const pIds = [...new Set(data.filter(p => !!p.project_id).map(p => p.project_id))];
+            let pMap = new Map();
+            if (pIds.length > 0) {
+                const { data: projs } = await supabase.from('projects').select('project_id, project_name').in('project_id', pIds);
+                pMap = new Map((projs || []).map(p => [p.project_id, p.project_name]));
+            }
+
+            return data.map(pkg => ({ ...pkg, project_name: pMap.get(pkg.project_id) || pkg.project_id }));
+        },
+        enabled: !!contractorId,
+    });
+
+    if (isLoading) return <LoadingList />;
+
+    if (packages.length === 0) {
+        return <EmptyState icon={Package2} title="Không có gói thầu" message="Nhà thầu này chưa trúng gói thầu nào." />;
+    }
+
+    return (
+        <div className="space-y-3">
+            {packages.map(pkg => (
+                <div 
+                    key={pkg.package_id} 
+                    onClick={() => {
+                        openPanel({
+                            title: pkg.package_name,
+                            icon: <Package2 className="w-5 h-5 text-indigo-500" />,
+                            component: (
+                                <BiddingPackageDetail
+                                    isOpen={true}
+                                    onClose={() => closePanel()}
+                                    package_data={{
+                                        PackageID: pkg.package_id,
+                                        PackageName: pkg.package_name,
+                                        PackageNumber: pkg.package_number,
+                                        Field: pkg.field,
+                                        Price: pkg.price,
+                                        Status: pkg.status,
+                                        SelectionMethod: pkg.selection_method,
+                                        WinningContractorID: pkg.winning_contractor_id,
+                                        WinningPrice: pkg.winning_price,
+                                        NotificationCode: pkg.notification_code
+                                    } as any}
+                                    asSlidePanel={true}
+                                />
+                            )
+                        });
+                    }}
+                    className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-all cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 group"
+                >
+                    <div className="flex justify-between items-start gap-4">
+                        <div>
+                            <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400 text-sm leading-tight transition-colors">{pkg.package_name}</h4>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {pkg.project_name}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 whitespace-nowrap bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400`}>
+                            Đã trúng thầu
+                        </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                        <span className="font-bold text-teal-600 dark:text-teal-400 flex items-center gap-1">
+                            <CircleDollarSign className="w-3.5 h-3.5" /> {formatShortCurrency(pkg.price)}
+                        </span>
+                        {pkg.field && (
+                            <span className="text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded-md uppercase text-[10px] font-bold">
+                                {pkg.field}
+                            </span>
+                        )}
+                        {pkg.selection_method && (
+                            <span className="text-gray-500 dark:text-slate-400 pt-0.5">
+                                {pkg.selection_method}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// ─── 4. DOCUMENTS TAB ───
+const DocumentsTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
+    const { data: documents = [], isLoading } = useQuery({
+        queryKey: ['contractor-documents', contractorId],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('documents')
+                .select('doc_id, doc_name, category, issue_date, project_id, doc_type, size')
+                .eq('contractor_id', contractorId)
+                .order('issue_date', { ascending: false });
+
+            if (!data || data.length === 0) return [];
+
+            // Fetch projects
+            const pIds = [...new Set(data.filter(d => !!d.project_id).map(d => d.project_id))];
+            let pMap = new Map();
+            if (pIds.length > 0) {
+                const { data: projs } = await supabase.from('projects').select('project_id, project_name').in('project_id', pIds);
+                pMap = new Map((projs || []).map(p => [p.project_id, p.project_name]));
+            }
+
+            return data.map(doc => ({ ...doc, project_name: doc.project_id ? (pMap.get(doc.project_id) || doc.project_id) : 'Hồ sơ chung' }));
+        },
+        enabled: !!contractorId,
+    });
+
+    if (isLoading) return <LoadingList />;
+
+    if (documents.length === 0) {
+        return <EmptyState icon={Files} title="Chưa có tài liệu" message="Chưa có hồ sơ/tài liệu nào được liên kết với nhà thầu này." />;
+    }
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                {documents.map(doc => (
+                    <div key={doc.doc_id} className="p-3 hover:bg-gray-50/80 dark:hover:bg-slate-750 transition-colors flex items-center justify-between group cursor-pointer">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 truncate">{doc.doc_name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[10px] text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium">
+                                        {doc.project_name}
+                                    </span>
+                                    {doc.doc_type && (
+                                        <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                                            • {doc.doc_type}
+                                        </span>
+                                    )}
+                                    {doc.issue_date && (
+                                        <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                                            • N/h: {new Date(doc.issue_date).toLocaleDateString('vi-VN')}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 shrink-0 transform group-hover:translate-x-1 transition-all" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// UTILITY COMPONENTS
+// ==========================================
+
 const InfoRow: React.FC<{ icon: React.ElementType; label: string; value: string }> = ({ icon: Icon, label, value }) => (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
-        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-            <Icon className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
+    <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+            <Icon className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
         </div>
         <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{label}</p>
-            <p className="text-sm text-gray-800 dark:text-slate-200 font-medium truncate mt-0.5">{value}</p>
+            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-bold">{label}</p>
+            <p className="text-sm text-gray-800 dark:text-slate-200 font-medium mt-0.5" style={{ wordBreak: 'break-word' }}>{value}</p>
         </div>
     </div>
 );
 
-export default ContractorDetailPanel;
+const EmptyRow: React.FC<{ icon: React.ElementType; label: string }> = ({ icon: Icon, label }) => (
+    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50/30 dark:bg-slate-800/50">
+        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 opacity-50">
+            <Icon className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-bold">{label}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 italic mt-0.5">Chưa cập nhật</p>
+        </div>
+    </div>
+);
+
+const EmptyState = ({ icon: Icon, title, message }: { icon: React.ElementType, title: string, message: string }) => (
+    <div className="p-8 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-gray-50/50 dark:bg-slate-800/30 h-64">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+            <Icon className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+        </div>
+        <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-1">{title}</h3>
+        <p className="text-xs text-gray-500 dark:text-slate-400 max-w-xs">{message}</p>
+    </div>
+);
+
+const LoadingList = () => (
+    <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />
+        ))}
+    </div>
+);

@@ -28,9 +28,10 @@ import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
 import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
 import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
 import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
+import ProjectWorkflowTab from './components/ProjectWorkflowTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2 } from 'lucide-react';
+import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2, GitBranch } from 'lucide-react';
 import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
 import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
 import { AIForecastChart } from '@/components/ai/AIForecastChart';
@@ -42,6 +43,7 @@ import { generateMonthlyReport } from '@/services/aiService';
 const TAB_DEFINITIONS = [
     { id: 'info', label: 'TỔNG QUAN', icon: Info },
     { id: 'plan', label: 'KẾ HOẠCH', icon: CalendarCheck },
+    { id: 'workflow', label: 'QUY TRÌNH', icon: GitBranch },
     { id: 'packages', label: 'GÓI THẦU', icon: Briefcase },
     { id: 'capital', label: 'VỐN & GIẢI NGÂN', icon: Landmark },
     { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
@@ -157,6 +159,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [planMounted, setPlanMounted] = useState(activeTab === 'plan');
     const [packagesMounted, setPackagesMounted] = useState(activeTab === 'packages');
     const [capitalMounted, setCapitalMounted] = useState(activeTab === 'capital');
+    const [workflowMounted, setWorkflowMounted] = useState(activeTab === 'workflow');
 
     // Mount heavy tabs on first visit
     useEffect(() => {
@@ -164,7 +167,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (activeTab === 'plan' && !planMounted) setPlanMounted(true);
         if (activeTab === 'packages' && !packagesMounted) setPackagesMounted(true);
         if (activeTab === 'capital' && !capitalMounted) setCapitalMounted(true);
-    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted]);
+        if (activeTab === 'workflow' && !workflowMounted) setWorkflowMounted(true);
+    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted, workflowMounted]);
 
     // Keyboard: Arrow Left/Right to switch tabs
     const activeTabRef = React.useRef(activeTab);
@@ -596,6 +600,18 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     <ProjectOperationsTab projectID={project.ProjectID} />
                 </div>
             )}
+            {workflowMounted && (
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'workflow' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'workflow' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <ProjectWorkflowTab
+                        projectId={project.ProjectID}
+                        projectGroup={project.GroupCode || 'C'}
+                        projectName={project.ProjectName}
+                    />
+                </div>
+            )}
 
             {/* ─── Delete Confirmation Modal ─── */}
             <ConfirmModal
@@ -616,6 +632,54 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 onClose={() => setShowEditModal(false)}
                 onSave={async (data, members) => {
                     await handleEditSave(data as Partial<Project>);
+                    // Save members: delete old, insert new
+                    if (project) {
+                        await supabase
+                            .from('project_members')
+                            .delete()
+                            .eq('project_id', project.ProjectID);
+                        if (members.length > 0) {
+                            const memberRows = members.map(m => ({
+                                project_id: project.ProjectID,
+                                employee_id: m.employeeId,
+                                role: m.role,
+                                joined_at: new Date().toISOString(),
+                            }));
+                            const { error } = await supabase
+                                .from('project_members')
+                                .insert(memberRows);
+                            if (error) console.error('Failed to save members:', error.message);
+                        }
+                        // Reload members to update the overview tab
+                        const { data: updatedMembers } = await supabase
+                            .from('project_members')
+                            .select('employee_id, role')
+                            .eq('project_id', project.ProjectID);
+                        if (updatedMembers && updatedMembers.length > 0) {
+                            const empIds = updatedMembers.map((m: any) => m.employee_id);
+                            const { data: empData } = await supabase
+                                .from('employees')
+                                .select('*')
+                                .in('employee_id', empIds);
+                            if (empData) {
+                                setProjectMembers(empData.map((e: any) => ({
+                                    EmployeeID: e.employee_id,
+                                    FullName: e.full_name || '',
+                                    Department: e.department || '',
+                                    Position: e.position || '',
+                                    Role: (updatedMembers.find((m: any) => m.employee_id === e.employee_id)?.role || 'Thành viên') as any,
+                                    Email: e.email || '',
+                                    Phone: e.phone || '',
+                                    JoinDate: e.join_date || '',
+                                    Status: e.status || 'active',
+                                    AvatarUrl: e.avatar_url || '',
+                                    Username: e.username || e.full_name || '',
+                                })));
+                            }
+                        } else {
+                            setProjectMembers([]);
+                        }
+                    }
                     setShowEditModal(false);
                 }}
                 editProject={project}

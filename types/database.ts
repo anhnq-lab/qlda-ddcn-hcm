@@ -51,7 +51,15 @@ export type Database = {
           quality_rating?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "acceptance_records_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["contract_id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -88,6 +96,8 @@ export type Database = {
           bid_closing_date: string | null
           bid_fee: number | null
           bid_type: string | null
+          BiddersCount: number | null
+          BiddingScope: string | null
           capital_source: string | null
           contract_type: string | null
           created_at: string
@@ -98,6 +108,7 @@ export type Database = {
           description: string | null
           duration: string | null
           estimate_price: number | null
+          EvaluationBiddersCount: number | null
           field: string | null
           funding_source: string | null
           has_option: boolean | null
@@ -131,6 +142,8 @@ export type Database = {
           bid_closing_date?: string | null
           bid_fee?: number | null
           bid_type?: string | null
+          BiddersCount?: number | null
+          BiddingScope?: string | null
           capital_source?: string | null
           contract_type?: string | null
           created_at?: string
@@ -141,6 +154,7 @@ export type Database = {
           description?: string | null
           duration?: string | null
           estimate_price?: number | null
+          EvaluationBiddersCount?: number | null
           field?: string | null
           funding_source?: string | null
           has_option?: boolean | null
@@ -174,6 +188,8 @@ export type Database = {
           bid_closing_date?: string | null
           bid_fee?: number | null
           bid_type?: string | null
+          BiddersCount?: number | null
+          BiddingScope?: string | null
           capital_source?: string | null
           contract_type?: string | null
           created_at?: string
@@ -184,6 +200,7 @@ export type Database = {
           description?: string | null
           duration?: string | null
           estimate_price?: number | null
+          EvaluationBiddersCount?: number | null
           field?: string | null
           funding_source?: string | null
           has_option?: boolean | null
@@ -292,35 +309,59 @@ export type Database = {
       capital_plans: {
         Row: {
           amount: number
+          approval_status: string | null
+          approved_by: string | null
+          approved_date: string | null
           created_at: string
           date_assigned: string | null
           decision_number: string | null
           disbursed_amount: number
+          notes: string | null
+          period_end: number | null
+          period_start: number | null
           plan_id: string
+          plan_type: string | null
           project_id: string
           source: string | null
+          status: string | null
           year: number
         }
         Insert: {
           amount?: number
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_date?: string | null
           created_at?: string
           date_assigned?: string | null
           decision_number?: string | null
           disbursed_amount?: number
+          notes?: string | null
+          period_end?: number | null
+          period_start?: number | null
           plan_id: string
+          plan_type?: string | null
           project_id: string
           source?: string | null
+          status?: string | null
           year: number
         }
         Update: {
           amount?: number
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_date?: string | null
           created_at?: string
           date_assigned?: string | null
           decision_number?: string | null
           disbursed_amount?: number
+          notes?: string | null
+          period_end?: number | null
+          period_start?: number | null
           plan_id?: string
+          plan_type?: string | null
           project_id?: string
           source?: string | null
+          status?: string | null
           year?: number
         }
         Relationships: [
@@ -728,7 +769,9 @@ export type Database = {
           cap_cert_code: string | null
           contact_info: string | null
           contractor_id: string
+          contractor_type: string
           created_at: string
+          email: string | null
           established_year: number | null
           full_name: string
           is_foreign: boolean
@@ -736,13 +779,16 @@ export type Database = {
           representative: string | null
           tax_code: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           address?: string | null
           cap_cert_code?: string | null
           contact_info?: string | null
-          contractor_id: string
+          contractor_id?: string
+          contractor_type?: string
           created_at?: string
+          email?: string | null
           established_year?: number | null
           full_name: string
           is_foreign?: boolean
@@ -750,13 +796,16 @@ export type Database = {
           representative?: string | null
           tax_code?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           address?: string | null
           cap_cert_code?: string | null
           contact_info?: string | null
           contractor_id?: string
+          contractor_type?: string
           created_at?: string
+          email?: string | null
           established_year?: number | null
           full_name?: string
           is_foreign?: boolean
@@ -764,6 +813,7 @@ export type Database = {
           representative?: string | null
           tax_code?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -901,40 +951,55 @@ export type Database = {
       }
       disbursements: {
         Row: {
+          advance_balance: number | null
           amount: number
           capital_plan_id: string | null
+          contract_number: string | null
           created_at: string
+          cumulative_before: number | null
           date: string
+          description: string | null
           disbursement_id: string
           form_type: string | null
           payment_id: number | null
           project_id: string
           status: string
           treasury_code: string | null
+          type: string | null
         }
         Insert: {
+          advance_balance?: number | null
           amount?: number
           capital_plan_id?: string | null
+          contract_number?: string | null
           created_at?: string
+          cumulative_before?: number | null
           date: string
+          description?: string | null
           disbursement_id: string
           form_type?: string | null
           payment_id?: number | null
           project_id: string
           status?: string
           treasury_code?: string | null
+          type?: string | null
         }
         Update: {
+          advance_balance?: number | null
           amount?: number
           capital_plan_id?: string | null
+          contract_number?: string | null
           created_at?: string
+          cumulative_before?: number | null
           date?: string
+          description?: string | null
           disbursement_id?: string
           form_type?: string | null
           payment_id?: number | null
           project_id?: string
           status?: string
           treasury_code?: string | null
+          type?: string | null
         }
         Relationships: [
           {
@@ -1016,6 +1081,8 @@ export type Database = {
           is_digitized: boolean | null
           iso_status: string | null
           issue_date: string | null
+          issuing_authority: string | null
+          legal_status: string | null
           notes: string | null
           priority: string | null
           project_id: string | null
@@ -1026,6 +1093,7 @@ export type Database = {
           storage_path: string
           submitted_by: string | null
           submitted_by_org: string | null
+          updated_by: string | null
           upload_date: string
           uploaded_by: string | null
           version: string | null
@@ -1046,6 +1114,8 @@ export type Database = {
           is_digitized?: boolean | null
           iso_status?: string | null
           issue_date?: string | null
+          issuing_authority?: string | null
+          legal_status?: string | null
           notes?: string | null
           priority?: string | null
           project_id?: string | null
@@ -1056,6 +1126,7 @@ export type Database = {
           storage_path: string
           submitted_by?: string | null
           submitted_by_org?: string | null
+          updated_by?: string | null
           upload_date?: string
           uploaded_by?: string | null
           version?: string | null
@@ -1076,6 +1147,8 @@ export type Database = {
           is_digitized?: boolean | null
           iso_status?: string | null
           issue_date?: string | null
+          issuing_authority?: string | null
+          legal_status?: string | null
           notes?: string | null
           priority?: string | null
           project_id?: string | null
@@ -1086,6 +1159,7 @@ export type Database = {
           storage_path?: string
           submitted_by?: string | null
           submitted_by_org?: string | null
+          updated_by?: string | null
           upload_date?: string
           uploaded_by?: string | null
           version?: string | null
@@ -1116,6 +1190,8 @@ export type Database = {
           employee_id: string
           full_name: string
           join_date: string | null
+          managed_unit_ids: string[] | null
+          management_rank: number | null
           phone: string | null
           position: string | null
           role: string
@@ -1130,6 +1206,8 @@ export type Database = {
           employee_id: string
           full_name: string
           join_date?: string | null
+          managed_unit_ids?: string[] | null
+          management_rank?: number | null
           phone?: string | null
           position?: string | null
           role?: string
@@ -1144,11 +1222,43 @@ export type Database = {
           employee_id?: string
           full_name?: string
           join_date?: string | null
+          managed_unit_ids?: string[] | null
+          management_rank?: number | null
           phone?: string | null
           position?: string | null
           role?: string
           status?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      entity_registry: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          entity_type: string
+          icon: string | null
+          is_active: boolean | null
+          label: string
+          url_pattern: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          entity_type: string
+          icon?: string | null
+          is_active?: boolean | null
+          label: string
+          url_pattern?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          entity_type?: string
+          icon?: string | null
+          is_active?: boolean | null
+          label?: string
+          url_pattern?: string | null
         }
         Relationships: []
       }
@@ -1282,35 +1392,83 @@ export type Database = {
           },
         ]
       }
-      folders: {
+      inspections: {
         Row: {
-          folder_id: string
-          name: string
-          parent_id: string | null
-          path: string
-          type: string | null
+          attachments: Json | null
+          conclusion: string | null
+          created_at: string | null
+          created_by: string | null
+          decision_date: string | null
+          decision_number: string | null
+          end_date: string | null
+          follow_up_deadline: string | null
+          follow_up_notes: string | null
+          follow_up_status: string | null
+          inspection_agency: string | null
+          inspection_id: string
+          inspection_name: string
+          inspection_type: string
+          inspector_name: string | null
+          penalties: number | null
+          project_id: string
+          recommendations: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          folder_id?: string
-          name: string
-          parent_id?: string | null
-          path: string
-          type?: string | null
+          attachments?: Json | null
+          conclusion?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          decision_date?: string | null
+          decision_number?: string | null
+          end_date?: string | null
+          follow_up_deadline?: string | null
+          follow_up_notes?: string | null
+          follow_up_status?: string | null
+          inspection_agency?: string | null
+          inspection_id?: string
+          inspection_name: string
+          inspection_type?: string
+          inspector_name?: string | null
+          penalties?: number | null
+          project_id: string
+          recommendations?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          folder_id?: string
-          name?: string
-          parent_id?: string | null
-          path?: string
-          type?: string | null
+          attachments?: Json | null
+          conclusion?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          decision_date?: string | null
+          decision_number?: string | null
+          end_date?: string | null
+          follow_up_deadline?: string | null
+          follow_up_notes?: string | null
+          follow_up_status?: string | null
+          inspection_agency?: string | null
+          inspection_id?: string
+          inspection_name?: string
+          inspection_type?: string
+          inspector_name?: string | null
+          penalties?: number | null
+          project_id?: string
+          recommendations?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "folders_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: "inspections_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "folders"
-            referencedColumns: ["folder_id"]
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
           },
         ]
       }
@@ -1369,14 +1527,22 @@ export type Database = {
       }
       package_bidders: {
         Row: {
+          appointment_reason: string | null
           bid_price: number | null
           combined_score: number | null
           contractor_id: string
           created_at: string | null
+          decision_agency: string | null
+          decision_date: string | null
+          decision_number: string | null
           evaluation_file_name: string | null
           evaluation_file_url: string | null
           financial_score: number | null
+          hsdx_date: string | null
+          hsyc_date: string | null
           id: string
+          legal_basis: string | null
+          negotiated_price: number | null
           notes: string | null
           package_id: string
           rank: number | null
@@ -1384,14 +1550,22 @@ export type Database = {
           technical_score: number | null
         }
         Insert: {
+          appointment_reason?: string | null
           bid_price?: number | null
           combined_score?: number | null
           contractor_id: string
           created_at?: string | null
+          decision_agency?: string | null
+          decision_date?: string | null
+          decision_number?: string | null
           evaluation_file_name?: string | null
           evaluation_file_url?: string | null
           financial_score?: number | null
+          hsdx_date?: string | null
+          hsyc_date?: string | null
           id?: string
+          legal_basis?: string | null
+          negotiated_price?: number | null
           notes?: string | null
           package_id: string
           rank?: number | null
@@ -1399,21 +1573,44 @@ export type Database = {
           technical_score?: number | null
         }
         Update: {
+          appointment_reason?: string | null
           bid_price?: number | null
           combined_score?: number | null
           contractor_id?: string
           created_at?: string | null
+          decision_agency?: string | null
+          decision_date?: string | null
+          decision_number?: string | null
           evaluation_file_name?: string | null
           evaluation_file_url?: string | null
           financial_score?: number | null
+          hsdx_date?: string | null
+          hsyc_date?: string | null
           id?: string
+          legal_basis?: string | null
+          negotiated_price?: number | null
           notes?: string | null
           package_id?: string
           rank?: number | null
           status?: string
           technical_score?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "package_bidders_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["contractor_id"]
+          },
+          {
+            foreignKeyName: "package_bidders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "bidding_packages"
+            referencedColumns: ["package_id"]
+          },
+        ]
       }
       package_issues: {
         Row: {
@@ -1634,13 +1831,18 @@ export type Database = {
       }
       projects: {
         Row: {
+          above_ground_floors: number | null
           actual_end_date: string | null
           applicable_standards: string | null
           approval_date: string | null
+          basement_floors: number | null
           bim_status: string | null
+          building_density: number | null
+          building_height: number | null
           capital_source: string | null
           cde_project_code: string | null
           competent_authority: string | null
+          construction_area: number | null
           construction_grade: string | null
           construction_type: string | null
           coordinates: Json | null
@@ -1653,6 +1855,7 @@ export type Database = {
           duration: string | null
           expected_end_date: string | null
           feasibility_contractor: string | null
+          floor_area: number | null
           group_code: string
           image_url: string | null
           investment_type: number
@@ -1660,6 +1863,7 @@ export type Database = {
           is_emergency: boolean
           is_oda: boolean | null
           is_synced: boolean | null
+          land_use_coefficient: number | null
           last_sync_date: string | null
           location_code: string | null
           main_contractor_name: string | null
@@ -1672,27 +1876,35 @@ export type Database = {
           project_id: string
           project_name: string
           project_number: string | null
+          province_code: string | null
           requires_bim: boolean | null
           review_contractor: string | null
           sector: string | null
+          site_area: number | null
           stage: string | null
           start_date: string | null
           status: number
           supervision_contractor: string | null
           survey_contractor: string | null
           sync_error: string | null
+          total_estimate: number | null
           total_investment: number
           updated_at: string
           version: string | null
         }
         Insert: {
+          above_ground_floors?: number | null
           actual_end_date?: string | null
           applicable_standards?: string | null
           approval_date?: string | null
+          basement_floors?: number | null
           bim_status?: string | null
+          building_density?: number | null
+          building_height?: number | null
           capital_source?: string | null
           cde_project_code?: string | null
           competent_authority?: string | null
+          construction_area?: number | null
           construction_grade?: string | null
           construction_type?: string | null
           coordinates?: Json | null
@@ -1705,6 +1917,7 @@ export type Database = {
           duration?: string | null
           expected_end_date?: string | null
           feasibility_contractor?: string | null
+          floor_area?: number | null
           group_code?: string
           image_url?: string | null
           investment_type?: number
@@ -1712,6 +1925,7 @@ export type Database = {
           is_emergency?: boolean
           is_oda?: boolean | null
           is_synced?: boolean | null
+          land_use_coefficient?: number | null
           last_sync_date?: string | null
           location_code?: string | null
           main_contractor_name?: string | null
@@ -1724,27 +1938,35 @@ export type Database = {
           project_id: string
           project_name: string
           project_number?: string | null
+          province_code?: string | null
           requires_bim?: boolean | null
           review_contractor?: string | null
           sector?: string | null
+          site_area?: number | null
           stage?: string | null
           start_date?: string | null
           status?: number
           supervision_contractor?: string | null
           survey_contractor?: string | null
           sync_error?: string | null
+          total_estimate?: number | null
           total_investment?: number
           updated_at?: string
           version?: string | null
         }
         Update: {
+          above_ground_floors?: number | null
           actual_end_date?: string | null
           applicable_standards?: string | null
           approval_date?: string | null
+          basement_floors?: number | null
           bim_status?: string | null
+          building_density?: number | null
+          building_height?: number | null
           capital_source?: string | null
           cde_project_code?: string | null
           competent_authority?: string | null
+          construction_area?: number | null
           construction_grade?: string | null
           construction_type?: string | null
           coordinates?: Json | null
@@ -1757,6 +1979,7 @@ export type Database = {
           duration?: string | null
           expected_end_date?: string | null
           feasibility_contractor?: string | null
+          floor_area?: number | null
           group_code?: string
           image_url?: string | null
           investment_type?: number
@@ -1764,6 +1987,7 @@ export type Database = {
           is_emergency?: boolean
           is_oda?: boolean | null
           is_synced?: boolean | null
+          land_use_coefficient?: number | null
           last_sync_date?: string | null
           location_code?: string | null
           main_contractor_name?: string | null
@@ -1776,15 +2000,18 @@ export type Database = {
           project_id?: string
           project_name?: string
           project_number?: string | null
+          province_code?: string | null
           requires_bim?: boolean | null
           review_contractor?: string | null
           sector?: string | null
+          site_area?: number | null
           stage?: string | null
           start_date?: string | null
           status?: number
           supervision_contractor?: string | null
           survey_contractor?: string | null
           sync_error?: string | null
+          total_estimate?: number | null
           total_investment?: number
           updated_at?: string
           version?: string | null
@@ -1840,7 +2067,15 @@ export type Database = {
           warranty_start_date?: string | null
           warranty_status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "settlement_records_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["contract_id"]
+          },
+        ]
       }
       stage_transitions: {
         Row: {
@@ -1908,108 +2143,319 @@ export type Database = {
           task_id?: string
           title?: string
         }
+        Relationships: []
+      }
+      task_comments: {
+        Row: {
+          attachments: Json | null
+          comment_type: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          parent_comment_id: string | null
+          reactions: Json | null
+          task_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          comment_type?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          parent_comment_id?: string | null
+          reactions?: Json | null
+          task_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          comment_type?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          parent_comment_id?: string | null
+          reactions?: Json | null
+          task_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "sub_tasks_task_id_fkey"
+            foreignKeyName: "task_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "task_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
-            referencedColumns: ["task_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
+      task_links: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_label: string | null
+          entity_type: string
+          id: string
+          link_type: string | null
+          task_id: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          link_type?: string | null
+          task_id: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          link_type?: string | null
+          task_id?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_links_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_statuses: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          is_done: boolean | null
+          name: string
+          sort_order: number | null
+          space_id: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_done?: boolean | null
+          name: string
+          sort_order?: number | null
+          space_id?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_done?: boolean | null
+          name?: string
+          sort_order?: number | null
+          space_id?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
+          action_config: Json | null
+          action_label: string | null
+          action_type: string | null
           actual_end_date: string | null
           actual_start_date: string | null
           approver_id: string | null
+          approvers: string[] | null
           assignee_id: string | null
+          assignees: string[] | null
           attachments: Json | null
-          created_at: string
+          auto_generated: boolean | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_trigger: string | null
+          created_at: string | null
+          created_by: string | null
+          custom_fields: Json | null
           dependencies: Json | null
           description: string | null
           due_date: string | null
           duration_days: number | null
           estimated_cost: number | null
+          folder_id: string | null
+          id: string
           is_critical: boolean | null
+          is_private: boolean | null
           legal_basis: string | null
+          list_id: string | null
           output_document: string | null
+          parent_id: string | null
           phase: string | null
           predecessor_task_id: string | null
-          priority: string
+          priority: string | null
           progress: number | null
-          project_id: string
+          project_id: string | null
+          sort_order: number | null
+          source_entity_id: string | null
+          source_event: string | null
+          source_module: string | null
+          space_id: string | null
           start_date: string | null
-          status: string
+          status: string | null
+          status_id: string | null
           step_code: string | null
           sub_tasks: Json | null
-          task_id: string
+          supporters: string[] | null
+          tags: string[] | null
+          task_id: string | null
+          time_estimate: number | null
+          time_spent: number | null
           title: string
-          updated_at: string
+          updated_at: string | null
+          watchers: string[] | null
         }
         Insert: {
+          action_config?: Json | null
+          action_label?: string | null
+          action_type?: string | null
           actual_end_date?: string | null
           actual_start_date?: string | null
           approver_id?: string | null
+          approvers?: string[] | null
           assignee_id?: string | null
+          assignees?: string[] | null
           attachments?: Json | null
-          created_at?: string
+          auto_generated?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_trigger?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custom_fields?: Json | null
           dependencies?: Json | null
           description?: string | null
           due_date?: string | null
           duration_days?: number | null
           estimated_cost?: number | null
+          folder_id?: string | null
+          id?: string
           is_critical?: boolean | null
+          is_private?: boolean | null
           legal_basis?: string | null
+          list_id?: string | null
           output_document?: string | null
+          parent_id?: string | null
           phase?: string | null
           predecessor_task_id?: string | null
-          priority?: string
+          priority?: string | null
           progress?: number | null
-          project_id: string
+          project_id?: string | null
+          sort_order?: number | null
+          source_entity_id?: string | null
+          source_event?: string | null
+          source_module?: string | null
+          space_id?: string | null
           start_date?: string | null
-          status?: string
+          status?: string | null
+          status_id?: string | null
           step_code?: string | null
           sub_tasks?: Json | null
-          task_id: string
+          supporters?: string[] | null
+          tags?: string[] | null
+          task_id?: string | null
+          time_estimate?: number | null
+          time_spent?: number | null
           title: string
-          updated_at?: string
+          updated_at?: string | null
+          watchers?: string[] | null
         }
         Update: {
+          action_config?: Json | null
+          action_label?: string | null
+          action_type?: string | null
           actual_end_date?: string | null
           actual_start_date?: string | null
           approver_id?: string | null
+          approvers?: string[] | null
           assignee_id?: string | null
+          assignees?: string[] | null
           attachments?: Json | null
-          created_at?: string
+          auto_generated?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_trigger?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custom_fields?: Json | null
           dependencies?: Json | null
           description?: string | null
           due_date?: string | null
           duration_days?: number | null
           estimated_cost?: number | null
+          folder_id?: string | null
+          id?: string
           is_critical?: boolean | null
+          is_private?: boolean | null
           legal_basis?: string | null
+          list_id?: string | null
           output_document?: string | null
+          parent_id?: string | null
           phase?: string | null
           predecessor_task_id?: string | null
-          priority?: string
+          priority?: string | null
           progress?: number | null
-          project_id?: string
+          project_id?: string | null
+          sort_order?: number | null
+          source_entity_id?: string | null
+          source_event?: string | null
+          source_module?: string | null
+          space_id?: string | null
           start_date?: string | null
-          status?: string
+          status?: string | null
+          status_id?: string | null
           step_code?: string | null
           sub_tasks?: Json | null
-          task_id?: string
+          supporters?: string[] | null
+          tags?: string[] | null
+          task_id?: string | null
+          time_estimate?: number | null
+          time_spent?: number | null
           title?: string
-          updated_at?: string
+          updated_at?: string | null
+          watchers?: string[] | null
         }
         Relationships: [
           {
-            foreignKeyName: "tasks_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["project_id"]
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "task_statuses"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2032,7 +2478,7 @@ export type Database = {
           employee_id?: string | null
           is_active?: boolean
           last_login?: string | null
-          password_hash?: string
+          password_hash: string
           updated_at?: string
           username: string
         }
@@ -2133,6 +2579,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_project_tasks: { Args: { p_project_id: string }; Returns: number }
+      get_user_profile_by_auth_id: {
+        Args: { p_auth_user_id: string }
+        Returns: Json
+      }
+      resolve_user_identity: { Args: { p_identifier: string }; Returns: Json }
       seed_cde_folders: { Args: { p_project_id: string }; Returns: undefined }
     }
     Enums: {

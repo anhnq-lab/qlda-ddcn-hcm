@@ -44,6 +44,7 @@ const LegalDocumentSearch = React.lazy(() => import('./features/legal-documents/
 const Settings = React.lazy(() => import('./features/settings/Settings'));
 const AuditLogViewer = React.lazy(() => import('./features/admin/AuditLogViewer'));
 const AdminUserManagement = React.lazy(() => import('./features/admin/AdminUserManagement'));
+const WorkflowMasterPage = React.lazy(() => import('./features/workflows/WorkflowMasterPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -128,6 +129,8 @@ const App: React.FC = () => {
                                                 </React.Suspense>
                                             </ProtectedRoute>
                                         } />
+                                        {/* Workflow Master */}
+                                        <Route path="workflow-master" element={<React.Suspense fallback={<PageLoadingFallback />}><WorkflowMasterPage /></React.Suspense>} />
                                         {/* Backward-compatible redirects */}
                                         <Route path="user-accounts" element={<Navigate to="/admin?tab=accounts" replace />} />
                                         <Route path="permissions" element={<Navigate to="/admin?tab=permissions" replace />} />

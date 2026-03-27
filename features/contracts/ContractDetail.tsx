@@ -25,15 +25,26 @@ import { useTasks } from '../../hooks/useTasks';
 import { useVariationOrders } from '../../hooks/useVariationOrders';
 import { VariationOrderTab } from './components/VariationOrderTab';
 
-const ContractDetail: React.FC = () => {
+export interface ContractDetailProps {
+    contractId?: string;
+    asSlidePanel?: boolean;
+}
+
+const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContractId, asSlidePanel }) => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useTabSearchParam('general', ['general', 'variation', 'boq', 'payment', 'progress'] as const);
+    const [paramTab, setParamTab] = useTabSearchParam('general', ['general', 'variation', 'boq', 'payment', 'progress'] as const);
+    const [localTab, setLocalTab] = useState<'general' | 'variation' | 'boq' | 'payment' | 'progress'>('general');
+    
+    const activeTab = asSlidePanel ? localTab : paramTab;
+    const setActiveTab = asSlidePanel ? setLocalTab : setParamTab;
+
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // 1. Get Data with decoding to handle IDs containing slashes
-    const contractId = decodeURIComponent(id || '');
+    const rParamId = decodeURIComponent(id || '');
+    const contractId = propContractId || rParamId;
     const { contracts } = useContracts();
     const { payments: allPayments } = usePayments();
     const { projects: allProjects } = useProjects();
@@ -126,9 +137,11 @@ const ContractDetail: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/bidding?tab=contracts')} className="p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                        <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                    </button>
+                    {!asSlidePanel && (
+                        <button onClick={() => navigate('/bidding?tab=contracts')} className="p-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                        </button>
+                    )}
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-black text-gray-800 dark:text-slate-100 tracking-tight">Hợp đồng số: {contract.ContractID}</h1>

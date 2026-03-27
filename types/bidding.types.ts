@@ -1,17 +1,40 @@
 // Bidding & Contractor types
 
 // 4.1. Bảng dữ liệu: Contractors (Tổ chức Nhà thầu)
+
+export type ContractorType =
+    | 'Construction'    // Thi công xây lắp
+    | 'Consultancy'     // Tư vấn thiết kế
+    | 'Supervision'     // Tư vấn giám sát
+    | 'Survey'          // Khảo sát
+    | 'Appraisal'       // Thẩm tra
+    | 'Supplier'        // Cung cấp vật tư/thiết bị
+    | 'Other';          // Khác
+
+export const CONTRACTOR_TYPE_LABELS: Record<ContractorType, string> = {
+    Construction: 'Thi công',
+    Consultancy: 'Tư vấn',
+    Supervision: 'Giám sát',
+    Survey: 'Khảo sát',
+    Appraisal: 'Thẩm tra',
+    Supplier: 'Vật tư',
+    Other: 'Khác',
+};
+
 export interface Contractor {
     ContractorID: string;
     CapCertCode: string;
     FullName: string;
-    IsForeign: boolean;
+    IsForeign: boolean;           // Legacy — kept for backward compat
+    ContractorType: ContractorType;
     OpLicenseNo?: string;
     Address: string;
     ContactInfo: string;
     TaxCode?: string;
     Representative?: string;
     EstablishedYear?: number;
+    Email?: string;
+    Website?: string;
 }
 
 // 5.1. Bảng dữ liệu: BiddingPackages (Gói thầu)
