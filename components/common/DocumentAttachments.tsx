@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Paperclip, Upload, Trash2, Download, FileText, Image,
@@ -23,7 +23,7 @@ const FILE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
     image: { icon: Image, color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/30' },
     excel: { icon: FileSpreadsheet, color: 'text-green-500 bg-green-50 dark:bg-green-900/30' },
     word: { icon: FileText, color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
-    other: { icon: File, color: 'text-gray-500 bg-gray-50 dark:bg-slate-700' },
+    other: { icon: File, color: 'text-gray-500 bg-[#F5EFE6] dark:bg-slate-700' },
 };
 
 const ACCEPT = '.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.zip,.rar';
@@ -152,7 +152,7 @@ export const DocumentAttachments: React.FC<DocumentAttachmentsProps> = ({
                         return (
                             <div
                                 key={doc.id}
-                                className="flex items-center gap-2.5 p-2 rounded-lg border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 group transition-colors"
+                                className="flex items-center gap-2.5 p-2 rounded-lg border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 group transition-colors"
                             >
                                 {/* Icon */}
                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
@@ -214,7 +214,7 @@ export const DocumentAttachments: React.FC<DocumentAttachmentsProps> = ({
                     <div className="relative max-w-4xl max-h-[90vh] p-2">
                         <button
                             onClick={() => setPreviewUrl(null)}
-                            className="absolute -top-3 -right-3 w-8 h-8 bg-white dark:bg-slate-800 rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-red-500 z-10"
+                            className="absolute -top-3 -right-3 w-8 h-8 bg-[#FCF9F2] dark:bg-slate-800 rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-red-500 z-10"
                         >
                             <X className="w-4 h-4" />
                         </button>

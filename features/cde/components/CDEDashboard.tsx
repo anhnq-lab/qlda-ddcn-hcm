@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { BarChart3, TrendingUp, FileText, Clock, CheckCircle2, XCircle, Users, FolderOpen, ArrowUp, ArrowDown } from 'lucide-react';
 import type { CDEDocument, CDEStats } from '../types';
 import { CDE_STATUS_CONFIG, CDE_DISCIPLINES, CDE_DOC_TYPES } from '../constants';
+import { StatCard } from '../../../components/ui';
 
 interface CDEDashboardProps {
     stats: CDEStats | undefined;
@@ -73,10 +74,10 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
     );
 
     const kpis = [
-        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, className: 'stat-card-slate', change: '+12%', up: true },
-        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, className: 'stat-card-amber', change: null, up: false },
-        { label: 'Tỷ lệ duyệt', value: `${analytics.approvalRate}%`, icon: CheckCircle2, className: 'stat-card-emerald', change: '+5%', up: true },
-        { label: 'Bị từ chối', value: analytics.totalRejected, icon: XCircle, className: 'stat-card-rose', change: null, up: false },
+        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, color: 'slate' as const, change: 12, up: true },
+        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, color: 'amber' as const, change: null, up: false },
+        { label: 'Tỷ lệ duyệt', value: `${analytics.approvalRate}%`, icon: CheckCircle2, color: 'emerald' as const, change: 5, up: true },
+        { label: 'Bị từ chối', value: analytics.totalRejected, icon: XCircle, color: 'rose' as const, change: null, up: false },
     ];
 
     return (
@@ -95,25 +96,20 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
             {/* KPI Cards */}
             <div className="grid grid-cols-4 gap-4">
                 {kpis.map((kpi, idx) => (
-                    <div key={idx} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 stat-card ${kpi.className}`}>
-                        <kpi.icon className="absolute -right-3 -top-3 w-20 h-20 opacity-[0.08]" />
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/80 mb-1">{kpi.label}</p>
-                        <div className="flex items-end gap-2">
-                            <span className="text-3xl font-black tracking-tight drop-shadow-sm">{kpi.value}</span>
-                            {kpi.change && (
-                                <span className={`flex items-center gap-0.5 text-[10px] font-bold mb-1 ${kpi.up ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    {kpi.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                                    {kpi.change}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    <StatCard
+                        key={idx}
+                        label={kpi.label}
+                        value={kpi.value.toString()}
+                        icon={<kpi.icon className="w-5 h-5 flex-shrink-0" />}
+                        color={kpi.color}
+                        trendPercentage={kpi.change !== null ? (kpi.up ? kpi.change : -kpi.change) : undefined}
+                    />
                 ))}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 {/* Status Distribution */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5">
                     <h3 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-4">Phân bố trạng thái</h3>
                     <div className="space-y-3">
                         {Object.entries(analytics.byStatus).map(([status, count]) => {
@@ -142,7 +138,7 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
                 </div>
 
                 {/* Discipline Distribution */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5">
                     <h3 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-4">Theo lĩnh vực</h3>
                     <div className="space-y-3">
                         {topDisciplines.map((item, idx) => {
@@ -166,7 +162,7 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
                 </div>
 
                 {/* Document Types */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5">
                     <h3 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-4">Theo loại hồ sơ</h3>
                     <div className="space-y-2.5">
                         {topDocTypes.map((item, idx) => (
@@ -183,7 +179,7 @@ const CDEDashboard: React.FC<CDEDashboardProps> = ({ stats, docs, projectName })
                 </div>
 
                 {/* Monthly Trend */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-5">
                     <h3 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
                         <TrendingUp className="w-3.5 h-3.5" /> Xu hướng theo tháng
                     </h3>

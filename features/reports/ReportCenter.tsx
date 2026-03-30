@@ -74,22 +74,25 @@ const ReportCenter: React.FC = () => {
             </div>
 
             {/* BC-03: Đồng bộ CSDL Quốc gia */}
-            <div className="rounded-2xl shadow-lg p-6 text-white overflow-hidden relative bg-gradient-to-br from-slate-800 via-amber-900 to-yellow-900">
-                <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10"></div>
-                <div className="flex justify-between items-start relative z-10">
+            <div className="rounded-2xl shadow-sm p-4 overflow-hidden relative border bg-[#FCF9F2] dark:bg-slate-800 dark:border-slate-700 border-gray-200">
+                <div className="absolute right-0 top-0 h-full w-1/3 bg-blue-50/50 dark:bg-blue-900/10 skew-x-12 transform translate-x-10 pointer-events-none"></div>
+                
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center relative z-10 gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <Database className="w-6 h-6 text-blue-300" />
-                            <h3 className="text-lg font-bold">Hệ thống Thông tin Quốc gia về Đầu tư công</h3>
+                            <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-slate-700 shrink-0">
+                                <Database className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Hệ thống Thông tin Quốc gia về Đầu tư công</h3>
                         </div>
-                        <p className="text-blue-200 text-sm max-w-xl">
+                        <p className="text-gray-500 dark:text-slate-400 text-sm max-w-xl pl-16">
                             Tính năng tự động đồng bộ dữ liệu dự án, gói thầu về CSDL Quốc gia qua API theo chuẩn Nghị định 111/2025/NĐ-CP.
                         </p>
 
-                        <div className="flex items-center gap-4 mt-6">
+                        <div className="flex items-center gap-4 mt-5 pl-16">
                             <div className="flex flex-col">
-                                <span className="text-xs text-blue-300 uppercase">Trạng thái kết nối</span>
-                                <span className="flex items-center gap-2 font-medium text-emerald-400">
+                                <span className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">Trạng thái kết nối</span>
+                                <span className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
                                     <span className="relative flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -97,21 +100,22 @@ const ReportCenter: React.FC = () => {
                                     Đã kết nối (API v2.0)
                                 </span>
                             </div>
-                            <div className="w-px h-8 bg-white/20"></div>
                             <div className="flex flex-col">
-                                <span className="text-xs text-blue-300 uppercase">Lần đồng bộ cuối</span>
-                                <span className="font-medium">Hôm nay, 08:30 AM</span>
+                                <span className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">Lần đồng bộ cuối</span>
+                                <span className="text-sm font-bold text-gray-700 dark:text-slate-300 px-3 py-1.5 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-100 dark:border-slate-600">
+                                    Hôm nay, 08:30 AM
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="flex flex-col items-start lg:items-end w-full lg:w-auto">
                         <button
                             onClick={handleSync}
                             disabled={isSyncing || syncStatus === 'success'}
-                            className={`flex items - center gap - 2 px - 6 py - 3 rounded - xl font - bold transition - all ${syncStatus === 'success'
-                                ? 'bg-emerald-500 text-white cursor-default'
-                                : 'bg-white text-blue-900 hover:bg-blue-50'
+                            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${syncStatus === 'success'
+                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-default shadow-lg'
+                                : 'bg-primary-600 hover:bg-primary-500 dark:bg-blue-500 dark:hover:bg-primary-600 text-white shadow-md shadow-primary-500/20 hover:shadow-lg hover:-translate-y-0.5'
                                 } `}
                         >
                             {isSyncing ? (
@@ -124,7 +128,10 @@ const ReportCenter: React.FC = () => {
                             {isSyncing ? 'Đang đồng bộ...' : syncStatus === 'success' ? 'Đồng bộ thành công' : 'Đồng bộ ngay'}
                         </button>
                         {syncStatus === 'success' && (
-                            <p className="text-xs text-emerald-300 mt-2 animate-in fade-in">Đã gửi 15 gói dữ liệu JSON.</p>
+                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-3 animate-in fade-in flex items-center justify-center gap-1.5 w-full">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Đã gửi 15 gói dữ liệu JSON.
+                            </p>
                         )}
                     </div>
                 </div>
@@ -137,7 +144,7 @@ const ReportCenter: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* BC-01: Báo cáo giám sát đầu tư */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
                     <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 mb-4 group-hover:scale-110 transition-transform">
                         <BarChart2 className="w-6 h-6" />
                     </div>
@@ -173,8 +180,8 @@ const ReportCenter: React.FC = () => {
                 </div>
 
                 {/* BC-02: Giải ngân */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
-                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 group-hover:scale-110 transition-transform">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
+                    <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/30 rounded-xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4 group-hover:scale-110 transition-transform">
                         <PieChart className="w-6 h-6" />
                     </div>
                     <h4 className="text-base font-bold text-gray-800 dark:text-slate-200 mb-2">Báo cáo Tình hình Giải ngân</h4>
@@ -188,7 +195,7 @@ const ReportCenter: React.FC = () => {
                             disabled={exportingReport === 'disbursement'}
                             className={`text - sm font - bold flex items - center gap - 1 transition - colors ${exportSuccess === 'disbursement'
                                 ? 'text-emerald-600'
-                                : 'text-amber-600 hover:text-amber-700'
+                                : 'text-primary-600 hover:text-primary-700'
                                 } `}
                         >
                             {exportingReport === 'disbursement' ? (
@@ -209,8 +216,8 @@ const ReportCenter: React.FC = () => {
                 </div>
 
                 {/* Other Report */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
-                    <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center text-yellow-600 dark:text-yellow-400 mb-4 group-hover:scale-110 transition-transform">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
+                    <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center text-primary-600 dark:text-yellow-400 mb-4 group-hover:scale-110 transition-transform">
                         <AlertTriangle className="w-6 h-6" />
                     </div>
                     <h4 className="text-base font-bold text-gray-800 dark:text-slate-200 mb-2">Báo cáo Xử lý Vướng mắc</h4>
@@ -224,7 +231,7 @@ const ReportCenter: React.FC = () => {
                             disabled={exportingReport === 'issues'}
                             className={`text - sm font - bold flex items - center gap - 1 transition - colors ${exportSuccess === 'issues'
                                 ? 'text-emerald-600'
-                                : 'text-yellow-600 hover:text-yellow-700'
+                                : 'text-primary-600 hover:text-primary-700'
                                 } `}
                         >
                             {exportingReport === 'issues' ? (

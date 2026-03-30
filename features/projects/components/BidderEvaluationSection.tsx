@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Search, Plus, X, Users, Loader2, Building2, Save, Upload, ArrowUpDown, AlertTriangle as AlertTriangleIcon,
@@ -137,7 +137,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
         submitted: { label: 'Đã nộp', color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' },
         valid: { label: 'Hợp lệ', color: 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' },
         invalid: { label: 'Không hợp lệ', color: 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' },
-        winner: { label: 'Trúng thầu', color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' },
+        winner: { label: 'Trúng thầu', color: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300' },
     };
 
     if (isLoading) {
@@ -162,7 +162,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                                     }));
                                     e.dataTransfer.effectAllowed = 'copy';
                                 }}
-                                className="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 cursor-grab active:cursor-grabbing hover:bg-gray-50 dark:hover:bg-slate-750"
+                                className="flex items-center gap-2 p-2.5 bg-[#FCF9F2] dark:bg-slate-800 cursor-grab active:cursor-grabbing hover:bg-[#F5EFE6] dark:hover:bg-slate-750"
                                 onClick={() => setEditingBidder(editingBidder === b.id ? null : b.id!)}
                                 title="Kéo thả nhà thầu này sang Kết quả lựa chọn nhà thầu hoặc click để xem chi tiết"
                             >
@@ -207,7 +207,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
             {/* Add bidder search */}
             {isAdding ? (
                 <div ref={dropdownRef} className="relative">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded-lg ring-2 ring-blue-500/20">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-[#FCF9F2] dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded-lg ring-2 ring-blue-500/20">
                         <Search className="w-4 h-4 text-blue-400 shrink-0" />
                         <input
                             autoFocus
@@ -223,7 +223,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                         </button>
                     </div>
                     {isDropdownOpen && (
-                        <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-40 overflow-y-auto">
+                        <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-40 overflow-y-auto">
                             {filteredContractors.length > 0 ? filteredContractors.map(c => (
                                 <button
                                     key={c.ContractorID}
@@ -258,7 +258,7 @@ export const BidderListSection: React.FC<BidderEvaluationSectionProps> = ({ pack
 
             {/* Summary */}
             {bidders.length > 0 && (
-                <div className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-slate-800 rounded text-xs text-gray-500 dark:text-slate-400">
+                <div className="flex items-center justify-between px-2 py-1.5 bg-[#F5EFE6] dark:bg-slate-800 rounded text-xs text-gray-500 dark:text-slate-400">
                     <span>{bidders.length} nhà thầu tham gia</span>
                     {bidders.filter(b => b.status === 'valid' || b.status === 'winner').length > 0 && (
                         <span className="text-green-600 dark:text-green-400">
@@ -326,11 +326,11 @@ const EditBidderRow: React.FC<{
         });
     };
 
-    const inputClass = "w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 dark:text-slate-200";
+    const inputClass = "w-full px-2 py-1.5 text-xs bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 dark:text-slate-200";
     const labelClass = "text-[10px] font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1";
 
     return (
-        <div className="p-3 bg-gray-50 dark:bg-slate-850 border-t border-gray-200 dark:border-slate-700 space-y-3">
+        <div className="p-3 bg-[#F5EFE6] dark:bg-slate-850 border-t border-gray-200 dark:border-slate-700 space-y-3">
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <label className={labelClass}>Giá dự thầu (VND)</label>
@@ -390,7 +390,7 @@ const EditBidderRow: React.FC<{
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-500 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                     {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                     Lưu
@@ -462,13 +462,13 @@ const InlineScoreRow: React.FC<{
         }
     };
 
-    const inputClass = "w-full text-center px-1 py-1 text-xs bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-slate-600 focus:border-blue-400 focus:bg-white dark:focus:bg-slate-900 focus:ring-1 focus:ring-blue-400 rounded outline-none transition-colors tabular-nums";
+    const inputClass = "w-full text-center px-1 py-1 text-xs bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-slate-600 focus:border-blue-400 focus:bg-[#FCF9F2] dark:focus:bg-slate-900 focus:ring-1 focus:ring-blue-400 rounded outline-none transition-colors tabular-nums";
 
     return (
-        <tr className={`border-b border-gray-100 dark:border-slate-800 ${bidder.status === 'winner' ? 'bg-amber-50/50 dark:bg-amber-950/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'}`}>
+        <tr className={`border-b border-gray-100 dark:border-slate-800 ${bidder.status === 'winner' ? 'bg-primary-50/50 dark:bg-primary-950/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
             <td className="py-1.5 px-2">
                 <div className="flex items-center gap-1.5">
-                    {bidder.status === 'winner' && <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                    {bidder.status === 'winner' && <Trophy className="w-3.5 h-3.5 text-primary-500 shrink-0" />}
                     <span className="font-medium text-gray-800 dark:text-slate-200 truncate" title={bidder.contractor?.FullName}>
                         {bidder.contractor?.FullName || bidder.contractor_id}
                     </span>
@@ -511,7 +511,7 @@ const InlineScoreRow: React.FC<{
             </td>
             <td className="py-1.5 px-1 text-center">
                 {bidder.rank ? (
-                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${bidder.rank === 1 ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' :
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${bidder.rank === 1 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300' :
                         'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400'
                         }`}>{bidder.rank}</span>
                 ) : '-'}
@@ -701,7 +701,7 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                             autoRankMutation.mutate();
                         }}
                         disabled={autoRankMutation.isPending || scoredBidders.length === 0}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-lg border border-amber-200 dark:border-amber-800 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg border border-primary-200 dark:border-primary-800 transition-colors disabled:opacity-50"
                     >
                         {autoRankMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpDown className="w-3.5 h-3.5" />}
                         Tự động xếp hạng
@@ -711,7 +711,7 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
 
             {/* Warning for unscored bidders */}
             {unscoredBidders.length > 0 && bidders.length > 0 && hasAnyScores && (
-                <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+                <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/20 border border-primary-200 dark:border-primary-800 rounded-lg p-2">
                     <AlertTriangleIcon className="w-3.5 h-3.5 shrink-0" />
                     <span>{unscoredBidders.length} nhà thầu chưa có điểm: {unscoredBidders.map(b => b.contractor?.FullName || b.contractor_id).join(', ')}</span>
                 </div>

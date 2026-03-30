@@ -40,7 +40,7 @@ export const ProjectLifecycleTracker: React.FC<TrackerProps> = ({ currentPhase, 
   const currentIndex = PHASES.findIndex((p) => p.id === currentPhase);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm mb-6 w-full">
+    <div className="bg-[#FCF9F2] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-lg mb-6 w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -68,7 +68,7 @@ export const ProjectLifecycleTracker: React.FC<TrackerProps> = ({ currentPhase, 
               <div key={phase.id} className="group relative flex flex-col items-center w-1/4">
                 {/* Node Status Indicator */}
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-200 mb-3 bg-white dark:bg-slate-900 ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-200 mb-3 bg-[#FCF9F2] dark:bg-slate-900 ${
                     isCompleted
                       ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
                       : isCurrent
@@ -131,7 +131,7 @@ export const ProjectLifecycleTracker: React.FC<TrackerProps> = ({ currentPhase, 
                       
                       <button
                         onClick={() => onStartTour?.(phase.id)}
-                        className="w-full py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm focus:outline-none"
+                        className="w-full py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-lg focus:outline-none"
                       >
                         <PlayCircle size={14} />
                         Khởi động Tour hướng dẫn

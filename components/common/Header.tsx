@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Search, LogOut, Menu, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationCenter } from './NotificationCenter';
@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
     };
 
     return (
-        <header className="h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 transition-colors duration-200">
+        <header className="h-16 bg-[#FCF9F2]/95 dark:bg-slate-900 backdrop-blur-md border-b border-[#ece7de] dark:border-slate-800 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 transition-colors duration-200">
             {/* Left: Mobile menu + Search */}
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
                 <button
@@ -71,10 +71,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                     </div>
                     <button
                         onClick={onOpenSearch}
-                        className="block w-full pl-10 pr-3 py-2 text-left border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-sm text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all cursor-pointer group shadow-sm"
+                        className="block w-full pl-10 pr-3 py-2 text-left border border-[#ece7de] dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-[#FCF9F2] dark:hover:bg-slate-700 text-sm text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all cursor-pointer group shadow-lg"
                     >
                         Tìm kiếm dự án, dữ liệu...
-                        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 bg-white dark:bg-slate-700 text-[10px] font-bold text-slate-400 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-600">
+                        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FCF9F2] dark:bg-slate-700 text-[10px] font-bold text-slate-400 dark:text-slate-300 rounded border border-[#ece7de] dark:border-slate-600">
                             Ctrl+K
                         </kbd>
                     </button>
@@ -110,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                     )}
                 </div>
 
-                <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700/50 mx-1 hidden sm:block"></div>
+                <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
 
                 {/* User Menu */}
                 <div className="relative" ref={menuRef}>
@@ -122,10 +122,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                             <img
                                 src={currentUser.AvatarUrl}
                                 alt={currentUser?.FullName || 'User'}
-                                className="w-8 h-8 rounded-full object-cover ring-2 ring-amber-100 dark:ring-amber-900/50"
+                                className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-100 dark:ring-primary-900/50"
                             />
                         ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center ring-2 ring-amber-100 dark:ring-amber-900/50 shadow-sm">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center ring-2 ring-primary-100 dark:ring-primary-900/50 shadow-lg">
                                 <span className="text-white text-xs font-bold">
                                     {currentUser?.FullName?.charAt(0) || 'U'}
                                 </span>
@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
 
                     {/* Dropdown Menu */}
                     {showUserMenu && (
-                        <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                        <div className="absolute right-0 top-full mt-2 w-72 bg-[#FCF9F2] dark:bg-slate-900 rounded-xl shadow-xl border border-[#ece7de] dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-3">
                                     {currentUser?.AvatarUrl ? (
@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                                             className="w-10 h-10 rounded-full object-cover shrink-0"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shrink-0">
                                             <span className="text-white text-sm font-bold">
                                                 {currentUser?.FullName?.charAt(0) || 'U'}
                                             </span>
@@ -179,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                                         <button
                                             onClick={() => toggleTheme('light')}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${theme === 'light'
-                                                ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm'
+                                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-lg border border-[#ece7de] dark:border-transparent'
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
                                         >
@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onMenuClick }) => 
                                         <button
                                             onClick={() => toggleTheme('dark')}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${theme === 'dark'
-                                                ? 'bg-slate-800 dark:bg-slate-700 text-amber-400 shadow-sm'
+                                                ? 'bg-slate-800 dark:bg-slate-700 text-primary-400 shadow-lg'
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
                                         >

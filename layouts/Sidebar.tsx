@@ -22,7 +22,7 @@ import {
   Layers,
   CalendarRange,
   GitBranch,
-
+  Network
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissionCheck } from '../hooks/usePermissionCheck';
@@ -56,7 +56,8 @@ const navItems: NavItem[] = [
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
   { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase, resource: 'contracts' },
   { name: 'KH Vốn & Giải ngân', path: '/capital-planning', icon: CalendarRange, resource: 'projects' },
-  { name: 'Quy trình mẫu', path: '/workflow-master', icon: GitBranch, resource: 'projects' },
+  { name: 'Quy trình dự án (Cũ)', path: '/workflow-master', icon: GitBranch, resource: 'projects' },
+  { name: 'Hệ thống Quy trình ISO', path: '/iso-workflows', icon: Network, resource: 'projects' },
   { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
   { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'projects' },
   { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },
@@ -95,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div
       className={`
         h-full flex flex-col justify-between
-        transition-all duration-300 ease-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50
+        transition-all duration-300 ease-out bg-[#FCF9F2] dark:bg-slate-900 border-r border-[#ece7de] dark:border-slate-800 z-50
         ${isCollapsed ? 'w-20' : 'w-64'}
       `}
     >
@@ -107,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Logo - Expanded state */}
           <div className={`flex items-center overflow-hidden transition-all duration-300 gap-3 ${isCollapsed ? 'md:hidden' : 'w-auto'}`}>
-            <div className="w-10 h-10 bg-white rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+            <div className="w-10 h-10 bg-[#FCF9F2] rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-lg border border-[#ece7de]">
                <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
             </div>
             <div className="animate-fade-in flex flex-col justify-center min-w-0">
@@ -118,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Logo - Collapsed state */}
           <div className={`hidden transition-all duration-300 ${isCollapsed ? 'md:flex justify-center' : ''}`}>
-             <div className="w-10 h-10 bg-white rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+             <div className="w-10 h-10 bg-[#FCF9F2] rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-lg border border-[#ece7de]">
                <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
              </div>
           </div>
@@ -135,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               className={({ isActive }) => `
                 relative w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
                 ${isActive
-                  ? 'bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm dark:shadow-amber-500/5 border-l-[3px] border-l-amber-500 dark:border-l-amber-400'
+                  ? 'bg-primary-50 dark:bg-slate-800 text-primary-700 dark:text-primary-400 shadow-lg dark:shadow-primary-500/5 border-l-[3px] border-l-primary-600 dark:border-l-primary-500'
                   : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 border-l-[3px] border-l-transparent'
                 }
                 ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
@@ -154,12 +155,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                   {/* Badge */}
                   {item.badge && !isCollapsed && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-black rounded-md leading-none bg-amber-500 text-white shadow-sm">
+                    <span className="px-1.5 py-0.5 text-[10px] font-black rounded-md leading-none bg-primary-500 text-white shadow-lg">
                       {item.badge}
                     </span>
                   )}
                   {item.badge && isCollapsed && (
-                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 border-2 border-white dark:border-slate-900" />
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-500 border-2 border-white dark:border-slate-900" />
                   )}
                 </>
               )}
@@ -176,7 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={onToggleCollapse}
             className={`
               w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-lg transition-all mb-1
-              text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 border-l-[3px] border-l-transparent
+              text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400 border-l-[3px] border-l-transparent
               ${isCollapsed ? 'md:px-0 md:justify-center' : ''}
             `}
             aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}

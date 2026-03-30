@@ -1,10 +1,10 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import { ScanSearch, RefreshCw, AlertTriangle, AlertCircle, Info, ChevronRight } from 'lucide-react';
 import { scanAllAnomalies, AnomalyReport, Anomaly } from '../../services/ai/anomalyDetector';
 
 const levelConfig = {
     critical: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', icon: AlertTriangle, iconClass: 'text-red-600', badge: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300', label: 'Nghiêm trọng' },
-    warning: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', icon: AlertCircle, iconClass: 'text-amber-600', badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300', label: 'Cảnh báo' },
+    warning: { bg: 'bg-primary-50 dark:bg-primary-900/20', border: 'border-primary-200 dark:border-primary-800', icon: AlertCircle, iconClass: 'text-primary-600', badge: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300', label: 'Cảnh báo' },
     info: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', icon: Info, iconClass: 'text-blue-600', badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300', label: 'Lưu ý' },
 };
 
@@ -26,8 +26,8 @@ export const AIAnomalyDetector: React.FC<{ className?: string }> = ({ className 
     }, []);
 
     return (
-        <div className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden ${className}`}>
+            <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
                         <ScanSearch size={14} className="text-white" />
@@ -68,9 +68,9 @@ export const AIAnomalyDetector: React.FC<{ className?: string }> = ({ className 
                             <p className="text-lg font-black text-red-700 dark:text-red-300">{report.criticalCount}</p>
                             <p className="text-[9px] text-red-500">Nghiêm trọng</p>
                         </div>
-                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2 text-center">
-                            <p className="text-lg font-black text-amber-700 dark:text-amber-300">{report.warningCount}</p>
-                            <p className="text-[9px] text-amber-500">Cảnh báo</p>
+                        <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-2 text-center">
+                            <p className="text-lg font-black text-primary-700 dark:text-primary-300">{report.warningCount}</p>
+                            <p className="text-[9px] text-primary-500">Cảnh báo</p>
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center">
                             <p className="text-lg font-black text-blue-700 dark:text-blue-300">{report.infoCount}</p>
@@ -113,7 +113,7 @@ export const AIAnomalyDetector: React.FC<{ className?: string }> = ({ className 
                                         </div>
                                     )}
                                     {anomaly.suggestion && (
-                                        <div className="p-1.5 bg-white/60 dark:bg-slate-700/30 rounded text-[10px] text-slate-600 dark:text-slate-300">
+                                        <div className="p-1.5 bg-white/60 dark:bg-slate-700 rounded text-[10px] text-slate-600 dark:text-slate-300">
                                             💡 {anomaly.suggestion}
                                         </div>
                                     )}

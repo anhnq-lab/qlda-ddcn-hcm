@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { X, Upload, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import type { CDEFolder } from '../types';
 import { CDE_DISCIPLINES, CDE_DOC_TYPES, formatFileSize } from '../constants';
@@ -45,9 +45,9 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/80">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between bg-[#F5EFE6] dark:bg-slate-800">
                     <div>
                         <h2 className="text-lg font-black text-gray-800 dark:text-slate-100">Nộp hồ sơ</h2>
                         <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
@@ -98,7 +98,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                         <select
                             value={folderId}
                             onChange={(e) => setFolderId(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                            className="w-full px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                         >
                             <option value="">— Chọn thư mục —</option>
                             {wipFolders.map(f => (
@@ -116,7 +116,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                             <select
                                 value={discipline}
                                 onChange={(e) => setDiscipline(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200"
+                                className="w-full px-3 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200"
                             >
                                 <option value="">— Chọn —</option>
                                 {CDE_DISCIPLINES.map(d => (
@@ -131,7 +131,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                             <select
                                 value={docType}
                                 onChange={(e) => setDocType(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200"
+                                className="w-full px-3 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-800 dark:text-slate-200"
                             >
                                 <option value="">— Chọn —</option>
                                 {CDE_DOC_TYPES.map(d => (
@@ -151,21 +151,21 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
                             placeholder="Mô tả ngắn gọn về tài liệu, nội dung đính kèm..."
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-800 dark:text-slate-200 resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                            className="w-full px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-800 dark:text-slate-200 resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                         />
                     </div>
 
                     {/* Warning */}
-                    <div className="flex items-start gap-2.5 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
-                        <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                    <div className="flex items-start gap-2.5 p-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl">
+                        <AlertCircle className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-primary-700 dark:text-primary-300 leading-relaxed">
                             Hồ sơ nộp sẽ được gửi qua quy trình kiểm tra: <strong>Tư vấn giám sát → Chuyên viên Ban QLDA → Trưởng phòng → Lãnh đạo</strong>. Đảm bảo tài liệu đầy đủ trước khi nộp.
                         </p>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3 bg-gray-50/80 dark:bg-slate-800/80">
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3 bg-gray-50/80 dark:bg-slate-800">
                     <button
                         onClick={onClose}
                         className="px-5 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"

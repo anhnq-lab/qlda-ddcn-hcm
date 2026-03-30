@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { Shield, Plus, Search, Calendar, Building2, AlertTriangle, CheckCircle2, Clock, FileText, ChevronDown, ChevronUp, Edit3, Trash2, X, User, Upload, Paperclip, Download, File as FileIcon, ArrowUpDown } from 'lucide-react';
 import { useInspections, useCreateInspection, useUpdateInspection, useDeleteInspection } from '@/hooks/useInspections';
 import { Inspection, InspectionType, FollowUpStatus, INSPECTION_TYPE_LABELS, FOLLOW_UP_STATUS_LABELS } from '@/types/inspection.types';
 import { formatFullCurrency } from '@/utils/format';
+import { StatCard } from '@/components/common/StatCard';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,7 @@ function formatFileSize(bytes: number): string {
 // ── Status Badge ──
 const FollowUpBadge: React.FC<{ status: FollowUpStatus }> = ({ status }) => {
     const config: Record<FollowUpStatus, { bg: string; text: string; icon: React.ElementType }> = {
-        pending: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: Clock },
+        pending: { bg: 'bg-primary-100 dark:bg-primary-900/30', text: 'text-primary-700 dark:text-primary-400', icon: Clock },
         in_progress: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: AlertTriangle },
         completed: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: CheckCircle2 },
     };
@@ -109,7 +110,7 @@ const StatusActionDropdown: React.FC<{
             {open && (
                 <div
                     ref={dropRef}
-                    className="fixed bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 py-1 min-w-[200px]"
+                    className="fixed bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 py-1 min-w-[200px]"
                     style={{ top: pos.top, right: pos.right, zIndex: 9999 }}
                     onClick={e => e.stopPropagation()}
                 >
@@ -118,7 +119,7 @@ const StatusActionDropdown: React.FC<{
                         <button
                             key={status}
                             onClick={() => { onChangeStatus(status); setOpen(false); }}
-                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-slate-300"
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-slate-300"
                         >
                             {t.labels[status]}
                         </button>
@@ -214,7 +215,7 @@ const AttachmentSection: React.FC<{
             {attachments.length > 0 ? (
                 <div className="space-y-1.5">
                     {attachments.map((att, i) => (
-                        <div key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg group">
+                        <div key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-700 rounded-lg group">
                             <Paperclip className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                             <span className="text-xs text-gray-700 dark:text-slate-300 truncate flex-1">{att.name}</span>
                             {att.size && <span className="text-[10px] text-gray-400 shrink-0">{att.size}</span>}
@@ -230,7 +231,7 @@ const AttachmentSection: React.FC<{
                     ))}
                 </div>
             ) : (
-                <div className="flex items-center justify-center py-4 bg-gray-50 dark:bg-slate-700/30 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 cursor-pointer hover:border-blue-400 transition-colors" onClick={() => fileInputRef.current?.click()}>
+                <div className="flex items-center justify-center py-4 bg-gray-50 dark:bg-slate-700 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 cursor-pointer hover:border-blue-400 transition-colors" onClick={() => fileInputRef.current?.click()}>
                     <div className="text-center">
                         <FileIcon className="w-5 h-5 text-gray-300 dark:text-slate-500 mx-auto mb-1" />
                         <p className="text-[10px] text-gray-400 dark:text-slate-500">Kéo thả hoặc nhấn để tải file</p>
@@ -274,14 +275,14 @@ const InspectionFormModal: React.FC<{
         }
     };
 
-    const inputCls = "w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all";
+    const inputCls = "w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all";
     const labelCls = "text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1 block";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 sticky top-0 bg-[#FCF9F2] dark:bg-slate-800 z-10">
                     <h3 className="text-base font-black text-gray-800 dark:text-slate-100 flex items-center gap-2">
                         <Shield className="w-5 h-5 text-red-600" />
                         {editData ? 'Sửa thông tin thanh tra' : 'Thêm đợt thanh tra/kiểm toán'}
@@ -468,19 +469,12 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
     return (
         <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {[
-                    { label: 'Tổng đợt TT/KT', value: stats.total, color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-50 dark:bg-slate-700/50' },
-                    { label: 'Chờ xử lý', value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-                    { label: 'Đang xử lý', value: stats.inProgress, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-                    { label: 'Đã hoàn thành', value: stats.completed, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-                    { label: 'Tổng xử phạt', value: formatFullCurrency(stats.totalPenalties), color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-                ].map((s, i) => (
-                    <div key={i} className={`${s.bg} rounded-xl p-3 border border-gray-200 dark:border-slate-700`}>
-                        <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">{s.label}</p>
-                    </div>
-                ))}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <StatCard label="Tổng đợt TT/KT" value={stats.total} color="slate" icon={<Shield className="w-5 h-5" />} />
+                <StatCard label="Chờ xử lý" value={stats.pending} color="amber" icon={<Clock className="w-5 h-5" />} />
+                <StatCard label="Đang xử lý" value={stats.inProgress} color="blue" icon={<AlertTriangle className="w-5 h-5" />} />
+                <StatCard label="Đã hoàn thành" value={stats.completed} color="emerald" icon={<CheckCircle2 className="w-5 h-5" />} />
+                <StatCard label="Tổng xử phạt" value={formatFullCurrency(stats.totalPenalties)} color="rose" icon={<AlertTriangle className="w-5 h-5" />} />
             </div>
 
             {/* Toolbar */}
@@ -492,17 +486,17 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Tìm kiếm..."
-                            className="pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-red-500 outline-none w-56"
+                            className="pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-red-500 outline-none w-56"
                         />
                     </div>
-                    <select value={filterType} onChange={e => setFilterType(e.target.value)} className="px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100">
+                    <select value={filterType} onChange={e => setFilterType(e.target.value)} className="px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100">
                         <option value="all">Tất cả loại</option>
                         {Object.entries(INSPECTION_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                 </div>
                 <button
                     onClick={() => { setEditingItem(null); setShowModal(true); }}
-                    className="btn-primary"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-md dark:bg-blue-500 dark:hover:bg-primary-600"
                 >
                     <Plus className="w-4 h-4" /> Thêm đợt thanh tra
                 </button>
@@ -511,7 +505,7 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
             {/* List */}
             {filteredInspections.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-full mb-4">
+                    <div className="p-4 bg-gray-50 dark:bg-slate-700 rounded-full mb-4">
                         <Shield className="w-8 h-8 text-gray-300 dark:text-slate-500" />
                     </div>
                     <p className="text-sm font-bold text-gray-400 dark:text-slate-500">Chưa có thông tin thanh tra / kiểm toán</p>
@@ -522,7 +516,7 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                     {filteredInspections.map(item => {
                         const isExpanded = expandedId === item.InspectionID;
                         return (
-                            <div key={item.InspectionID} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+                            <div key={item.InspectionID} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden transition-shadow hover:shadow-md">
                                 {/* Header Row */}
                                 <div
                                     className="px-5 py-4 flex items-center justify-between cursor-pointer"
@@ -610,7 +604,7 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                                                 <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">File đính kèm ({item.Attachments.length})</p>
                                                 <div className="space-y-1.5">
                                                     {item.Attachments.map((att, i) => (
-                                                        <div key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                                                        <div key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-700 rounded-lg">
                                                             <Paperclip className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                                                             <span className="text-xs text-gray-700 dark:text-slate-300 truncate flex-1">{att.name}</span>
                                                             {att.size && <span className="text-[10px] text-gray-400 shrink-0">{att.size}</span>}

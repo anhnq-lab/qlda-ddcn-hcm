@@ -194,13 +194,13 @@ export const AIChatbot: React.FC = () => {
             <button
                 onClick={() => setIsOpen(true)}
                 className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition-all duration-300 z-50 flex items-center gap-2 group hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)', boxShadow: '0 4px 20px rgba(184, 134, 11, 0.4)' }}
+                style={{ background: 'linear-gradient(135deg, #9a3412 0%, #f97316 100%)', boxShadow: '0 4px 20px rgba(184, 134, 11, 0.4)' }}
             >
                 <div className="relative">
                     <Sparkles size={24} />
                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-400"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-300 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-400"></span>
                     </span>
                 </div>
                 <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap">
@@ -212,11 +212,11 @@ export const AIChatbot: React.FC = () => {
 
     return (
         <div
-            className={`fixed bottom-6 right-6 bg-white dark:bg-slate-800 rounded-xl shadow-2xl z-50 transition-all duration-300 flex flex-col border border-slate-200 dark:border-slate-700
+            className={`fixed bottom-6 right-6 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-2xl z-50 transition-all duration-300 flex flex-col border border-slate-200 dark:border-slate-700
             ${isExpanded ? 'w-[640px] h-[80vh]' : 'w-[400px] h-[540px]'}`}
         >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700 text-white rounded-t-xl" style={{ background: 'linear-gradient(135deg, #5A4A25 0%, #D4A017 100%)' }}>
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700 text-white rounded-t-xl" style={{ background: 'linear-gradient(135deg, #9a3412 0%, #f97316 100%)' }}>
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                         <Sparkles size={18} />
@@ -255,7 +255,7 @@ export const AIChatbot: React.FC = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 dark:bg-slate-900">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F5EFE6] dark:bg-slate-900">
                 {messages.map(msg => (
                     <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`flex gap-2 max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -271,8 +271,8 @@ export const AIChatbot: React.FC = () => {
                             </div>
                             <div
                                 className={`p-3 rounded-2xl text-sm leading-relaxed ${msg.sender === 'user'
-                                    ? 'bg-blue-600 text-white rounded-tr-sm'
-                                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm border border-slate-100 dark:border-slate-700 rounded-tl-sm'
+                                    ? 'bg-primary-600 text-white rounded-tr-sm'
+                                    : 'bg-[#FCF9F2] dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-lg border border-slate-100 dark:border-slate-700 rounded-tl-sm'
                                     } ${msg.isError ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' : ''}`}
                             >
                                 {msg.sender === 'ai' ? renderMessageText(msg.text) : msg.text}
@@ -291,7 +291,7 @@ export const AIChatbot: React.FC = () => {
                             <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
                                 <Bot size={14} className="text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100 dark:border-slate-700">
+                            <div className="bg-[#FCF9F2] dark:bg-slate-800 p-3 rounded-2xl rounded-tl-sm shadow-lg border border-slate-100 dark:border-slate-700">
                                 <div className="flex items-center gap-2">
                                     <div className="flex gap-1">
                                         <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]"></span>
@@ -319,7 +319,7 @@ export const AIChatbot: React.FC = () => {
                                 <button
                                     key={i}
                                     onClick={() => handleSend(s.prompt)}
-                                    className="text-[11px] px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                                    className="text-[11px] px-2.5 py-1.5 bg-[#FCF9F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                                 >
                                     {s.label}
                                 </button>
@@ -332,9 +332,9 @@ export const AIChatbot: React.FC = () => {
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 rounded-b-xl">
+            <div className="p-3 bg-[#FCF9F2] dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 rounded-b-xl">
                 {!aiAvailable && (
-                    <div className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg mb-2">
+                    <div className="text-[11px] text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-lg mb-2">
                         ⚠️ Chưa cấu hình Gemini API Key
                     </div>
                 )}
@@ -346,13 +346,13 @@ export const AIChatbot: React.FC = () => {
                         onKeyDown={handleKeyPress}
                         placeholder="Hỏi về dự án, hợp đồng, giải ngân..."
                         disabled={isLoading}
-                        className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-slate-50 dark:disabled:bg-slate-700 bg-white dark:bg-slate-700 dark:text-white placeholder-slate-400"
+                        className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-[#F5EFE6] dark:disabled:bg-slate-700 bg-[#FCF9F2] dark:bg-slate-700 dark:text-white placeholder-slate-400"
                     />
                     <button
                         onClick={() => handleSend()}
                         disabled={isLoading || !input.trim()}
-                        className="text-white p-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                        style={{ background: 'linear-gradient(135deg, #B8860B 0%, #D4A017 100%)' }}
+                        className="text-white p-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)' }}
                     >
                         <Send size={18} />
                     </button>
@@ -366,3 +366,4 @@ export const AIChatbot: React.FC = () => {
         </div>
     );
 };
+

@@ -30,7 +30,7 @@ export const KeyDatesWidget: React.FC<KeyDatesWidgetProps> = ({
             case 'overdue':
                 return { bg: 'bg-red-50 dark:bg-red-900/30', border: 'border-red-200 dark:border-red-800', text: 'text-red-700 dark:text-red-300', icon: AlertCircle, iconColor: 'text-red-500 dark:text-red-400' };
             case 'due-soon':
-                return { bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-300', icon: Clock, iconColor: 'text-amber-500 dark:text-amber-400' };
+                return { bg: 'bg-primary-50 dark:bg-primary-900/30', border: 'border-primary-200 dark:border-primary-800', text: 'text-primary-700 dark:text-primary-300', icon: Clock, iconColor: 'text-primary-500 dark:text-primary-400' };
             case 'completed':
                 return { bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-700 dark:text-emerald-300', icon: CheckCircle2, iconColor: 'text-emerald-500 dark:text-emerald-400' };
             default:
@@ -70,7 +70,7 @@ export const KeyDatesWidget: React.FC<KeyDatesWidgetProps> = ({
     const dueSoonCount = dates.filter(d => d.status === 'due-soon').length;
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
             {/* Header */}
             <div className="section-card-header">
                 <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export const KeyDatesWidget: React.FC<KeyDatesWidgetProps> = ({
                         </span>
                     )}
                     {dueSoonCount > 0 && (
-                        <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-full">
+                        <span className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-bold rounded-full">
                             {dueSoonCount} sắp đến hạn
                         </span>
                     )}
@@ -107,7 +107,7 @@ export const KeyDatesWidget: React.FC<KeyDatesWidgetProps> = ({
                         return (
                             <div
                                 key={date.id}
-                                className={`px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group`}
+                                className={`px-3 py-2 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors cursor-pointer group`}
                             >
                                 <div className="flex items-start gap-2">
                                     <div className={`w-7 h-7 rounded-lg ${style.bg} ${style.border} border flex items-center justify-center shrink-0`}>

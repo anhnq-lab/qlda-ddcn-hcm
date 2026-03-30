@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
     ShieldCheck, Plus, RotateCcw, ToggleLeft, ToggleRight,
     Copy, Check, Search, AlertCircle, Eye, EyeOff,
@@ -122,7 +122,7 @@ const UserAccountManager: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl shadow-lg shadow-amber-500/20">
+                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/20">
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
                         Quản lý tài khoản
@@ -133,7 +133,7 @@ const UserAccountManager: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 text-white rounded-xl font-medium shadow-lg shadow-amber-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium shadow-lg shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                     <UserPlus className="w-5 h-5" />
                     Tạo tài khoản
@@ -149,19 +149,19 @@ const UserAccountManager: React.FC = () => {
                             <Users className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{accounts.length}</p>
+                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-lg">{accounts.length}</p>
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Tổng tài khoản</p>
                         </div>
                     </div>
                 </div>
-                <div className="relative overflow-hidden bg-gradient-to-br from-amber-700 to-amber-900 border-t-[3px] border-amber-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border-t-[3px] border-primary-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <ToggleRight className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                             <ToggleRight className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{accounts.filter(a => a.is_active).length}</p>
+                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-lg">{accounts.filter(a => a.is_active).length}</p>
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Đang hoạt động</p>
                         </div>
                     </div>
@@ -173,7 +173,7 @@ const UserAccountManager: React.FC = () => {
                             <ToggleLeft className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{accounts.filter(a => !a.is_active).length}</p>
+                            <p className="text-3xl font-black tracking-tight text-white drop-shadow-lg">{accounts.filter(a => !a.is_active).length}</p>
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">Đã tắt</p>
                         </div>
                     </div>
@@ -197,12 +197,12 @@ const UserAccountManager: React.FC = () => {
                     placeholder="Tìm theo tên, username, email, SĐT..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-gray-900 dark:text-slate-100"
+                    className="w-full pl-12 pr-4 py-3 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-gray-900 dark:text-slate-100"
                 />
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-gray-400">
                         <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-3" />
@@ -217,7 +217,7 @@ const UserAccountManager: React.FC = () => {
                     <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="table-header-row">
+                                <tr className="border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest">#</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest">Nhân viên</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest">Username</th>
@@ -235,7 +235,7 @@ const UserAccountManager: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-slate-700/50">
                                 {filtered.map((account, idx) => (
-                                    <tr key={account.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <tr key={account.id} className="group transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-100 dark:border-slate-700/50">
                                         <td className="px-4 py-3 text-gray-400">{idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
@@ -324,7 +324,7 @@ const UserAccountManager: React.FC = () => {
             {/* Reset Password Modal */}
             {resetTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setResetTarget(null)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-1">Reset mật khẩu</h3>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
                             Đặt mật khẩu mới cho <strong>{resetTarget.full_name}</strong> ({resetTarget.username})
@@ -336,7 +336,7 @@ const UserAccountManager: React.FC = () => {
                                     type={showNewPassword ? 'text' : 'password'}
                                     value={newPassword}
                                     onChange={e => setNewPassword(e.target.value)}
-                                    className="w-full px-4 py-3 pr-24 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
+                                    className="w-full px-4 py-3 pr-24 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
                                     placeholder="Mật khẩu mới"
                                 />
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -466,9 +466,9 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl">
+                    <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">
                         <UserPlus className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -498,7 +498,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
                             <select
                                 value={selectedEmployee}
                                 onChange={e => setSelectedEmployee(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100"
+                                className="w-full px-4 py-3 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100"
                                 required
                             >
                                 <option value="">-- Chọn nhân viên --</option>
@@ -536,7 +536,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
                                 type="text"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
+                                className="w-full pl-11 pr-4 py-3 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
                                 placeholder="VD: NGUYEN.VA"
                                 required
                             />
@@ -554,7 +554,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
-                                className="w-full pl-11 pr-28 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
+                                className="w-full pl-11 pr-28 py-3 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-gray-900 dark:text-slate-100"
                                 required
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -589,7 +589,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
                         <button
                             type="submit"
                             disabled={submitting || !selectedEmployee || !username || !password}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-lg shadow-amber-500/25"
+                            className="flex-1 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-lg shadow-primary-500/25"
                         >
                             {submitting ? 'Đang tạo...' : 'Tạo tài khoản'}
                         </button>

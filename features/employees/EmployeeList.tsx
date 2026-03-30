@@ -1,4 +1,4 @@
-import React, { useState, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEmployees, useDepartments, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, useEmployeeStats } from '../../hooks/useEmployees';
 import { useTasks } from '../../hooks/useTasks';
@@ -11,8 +11,29 @@ import {
     Sparkles, ClipboardList, FolderOpen, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSlidePanel } from '../../context/SlidePanelContext';
 import { useToast } from '../../components/ui/Toast';
 import DataTable, { Column } from '../../components/ui/DataTable';
+import { ViewToggle, SectionHeader } from '../../components/ui';
+import EmployeeSlideContent from './EmployeeSlideContent';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const employeeSchema = z.object({
+    FullName: z.string().min(2, 'Vui lòng nhập họ và tên'),
+    Department: z.string().min(1, 'Vui lòng chọn phòng ban'),
+    Position: z.string().min(2, 'Vui lòng nhập chức danh'),
+    Email: z.string().email('Email không đúng định dạng'),
+    Phone: z.string().optional(),
+    Username: z.string().optional(),
+    Password: z.string().max(50).optional(),
+    Role: z.nativeEnum(Role),
+    Status: z.nativeEnum(EmployeeStatus),
+    JoinDate: z.string().optional().nullable(),
+});
+
+type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 const OrgChartPage = lazy(() => import('../organization/OrgChartPage'));
 
@@ -22,9 +43,9 @@ const OrgChartPage = lazy(() => import('../organization/OrgChartPage'));
 
 const getRoleInfo = (role: Role) => {
     switch (role) {
-        case Role.Admin: return { label: 'QT.VIÊN', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20', dot: 'bg-amber-500' };
-        case Role.Manager: return { label: 'QUẢN LÝ', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20', dot: 'bg-emerald-500' };
-        default: return { label: 'NHÂN VIÊN', color: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20', dot: 'bg-slate-500' };
+        case Role.Admin: return { label: 'Q.Trị', color: 'bg-primary-500/10 text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/20', dot: 'bg-primary-500' };
+        case Role.Manager: return { label: 'Q.Lý', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20', dot: 'bg-emerald-500' };
+        default: return { label: 'N.Viên', color: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20', dot: 'bg-slate-400' };
     }
 };
 
@@ -36,6 +57,11 @@ const EmployeeList: React.FC = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { showToast } = useToast();
+
+    // ── Permissions ──
+    const canManageUsers = currentUser?.Role === Role.Admin;
+    const canEdit = useCallback((targetId: string) => canManageUsers || currentUser?.EmployeeID === targetId, [canManageUsers, currentUser?.EmployeeID]);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDept, setSelectedDept] = useState('All');
     const [filterRole, setFilterRole] = useState('All');
@@ -56,10 +82,96 @@ const EmployeeList: React.FC = () => {
 
     // Local state for UI
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentEmployee, setCurrentEmployee] = useState<Partial<Employee>>({});
     const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
+    const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
 
-    // ── Cross-Module Data ──
+    // SlidePanel
+    const { openPanel, closePanel } = useSlidePanel();
+
+    const form = useForm<EmployeeFormData>({
+        resolver: zodResolver(employeeSchema),
+        defaultValues: {
+            FullName: '',
+            Department: departments[0] || 'Phòng Hành chính - Tổng hợp',
+            Position: 'Chuyên viên',
+            Email: '',
+            Phone: '',
+            Username: '',
+            Password: '',
+            Role: Role.Staff,
+            Status: EmployeeStatus.Active,
+            JoinDate: new Date().toISOString().split('T')[0]
+        }
+    });
+
+    // ── CRUD Handlers ──
+    const handleCreate = () => {
+        setEditMode('create');
+        setEditingEmployeeId(null);
+        form.reset({
+            FullName: '',
+            Department: departments[0] || 'Phòng Hành chính - Tổng hợp',
+            Position: 'Chuyên viên',
+            Email: '',
+            Phone: '',
+            Username: '',
+            Password: '',
+            Role: Role.Staff,
+            Status: EmployeeStatus.Active,
+            JoinDate: new Date().toISOString().split('T')[0]
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = useCallback((emp: Employee) => {
+        setEditMode('edit');
+        setEditingEmployeeId(emp.EmployeeID);
+        form.reset({
+            FullName: emp.FullName || '',
+            Department: emp.Department || '',
+            Position: emp.Position || '',
+            Email: emp.Email || '',
+            Phone: emp.Phone || '',
+            Role: emp.Role || Role.Staff,
+            Status: emp.Status || EmployeeStatus.Active,
+            JoinDate: emp.JoinDate || '',
+            Username: emp.Username || '',
+            Password: '',
+        });
+        setIsModalOpen(true);
+    }, [form]);
+
+    const handleDelete = useCallback(async (id: string) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
+            await deleteMutation.mutateAsync(id);
+            showToast('Đã xóa nhân sự thành công', 'success');
+            return true;
+        }
+        return false;
+    }, [deleteMutation, showToast]);
+
+    const openEmployeePanel = useCallback((emp: Employee) => {
+        const empId = emp.EmployeeID;
+        openPanel({
+            title: emp.FullName,
+            icon: <User className="w-4 h-4" />,
+            url: `/employees/${empId}`,
+            component: (
+                <EmployeeSlideContent
+                    employeeId={empId}
+                    onEdit={canEdit(empId) ? (id) => {
+                        const found = employees.find(e => e.EmployeeID === id);
+                        if (found) handleEdit(found);
+                    } : undefined}
+                    onDelete={canManageUsers ? async (id) => {
+                        const deleted = await handleDelete(id);
+                        if (deleted) closePanel(`/employees/${id}`);
+                    } : undefined}
+                />
+            ),
+        });
+    }, [openPanel, closePanel, employees, canManageUsers, canEdit, handleEdit, handleDelete]);
+
     const employeeWorkload = useMemo(() => {
         const workloadMap: Record<string, { taskCount: number; activeTaskCount: number; projectCount: number }> = {};
         employees.forEach(emp => {
@@ -81,7 +193,6 @@ const EmployeeList: React.FC = () => {
         return workloadMap;
     }, [employees, tasks, projects]);
 
-    // ── Filtering ──
     const filteredEmployees = useMemo(() => employees.filter(emp => {
         const matchesSearch = emp.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             emp.Email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,58 +202,23 @@ const EmployeeList: React.FC = () => {
         return matchesSearch && matchesDept && matchesRole;
     }), [employees, searchTerm, selectedDept, filterRole]);
 
-    // ── Permissions ──
-    const canManageUsers = currentUser?.Role === Role.Admin;
-    const canEdit = (targetId: string) => canManageUsers || currentUser?.EmployeeID === targetId;
-
-    // ── CRUD Handlers ──
-    const handleCreate = () => {
-        setEditMode('create');
-        setCurrentEmployee({
-            Department: departments[0] || 'Phòng Hành chính - Tổng hợp',
-            Position: 'Chuyên viên',
-            Status: EmployeeStatus.Active,
-            Role: Role.Staff,
-            JoinDate: new Date().toISOString().split('T')[0],
-            Password: '123456',
-            Email: '',
-            Phone: '',
-            FullName: '',
-            Username: '',
-        });
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (emp: Employee) => {
-        setEditMode('edit');
-        setCurrentEmployee({ ...emp });
-        setIsModalOpen(true);
-    };
-
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
-            await deleteMutation.mutateAsync(id);
-            showToast('Đã xóa nhân sự thành công', 'success');
-        }
-    };
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: EmployeeFormData) => {
         try {
             if (editMode === 'create') {
-                await createMutation.mutateAsync(currentEmployee);
+                await createMutation.mutateAsync(data);
                 showToast('Thêm nhân sự mới thành công!', 'success');
             } else {
-                if (!currentEmployee.EmployeeID) return;
+                if (!editingEmployeeId) return;
                 await updateMutation.mutateAsync({
-                    id: currentEmployee.EmployeeID,
-                    data: currentEmployee
+                    id: editingEmployeeId,
+                    data: data
                 });
                 showToast('Cập nhật thông tin thành công!', 'success');
             }
             setIsModalOpen(false);
-        } catch (err) {
-            showToast('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+        } catch (err: any) {
+            console.error('[EmployeeSaveError]', err);
+            showToast(`Lỗi: ${err.message || 'Vui lòng thử lại.'}`, 'error');
         }
     };
 
@@ -164,7 +240,7 @@ const EmployeeList: React.FC = () => {
             render: (_: any, emp: Employee) => (
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white shadow-sm object-cover" />
+                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white shadow-lg object-cover" />
                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${emp.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                     </div>
                     <div className="min-w-0">
@@ -250,36 +326,8 @@ const EmployeeList: React.FC = () => {
                     title={emp.Status === EmployeeStatus.Active ? 'Đang hoạt động' : 'Đã nghỉ'}
                 />
             )
-        },
-        {
-            key: 'actions',
-            header: '',
-            width: '80px',
-            align: 'right',
-            render: (_: any, emp: Employee) => (
-                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    {canEdit(emp.EmployeeID) && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleEdit(emp); }}
-                            className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors"
-                            title="Chỉnh sửa"
-                        >
-                            <Edit className="w-3.5 h-3.5" />
-                        </button>
-                    )}
-                    {canManageUsers && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(emp.EmployeeID); }}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                            title="Xóa"
-                        >
-                            <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                    )}
-                </div>
-            )
         }
-    ], [employeeWorkload, canManageUsers, canEdit]);
+    ], [employeeWorkload]);
 
     // ═══════════════════════════════════════════════════
     // Render
@@ -288,12 +336,12 @@ const EmployeeList: React.FC = () => {
         <div className="space-y-6 animate-in fade-in duration-500">
 
             {/* ══════════ TAB NAVIGATION ══════════ */}
-            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 w-fit">
+            <div className="flex items-center gap-1 bg-[#FCF9F2] dark:bg-slate-800 p-1.5 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 w-fit">
                 <button
                     onClick={() => setActiveTab('list')}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'list'
-                        ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md shadow-amber-200/50 dark:shadow-amber-900/30'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'bg-gradient-to-r from-primary-600 to-primary-600 text-white shadow-md shadow-primary-200/50 dark:shadow-primary-900/30'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     <Users className="w-4 h-4" />
@@ -302,8 +350,8 @@ const EmployeeList: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('org-chart')}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'org-chart'
-                        ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md shadow-amber-200/50 dark:shadow-amber-900/30'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'bg-gradient-to-r from-primary-600 to-primary-600 text-white shadow-md shadow-primary-200/50 dark:shadow-primary-900/30'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     <Briefcase className="w-4 h-4" />
@@ -314,7 +362,7 @@ const EmployeeList: React.FC = () => {
             {activeTab === 'org-chart' ? (
                 <Suspense fallback={
                     <div className="flex items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600" />
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
                     </div>
                 }>
                     <OrgChartPage />
@@ -322,60 +370,89 @@ const EmployeeList: React.FC = () => {
             ) : (
                 <>
 
-                    {/* ══════════ STATS DASHBOARD ══════════ */}
-                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                        {/* Total - Hero Card */}
-                        <div className="col-span-2 lg:col-span-1 stat-card stat-card-blue cursor-default">
-                            <span className="stat-card-label">Tổng nhân sự</span>
-                            <div className="flex items-center justify-between">
-                                <div className="stat-card-value tabular-nums">{stats?.total || 0}</div>
-                                <div className="stat-card-icon"><Users className="w-4 h-4" /></div>
+                    {/* ══════════ COMPACT STATS STRIP ══════════ */}
+                    <div className="flex items-center gap-1 flex-wrap bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm px-2 py-1.5">
+                        {/* Total */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-blue-50/60 dark:hover:bg-blue-500/10 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10">
+                                <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full bg-emerald-500 transition-all duration-1000" style={{ width: stats?.total ? `${((stats?.active || 0) / stats.total * 100)}%` : '0%' }} />
-                                </div>
-                                <span className="text-[10px] font-semibold text-slate-500">
-                                    {stats?.total ? Math.round((stats?.active || 0) / stats.total * 100) : 0}% đang làm
-                                </span>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{stats?.total || 0}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Nhân sự</span>
                             </div>
                         </div>
+
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
 
                         {/* Active */}
-                        <div className="stat-card stat-card-emerald cursor-default">
-                            <span className="stat-card-label">Đang hoạt động</span>
-                            <div className="flex items-center justify-between">
-                                <div className="stat-card-value tabular-nums">{stats?.active || 0}</div>
-                                <div className="stat-card-icon"><UserCheck className="w-4 h-4" /></div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-emerald-500/10 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
+                                <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{stats?.active || 0}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Hoạt động</span>
                             </div>
                         </div>
+
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+
+                        {/* Nam / Nữ */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-cyan-50/60 dark:hover:bg-cyan-500/10 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-cyan-50 dark:bg-cyan-500/10">
+                                <Users className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{stats?.male || 0}<span className="text-slate-300 dark:text-slate-600 mx-0.5">/</span>{stats?.female || 0}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Nam / Nữ</span>
+                            </div>
+                        </div>
+
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
 
                         {/* Departments */}
-                        <div className="stat-card stat-card-amber cursor-default">
-                            <span className="stat-card-label">Phòng ban</span>
-                            <div className="flex items-center justify-between">
-                                <div className="stat-card-value tabular-nums">{departments.length}</div>
-                                <div className="stat-card-icon"><Building2 className="w-4 h-4" /></div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary-50/60 dark:hover:bg-primary-500/10 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-primary-50 dark:bg-primary-500/10">
+                                <Building2 className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{departments.length}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Phòng ban</span>
                             </div>
                         </div>
 
-                        {/* Admins */}
-                        <div className="stat-card stat-card-violet cursor-pointer transition-all hover:scale-[1.02]" onClick={() => setFilterRole(filterRole === Role.Admin ? 'All' : Role.Admin)}>
-                            <span className="stat-card-label">Quản trị viên</span>
-                            <div className="flex items-center justify-between">
-                                <div className="stat-card-value tabular-nums">{stats?.byRole?.[Role.Admin] || 0}</div>
-                                <div className="stat-card-icon"><Shield className="w-4 h-4" /></div>
-                            </div>
-                        </div>
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
 
-                        {/* Managers */}
-                        <div className="stat-card stat-card-rose cursor-pointer transition-all hover:scale-[1.02]" onClick={() => setFilterRole(filterRole === Role.Manager ? 'All' : Role.Manager)}>
-                            <span className="stat-card-label">Quản lý</span>
-                            <div className="flex items-center justify-between">
-                                <div className="stat-card-value tabular-nums">{stats?.byRole?.[Role.Manager] || 0}</div>
-                                <div className="stat-card-icon"><TrendingUp className="w-4 h-4" /></div>
+                        {/* Admins - clickable filter */}
+                        <button
+                            onClick={() => setFilterRole(filterRole === Role.Admin ? 'All' : Role.Admin)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${filterRole === Role.Admin ? 'bg-violet-100 dark:bg-violet-500/20 ring-1 ring-violet-300 dark:ring-violet-500/30' : 'hover:bg-violet-50/60 dark:hover:bg-violet-500/10'}`}
+                        >
+                            <div className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-500/10">
+                                <Shield className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                             </div>
-                        </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{stats?.byRole?.[Role.Admin] || 0}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">QT.Viên</span>
+                            </div>
+                        </button>
+
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+
+                        {/* Managers - clickable filter */}
+                        <button
+                            onClick={() => setFilterRole(filterRole === Role.Manager ? 'All' : Role.Manager)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${filterRole === Role.Manager ? 'bg-rose-100 dark:bg-rose-500/20 ring-1 ring-rose-300 dark:ring-rose-500/30' : 'hover:bg-rose-50/60 dark:hover:bg-rose-500/10'}`}
+                        >
+                            <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10">
+                                <TrendingUp className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-black text-slate-800 dark:text-white tabular-nums">{stats?.byRole?.[Role.Manager] || 0}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Quản lý</span>
+                            </div>
+                        </button>
                     </div>
 
                     {/* ══════════ MAIN LAYOUT ══════════ */}
@@ -383,7 +460,7 @@ const EmployeeList: React.FC = () => {
                     <div className="flex-1 space-y-4">
 
                         {/* ══════════ TOOLBAR ══════════ */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg">
                             <div className="p-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                                 {/* Left: Search + Filters */}
                                 <div className="flex items-center gap-3 flex-wrap flex-1 w-full lg:w-auto">
@@ -401,6 +478,21 @@ const EmployeeList: React.FC = () => {
                                                 <X className="w-3.5 h-3.5" />
                                             </button>
                                         )}
+                                    </div>
+
+                                    <div className="relative">
+                                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
+                                        <select
+                                            value={selectedDept}
+                                            onChange={(e) => setSelectedDept(e.target.value)}
+                                            className="pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 appearance-none cursor-pointer transition-all"
+                                        >
+                                            <option value="All">Tất cả đơn vị</option>
+                                            {departments.map(dept => (
+                                                <option key={dept} value={dept}>{dept}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
                                     </div>
 
                                     <div className="relative">
@@ -430,26 +522,12 @@ const EmployeeList: React.FC = () => {
 
                                 {/* Right: View toggle + Create */}
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
-                                        <button
-                                            onClick={() => setViewMode('list')}
-                                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-700 dark:text-slate-200' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            <List className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setViewMode('grid')}
-                                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-700 dark:text-slate-200' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            <LayoutGrid className="w-4 h-4" />
-                                        </button>
-                                    </div>
+                                    <ViewToggle value={viewMode} onChange={setViewMode} />
 
                                     {canManageUsers && (
                                         <button
                                             onClick={handleCreate}
-                                            className="flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg active:scale-[0.98]"
-                                            
+                                            className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-[0.98] hover:shadow-lg hover:-translate-y-0.5 hover:from-primary-500 hover:to-primary-500"
                                         >
                                             <UserPlus className="w-4 h-4" />
                                             <span>Thêm nhân sự</span>
@@ -461,7 +539,7 @@ const EmployeeList: React.FC = () => {
 
                         {/* ══════════ CONTENT ══════════ */}
                         {isLoading ? (
-                            <div className="flex items-center justify-center h-64 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center justify-center h-64 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
                                 <div className="flex flex-col items-center gap-3">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                                     <p className="text-sm text-slate-400">Đang tải dữ liệu...</p>
@@ -470,25 +548,114 @@ const EmployeeList: React.FC = () => {
                         ) : (
                             <>
                                 {viewMode === 'list' ? (
-                                    /* ══════════ TABLE VIEW ══════════ */
-                                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
-                                            <DataTable
-                                                data={filteredEmployees}
-                                                columns={columns}
-                                                keyExtractor={(emp) => emp.EmployeeID}
-                                                isLoading={isLoading}
-                                                onRowClick={(emp) => navigate(`/employees/${emp.EmployeeID}`)}
-                                                rowClassName={() => "group"}
-                                            />
-                                        </div>
-                                        {/* Footer */}
-                                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
-                                            <p className="text-xs text-slate-400 dark:text-slate-500">
-                                                Hiển thị <span className="font-bold text-slate-600 dark:text-slate-300">{filteredEmployees.length}</span> / {employees.length} nhân sự
-                                            </p>
-                                        </div>
+                                    /* ══════════ TABLE VIEW — TaskList style ══════════ */
+                                    <>
+                                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest">
+                                                    <th className="px-3 py-3 w-12 border-b border-slate-200 dark:border-slate-800 text-center">STT</th>
+                                                    <th className="px-4 py-3 text-left min-w-[200px] border-b border-slate-200 dark:border-slate-800">Nhân viên</th>
+                                                    <th className="px-4 py-3 text-left min-w-[160px] border-b border-slate-200 dark:border-slate-800">Chức vụ / Phòng ban</th>
+                                                    <th className="px-4 py-3 text-left min-w-[180px] border-b border-slate-200 dark:border-slate-800">Liên hệ</th>
+                                                    <th className="px-4 py-3 text-center w-28 border-b border-slate-200 dark:border-slate-800">KL.CV</th>
+                                                    <th className="px-4 py-3 text-center w-24 border-b border-slate-200 dark:border-slate-800">Vai trò</th>
+                                                    <th className="px-3 py-3 text-center w-12 border-b border-slate-200 dark:border-slate-800">TT</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                                                {filteredEmployees.map((emp, index) => {
+                                                    const roleInfo = getRoleInfo(emp.Role);
+                                                    const workload = employeeWorkload[emp.EmployeeID];
+                                                    return (
+                                                        <tr
+                                                            key={emp.EmployeeID}
+                                                            onClick={() => openEmployeePanel(emp)}
+                                                            className="group cursor-pointer transition-all hover:bg-slate-50/80 dark:hover:bg-slate-700"
+                                                        >
+                                                            {/* STT */}
+                                                            <td className="px-3 py-3.5 text-center">
+                                                                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{index + 1}</span>
+                                                            </td>
+                                                            {/* Nhân viên */}
+                                                            <td className="px-4 py-3.5">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="relative">
+                                                                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-lg object-cover" />
+                                                                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 ${emp.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm group-hover:text-blue-600 transition-colors truncate">{emp.FullName}</p>
+                                                                        <p className="text-[10px] text-slate-400 font-mono">{emp.EmployeeID}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            {/* Chức vụ */}
+                                                            <td className="px-4 py-3.5">
+                                                                <div className="min-w-0">
+                                                                    <p className="font-medium text-slate-700 dark:text-slate-300 text-sm truncate">{emp.Position}</p>
+                                                                    <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{emp.Department}</p>
+                                                                </div>
+                                                            </td>
+                                                            {/* Liên hệ */}
+                                                            <td className="px-4 py-3.5">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                                                        <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                                                        <span className="truncate max-w-[180px]">{emp.Email}</span>
+                                                                    </div>
+                                                                    {emp.Phone && (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                                                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                                                                            <span>{emp.Phone}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            {/* KL.CV */}
+                                                            <td className="px-4 py-3.5">
+                                                                <div className="flex items-center justify-center gap-2">
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-sky-500/10 text-sky-600 ring-1 ring-sky-500/20" title="Công việc đang thực hiện">
+                                                                        <ClipboardList className="w-3 h-3" />
+                                                                        {workload?.activeTaskCount || 0}
+                                                                    </span>
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/20" title="Dự án tham gia">
+                                                                        <FolderOpen className="w-3 h-3" />
+                                                                        {workload?.projectCount || 0}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            {/* Vai trò */}
+                                                            <td className="px-4 py-3.5 text-center">
+                                                                <span className={`inline-flex items-center gap-1 text-[8px] font-bold px-2 py-1 rounded-md whitespace-nowrap ${roleInfo.color}`}>
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${roleInfo.dot}`} />
+                                                                    {roleInfo.label}
+                                                                </span>
+                                                            </td>
+                                                            {/* TT */}
+                                                            <td className="px-3 py-3.5 text-center">
+                                                                <div
+                                                                    className={`w-2.5 h-2.5 rounded-full mx-auto ring-2 ${emp.Status === EmployeeStatus.Active
+                                                                        ? 'bg-emerald-500 ring-emerald-200'
+                                                                        : 'bg-slate-300 ring-slate-200'
+                                                                    }`}
+                                                                    title={emp.Status === EmployeeStatus.Active ? 'Đang hoạt động' : 'Đã nghỉ'}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
                                     </div>
+
+                                    {/* Footer Counter */}
+                                    <div className="flex items-center justify-between px-4 py-3 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                            Hiển thị <span className="font-bold text-slate-600 dark:text-slate-300">{filteredEmployees.length}</span> / {employees.length} nhân sự
+                                        </span>
+                                    </div>
+                                    </>
                                 ) : (
                                     /* ══════════ GRID VIEW ══════════ */
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -498,11 +665,11 @@ const EmployeeList: React.FC = () => {
                                             return (
                                                 <div
                                                     key={emp.EmployeeID}
-                                                    onClick={() => navigate(`/employees/${emp.EmployeeID}`)}
-                                                    className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
+                                                    onClick={() => openEmployeePanel(emp)}
+                                                    className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
                                                 >
                                                     {/* Header gradient */}
-                                                    <div className="h-20 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 border-b-[3px] border-amber-500 relative">
+                                                    <div className="h-20 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 border-b-[3px] border-primary-500 relative">
                                                         <div className="absolute inset-0 bg-black/10" />
                                                         <div className="absolute top-3 right-3">
                                                             <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-md bg-white/20 backdrop-blur-sm text-white`}>
@@ -543,13 +710,13 @@ const EmployeeList: React.FC = () => {
                                                         <div className="flex gap-2 mt-4">
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); }}
-                                                                className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                                                                className="flex-1 py-2.5 bg-[#F5EFE6] dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
                                                             >
                                                                 <Mail className="w-3 h-3" /> Email
                                                             </button>
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); }}
-                                                                className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                                                                className="flex-1 py-2.5 bg-[#F5EFE6] dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
                                                             >
                                                                 <Phone className="w-3 h-3" /> Gọi
                                                             </button>
@@ -563,8 +730,8 @@ const EmployeeList: React.FC = () => {
 
                                 {/* Empty State */}
                                 {filteredEmployees.length === 0 && (
-                                    <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                                        <div className="w-14 h-14 bg-slate-50 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <div className="text-center py-16 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                                        <div className="w-14 h-14 bg-[#F5EFE6] dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                             <Sparkles className="w-6 h-6 text-slate-300 dark:text-slate-500" />
                                         </div>
                                         <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy nhân sự nào.</p>
@@ -578,8 +745,9 @@ const EmployeeList: React.FC = () => {
                     {/* ══════════ MODAL — Create / Edit ══════════ */}
                     {
                         isModalOpen && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-slate-700">
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-slate-700">
+
 
                                     {/* Header */}
                                     <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 sticky top-0 z-10">
@@ -597,24 +765,20 @@ const EmployeeList: React.FC = () => {
                                     </div>
 
                                     {/* Form */}
-                                    <form onSubmit={handleSave} className="p-6 space-y-5">
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-5">
 
                                         {/* Section: Thông tin cơ bản */}
                                         <div>
-                                            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <User className="w-3.5 h-3.5" /> Thông tin cơ bản
-                                            </h4>
+                                            <SectionHeader title="Thông tin cơ bản" icon={<User className="w-3.5 h-3.5" />} size="xs" />
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Họ và tên *</label>
                                                     <input
-                                                        required
-                                                        type="text"
-                                                        value={currentEmployee.FullName || ''}
-                                                        onChange={e => setCurrentEmployee({ ...currentEmployee, FullName: e.target.value })}
-                                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm dark:text-slate-200 font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
+                                                        {...form.register('FullName')}
+                                                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.FullName ? 'border-red-500 focus:ring-red-500/30 focus:border-red-400' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30 focus:border-blue-400'} rounded-xl focus:outline-none focus:ring-2 text-sm dark:text-slate-200 font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all`}
                                                         placeholder="Nguyễn Văn A"
                                                     />
+                                                    {form.formState.errors.FullName && <p className="text-red-500 text-xs mt-1">{form.formState.errors.FullName.message}</p>}
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Phòng ban *</label>
@@ -622,14 +786,14 @@ const EmployeeList: React.FC = () => {
                                                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                         <select
                                                             disabled={!canManageUsers && editMode === 'edit'}
-                                                            value={currentEmployee.Department}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Department: e.target.value })}
-                                                            className="w-full pl-10 pr-8 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all appearance-none"
+                                                            {...form.register('Department')}
+                                                            className={`w-full pl-10 pr-8 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Department ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all appearance-none`}
                                                         >
                                                             {departments.map(d => <option key={d} value={d}>{d}</option>)}
                                                         </select>
                                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
                                                     </div>
+                                                    {form.formState.errors.Department && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Department.message}</p>}
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Chức danh *</label>
@@ -638,12 +802,12 @@ const EmployeeList: React.FC = () => {
                                                         <input
                                                             disabled={!canManageUsers && editMode === 'edit'}
                                                             type="text"
-                                                            value={currentEmployee.Position || ''}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Position: e.target.value })}
-                                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                            {...form.register('Position')}
+                                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Position ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                             placeholder="Trưởng phòng, Chuyên viên..."
                                                         />
                                                     </div>
+                                                    {form.formState.errors.Position && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Position.message}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -652,23 +816,20 @@ const EmployeeList: React.FC = () => {
 
                                         {/* Section: Liên hệ */}
                                         <div>
-                                            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <Mail className="w-3.5 h-3.5" /> Thông tin liên hệ
-                                            </h4>
+                                            <SectionHeader title="Thông tin liên hệ" icon={<Mail className="w-3.5 h-3.5" />} size="xs" />
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Email *</label>
                                                     <div className="relative">
                                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                         <input
-                                                            required
                                                             type="email"
-                                                            value={currentEmployee.Email || ''}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Email: e.target.value })}
-                                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                            {...form.register('Email')}
+                                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Email ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                             placeholder="email@example.com"
                                                         />
                                                     </div>
+                                                    {form.formState.errors.Email && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Email.message}</p>}
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Số điện thoại</label>
@@ -676,12 +837,12 @@ const EmployeeList: React.FC = () => {
                                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                         <input
                                                             type="tel"
-                                                            value={currentEmployee.Phone || ''}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Phone: e.target.value })}
-                                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                            {...form.register('Phone')}
+                                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Phone ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                             placeholder="0912345678"
                                                         />
                                                     </div>
+                                                    {form.formState.errors.Phone && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Phone.message}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -690,9 +851,7 @@ const EmployeeList: React.FC = () => {
 
                                         {/* Section: Tài khoản & Quyền */}
                                         <div>
-                                            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <Lock className="w-3.5 h-3.5" /> Tài khoản & Phân quyền
-                                            </h4>
+                                            <SectionHeader title="Tài khoản & Phân quyền" icon={<Lock className="w-3.5 h-3.5" />} size="xs" />
                                             <div className="grid grid-cols-3 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Tên đăng nhập</label>
@@ -700,12 +859,12 @@ const EmployeeList: React.FC = () => {
                                                         <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                         <input
                                                             type="text"
-                                                            value={currentEmployee.Username || ''}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Username: e.target.value })}
-                                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                            {...form.register('Username')}
+                                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Username ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                             placeholder="username"
                                                         />
                                                     </div>
+                                                    {form.formState.errors.Username && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Username.message}</p>}
                                                 </div>
                                                 {editMode === 'create' && (
                                                     <div>
@@ -714,12 +873,12 @@ const EmployeeList: React.FC = () => {
                                                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                             <input
                                                                 type="password"
-                                                                value={currentEmployee.Password || ''}
-                                                                onChange={e => setCurrentEmployee({ ...currentEmployee, Password: e.target.value })}
-                                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                                {...form.register('Password')}
+                                                                className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Password ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                                 placeholder="••••••"
                                                             />
                                                         </div>
+                                                        {form.formState.errors.Password && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Password.message}</p>}
                                                     </div>
                                                 )}
                                                 <div>
@@ -728,9 +887,8 @@ const EmployeeList: React.FC = () => {
                                                         <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                                                         <select
                                                             disabled={!canManageUsers}
-                                                            value={currentEmployee.Role}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Role: e.target.value as Role })}
-                                                            className="w-full pl-10 pr-8 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all appearance-none"
+                                                            {...form.register('Role')}
+                                                            className={`w-full pl-10 pr-8 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Role ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all appearance-none`}
                                                         >
                                                             <option value={Role.Staff}>Nhân viên</option>
                                                             <option value={Role.Manager}>Quản lý</option>
@@ -738,6 +896,7 @@ const EmployeeList: React.FC = () => {
                                                         </select>
                                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
                                                     </div>
+                                                    {form.formState.errors.Role && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Role.message}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -746,33 +905,31 @@ const EmployeeList: React.FC = () => {
 
                                         {/* Section: Thời gian & Trạng thái */}
                                         <div>
-                                            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <Calendar className="w-3.5 h-3.5" /> Thời gian & Trạng thái
-                                            </h4>
+                                            <SectionHeader title="Thời gian & Trạng thái" icon={<Calendar className="w-3.5 h-3.5" />} size="xs" />
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Ngày vào làm</label>
                                                     <input
                                                         type="date"
-                                                        value={currentEmployee.JoinDate || ''}
-                                                        onChange={e => setCurrentEmployee({ ...currentEmployee, JoinDate: e.target.value })}
-                                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                                                        {...form.register('JoinDate')}
+                                                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.JoinDate ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all`}
                                                     />
+                                                    {form.formState.errors.JoinDate && <p className="text-red-500 text-xs mt-1">{form.formState.errors.JoinDate.message}</p>}
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Trạng thái</label>
                                                     <div className="relative">
                                                         <select
                                                             disabled={!canManageUsers}
-                                                            value={currentEmployee.Status}
-                                                            onChange={e => setCurrentEmployee({ ...currentEmployee, Status: parseInt(e.target.value) as EmployeeStatus })}
-                                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all appearance-none"
+                                                            {...form.register('Status', { valueAsNumber: true })}
+                                                            className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border ${form.formState.errors.Status ? 'border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 focus:ring-blue-500/30'} rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 transition-all appearance-none`}
                                                         >
                                                             <option value={EmployeeStatus.Active}>Đang làm việc</option>
                                                             <option value={EmployeeStatus.Inactive}>Đã nghỉ việc</option>
                                                         </select>
                                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
                                                     </div>
+                                                    {form.formState.errors.Status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.Status.message}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -788,7 +945,7 @@ const EmployeeList: React.FC = () => {
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 rounded-xl shadow-lg shadow-amber-600/25 transition-all active:scale-[0.98] flex items-center gap-2"
+                                                className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-primary-700 rounded-xl shadow-lg shadow-primary-600/25 transition-all active:scale-[0.98] flex items-center gap-2"
                                             >
                                                 <Save className="w-4 h-4" />
                                                 {editMode === 'create' ? 'Tạo nhân sự' : 'Lưu thay đổi'}

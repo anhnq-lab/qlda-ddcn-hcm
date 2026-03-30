@@ -53,7 +53,7 @@ export const TemplateViewer: React.FC<TemplateViewerProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[#334155]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500/20 to-primary-500/20 flex items-center justify-center">
                             <FileText size={20} className="text-blue-400" />
                         </div>
                         <div>

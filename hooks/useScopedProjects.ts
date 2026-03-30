@@ -2,7 +2,7 @@
  * useScopedProjects — QLDA ĐDCN TP.HCM
  *
  * Centralized hook for department-scoped project filtering.
- * - Ban ĐHDA 1-5: Only see projects with matching management_board
+ * - Ban ĐHDA 1-7: Only see projects with matching management_board
  * - Global departments (Ban GĐ, Phòng KH-ĐT, etc.): See all projects
  * - Super admin: See all projects
  *
@@ -17,8 +17,8 @@ import { usePermissionCheck } from './usePermissionCheck';
 import type { Project } from '../types';
 
 /**
- * Extract the Ban number (1-5) from department name.
- * e.g. "Ban Điều hành dự án 1" → 1, "Ban Điều hành dự án 3" → 3
+ * Extract the Ban number (1-7) from department name.
+ * e.g. "Ban Điều hành dự án 1" → 1, "Ban Điều hành dự án 7" → 7
  * Returns null if not a Ban ĐHDA department.
  */
 export function extractBanNumber(department: string | undefined): number | null {

@@ -18,6 +18,7 @@ import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { StatusBadge, ProgressBar, StatCard } from '../../components/ui';
 import { ContractModal } from './components/ContractModal';
 
 const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'all' }) => {
@@ -138,7 +139,12 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
         );
     }
 
-    const CARD_COLORS = ['stat-card-blue', 'stat-card-emerald', 'stat-card-amber', 'stat-card-violet'];
+    const CARD_COLORS: Record<number, "blue" | "emerald" | "amber" | "violet"> = {
+        0: 'blue',
+        1: 'emerald',
+        2: 'amber',
+        3: 'violet',
+    };
 
     const statCards = [
         {
@@ -175,39 +181,37 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
             {/* === Stat Cards === */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {statCards.map((card, idx) => {
-                    const statColorClass = CARD_COLORS[idx] || CARD_COLORS[0];
+                    const color = CARD_COLORS[idx] || "blue";
                     return (
-                        <div key={idx} className={`stat-card ${statColorClass} cursor-default`}>
-                            <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                                <span className="stat-card-label">{card.label}</span>
-                                <div className="stat-card-icon"><card.icon className="w-5 h-5" /></div>
-                            </div>
-                            <div className="stat-card-value tabular-nums">
-                                {card.value}
-                                {card.suffix && <span className="text-[12px] font-semibold ml-1 text-slate-500">{card.suffix}</span>}
-                            </div>
-                            {card.progressPercent !== undefined && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div className="h-full rounded-full bg-emerald-500 transition-all duration-1000" style={{ width: `${Math.min(card.progressPercent, 100)}%` }} />
-                                    </div>
-                                </div>
-                            )}
-                            <p className="text-xs text-slate-500 mt-2 font-medium">{card.sub}</p>
-                        </div>
+                        <StatCard
+                            key={idx}
+                            label={card.label}
+                            value={
+                                <span>
+                                    {card.value}
+                                    {card.suffix && <span className="text-[12px] font-semibold ml-1 text-slate-500">{card.suffix}</span>}
+                                </span>
+                            }
+                            icon={<card.icon className="w-5 h-5" />}
+                            color={color}
+                            progressPercentage={card.progressPercent}
+                            footer={
+                                <p className="text-xs text-slate-500 mt-1 font-medium">{card.sub}</p>
+                            }
+                        />
                     );
                 })}
             </div>
 
             {/* === Toolbar === */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
                 <div className="flex flex-col md:flex-row items-center gap-3">
                     <div className="relative w-full md:w-80">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400" />
                         <input
                             type="text"
                             placeholder="Tìm mã HĐ, nhà thầu, dự án..."
-                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500 shadow-sm"
+                            className="filter-input"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -223,12 +227,12 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                 key={opt.value}
                                 onClick={() => setStatusFilter(opt.value)}
                                 className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${statusFilter === opt.value
-                                    ? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-200 shadow-sm'
+                                    ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-900 dark:text-slate-200 shadow-lg'
                                     : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 {opt.label}
-                                <span className={`ml-1 text-[10px] ${statusFilter === opt.value ? 'text-blue-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                                <span className={`ml-1 text-[10px] ${statusFilter === opt.value ? 'text-primary-600' : 'text-slate-500 dark:text-slate-400'}`}>
                                     {opt.count}
                                 </span>
                             </button>
@@ -243,7 +247,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                         {userType !== 'contractor' && (
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm shadow-blue-200 dark:shadow-blue-900/20 transition-all"
+                                className="btn btn-primary"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span className="hidden sm:inline">Thêm hợp đồng</span>
@@ -254,11 +258,11 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
             </div>
 
             {/* === Contract Table === */}
-            <Card className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-100 dark:ring-slate-700 dark:bg-slate-800">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
                     <table className="w-full text-left text-sm">
                         <thead>
-                            <tr className="table-header-row">
+                            <tr className="border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                                 <th className="px-3 py-2.5 text-center text-[10px] font-black uppercase tracking-widest w-12">STT</th>
                                 <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest">Số hợp đồng</th>
                                 <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest">Nhà thầu</th>
@@ -270,17 +274,16 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                 <th className="px-6 py-4 w-10"></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                             {filteredContracts.map((contract, rowIdx) => {
                                 const payProgress = getPaymentProgress(contract.ContractID, contract.Value);
                                 const contractorName = getContractorName(contract.ContractorID);
                                 const projectName = getProjectName(contract);
-                                const isEven = rowIdx % 2 === 0;
 
                                 return (
                                     <tr
                                         key={contract.ContractID}
-                                        className={`group cursor-pointer transition-all duration-200 hover:bg-blue-50/60 dark:hover:bg-slate-700/50 hover:shadow-sm ${isEven ? 'bg-white dark:bg-slate-800' : 'bg-slate-50/30 dark:bg-slate-900/30'} border-b border-slate-100 dark:border-slate-700`}
+                                        className="group cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                                         onClick={() => navigate(`/contracts/${encodeURIComponent(contract.ContractID)}`)}
                                     >
                                         {/* STT */}
@@ -288,8 +291,8 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         {/* Contract ID */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3 relative z-10">
-                                                <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/40 dark:to-amber-900/20 flex items-center justify-center ring-1 ring-amber-200/50 dark:ring-amber-800/50 group-hover:ring-amber-400 dark:group-hover:ring-amber-600 transition-colors">
-                                                    <Briefcase className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                                <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/40 dark:to-primary-900/20 flex items-center justify-center ring-1 ring-primary-200/50 dark:ring-primary-800/50 group-hover:ring-primary-400 dark:group-hover:ring-primary-600 transition-colors">
+                                                    <Briefcase className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-blue-700 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 text-xs block whitespace-nowrap leading-tight mb-0.5">{contract.ContractID}</span>
@@ -301,7 +304,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         {/* Contractor */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm">
+                                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
                                                     <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                                                 </div>
                                                 <span className="font-semibold text-slate-800 dark:text-slate-200 max-w-[200px] truncate leading-tight text-xs" title={contractorName}>
@@ -329,15 +332,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                                     <span className="text-[10px] text-gray-300 dark:text-slate-600 italic">—</span>
                                                 ) : (
                                                     <>
-                                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                            <div
-                                                                className={`h-full rounded-full transition-all duration-1000 ${payProgress.percent >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                                                                    payProgress.percent >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
-                                                                        'bg-slate-300'
-                                                                    }`}
-                                                                style={{ width: `${payProgress.percent}%` }}
-                                                            />
-                                                        </div>
+                                                        <ProgressBar value={payProgress.percent} size="sm" />
                                                         <div className="flex items-center gap-1.5 text-[10px]">
                                                             <span className="font-bold text-slate-600 dark:text-slate-300">{payProgress.percent.toFixed(0)}%</span>
                                                             <span className="text-gray-300 dark:text-slate-600">·</span>
@@ -345,7 +340,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                                             {payProgress.pending > 0 && (
                                                                 <>
                                                                     <span className="text-gray-300 dark:text-slate-600">·</span>
-                                                                    <span className="text-amber-500 font-semibold flex items-center gap-0.5">
+                                                                    <span className="text-primary-500 font-semibold flex items-center gap-0.5">
                                                                         <Clock className="w-2.5 h-2.5" /> {formatCurrency(payProgress.pending)}
                                                                     </span>
                                                                 </>
@@ -367,20 +362,11 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         {/* Status */}
                                         <td className="px-6 py-4 text-center">
                                             {contract.Status === ContractStatus.Executing ? (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 ring-1 ring-blue-100 dark:ring-blue-900/30">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                                                    Đang TH
-                                                </span>
+                                                <StatusBadge variant="info" label="Đang TH" animated />
                                             ) : contract.Status === ContractStatus.Liquidated ? (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
-                                                    <CheckCircle2 className="w-3 h-3" />
-                                                    Thanh lý
-                                                </span>
+                                                <StatusBadge variant="success" label="Thanh lý" icon={<CheckCircle2 className="w-3 h-3" />} />
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 ring-1 ring-yellow-100 dark:ring-yellow-900/30">
-                                                    <Clock className="w-3 h-3" />
-                                                    Tạm dừng
-                                                </span>
+                                                <StatusBadge variant="warning" label="Tạm dừng" icon={<Clock className="w-3 h-3" />} />
                                             )}
                                         </td>
 
@@ -398,7 +384,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                 </div>
 
                 {/* Summary Footer */}
-                <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800/30 border-t border-slate-200 dark:border-slate-700 px-6 py-4">
+                <div className="table-footer">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
@@ -425,7 +411,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                     </div>
                 )}
-            </Card>
+            </div>
 
             {/* Modal Tạo mới hợp đồng */}
             <ContractModal

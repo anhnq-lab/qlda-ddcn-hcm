@@ -8,6 +8,7 @@ import {
     Clock,
     TrendingUp
 } from 'lucide-react';
+import { StatCard } from '../../../components/ui';
 import { TaskFilter } from './TaskFilterBar';
 
 interface PlanStatisticsHeaderProps {
@@ -43,12 +44,12 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
         return dd >= today && dd <= threeDaysLater;
     }).length;
 
-    const CARD_STYLES: Record<number, string> = {
-        0: 'stat-card-blue',
-        1: 'stat-card-amber',
-        2: 'stat-card-emerald',
-        3: 'stat-card-rose',
-        4: 'stat-card-violet',
+    const CARD_COLORS: Record<number, "blue" | "amber" | "emerald" | "rose" | "violet" | "slate"> = {
+        0: 'slate',    // Tổng số - neutral
+        1: 'amber',    // Đang chạy - Orange theme
+        2: 'emerald',  // Hoàn thành - xanh lá
+        3: 'rose',     // Trễ - Đỏ báo động
+        4: 'slate',
     };
 
     type StatItem = {
@@ -94,50 +95,31 @@ export const PlanStatisticsHeader: React.FC<PlanStatisticsHeaderProps> = ({ task
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map((stat, index) => {
-                const s = CARD_STYLES[index] || CARD_STYLES[0];
+                const color = CARD_COLORS[index] || "blue";
                 return (
-                    <div
-                        key={index}
+                    <div 
+                        key={index} 
                         onClick={() => stat.filter && onFilterChange?.(stat.filter)}
-                        className={`stat-card ${s} ${onFilterChange && stat.filter ? 'cursor-pointer hover:shadow-md' : ''}`}
+                        className={onFilterChange && stat.filter ? 'cursor-pointer group relative' : ''}
                     >
-                        <div className="flex items-center justify-between w-full relative z-10">
-                            <div>
-                                <p className="stat-card-label">
-                                    {stat.label}
-                                </p>
-                                <div className="mt-1 flex items-baseline gap-2">
-                                    <span className="stat-card-value tabular-nums">
-                                        {stat.value}
-                                    </span>
-                                    {stat.subtitle && (
-                                        <span className="text-sm font-semibold text-slate-500">
-                                            {stat.subtitle}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="stat-card-icon">
-                                <stat.icon className={`w-5 h-5 ${stat.alert ? 'animate-pulse' : ''}`} />
-                            </div>
-                        </div>
-
-                        {/* Progress bar for completion card */}
-                        {stat.label === 'Hoàn thành' && (
-                            <div className="w-full mt-2">
-                                <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
-                                        style={{ width: `${completionRate}%` }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
+                        <StatCard
+                            label={stat.label}
+                            value={stat.value}
+                            icon={<stat.icon className={`w-5 h-5 ${stat.alert ? 'animate-pulse text-rose-500' : ''}`} />}
+                            color={color}
+                            progressPercentage={stat.label === 'Hoàn thành' ? completionRate : undefined}
+                            footer={
+                                stat.subtitle ? (
+                                    <div className="text-sm font-semibold text-slate-500 mt-1">
+                                        {stat.subtitle}
+                                    </div>
+                                ) : undefined
+                            }
+                        />
                         {/* Click hint */}
                         {onFilterChange && stat.filter && (
-                            <div className="absolute bottom-1 right-2 text-[9px] text-slate-400 font-medium uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                                Click để lọc
+                            <div className="absolute top-2 right-2 text-[9px] text-slate-400 font-medium uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+                                Lọc
                             </div>
                         )}
                     </div>

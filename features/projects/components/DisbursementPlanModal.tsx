@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { X, CalendarRange, Save, ListChecks } from 'lucide-react';
 import { DisbursementPlanItem } from '../../../services/CapitalService';
 import { formatCurrency } from '../../../utils/format';
@@ -119,7 +119,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]"
+                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -156,7 +156,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                                 value={year}
                                 onChange={e => handleYearChange(Number(e.target.value))}
                                 min={2020} max={2035}
-                                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-800 dark:text-slate-100 text-sm font-bold focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-bold focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -164,7 +164,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
 
                     <div className="flex-1 overflow-y-auto p-6">
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 dark:text-slate-400 rounded-lg border-b border-slate-200 dark:border-slate-700">
+                            <thead className="text-xs text-slate-500 bg-[#F5EFE6] dark:bg-slate-800 dark:text-slate-400 rounded-lg border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th className="py-3 px-4 rounded-tl-lg rounded-bl-lg w-24">Tháng</th>
                                     <th className="py-3 px-4 w-1/5">Kế hoạch (VNĐ)</th>
@@ -185,7 +185,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                                         : '';
 
                                     return (
-                                        <tr key={e.month} className="border-b border-gray-100 dark:border-slate-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <tr key={e.month} className="border-b border-gray-100 dark:border-slate-700/50 last:border-0 hover:bg-[#F5EFE6] dark:hover:bg-slate-800 transition-colors">
                                             <td className="py-2.5 px-4 font-medium text-gray-700 dark:text-slate-300">
                                                 Tháng {e.month}
                                             </td>
@@ -194,12 +194,12 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                                                     type="text"
                                                     value={e.plannedAmount ? Number(e.plannedAmount).toLocaleString('vi-VN') : ''}
                                                     onChange={ev => handleChange(e.month, 'plannedAmount', ev.target.value)}
-                                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-sm font-mono focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                                                     placeholder="0"
                                                 />
                                             </td>
                                             <td className="py-2.5 px-4">
-                                                <span className="text-emerald-700 dark:text-emerald-400 font-mono font-medium block w-full px-3 py-1.5 bg-gray-50/50 dark:bg-slate-700/30 rounded-lg border border-transparent">
+                                                <span className="text-emerald-700 dark:text-emerald-400 font-mono font-medium block w-full px-3 py-1.5 bg-[#F5EFE6] dark:bg-slate-700 rounded-lg border border-transparent">
                                                     {formatCurrency(Number(e.actualAmount) || 0)}
                                                 </span>
                                             </td>
@@ -225,7 +225,7 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                                     );
                                 })}
                                 {/* Tổng cộng footer */}
-                                <tr className="bg-gray-50 dark:bg-slate-700/30 font-bold border-t border-gray-200 dark:border-slate-600">
+                                <tr className="bg-gray-50 dark:bg-slate-700 font-bold border-t border-gray-200 dark:border-slate-600">
                                     <td className="py-3 px-4 text-gray-800 dark:text-slate-200">Tổng cộng</td>
                                     <td className="py-3 px-4 text-violet-700 dark:text-violet-400 font-mono">
                                         {formatCurrency(totalPlanned)}
@@ -240,10 +240,10 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 dark:border-slate-700 shrink-0 bg-gray-50 dark:bg-slate-800/80 rounded-b-2xl">
+                    <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200 dark:border-slate-700 shrink-0 bg-gray-50 dark:bg-slate-800 rounded-b-2xl">
                         <div>
                             {totalPlanned > annualLimit && (
-                                <p className="text-red-500 font-medium tracking-tight text-sm bg-red-50 dark:bg-red-900/20 px-3 py-1.5 border border-red-200 dark:border-red-800/50 rounded-lg shadow-sm">
+                                <p className="text-red-500 font-medium tracking-tight text-sm bg-red-50 dark:bg-red-900/20 px-3 py-1.5 border border-red-200 dark:border-red-800/50 rounded-lg shadow-lg">
                                     ⚠️ Tổng kế hoạch ({formatCurrency(totalPlanned)}) đang vượt quá Vốn giao ({formatCurrency(annualLimit)})!
                                 </p>
                             )}
@@ -252,14 +252,14 @@ export const DisbursementPlanModal: React.FC<DisbursementPlanModalProps> = ({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                             >
                                 Hủy
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSaving || totalPlanned > annualLimit}
-                                className="px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm"
+                                className="px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
                             >
                                 <Save className="w-4 h-4" />
                                 {isSaving ? 'Đang lưu...' : 'Lưu kế hoạch'}

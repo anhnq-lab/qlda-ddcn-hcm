@@ -221,14 +221,14 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={() => setActiveTab('edit')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'edit'
-                                ? 'bg-blue-500/10 text-blue-400 shadow-sm'
+                                ? 'bg-blue-500/10 text-blue-400 shadow-lg'
                                 : 'text-[#94a3b8] hover:text-[#cbd5e1] hover:bg-[#334155]'
                                 }`}
                         >
                             <Edit3 size={14} />
                             Điền thông tin
                             {fieldStats.manual > 0 && (
-                                <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-amber-500/20 text-amber-400">
+                                <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-primary-500/20 text-primary-400">
                                     {fieldStats.manual}
                                 </span>
                             )}
@@ -236,7 +236,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={() => setActiveTab('preview')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
-                                ? 'bg-blue-500/10 text-blue-400 shadow-sm'
+                                ? 'bg-blue-500/10 text-blue-400 shadow-lg'
                                 : 'text-[#94a3b8] hover:text-[#cbd5e1] hover:bg-[#334155]'
                                 }`}
                         >
@@ -254,7 +254,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                             </span>
                         )}
                         {fieldStats.manual > 0 && (
-                            <span className="flex items-center gap-1 text-amber-400">
+                            <span className="flex items-center gap-1 text-primary-400">
                                 <AlertCircle size={12} />
                                 {fieldStats.manual} cần nhập
                             </span>
@@ -355,7 +355,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                                     <Loader2 size={32} className="text-blue-400 animate-spin" />
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-xl p-8 shadow-lg max-w-3xl mx-auto min-h-[400px]">
+                                <div className="bg-[#FCF9F2] rounded-xl p-8 shadow-lg max-w-3xl mx-auto min-h-[400px]">
                                     <pre className="whitespace-pre-wrap text-sm text-gray-800 font-serif leading-relaxed"
                                         style={{ fontFamily: "'Times New Roman', 'Noto Serif', serif" }}>
                                         {previewContent || '(Chưa có nội dung)'}
@@ -396,7 +396,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={handleExport}
                             disabled={exporting}
-                            className={`flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${categoryGradient} text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-blue-500/20 text-sm`}
+                            className={`flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${categoryGradient} text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-primary-500/20 text-sm`}
                         >
                             {exporting ? (
                                 <Loader2 size={16} className="animate-spin" />
@@ -456,7 +456,7 @@ function groupFields(fields: TemplateConfig['fields']): FieldGroup[] {
     if (docFields.length > 0) {
         groups.push({
             label: 'Thông tin văn bản',
-            icon: <FileText size={14} className="text-amber-400" />,
+            icon: <FileText size={14} className="text-primary-400" />,
             fields: docFields,
         });
     }

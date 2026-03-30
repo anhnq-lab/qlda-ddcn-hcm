@@ -28,7 +28,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
         title: 'Chờ làm',
         icon: Circle,
         color: 'text-gray-600',
-        bgColor: 'bg-gray-50',
+        bgColor: 'bg-[#F5EFE6]',
         borderColor: 'border-gray-200'
     },
     {
@@ -43,9 +43,9 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
         id: TaskStatus.Review,
         title: 'Đang duyệt',
         icon: AlertCircle,
-        color: 'text-indigo-600',
-        bgColor: 'bg-indigo-50',
-        borderColor: 'border-indigo-200'
+        color: 'text-primary-600',
+        bgColor: 'bg-primary-50',
+        borderColor: 'border-primary-200'
     },
     {
         id: TaskStatus.Done,
@@ -170,7 +170,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
                             {onAddTask && (
                                 <button
                                     onClick={() => onAddTask(column.id)}
-                                    className={`p-1 rounded-md gradient-btn text-white transition-all shadow-sm`}
+                                    className={`p-1 rounded-md gradient-btn text-white transition-all shadow-lg`}
                                     title={`Thêm công việc vào ${column.title}`}
                                 >
                                     <Plus className="w-4 h-4" />
@@ -187,7 +187,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
                                     onDragStart={(e) => handleDragStart(e, task)}
                                     onDragEnd={handleDragEnd}
                                     onClick={() => onTaskClick(task)}
-                                    className={`group bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700 p-3 cursor-pointer transition-all hover:shadow-md border-l-4 ${getPriorityStyle(task.Priority as TaskPriority)} ${draggedTask?.TaskID === task.TaskID ? 'opacity-50 scale-95' : ''
+                                    className={`group bg-[#FCF9F2] dark:bg-slate-800 rounded-lg border dark:border-slate-700 p-3 cursor-pointer transition-all hover:shadow-md border-l-4 ${getPriorityStyle(task.Priority as TaskPriority)} ${draggedTask?.TaskID === task.TaskID ? 'opacity-50 scale-95' : ''
                                         } ${isOverdue(task) ? 'bg-red-50/50' : ''}`}
                                 >
                                     {/* Drag Handle + Title */}
@@ -224,7 +224,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
                                             <span className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border ${task.Priority === 'High' || task.Priority === 'Urgent'
                                                 ? 'bg-red-50 text-red-600 border-red-200'
                                                 : task.Priority === 'Medium'
-                                                    ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                    ? 'bg-primary-50 text-primary-600 border-primary-200'
                                                     : 'bg-green-50 text-green-600 border-green-200'
                                                 }`}>
                                                 <Flag className="w-2.5 h-2.5" />
@@ -252,7 +252,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
 
                                     {/* Critical Path Indicator */}
                                     {task.IsCritical && (
-                                        <div className="mt-2 flex items-center gap-1 text-[10px] text-purple-600 font-bold">
+                                        <div className="mt-2 flex items-center gap-1 text-[10px] text-amber-600 font-bold">
                                             <ChevronRight className="w-3 h-3" />
                                             Critical Path
                                         </div>

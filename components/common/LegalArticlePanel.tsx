@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { Scale, FileText, Calendar, Shield, Building2, ExternalLink, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { legalDocuments, LegalDocument, LegalArticle, LegalChapter, DOC_TYPE_LABELS, DOC_STATUS_LABELS, DOC_TYPE_COLORS, DOC_STATUS_COLORS } from '../../features/legal-documents/legalData';
@@ -61,19 +61,19 @@ const ArticleCard: React.FC<{
         <div
             id={`panel-article-${article.id}`}
             className={`rounded-xl border transition-all duration-300 ${isTarget
-                ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-700 shadow-sm ring-1 ring-amber-400/30'
-                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                ? 'bg-primary-50/50 dark:bg-primary-900/10 border-primary-300 dark:border-primary-700 shadow-lg ring-1 ring-primary-400/30'
+                : 'bg-[#FCF9F2] dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
         >
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50/50 dark:hover:bg-slate-700/50 rounded-xl transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-[#F5EFE6] dark:hover:bg-slate-700 rounded-xl transition-colors"
             >
                 <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-xs font-black shrink-0 ${isTarget ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                    <span className={`text-xs font-black shrink-0 ${isTarget ? 'text-primary-600 dark:text-primary-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
                         {article.code}.
                     </span>
-                    <span className={`text-sm font-semibold truncate ${isTarget ? 'text-amber-900 dark:text-amber-200' : 'text-gray-800 dark:text-slate-200'}`}>
+                    <span className={`text-sm font-semibold truncate ${isTarget ? 'text-primary-900 dark:text-primary-200' : 'text-gray-800 dark:text-slate-200'}`}>
                         {article.title}
                     </span>
                 </div>
@@ -207,10 +207,10 @@ const LegalArticlePanel: React.FC<LegalArticlePanelProps> = ({ docId, articleId 
 
                 {/* Target article highlight */}
                 {targetArticle && (
-                    <div className="mt-3 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <div className="mt-3 px-3 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-primary-600 dark:text-primary-400 shrink-0" />
                         <div>
-                            <p className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                            <p className="text-xs font-bold text-primary-800 dark:text-primary-300">
                                 {targetArticle.code}. {targetArticle.title}
                             </p>
                         </div>
@@ -264,7 +264,7 @@ const LegalArticlePanel: React.FC<LegalArticlePanelProps> = ({ docId, articleId 
             </div>
 
             {/* Footer — link to full page */}
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800/80 shrink-0">
+            <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800 shrink-0">
                 <button
                     onClick={() => {
                         const params = new URLSearchParams({ docId });

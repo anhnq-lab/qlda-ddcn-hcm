@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Building2, HardHat, ExternalLink, CircleDollarSign, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { Contractor, BiddingPackage } from '@/types';
 import { formatShortCurrency } from '@/utils/format';
@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
     planning: { label: 'Trong kế hoạch', color: 'text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-600' },
     bidding: { label: 'Đang mời thầu', color: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30' },
     posted: { label: 'Đã đăng tải', color: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30' },
-    evaluating: { label: 'Đang xét thầu', color: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30' },
+    evaluating: { label: 'Đang xét thầu', color: 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30' },
     pending: { label: 'Chờ phê duyệt', color: 'text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30' },
     approved: { label: 'Đã phê duyệt', color: 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-900/30' },
     awarded: { label: 'Đã trúng thầu', color: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30' },
@@ -70,18 +70,18 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
                         return (
                             <div
                                 key={contractor.ContractorID}
-                                className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-center gap-3"
+                                className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group flex items-center gap-3"
                                 onClick={() => onViewContractor?.(contractor.ContractorID)}
                             >
-                                <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-                                    <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center shrink-0">
+                                    <Building2 className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">
                                         {contractor.FullName}
                                     </p>
                                     {displayInfo && (
-                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 truncate mt-0.5" title={displayInfo}>
+                                        <p className="text-[10px] text-primary-600 dark:text-primary-400 truncate mt-0.5" title={displayInfo}>
                                             📦 {displayInfo}
                                         </p>
                                     )}
@@ -125,7 +125,7 @@ export const ContractorsListSection: React.FC<ContractorsListSectionProps> = ({
                                 key={pkg.PackageID}
                                 className={`flex items-center gap-3 p-2.5 rounded-lg border transition-colors cursor-pointer group ${hasWinner
                                     ? 'bg-emerald-50/50 dark:bg-emerald-900/15 border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/25'
-                                    : 'bg-gray-50 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600/50 hover:bg-gray-100 dark:hover:bg-slate-700/50'
+                                    : 'bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600/50 hover:bg-gray-100 dark:hover:bg-slate-700'
                                     }`}
                                 onClick={() => onViewPackage?.(pkg.PackageID)}
                             >

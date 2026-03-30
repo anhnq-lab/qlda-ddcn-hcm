@@ -90,7 +90,7 @@ export const BimSectionPanel: React.FC<BimSectionPanelProps> = ({
                 ${isDark ? 'border-slate-700' : 'border-gray-200'}
             `}>
                 <div className="flex items-center gap-2">
-                    <Box className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+                    <Box className={`w-4 h-4 ${isDark ? 'text-primary-400' : 'text-primary-500'}`} />
                     <span className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         Section Box
                     </span>

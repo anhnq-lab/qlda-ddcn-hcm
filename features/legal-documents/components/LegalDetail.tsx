@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Share2, Printer, Download, Maximize2, Minimize2, FileText, FileDown, Bookmark, Link as LinkIcon, Check, ChevronDown, ChevronRight, Scale, Info, Calendar, Shield, Building2 } from 'lucide-react';
 import { LegalDocument, DOC_TYPE_LABELS, DOC_STATUS_LABELS, DOC_TYPE_COLORS, DOC_STATUS_COLORS } from '../legalData';
 import { HighlightText, TYPE_ICONS } from './LegalUI';
@@ -40,7 +40,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
 }) => {
     if (!selectedDoc) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700">
                 <Scale className="w-16 h-16 text-gray-200 dark:text-slate-700 mb-4" />
                 <h3 className="text-lg font-bold text-gray-400 dark:text-slate-500">Chọn văn bản để xem chi tiết</h3>
                 <p className="text-sm text-gray-300 dark:text-slate-600 mt-1">Sử dụng thanh tìm kiếm hoặc bộ lọc bên trên</p>
@@ -123,12 +123,12 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
                     <div ref={contentRef} className="absolute inset-0 overflow-y-auto custom-scrollbar">
                         {showPdfViewer ? (
                             <div className="h-full w-full bg-gray-100/50 dark:bg-slate-900 p-4">
-                                <div className="w-full h-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                                <div className="w-full h-full bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden flex flex-col">
                                     <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex justify-between items-center">
                                         <span className="text-xs font-bold text-gray-600 dark:text-slate-300 flex items-center gap-2">
                                             <FileDown className="w-4 h-4" /> Bản gốc PDF
                                         </span>
-                                        <span className="text-[10px] bg-white dark:bg-slate-800 px-2 py-1 rounded font-mono text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">{selectedDoc.fileSize}</span>
+                                        <span className="text-[10px] bg-[#FCF9F2] dark:bg-slate-800 px-2 py-1 rounded font-mono text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">{selectedDoc.fileSize}</span>
                                     </div>
                                     <iframe src={`${selectedDoc.filePath}#toolbar=0&navpanes=0`} className="w-full flex-1" title="PDF Viewer" />
                                 </div>
@@ -139,7 +139,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
                                     <div key={chapter.id} className="mb-10 last:mb-0">
                                         <div
                                             onClick={() => toggleChapter(chapter.id)}
-                                            className="sticky top-0 z-10 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md py-3 -mx-4 px-4 mb-4 border-b-2 border-gray-200 dark:border-slate-700 flex items-center justify-between cursor-pointer group"
+                                            className="sticky top-0 z-10 bg-white/95 dark:bg-slate-800 backdrop-blur-md py-3 -mx-4 px-4 mb-4 border-b-2 border-gray-200 dark:border-slate-700 flex items-center justify-between cursor-pointer group"
                                         >
                                             <div>
                                                 <h3 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">{chapter.code}</h3>

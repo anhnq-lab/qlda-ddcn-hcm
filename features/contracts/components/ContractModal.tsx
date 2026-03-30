@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Save, Loader2, FileSignature, Calendar, Banknote,
@@ -188,7 +188,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
     };
 
     const inputClass = (field: keyof FormData) =>
-        `w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border rounded-lg outline-none transition-colors
+        `w-full px-3 py-2 text-sm bg-[#FCF9F2] dark:bg-slate-900 border rounded-lg outline-none transition-colors
         ${errors[field]
             ? 'border-red-300 dark:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
             : 'border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
@@ -208,8 +208,8 @@ export const ContractModal: React.FC<ContractModalProps> = ({
         : biddingPackages;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden p-4">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 dark:bg-slate-900 backdrop-blur-sm overflow-hidden p-4">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 shrink-0">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
@@ -225,7 +225,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                 <div className="flex-1 overflow-y-auto p-6">
                     <form id="contract-form" onSubmit={handleSubmit} className="space-y-6">
                         {/* Association Fields (Project, Package, Contractor) */}
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
                             <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Thông tin liên kết</h4>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,7 +282,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                                 {errors.contractorId && <p className="text-xs text-red-500 mt-1">{errors.contractorId}</p>}
                                 
                                 {!isEditing && form.packageId && selectedPackage && !selectedPackage.WinningContractorID && (
-                                    <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-500 mt-2 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-800">
+                                    <p className="flex items-center gap-1.5 text-xs text-primary-600 dark:text-primary-500 mt-2 bg-primary-50 dark:bg-primary-900/20 p-2 rounded border border-primary-200 dark:border-primary-800">
                                         <AlertTriangle className="w-3.5 h-3.5" />
                                         Gói thầu này chưa có thông tin nhà thầu trúng thầu. Nên cập nhật KQLCNT trên Hệ thống trước.
                                     </p>
@@ -447,11 +447,11 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0 rounded-b-2xl">
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex justify-end gap-3 shrink-0 rounded-b-2xl">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors"
                     >
                         Hủy bỏ
                     </button>
@@ -459,7 +459,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                         type="submit"
                         form="contract-form"
                         disabled={saveMutation.isPending}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 shadow-sm hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 rounded-lg disabled:opacity-50 transition-all"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-primary-600 shadow-lg hover:bg-primary-500 focus:ring-4 focus:ring-blue-500/20 rounded-lg disabled:opacity-50 transition-all"
                     >
                         {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         {isEditing ? 'Lưu thay đổi' : 'Tạo hợp đồng'}

@@ -22,9 +22,9 @@ export const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export const SOURCE_COLORS: Record<string, string> = {
-    'NSTW': '#5A4A25',
-    'NSĐP': '#A89050',
-    'ODA': '#D4A017',
+    'NSTW': '#9a3412',
+    'NSĐP': '#fdba74',
+    'ODA': '#f97316',
     'Khác': '#6b7280',
 };
 
@@ -47,3 +47,4 @@ export function normalizeSource(raw: string): string {
 
 // ─── Months shorthand ───────────────────────────────────
 export const MONTHS = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+

@@ -1,6 +1,7 @@
 import React from 'react';
 import { FolderTree, Building2, Upload, Loader2, FileText, Clock, Share2, CheckCircle2 } from 'lucide-react';
 import type { CDEStats } from '../types';
+import { StatCard } from '../../../components/ui';
 
 interface CDEHeaderProps {
     projects: Array<{ ProjectID: string; ProjectName: string }>;
@@ -18,10 +19,10 @@ const CDEHeader: React.FC<CDEHeaderProps> = ({
     projects, selectedProjectId, onProjectChange, stats, onUpload, isUploading, canUpload, userRole, hideStats,
 }) => {
     const statCards = [
-        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, className: 'stat-card-slate' },
-        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, className: 'stat-card-amber' },
-        { label: 'Đang xét duyệt', value: stats?.shared || 0, icon: Share2, className: 'stat-card-blue' },
-        { label: 'Đã phê duyệt', value: stats?.published || 0, icon: CheckCircle2, className: 'stat-card-emerald' },
+        { label: 'Tổng hồ sơ', value: stats?.total || 0, icon: FileText, color: 'slate' as const },
+        { label: 'Đang xử lý', value: stats?.wip || 0, icon: Clock, color: 'amber' as const },
+        { label: 'Đang xét duyệt', value: stats?.shared || 0, icon: Share2, color: 'blue' as const },
+        { label: 'Đã phê duyệt', value: stats?.published || 0, icon: CheckCircle2, color: 'emerald' as const },
     ];
 
     return (
@@ -40,7 +41,7 @@ const CDEHeader: React.FC<CDEHeaderProps> = ({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 min-w-[320px]">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 min-w-[320px]">
                         <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                         <select
                             value={selectedProjectId}
@@ -67,18 +68,13 @@ const CDEHeader: React.FC<CDEHeaderProps> = ({
             {!hideStats && (
                 <div className="grid grid-cols-4 gap-4">
                     {statCards.map((stat, idx) => (
-                        <div key={idx} className={`relative overflow-hidden rounded-2xl p-5 shadow-xl text-white hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 stat-card ${stat.className}`}>
-                            <stat.icon className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">{stat.label}</p>
-                                    <p className="text-3xl font-black tracking-tight text-white drop-shadow-sm">{stat.value}</p>
-                                </div>
-                                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                                    <stat.icon className="w-5 h-5 text-white" />
-                                </div>
-                            </div>
-                        </div>
+                        <StatCard
+                            key={idx}
+                            label={stat.label}
+                            value={stat.value}
+                            icon={<stat.icon className="w-5 h-5 flex-shrink-0" />}
+                            color={stat.color}
+                        />
                     ))}
                 </div>
             )}

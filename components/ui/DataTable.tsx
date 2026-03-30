@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, ChevronsUpDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export interface Column<T> {
@@ -133,10 +133,10 @@ function DataTable<T extends Record<string, any>>({
             return <ChevronsUpDown size={14} className="text-slate-400" />;
         }
         if (sortConfig.direction === 'asc') {
-            return <ChevronUp size={14} className="text-amber-500" />;
+            return <ChevronUp size={14} className="text-primary-500" />;
         }
         if (sortConfig.direction === 'desc') {
-            return <ChevronDown size={14} className="text-amber-500" />;
+            return <ChevronDown size={14} className="text-primary-500" />;
         }
         return <ChevronsUpDown size={14} className="text-slate-400" />;
     };
@@ -145,11 +145,11 @@ function DataTable<T extends Record<string, any>>({
     const headerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
 
     return (
-        <div className={`overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 ${className}`}>
+        <div className={`overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800/60 bg-[#FCF9F2] dark:bg-slate-900 ${className}`}>
             <div className="overflow-x-auto">
                 <table className="w-full">
                     {/* Header */}
-                    <thead className={`bg-slate-50 dark:bg-slate-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                    <thead className={`bg-[#F5EFE6] dark:bg-slate-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
                         <tr>
                             {selectable && (
                                 <th className={`${headerPadding} w-12`}>
@@ -157,7 +157,7 @@ function DataTable<T extends Record<string, any>>({
                                         type="checkbox"
                                         checked={selectedKeys.length === data.length && data.length > 0}
                                         onChange={handleSelectAll}
-                                        className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-amber-500 focus:ring-amber-500"
+                                        className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500"
                                     />
                                 </th>
                             )}
@@ -169,7 +169,7 @@ function DataTable<T extends Record<string, any>>({
                                     className={`
                                         ${headerPadding}
                                         text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider
-                                        ${col.sortable ? 'cursor-pointer hover:text-amber-600 dark:hover:text-amber-400 select-none transition-colors' : ''}
+                                        ${col.sortable ? 'cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 select-none transition-colors' : ''}
                                         ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''}
                                     `}
                                 >
@@ -183,7 +183,7 @@ function DataTable<T extends Record<string, any>>({
                     </thead>
 
                     {/* Body */}
-                    <tbody className="bg-white dark:bg-slate-900">
+                    <tbody className="bg-[#FCF9F2] dark:bg-slate-900">
                         {isLoading ? (
                             <tr>
                                 <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-4 py-12">
@@ -213,7 +213,7 @@ function DataTable<T extends Record<string, any>>({
                                         onClick={() => onRowClick?.(row)}
                                         className={`
                                             ${onRowClick ? 'cursor-pointer' : ''}
-                                            ${isSelected ? 'bg-amber-50 dark:bg-amber-900/20' : `hover:bg-amber-50/30 dark:hover:bg-slate-700 ${index % 2 !== 0 ? 'bg-slate-50/50 dark:bg-slate-800/50' : 'bg-transparent dark:bg-transparent'}`}
+                                            ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : `hover:bg-primary-50/30 dark:hover:bg-slate-700 ${index % 2 !== 0 ? 'bg-[#F5EFE6] dark:bg-slate-800' : 'bg-transparent dark:bg-transparent'}`}
                                             border-b border-slate-100 dark:border-slate-700/50 last:border-b-0
                                             transition-colors
                                             ${rowClassName?.(row) || ''}
@@ -225,7 +225,7 @@ function DataTable<T extends Record<string, any>>({
                                                     type="checkbox"
                                                     checked={isSelected}
                                                     onChange={() => handleSelectRow(key)}
-                                                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-amber-500 focus:ring-amber-500"
+                                                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500"
                                                 />
                                             </td>
                                         )}
@@ -254,7 +254,7 @@ function DataTable<T extends Record<string, any>>({
 
             {/* Pagination */}
             {pagination && !isLoading && sortedData.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800/60 bg-[#F5EFE6] dark:bg-slate-800">
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Hiển thị {((pagination.currentPage - 1) * pagination.pageSize) + 1} - {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} / {pagination.totalItems}
                     </p>
@@ -287,7 +287,7 @@ function DataTable<T extends Record<string, any>>({
                                     className={`
                                         w-8 h-8 rounded-lg text-sm font-medium transition-colors
                                         ${pagination.currentPage === pageNum
-                                            ? 'bg-amber-500 text-white'
+                                            ? 'bg-primary-500 text-white'
                                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }
                                     `}

@@ -3,6 +3,7 @@ import { Project, ProjectStatus, ProjectGroup, MANAGEMENT_BOARDS } from '../../t
 import { MapPin, Building, Layers, Building2, Calendar } from 'lucide-react';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { getGroupGradient, requiresBIM } from '../../utils/projectCompliance';
+import { ProgressBar } from '../../components/ui';
 
 interface ProjectCardProps {
     project: Project;
@@ -22,14 +23,8 @@ const STATUS_CONFIG: Record<number, { label: string; hex: string }> = {
 
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600&auto=format&fit=crop";
 
-const ProgressBar: React.FC<{ value: number; colorClass: string }> = ({ value, colorClass }) => (
-    <div className="h-1.5 w-full bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-        <div
-            className={`h-full rounded-full ${colorClass} transition-all duration-500`}
-            style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-        ></div>
-    </div>
-);
+
+
 
 // ═══════════════════════════════════════════════════════════════
 // LAZY IMAGE with placeholder
@@ -74,7 +69,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
         return (
             <div
                 onClick={onClick}
-                className="group flex flex-col md:flex-row bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                className="group flex flex-col md:flex-row bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all cursor-pointer"
             >
                 <div className="w-full md:w-56 h-32 md:h-auto relative shrink-0">
                     <LazyImage
@@ -121,14 +116,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                                 <span className="text-gray-500 dark:text-slate-400">Tiến độ</span>
                                 <span className="font-bold text-blue-600 dark:text-blue-400">{project.Progress || 0}%</span>
                             </div>
-                            <ProgressBar value={project.Progress || 0} colorClass="bg-blue-500" />
+                            <ProgressBar value={project.Progress || 0} color="blue" size="sm" />
                         </div>
                         <div>
                             <div className="flex justify-between text-[10px] mb-1">
                                 <span className="text-gray-500 dark:text-slate-400">Giải ngân</span>
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400">{project.PaymentProgress || 0}%</span>
                             </div>
-                            <ProgressBar value={project.PaymentProgress || 0} colorClass="bg-emerald-500" />
+                            <ProgressBar value={project.PaymentProgress || 0} color="emerald" size="sm" />
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase">Ngân sách</p>
@@ -144,7 +139,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
     return (
         <div
             onClick={onClick}
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col cursor-pointer h-full"
+            className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col cursor-pointer h-full"
         >
             {/* Image - Only badges */}
             <div className="relative h-28 w-full overflow-hidden shrink-0">
@@ -167,7 +162,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                 {/* BIM Badge */}
                 {project.RequiresBIM && (
                     <div className="absolute bottom-2 right-2">
-                        <span className={`flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded shadow ${project.BIMStatus === 'Active' ? 'bg-green-500 text-white' : 'bg-amber-400 text-amber-900'
+                        <span className={`flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded shadow ${project.BIMStatus === 'Active' ? 'bg-green-500 text-white' : 'bg-primary-400 text-primary-900'
                             }`} title="Bắt buộc BIM (NĐ 175)">
                             <Layers className="w-2.5 h-2.5" />
                             BIM
@@ -189,7 +184,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                         <MapPin className="w-3 h-3 text-gray-400 dark:text-slate-500 shrink-0" />
                         <span className="truncate">{project.LocationCode}</span>
                     </span>
-                    <span className="font-mono text-[10px] bg-gray-50 dark:bg-slate-700 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="font-mono text-[10px] bg-[#F5EFE6] dark:bg-slate-700 px-1.5 py-0.5 rounded shrink-0">
                         #{(project.ProjectID || '').slice(-5)}
                     </span>
                     {board && (
@@ -206,14 +201,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                             <span className="text-gray-500 dark:text-slate-400">Tiến độ</span>
                             <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{project.Progress || 0}%</span>
                         </div>
-                        <ProgressBar value={project.Progress || 0} colorClass="bg-blue-500" />
+                        <ProgressBar value={project.Progress || 0} color="blue" size="sm" />
                     </div>
                     <div>
                         <div className="flex justify-between text-[11px] mb-1">
                             <span className="text-gray-500 dark:text-slate-400">Giải ngân</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{project.PaymentProgress || 0}%</span>
                         </div>
-                        <ProgressBar value={project.PaymentProgress || 0} colorClass="bg-emerald-500" />
+                        <ProgressBar value={project.PaymentProgress || 0} color="emerald" size="sm" />
                     </div>
                 </div>
 
@@ -221,7 +216,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ project, on
                 <div className="mt-auto pt-2 border-t border-gray-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-semibold tracking-wide">Tổng mức ĐT</span>
-                        <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-yellow-700 bg-clip-text text-transparent dark:text-slate-100 dark:bg-none tabular-nums">{formatCurrency(project.TotalInvestment)}</span>
+                        <span className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent dark:text-slate-100 dark:bg-none tabular-nums">{formatCurrency(project.TotalInvestment)}</span>
                     </div>
                 </div>
             </div>

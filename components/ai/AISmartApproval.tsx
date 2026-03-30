@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import { ShieldCheck, RefreshCw, CheckCircle2, XCircle, AlertCircle, ChevronRight } from 'lucide-react';
 import { checkPaymentApproval, checkContractApproval, ApprovalCheckResult } from '../../services/ai/smartApproval';
 
@@ -40,12 +40,12 @@ export const AISmartApproval: React.FC<AISmartApprovalProps> = ({
     const statusIcons = {
         passed: <CheckCircle2 size={12} className="text-emerald-600" />,
         failed: <XCircle size={12} className="text-red-600" />,
-        warning: <AlertCircle size={12} className="text-amber-600" />,
+        warning: <AlertCircle size={12} className="text-primary-600" />,
         skipped: <span className="text-[10px] text-slate-400">—</span>,
     };
 
     return (
-        <div className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden ${className}`}>
             <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${result?.canApprove === true ? 'bg-gradient-to-br from-emerald-500 to-green-500'
@@ -86,7 +86,7 @@ export const AISmartApproval: React.FC<AISmartApprovalProps> = ({
                     {/* Check results */}
                     <div className="space-y-1.5">
                         {result.checks.map(check => (
-                            <div key={check.id} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30">
+                            <div key={check.id} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-700">
                                 <div className="mt-0.5">{statusIcons[check.status]}</div>
                                 <div className="flex-1">
                                     <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">{check.name}</p>

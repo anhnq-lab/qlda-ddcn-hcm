@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TaskService } from '@/services/TaskService';
 import { BarChart3, ChevronRight, CheckCircle2, Clock, AlertTriangle, Circle } from 'lucide-react';
@@ -23,16 +23,16 @@ interface GanttChartWidgetProps {
 
 const STATUS_COLORS: Record<string, { bar: string; bg: string; text: string }> = {
     Done: { bar: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400' },
-    InProgress: { bar: 'bg-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400' },
+    InProgress: { bar: 'bg-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20', text: 'text-primary-600 dark:text-primary-400' },
     Review: { bar: 'bg-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
-    Todo: { bar: 'bg-slate-300 dark:bg-slate-600', bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-500 dark:text-slate-400' },
+    Todo: { bar: 'bg-slate-300 dark:bg-slate-600', bg: 'bg-[#F5EFE6] dark:bg-slate-800', text: 'text-slate-500 dark:text-slate-400' },
     overdue: { bar: 'bg-red-500', bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400' },
 };
 
 const StatusIcon: React.FC<{ status: string; className?: string }> = ({ status, className = 'w-3 h-3' }) => {
     switch (status) {
         case 'Done': return <CheckCircle2 className={`${className} text-emerald-500`} />;
-        case 'InProgress': return <Clock className={`${className} text-amber-500`} />;
+        case 'InProgress': return <Clock className={`${className} text-primary-500`} />;
         case 'Review': return <Clock className={`${className} text-blue-500`} />;
         case 'overdue': return <AlertTriangle className={`${className} text-red-500`} />;
         default: return <Circle className={`${className} text-slate-400`} />;
@@ -215,7 +215,7 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
                         Xong: {stats.done}/{stats.total}
                     </span>
                     <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span className="w-2 h-2 rounded-full bg-primary-500"></span>
                         Đang làm: {stats.inProgress}
                     </span>
                     {stats.overdue > 0 && (
@@ -261,7 +261,7 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
                             const colors = STATUS_COLORS[task.status] || STATUS_COLORS.Todo;
 
                             return (
-                                <div key={task.id} className="flex items-center gap-1.5 py-[3px] group hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded transition-colors">
+                                <div key={task.id} className="flex items-center gap-1.5 py-[3px] group hover:bg-slate-50 dark:hover:bg-slate-800 rounded transition-colors">
                                     {/* Task name */}
                                     <div className="w-28 shrink-0 flex items-center gap-1 pr-1">
                                         <StatusIcon status={task.status} className="w-2.5 h-2.5 shrink-0" />
@@ -311,10 +311,10 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
                 )}
 
                 {/* Overall progress bar */}
-                <div className="mt-2 bg-slate-100 dark:bg-slate-700/50 rounded-lg px-2.5 py-1.5">
+                <div className="mt-2 bg-slate-100 dark:bg-slate-700 rounded-lg px-2.5 py-1.5">
                     <div className="flex items-center justify-between text-[10px] mb-1">
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Tiến độ tổng thể</span>
-                        <span className={`font-black tabular-nums ${stats.avgProgress >= 50 ? 'text-emerald-600' : stats.avgProgress > 20 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <span className={`font-black tabular-nums ${stats.avgProgress >= 50 ? 'text-emerald-600' : stats.avgProgress > 20 ? 'text-primary-600' : 'text-red-600'}`}>
                             {stats.avgProgress}%
                         </span>
                     </div>
@@ -323,7 +323,7 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
                             className="h-full rounded-full transition-all duration-700 ease-out"
                             style={{
                                 background: stats.avgProgress >= 50 ? 'linear-gradient(90deg, #10B981, #059669)' :
-                                    stats.avgProgress > 20 ? 'linear-gradient(90deg, #C4A035, #D4A017)' :
+                                    stats.avgProgress > 20 ? 'linear-gradient(90deg, #fb923c, #f97316)' :
                                         'linear-gradient(90deg, #EF4444, #DC2626)',
                                 width: `${Math.min(100, Math.max(0, stats.avgProgress))}%`
                             }}
@@ -336,3 +336,4 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
 };
 
 export default GanttChartWidget;
+

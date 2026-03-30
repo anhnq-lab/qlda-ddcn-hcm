@@ -238,12 +238,7 @@ export class ProjectService {
             .single();
 
         if (error) throw new Error(`Failed to create package: ${error.message}`);
-
-        // Recalculate plan total if assigned to a plan
-        if (packageData.PlanID) {
-            await this.recalculatePlanTotal(packageData.PlanID);
-        }
-
+        // Plan total is auto-recalculated by DB trigger trg_recalculate_plan_total
         return dbToBiddingPackage(data);
     }
 
@@ -263,12 +258,7 @@ export class ProjectService {
         if (error) throw new Error(`Failed to update package: ${error.message}`);
 
         const result = dbToBiddingPackage(updated);
-
-        // Recalculate plan total if price changed
-        if (updates.Price !== undefined && result.PlanID) {
-            await this.recalculatePlanTotal(result.PlanID);
-        }
-
+        // Plan total is auto-recalculated by DB trigger trg_recalculate_plan_total
         return result;
     }
 
@@ -315,11 +305,7 @@ export class ProjectService {
             .eq('package_id', packageId);
 
         if (error) throw new Error(`Failed to delete package: ${error.message}`);
-
-        // Recalculate plan total after deletion
-        if (pkg?.plan_id) {
-            await this.recalculatePlanTotal(pkg.plan_id);
-        }
+        // Plan total is auto-recalculated by DB trigger trg_recalculate_plan_total
     }
 
     // ============================================================
@@ -433,19 +419,7 @@ export class ProjectService {
         if (error) throw new Error(`Failed to remove package from plan: ${error.message}`);
     }
 
-    /** Recalculate plan total value from its packages */
-    static async recalculatePlanTotal(planId: string): Promise<void> {
-        const { data } = await supabase
-            .from('bidding_packages')
-            .select('price')
-            .eq('plan_id', planId);
-
-        const total = (data || []).reduce((sum, p) => sum + (Number(p.price) || 0), 0);
-        await supabase
-            .from('procurement_plans')
-            .update({ total_value: total })
-            .eq('plan_id', planId);
-    }
+    // recalculatePlanTotal removed — handled by DB trigger trg_recalculate_plan_total
 
     /**
      * Get capital and disbursement info (NĐ 99/2021/NĐ-CP)

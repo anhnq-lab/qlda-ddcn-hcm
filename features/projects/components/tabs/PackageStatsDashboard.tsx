@@ -2,6 +2,7 @@ import React from 'react';
 import { BiddingPackage, PackageStatus } from '../../../../types';
 import { formatCurrency } from '../../../../utils/format';
 import { Briefcase, CheckCircle2, FileText, Clock } from 'lucide-react';
+import { StatCard } from '../../../../components/ui';
 
 // ========================================
 // PACKAGE STATS DASHBOARD - Stats cards + Progress bar
@@ -28,44 +29,38 @@ export const PackageStatsDashboard: React.FC<PackageStatsDashboardProps> = ({ pa
         <div className="rounded-xl p-3">
             {/* Main Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="stat-card stat-card-blue cursor-default">
-                    <div className="flex items-center justify-between w-full relative z-10 mb-1">
-                        <span className="stat-card-label">Tổng số gói thầu</span>
-                        <div className="stat-card-icon"><Briefcase className="w-5 h-5" /></div>
-                    </div>
-                    <h3 className="stat-card-value tabular-nums">{totalCount}</h3>
-                </div>
+                <StatCard
+                    label="Tổng số gói thầu"
+                    value={totalCount}
+                    icon={<Briefcase className="w-5 h-5" />}
+                    color="blue"
+                />
 
-                <div className="stat-card stat-card-amber cursor-default">
-                    <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                        <span className="stat-card-label">Tổng giá trị (DT)</span>
-                        <div className="stat-card-icon"><FileText className="w-5 h-5" /></div>
-                    </div>
-                    <h3 className="stat-card-value tabular-nums text-2xl truncate">
-                        {formatCurrency(totalValue)}
-                    </h3>
-                </div>
+                <StatCard
+                    label="Tổng giá trị (DT)"
+                    value={formatCurrency(totalValue)}
+                    icon={<FileText className="w-5 h-5" />}
+                    color="amber"
+                />
 
-                <div className="stat-card stat-card-emerald cursor-default">
-                    <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                        <span className="stat-card-label">Đã có kết quả</span>
-                        <div className="stat-card-icon"><CheckCircle2 className="w-5 h-5" /></div>
-                    </div>
-                    <h3 className="stat-card-value tabular-nums">
-                        {awardedCount}
-                        <span className="text-sm font-bold text-emerald-600/60 dark:text-emerald-400/60 ml-1">/{totalCount}</span>
-                    </h3>
-                </div>
+                <StatCard
+                    label="Đã có kết quả"
+                    value={
+                        <div className="flex items-baseline">
+                            {awardedCount}
+                            <span className="text-sm font-bold text-emerald-600/60 dark:text-emerald-400/60 ml-1">/{totalCount}</span>
+                        </div>
+                    }
+                    icon={<CheckCircle2 className="w-5 h-5" />}
+                    color="emerald"
+                />
 
-                <div className="stat-card stat-card-violet cursor-default">
-                    <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                        <span className="stat-card-label">Đang thực hiện</span>
-                        <div className="stat-card-icon"><Clock className="w-5 h-5" /></div>
-                    </div>
-                    <h3 className="stat-card-value tabular-nums">
-                        {biddingCount + evaluatingCount}
-                    </h3>
-                </div>
+                <StatCard
+                    label="Đang thực hiện"
+                    value={biddingCount + evaluatingCount}
+                    icon={<Clock className="w-5 h-5" />}
+                    color="violet"
+                />
             </div>
 
             {/* Progress Bar */}
@@ -76,13 +71,13 @@ export const PackageStatsDashboard: React.FC<PackageStatsDashboardProps> = ({ pa
                 </div>
                 <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
                     <div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct(awardedCount)}%` }} title="Đã có kết quả" />
-                    <div className="h-full bg-amber-500 transition-all" style={{ width: `${pct(evaluatingCount)}%` }} title="Đang xét thầu" />
+                    <div className="h-full bg-primary-500 transition-all" style={{ width: `${pct(evaluatingCount)}%` }} title="Đang xét thầu" />
                     <div className="h-full bg-blue-500 transition-all" style={{ width: `${pct(biddingCount)}%` }} title="Đang mời thầu" />
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${pct(postedCount)}%` }} title="Đã đăng tải" />
                 </div>
                 <div className="flex flex-wrap gap-4 mt-2 text-xs">
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span className="text-gray-600 dark:text-slate-400">Đã có kết quả ({awardedCount})</span></span>
-                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span className="text-gray-600 dark:text-slate-400">Đang xét thầu ({evaluatingCount})</span></span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-primary-500"></span><span className="text-gray-600 dark:text-slate-400">Đang xét thầu ({evaluatingCount})</span></span>
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span className="text-gray-600 dark:text-slate-400">Đang mời thầu ({biddingCount})</span></span>
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-400"></span><span className="text-gray-600 dark:text-slate-400">Đã đăng tải ({postedCount})</span></span>
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-300"></span><span className="text-gray-600 dark:text-slate-400">Trong kế hoạch ({planningCount})</span></span>

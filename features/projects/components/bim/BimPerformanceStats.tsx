@@ -67,7 +67,7 @@ export const BimPerformanceStats: React.FC<{ visible: boolean; onClose: () => vo
         return String(n);
     };
 
-    const fpsColor = stats.fps >= 50 ? 'text-emerald-400' : stats.fps >= 30 ? 'text-amber-400' : 'text-red-400';
+    const fpsColor = stats.fps >= 50 ? 'text-emerald-400' : stats.fps >= 30 ? 'text-primary-400' : 'text-red-400';
 
     return (
         <div
@@ -78,7 +78,7 @@ export const BimPerformanceStats: React.FC<{ visible: boolean; onClose: () => vo
         >
             {/* Header */}
             <div className={`flex items-center justify-between px-3 py-1.5 border-b
-                ${isDarkMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-gray-50/50'}
+                ${isDarkMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-[#F5EFE6]'}
             `}>
                 <div className="flex items-center gap-1.5">
                     <Activity className="w-3 h-3 text-blue-400" />

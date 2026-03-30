@@ -95,7 +95,7 @@ export const Modal: React.FC<ModalProps> = ({
                 aria-describedby={description ? 'modal-description' : undefined}
                 className={`
                     relative w-full ${sizeStyles[size]}
-                    bg-white rounded-2xl shadow-modal
+                    bg-[#FCF9F2] rounded-2xl shadow-modal
                     animate-scale-in
                     max-h-[90vh] overflow-hidden flex flex-col
                     ${className}
@@ -218,7 +218,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <button
                     onClick={onClose}
                     disabled={loading}
-                    className="flex-1 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 bg-[#FCF9F2] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-[#F5EFE6] transition-colors disabled:opacity-50"
                 >
                     {cancelText}
                 </button>

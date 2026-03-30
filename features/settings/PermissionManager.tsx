@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PermissionManager — QLDA ĐDCN TP.HCM
  *
  * Admin UI for managing user permissions.
@@ -255,7 +255,7 @@ const PermissionManager: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left: Employee List */}
-                <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-gray-50 dark:bg-gray-900">
+                <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-[#F5EFE6] dark:bg-gray-900">
                     {/* Search */}
                     <div className="p-3 space-y-2 border-b border-gray-200 dark:border-gray-700">
                         <div className="relative">
@@ -265,13 +265,13 @@ const PermissionManager: React.FC = () => {
                                 placeholder="Tìm nhân sự..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-[#FCF9F2] dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                             />
                         </div>
                         <select
                             value={filterDept}
                             onChange={e => setFilterDept(e.target.value)}
-                            className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-[#FCF9F2] dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                             <option value="">Tất cả phòng ban</option>
                             {departments.map(([dept]) => (
@@ -340,7 +340,7 @@ const PermissionManager: React.FC = () => {
                     ) : (
                         <>
                             {/* Employee info + actions */}
-                            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-[#FCF9F2] dark:bg-gray-800">
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h2 className="font-bold text-gray-900 dark:text-white">{selectedEmployee.fullName}</h2>
@@ -355,7 +355,7 @@ const PermissionManager: React.FC = () => {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={resetToDefaults}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-[#F5EFE6] dark:hover:bg-gray-700 transition-colors"
                                     >
                                         <RotateCcw className="w-3.5 h-3.5" />
                                         Reset mặc định
@@ -363,7 +363,7 @@ const PermissionManager: React.FC = () => {
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                        className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-500 disabled:opacity-50 transition-colors"
                                     >
                                         <Save className="w-3.5 h-3.5" />
                                         {saving ? 'Đang lưu...' : 'Lưu'}
@@ -374,11 +374,11 @@ const PermissionManager: React.FC = () => {
                             {/* Permission matrix table */}
                             <div className="flex-1 overflow-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 shadow-sm border-b border-slate-200 dark:border-slate-800">
+                                    <thead className="sticky top-0 bg-[#F5EFE6] dark:bg-slate-800 z-10 shadow-lg border-b border-slate-200 dark:border-slate-700">
                                         <tr>
-                                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56 border-b border-slate-200 dark:border-slate-800">Chức năng</th>
+                                            <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest w-56 border-b border-slate-200 dark:border-slate-700">Chức năng</th>
                                             {ALL_ACTIONS.map(action => (
-                                                <th key={action} className="text-center px-2 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-16 border-b border-slate-200 dark:border-slate-800">
+                                                <th key={action} className="text-center px-2 py-2.5 text-[10px] font-black uppercase tracking-widest w-16 border-b border-slate-200 dark:border-slate-700">
                                                     {ACTION_LABELS[action]}
                                                 </th>
                                             ))}
@@ -391,7 +391,7 @@ const PermissionManager: React.FC = () => {
                                                 <tr
                                                     key={resource}
                                                     className={`border-t border-gray-100 dark:border-gray-800 ${
-                                                        idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-900/50'
+                                                        idx % 2 === 0 ? 'bg-[#FCF9F2] dark:bg-gray-800' : 'bg-[#F5EFE6] dark:bg-gray-900/50'
                                                     }`}
                                                 >
                                                     <td className="px-4 py-2.5 font-medium text-gray-700 dark:text-gray-300">
@@ -405,7 +405,7 @@ const PermissionManager: React.FC = () => {
                                                                     onClick={() => toggleAction(resource, action)}
                                                                     className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                                                                         isChecked
-                                                                            ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
+                                                                            ? 'bg-blue-500 border-blue-500 text-white shadow-lg'
                                                                             : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                                                                     }`}
                                                                 >

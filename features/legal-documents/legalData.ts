@@ -53,7 +53,7 @@ export const DOC_TYPE_COLORS: Record<DocType, { bg: string; text: string; border
     'nghi-dinh': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', darkBg: 'dark:bg-blue-900/20', darkText: 'dark:text-blue-400', darkBorder: 'dark:border-blue-800' },
     'thong-tu': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', darkBg: 'dark:bg-emerald-900/20', darkText: 'dark:text-emerald-400', darkBorder: 'dark:border-emerald-800' },
     'qcvn': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', darkBg: 'dark:bg-purple-900/20', darkText: 'dark:text-purple-400', darkBorder: 'dark:border-purple-800' },
-    'quyet-dinh': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', darkBg: 'dark:bg-amber-900/20', darkText: 'dark:text-amber-400', darkBorder: 'dark:border-amber-800' },
+    'quyet-dinh': { bg: 'bg-primary-50', text: 'text-primary-700', border: 'border-primary-200', darkBg: 'dark:bg-primary-900/20', darkText: 'dark:text-primary-400', darkBorder: 'dark:border-primary-800' },
 };
 
 export const DOC_STATUS_LABELS: Record<DocStatus, string> = {
@@ -65,7 +65,7 @@ export const DOC_STATUS_LABELS: Record<DocStatus, string> = {
 export const DOC_STATUS_COLORS: Record<DocStatus, { bg: string; text: string; dot: string }> = {
     'hieu-luc': { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
     'het-hieu-luc': { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' },
-    'sap-hieu-luc': { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
+    'sap-hieu-luc': { bg: 'bg-primary-100 dark:bg-primary-900/30', text: 'text-primary-700 dark:text-primary-400', dot: 'bg-primary-500' },
 };
 
 // ============================================

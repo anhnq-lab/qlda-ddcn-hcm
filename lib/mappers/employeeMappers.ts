@@ -1,7 +1,7 @@
 /**
  * Employee Mappers — snake_case (DB) ↔ PascalCase (Frontend)
  */
-import type { Employee, EmployeeStatus, Role } from '../../types';
+import type { Employee, EmployeeStatus, Role, Gender } from '../../types';
 
 export const dbToEmployee = (row: any): Employee => ({
     EmployeeID: row.employee_id,
@@ -11,11 +11,12 @@ export const dbToEmployee = (row: any): Employee => ({
     Position: row.position || '',
     Email: row.email || '',
     Phone: row.phone || '',
-    AvatarUrl: row.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.full_name || 'NV')}&background=D4A017&color=fff&bold=true&size=128`,
+    AvatarUrl: row.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.full_name || 'NV')}&background=f97316&color=fff&bold=true&size=128`,
     Status: row.status as EmployeeStatus,
     JoinDate: row.join_date || '',
     Username: row.employee_id,
     Password: '',
+    Gender: row.gender as Gender || undefined,
 });
 
 export const employeeToDb = (emp: Partial<Employee>) => ({
@@ -28,5 +29,7 @@ export const employeeToDb = (emp: Partial<Employee>) => ({
     ...(emp.Phone !== undefined && { phone: emp.Phone }),
     ...(emp.AvatarUrl !== undefined && { avatar_url: emp.AvatarUrl }),
     ...(emp.Status !== undefined && { status: emp.Status }),
-    ...(emp.JoinDate !== undefined && { join_date: emp.JoinDate }),
+    ...(emp.JoinDate !== undefined && { join_date: emp.JoinDate ? emp.JoinDate : null }),
+    ...(emp.Gender !== undefined && { gender: emp.Gender }),
 });
+

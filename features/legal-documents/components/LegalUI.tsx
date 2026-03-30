@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Landmark, Gavel, ScrollText, ShieldCheck, FileText, ChevronRight } from 'lucide-react';
 import {
     LegalDocument, FlatArticle, DocType,
@@ -24,40 +24,14 @@ export const HighlightText: React.FC<{ text: string; query: string }> = ({ text,
         <>
             {parts.map((part, i) =>
                 regex.test(part)
-                    ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/60 text-inherit rounded px-0.5 font-bold">{part}</mark>
+                    ? <mark key={i} className="bg-yellow-200 dark:bg-primary-700/60 text-inherit rounded px-0.5 font-bold">{part}</mark>
                     : part
             )}
         </>
     );
 };
 
-// ============================================
-// STAT CARD
-// ============================================
-export const StatCard: React.FC<{ label: string; value: number; color: string; icon: React.ElementType; index?: number }> = ({ label, value, icon: Icon, index = 0 }) => {
-    const CARD_CLASSES = [
-        'stat-card-slate',
-        'stat-card-amber',
-        'stat-card-blue',
-        'stat-card-emerald',
-    ];
-    const styleClass = CARD_CLASSES[index % CARD_CLASSES.length];
 
-    return (
-        <div className={`relative overflow-hidden flex items-center gap-3 px-4 py-3 rounded-2xl text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl duration-300 stat-card ${styleClass}`}>
-            <div className="absolute -right-3 -top-3 opacity-[0.12]">
-                <Icon className="w-20 h-20" strokeWidth={1.2} />
-            </div>
-            <div className="p-2 rounded-xl bg-white/20 shadow-sm relative z-10">
-                <Icon className="w-4 h-4 text-white" />
-            </div>
-            <div className="relative z-10">
-                <p className="text-2xl font-black tracking-tight text-white drop-shadow-sm">{value}</p>
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90">{label}</p>
-            </div>
-        </div>
-    );
-};
 
 // ============================================
 // DOCUMENT CARD (SIDEBAR)
@@ -73,13 +47,13 @@ export const DocSidebarItem: React.FC<{
         <button
             onClick={onClick}
             className={`w-full text-left p-3.5 rounded-2xl transition-all group border ${isSelected
-                ? `${typeColor.bg} ${typeColor.border} ${typeColor.darkBg} ${typeColor.darkBorder} shadow-sm`
-                : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700/50'}`}
+                ? `${typeColor.bg} ${typeColor.border} ${typeColor.darkBg} ${typeColor.darkBorder} shadow-lg`
+                : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700'}`}
         >
             <div className="flex items-start gap-3">
                 <div className={`mt-0.5 p-2 rounded-xl shrink-0 transition-colors ${isSelected
                     ? `${typeColor.bg} ${typeColor.text} ${typeColor.darkBg} ${typeColor.darkText}`
-                    : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 group-hover:bg-white dark:group-hover:bg-slate-600'}`}>
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 group-hover:bg-[#FCF9F2] dark:group-hover:bg-slate-600'}`}>
                     <Icon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">

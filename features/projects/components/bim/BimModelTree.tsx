@@ -42,13 +42,13 @@ function getTypeIcon(type: string) {
     const t = type.toLowerCase();
     if (t.includes('project')) return <TreePine className="w-3.5 h-3.5 text-blue-400" />;
     if (t.includes('site')) return <MapPin className="w-3.5 h-3.5 text-green-400" />;
-    if (t.includes('building') && !t.includes('storey')) return <Building2 className="w-3.5 h-3.5 text-amber-400" />;
+    if (t.includes('building') && !t.includes('storey')) return <Building2 className="w-3.5 h-3.5 text-primary-400" />;
     if (t.includes('storey')) return <Layers className="w-3.5 h-3.5 text-purple-400" />;
     if (t.includes('wall')) return <Square className="w-3.5 h-3.5 text-orange-400" />;
     if (t.includes('slab') || t.includes('floor')) return <Columns3 className="w-3.5 h-3.5 text-teal-400" />;
     if (t.includes('column')) return <Box className="w-3.5 h-3.5 text-red-400" />;
     if (t.includes('beam')) return <Columns3 className="w-3.5 h-3.5 text-cyan-400" />;
-    if (t.includes('door')) return <Square className="w-3.5 h-3.5 text-amber-400" />;
+    if (t.includes('door')) return <Square className="w-3.5 h-3.5 text-primary-400" />;
     if (t.includes('window')) return <Square className="w-3.5 h-3.5 text-sky-400" />;
     if (t.includes('stair')) return <Layers className="w-3.5 h-3.5 text-rose-400" />;
     if (t.includes('roof')) return <Square className="w-3.5 h-3.5 text-indigo-400" />;
@@ -63,7 +63,7 @@ function getDisciplineColor(d: string | null) {
         HVAC: 'bg-green-500', PLUM: 'bg-cyan-500', FIRE: 'bg-orange-500',
         LAND: 'bg-emerald-500', MEP: 'bg-purple-500', COMBINE: 'bg-slate-400',
     };
-    return c[d || ''] || 'bg-slate-500';
+    return c[d || ''] || 'bg-[#F5EFE6]0';
 }
 
 // ── Component ────────────────────────────────────────
@@ -211,7 +211,7 @@ export const BimModelTree: React.FC = () => {
                                             }}
                                             className={`
                                                 flex items-center gap-2 py-1 px-2 rounded cursor-pointer text-xs truncate
-                                                ${isDarkMode ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}
+                                                ${isDarkMode ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5' : 'text-gray-500 hover:text-gray-700 hover:bg-[#F5EFE6]'}
                                             `}
                                             title="Double-click to zoom"
                                         >
@@ -243,7 +243,7 @@ export const BimModelTree: React.FC = () => {
                     <p className={`text-xs mb-4 ${isDarkMode ? 'text-slate-600' : 'text-gray-400'}`}>Upload IFC files to begin</p>
                     <label className={`
                         inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer text-sm font-semibold transition-all
-                        bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-lg shadow-blue-500/20
+                        bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-lg shadow-primary-500/20
                     `}>
                         <Upload className="w-4 h-4" />
                         Upload IFC
@@ -293,7 +293,7 @@ export const BimModelTree: React.FC = () => {
     return (
         <div className={`
             ${isMobile ? 'absolute inset-y-0 left-0 z-30 w-72 border-r' : 'w-full h-full'}
-            ${isDarkMode ? 'bg-slate-800/95 border-slate-700/50' : 'bg-white border-gray-200'}
+            ${isDarkMode ? 'bg-slate-800/95 border-slate-700/50' : 'bg-[#FCF9F2] border-gray-200'}
             flex flex-col shrink-0 backdrop-blur-xl
         `}>
             {/* Header */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Users, Mail, Phone, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Employee } from '@/types';
 
@@ -37,7 +37,7 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
                 {(showAll ? members : members.slice(0, MAX_SHOW)).map((member, idx) => (
                     <div
                         key={member.EmployeeID}
-                        className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-center gap-3"
+                        className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group flex items-center gap-3"
                         onClick={() => onViewMember?.(member.EmployeeID)}
                     >
                         {/* Avatar */}
@@ -45,7 +45,7 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
                             <img
                                 src={member.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.FullName)}&background=random`}
                                 alt={member.FullName}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
+                                className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-lg"
                             />
                         </div>
 

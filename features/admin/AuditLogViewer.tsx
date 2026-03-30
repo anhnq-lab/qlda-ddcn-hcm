@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
     History, Filter, Search, Calendar, User, FileText,
     Edit3, Trash2, Plus, Eye, Clock, ChevronLeft, ChevronRight,
@@ -180,14 +180,14 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Theo dõi mọi hoạt động và thay đổi trong hệ thống</p>
                 </div>
-                <button className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
                     <Download className="w-4 h-4" />
                     Xuất log
                 </button>
             </div>
 
             {/* Filters */}
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg">
                 <div className="flex flex-wrap gap-4">
                     {/* Search */}
                     <div className="flex-1 min-w-[250px] relative">
@@ -197,7 +197,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Tìm kiếm theo tên, ID, chi tiết..."
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                         />
                     </div>
 
@@ -207,7 +207,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                         <select
                             value={filterAction}
                             onChange={e => setFilterAction(e.target.value)}
-                            className="px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200"
+                            className="px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FCF9F2] dark:bg-slate-700 text-gray-700 dark:text-slate-200"
                         >
                             <option value="all">Tất cả hành động</option>
                             <option value="CREATE">Tạo mới</option>
@@ -223,7 +223,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                     <select
                         value={filterEntity}
                         onChange={e => setFilterEntity(e.target.value)}
-                        className="px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200"
+                        className="px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FCF9F2] dark:bg-slate-700 text-gray-700 dark:text-slate-200"
                     >
                         <option value="all">Tất cả đối tượng</option>
                         <option value="Project">Dự án</option>
@@ -236,10 +236,10 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
             </div>
 
             {/* Log Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                             <tr>
                                 <th className="px-6 py-4 text-left">Thời gian</th>
                                 <th className="px-6 py-4 text-left">Người thực hiện</th>
@@ -255,7 +255,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                                 const EntityIcon = entityIcons[log.entityType] || FileText;
 
                                 return (
-                                    <tr key={log.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
+                                    <tr key={log.id} className="hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-gray-400" />
@@ -318,7 +318,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                         <button
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
-                            className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-slate-300"
+                            className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-slate-300"
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </button>
@@ -328,7 +328,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
                         <button
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage >= totalPages}
-                            className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-slate-300"
+                            className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 dark:text-slate-300"
                         >
                             <ChevronRight className="w-4 h-4" />
                         </button>
@@ -342,7 +342,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
         if (!isOpen) return null;
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/60 backdrop-blur-sm">
-                <div className="bg-white dark:bg-slate-800 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6">
                     {content}
                 </div>
             </div>

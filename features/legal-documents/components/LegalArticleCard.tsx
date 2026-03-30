@@ -115,8 +115,8 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
         <div
             id={`article-${article.id}`}
             className={`p-5 rounded-2xl border transition-all duration-300 ${isActive
-                ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 shadow-sm ring-1 ring-indigo-500/20'
-                : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-sm'
+                ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 shadow-lg ring-1 ring-indigo-500/20'
+                : 'bg-[#FCF9F2] dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-lg'
                 } ${isEditing ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}
         >
             <div className="flex items-start justify-between gap-4">
@@ -160,7 +160,7 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
                                         toggleArticleExpansion(article.id, e as unknown as React.MouseEvent);
                                     }
                                 }}
-                                className="p-1.5 text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 rounded-lg transition-all"
+                                className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 rounded-lg transition-all"
                                 title="Chỉnh sửa nội dung"
                             >
                                 <Edit3 className="w-4 h-4" />
@@ -175,8 +175,8 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
                             <button
                                 onClick={() => toggleBookmark(article.id, selectedDocId)}
                                 className={`p-1.5 rounded-lg transition-all ${bookmarked
-                                    ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30'
-                                    : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30'
+                                    ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/30'
+                                    : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/30'
                                     }`}
                                 title={bookmarked ? "Bỏ đánh dấu" : "Đánh dấu điều khoản này"}
                             >
@@ -194,30 +194,30 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
                     </p>
                     <div className="text-gray-800 dark:text-slate-200 leading-loose space-y-2 font-normal relative">
                         {isEditing && (
-                            <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 p-2 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-xl mb-4 text-gray-700 dark:text-gray-300 shadow-sm">
+                            <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 p-2 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-xl mb-4 text-gray-700 dark:text-gray-300 shadow-lg">
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('bold', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="In đậm"><Bold className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('italic', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="In nghiêng"><Italic className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('underline', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Gạch chân"><Underline className="w-4 h-4" /></button>
 
-                                <span className="w-px h-5 bg-yellow-300 dark:bg-yellow-700 mx-1"></span>
+                                <span className="w-px h-5 bg-yellow-300 dark:bg-primary-700 mx-1"></span>
 
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('justifyLeft', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Căn trái"><AlignLeft className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('justifyCenter', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Căn giữa"><AlignCenter className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('justifyRight', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Căn phải"><AlignRight className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('justifyFull', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Căn đều"><AlignJustify className="w-4 h-4" /></button>
 
-                                <span className="w-px h-5 bg-yellow-300 dark:bg-yellow-700 mx-1"></span>
+                                <span className="w-px h-5 bg-yellow-300 dark:bg-primary-700 mx-1"></span>
 
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('insertUnorderedList', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Danh sách chấm"><List className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('insertOrderedList', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Danh sách số"><ListOrdered className="w-4 h-4" /></button>
 
-                                <span className="w-px h-5 bg-yellow-300 dark:bg-yellow-700 mx-1"></span>
+                                <span className="w-px h-5 bg-yellow-300 dark:bg-primary-700 mx-1"></span>
 
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('undo', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Hoàn tác"><Undo className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('redo', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Làm lại"><Redo className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('removeFormat', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors text-red-600 dark:text-red-400" title="Xóa định dạng"><Eraser className="w-4 h-4" /></button>
 
-                                <div className="ml-auto text-xs font-semibold text-yellow-700 dark:text-yellow-400 bg-yellow-200 dark:bg-yellow-800/50 px-2 py-1 rounded-lg">
+                                <div className="ml-auto text-xs font-semibold text-primary-700 dark:text-yellow-400 bg-yellow-200 dark:bg-yellow-800/50 px-2 py-1 rounded-lg">
                                     Công cụ chỉnh sửa
                                 </div>
                             </div>

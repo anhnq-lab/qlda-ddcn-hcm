@@ -120,6 +120,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                     Representative: c.representative || '',
                     ContactInfo: c.contact_info || '',
                     IsForeign: c.is_foreign || false,
+                    ContractorType: c.contractor_type || 'Main',
                     CapCertCode: c.cap_cert_code || '',
                     OpLicenseNo: c.op_license_no || '',
                     EstablishedYear: c.established_year,
@@ -133,7 +134,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
 
     // Handler: open contractor detail slide panel
     const handleViewContractor = useCallback((contractorId: string) => {
-        const contractor = projectContractors.find(c => c.ContractorID === contractorId);
+        const contractor = (projectContractors as ContractorWithPackages[]).find(c => c.ContractorID === contractorId);
         openPanel({
             title: contractor?.FullName || 'Chi tiết nhà thầu',
             icon: <Building2 size={14} />,
@@ -558,13 +559,13 @@ const EnhancedInfoItem: React.FC<{
     }, [value]);
 
     return (
-        <div className="group flex items-center gap-2 px-2.5 py-1.5 border-b border-gray-100 dark:border-slate-700/50 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
-            <div className="w-6 h-6 rounded-md bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 transition-colors">
-                <Icon className="w-3 h-3 text-gray-400 dark:text-slate-500 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
+        <div className="group flex items-center gap-2 px-2.5 py-1.5 border-b border-gray-100 dark:border-slate-700/50 last:border-b-0 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors">
+            <div className="w-6 h-6 rounded-md bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                <Icon className="w-3 h-3 text-gray-400 dark:text-slate-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
             </div>
             <div className="flex-1 min-w-0">
                 <span className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{label}</span>
-                <p className={`text-xs truncate ${highlight ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-gray-800 dark:text-slate-200 font-medium'}`}>
+                <p className={`text-xs truncate ${highlight ? 'text-primary-700 dark:text-primary-400 font-bold' : 'text-gray-800 dark:text-slate-200 font-medium'}`}>
                     {value || '—'}
                 </p>
             </div>

@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { FileText, Clock, CheckCircle2, XCircle, ArrowRight, Upload, TrendingUp, Building2 } from 'lucide-react';
 import type { CDEDocument } from '../types';
 import { getStatusLabel, getStatusColor, CONTAINER_COLORS } from '../constants';
+import { StatCard } from '../../../components/ui';
 
 interface CDEContractorDashboardProps {
     docs: CDEDocument[];
@@ -26,16 +27,16 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
     );
 
     const kpiCards = [
-        { label: 'Tổng hồ sơ nộp', value: stats.total, icon: FileText, className: 'stat-card-slate' },
-        { label: 'Đang chờ duyệt', value: stats.pending, icon: Clock, className: 'stat-card-amber' },
-        { label: 'Đã phê duyệt', value: stats.approved, icon: CheckCircle2, className: 'stat-card-emerald' },
-        { label: 'Bị từ chối', value: stats.rejected, icon: XCircle, className: 'stat-card-rose' },
+        { label: 'Tổng hồ sơ nộp', value: stats.total, icon: FileText, color: 'slate' as const },
+        { label: 'Đang chờ duyệt', value: stats.pending, icon: Clock, color: 'amber' as const },
+        { label: 'Đã phê duyệt', value: stats.approved, icon: CheckCircle2, color: 'emerald' as const },
+        { label: 'Bị từ chối', value: stats.rejected, icon: XCircle, color: 'rose' as const },
     ];
 
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-3 duration-500">
             {/* Welcome Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br from-amber-500 to-yellow-600">
+            <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br from-primary-500 to-primary-600">
                 <div className="absolute -right-10 -top-10 w-40 h-40 opacity-10">
                     <Building2 className="w-full h-full" />
                 </div>
@@ -57,16 +58,18 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
             {/* KPI Cards */}
             <div className="grid grid-cols-4 gap-4">
                 {kpiCards.map((card, idx) => (
-                    <div key={idx} className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 stat-card ${card.className}`}>
-                        <card.icon className="absolute -right-3 -top-3 w-20 h-20 opacity-[0.12]" />
-                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/90 mb-1">{card.label}</p>
-                        <p className="text-3xl font-black tracking-tight drop-shadow-sm">{card.value}</p>
-                    </div>
+                    <StatCard
+                        key={idx}
+                        label={card.label}
+                        value={card.value}
+                        icon={<card.icon className="w-5 h-5 flex-shrink-0" />}
+                        color={card.color}
+                    />
                 ))}
             </div>
 
             {/* Recent Submissions */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -89,7 +92,7 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
                                 <div
                                     key={doc.doc_id}
                                     onClick={() => onViewDoc(doc)}
-                                    className="px-5 py-3.5 flex items-center gap-4 hover:bg-blue-50/40 dark:hover:bg-slate-700/40 cursor-pointer transition-all group"
+                                    className="px-5 py-3.5 flex items-center gap-4 hover:bg-blue-50/40 dark:hover:bg-slate-700 cursor-pointer transition-all group"
                                 >
                                     <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center shrink-0">
                                         <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />

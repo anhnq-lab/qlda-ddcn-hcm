@@ -57,7 +57,7 @@ const MainLayout: React.FC = () => {
 
     return (
         <SlidePanelProvider>
-        <div className="flex h-screen overflow-hidden bg-surface-primary dark:bg-slate-950">
+        <div className="flex h-screen overflow-hidden bg-[#F0ECE1] dark:bg-slate-950">
             {/* Mobile Overlay */}
             {isSidebarOpen && (
                 <div
@@ -119,7 +119,7 @@ const MainLayout: React.FC = () => {
 
             {/* Floating Impersonation Bar */}
             {isImpersonating && impersonatedUser && (
-                <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xl">
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-primary-500 to-orange-500 text-white shadow-2xl">
                     <div className="max-w-screen-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">

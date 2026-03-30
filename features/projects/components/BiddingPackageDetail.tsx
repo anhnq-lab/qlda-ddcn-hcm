@@ -110,7 +110,7 @@ const getStatusConfig = (status: PackageStatus) => {
         [PackageStatus.Planning]: { label: 'Trong kế hoạch', bg: 'bg-gray-100 dark:bg-slate-700', text: 'text-gray-600 dark:text-slate-300', border: 'border-gray-200 dark:border-slate-600', stage: 1 },
         [PackageStatus.Posted]: { label: 'Đã đăng TBMT', bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700', stage: 2 },
         [PackageStatus.Bidding]: { label: 'Đang mời thầu', bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700', stage: 3 },
-        [PackageStatus.Evaluating]: { label: 'Đang xét thầu', bg: 'bg-yellow-100 dark:bg-yellow-900/40', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-700', stage: 4 },
+        [PackageStatus.Evaluating]: { label: 'Đang xét thầu', bg: 'bg-yellow-100 dark:bg-yellow-900/40', text: 'text-primary-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-700', stage: 4 },
         [PackageStatus.Awarded]: { label: 'Đã có KQLCNT', bg: 'bg-green-100 dark:bg-green-900/40', text: 'text-green-700 dark:text-green-300', border: 'border-green-200 dark:border-green-700', stage: 5 },
         [PackageStatus.Cancelled]: { label: 'Hủy thầu', bg: 'bg-red-100 dark:bg-red-900/40', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-700', stage: 0 },
     };
@@ -197,7 +197,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     ] as const;
 
     const content = (
-        <div className={asSlidePanel ? "flex flex-col h-full bg-white dark:bg-slate-900" : "relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col"}>
+        <div className={asSlidePanel ? "flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900" : "relative bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col"}>
             {/* Header with Package Info */}
             <div className="shrink-0 px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800">
                 <div className="flex items-start justify-between">
@@ -218,7 +218,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium border ${pkg.Field === 'Construction' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700' :
                                     pkg.Field === 'Consultancy' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-700' :
-                                        'bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600'
+                                        'bg-[#F5EFE6] dark:bg-slate-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600'
                                     }`}>
                                     {labels.field[pkg.Field as keyof typeof labels.field] || pkg.Field}
                                 </span>
@@ -231,7 +231,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                         href={`https://muasamcong.mpi.gov.vn/web/guest/contractor-selection?type=es-contractor-selection&noticeNo=${pkg.NotificationCode}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-500 transition-colors"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5" />
                                         Xem trên muasamcong.vn
@@ -267,7 +267,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                         <div
                             className="absolute top-5 h-1.5 rounded-full transition-all duration-500"
                             style={{
-                                background: 'linear-gradient(90deg, #C4A035, #D4A017)',
+                                background: 'linear-gradient(90deg, #fb923c, #f97316)',
                                 left: '2.5rem',
                                 width: actualStage > 0 ? `calc(${Math.min((actualStage - 1) / (lifecycleStages.length - 1) * 100, 100)}% - 5rem)` : '0%'
                             }}
@@ -281,10 +281,10 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                             return (
                                 <div key={stage.id} className="flex flex-col items-center z-10 relative" style={{ width: `${100 / lifecycleStages.length}%` }}>
                                     <div className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-sm
-                                        ${isCompleted ? 'bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-amber-200 dark:shadow-amber-900' :
-                                            isCurrent ? 'bg-gradient-to-br from-yellow-600 to-amber-700 text-white ring-4 ring-amber-100 dark:ring-amber-900 shadow-amber-200 dark:shadow-amber-900' :
-                                                'bg-white dark:bg-slate-700 text-gray-400 dark:text-slate-500 border-2 border-gray-200 dark:border-slate-600'}
+                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-lg
+                                        ${isCompleted ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200 dark:shadow-primary-900' :
+                                            isCurrent ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white ring-4 ring-primary-100 dark:ring-primary-900 shadow-primary-200 dark:shadow-primary-900' :
+                                                'bg-[#FCF9F2] dark:bg-slate-700 text-gray-400 dark:text-slate-500 border-2 border-gray-200 dark:border-slate-600'}
                                     `}>
                                         {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <stage.icon className="w-5 h-5" />}
                                     </div>
@@ -299,7 +299,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                 </div>
 
                 {/* Tabs - 4 Lifecycle Groups */}
-                <div className="shrink-0 flex border-b border-gray-200 dark:border-slate-700 px-6 bg-gray-50 dark:bg-slate-800">
+                <div className="shrink-0 flex border-b border-gray-200 dark:border-slate-700 px-6 bg-[#F5EFE6] dark:bg-slate-800">
                     {tabs.map(tab => {
                         const tabHasProgress = tab.stages.some(s => actualStage >= s);
                         return (
@@ -310,7 +310,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                     flex items-center gap-2 px-4 py-3 text-sm font-medium 
                                     border-b-2 transition-colors -mb-px
                                     ${activeTab === tab.id
-                                        ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-900'
+                                        ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-[#FCF9F2] dark:bg-slate-900'
                                         : tabHasProgress
                                             ? 'text-gray-600 dark:text-slate-400 border-transparent hover:text-gray-800 dark:hover:text-slate-200'
                                             : 'text-gray-400 dark:text-slate-600 border-transparent'}
@@ -324,7 +324,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-slate-900">
+                <div className="flex-1 overflow-y-auto p-6 bg-[#F5EFE6] dark:bg-slate-900">
                     {/* Tab 1: KHLCNT & TBMT */}
                     {activeTab === 'khlcnt' && (
                         <div className="grid grid-cols-2 gap-6">
@@ -411,19 +411,19 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                                 {reqs.map((req, i) => (
                                                     <div key={i} className={`flex items-start gap-2 p-2 rounded-lg text-xs ${req.status === 'Done' ? 'bg-green-50 dark:bg-green-900/20' :
                                                         req.status === 'Overdue' ? 'bg-red-50 dark:bg-red-900/20' :
-                                                            'bg-amber-50 dark:bg-amber-900/20'
+                                                            'bg-primary-50 dark:bg-primary-900/20'
                                                         }`}>
                                                         {req.status === 'Done' ? (
                                                             <CheckCircle2 className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 shrink-0" />
                                                         ) : req.status === 'Overdue' ? (
                                                             <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 shrink-0" />
                                                         ) : (
-                                                            <Clock className="w-4 h-4 text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
+                                                            <Clock className="w-4 h-4 text-primary-500 dark:text-primary-400 mt-0.5 shrink-0" />
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <p className={`font-medium ${req.status === 'Done' ? 'text-green-800 dark:text-green-300' :
                                                                 req.status === 'Overdue' ? 'text-red-800 dark:text-red-300' :
-                                                                    'text-amber-800 dark:text-amber-300'
+                                                                    'text-primary-800 dark:text-primary-300'
                                                                 }`}>{req.documentType}</p>
                                                             <p className="text-gray-500 dark:text-slate-400 text-[10px] mt-0.5">
                                                                 <LegalReferenceLink text={req.legalBasis} />
@@ -611,7 +611,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                     {pkg.WinningContractorID ? (
                                         <button
                                             onClick={() => setIsCreatingContract(true)}
-                                            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-lg transition-colors"
                                         >
                                             <FileSignature className="w-4 h-4" />
                                             Tạo hợp đồng
@@ -644,7 +644,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                             {/* Tổng hợp giá trị */}
                             <SectionCard title="Tổng hợp giá trị" icon={Package} color="slate">
                                 <div className="grid grid-cols-4 gap-4">
-                                    <div className="text-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="text-center p-3 bg-[#F5EFE6] dark:bg-slate-800 rounded-lg">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Giá gói thầu</p>
                                         <p className="font-bold text-gray-800 dark:text-slate-100">{formatCurrency(pkg.Price)}</p>
                                     </div>
@@ -697,7 +697,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                                     const sc = PaymentService.getStatusColor(payment.Status);
                                                     const transitions = PaymentService.getAvailableTransitions(payment.Status);
                                                     return (
-                                                        <div key={payment.PaymentID} className="p-3 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 space-y-2">
+                                                        <div key={payment.PaymentID} className="p-3 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-[#F5EFE6] dark:hover:bg-slate-800 space-y-2">
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
@@ -829,7 +829,7 @@ const SectionCard = ({ title, icon: Icon, color, children, badge }: {
         green: 'text-green-600 dark:text-green-400',
         purple: 'text-purple-600 dark:text-purple-400',
         indigo: 'text-indigo-600 dark:text-indigo-400',
-        yellow: 'text-yellow-600 dark:text-yellow-400',
+        yellow: 'text-primary-600 dark:text-yellow-400',
         cyan: 'text-cyan-600 dark:text-cyan-400',
         emerald: 'text-emerald-600 dark:text-emerald-400',
         gray: 'text-gray-600 dark:text-slate-400',
@@ -837,7 +837,7 @@ const SectionCard = ({ title, icon: Icon, color, children, badge }: {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-gray-800 dark:text-slate-200 flex items-center gap-2">
                     <Icon className={`w-4 h-4 ${colorMap[color] || 'text-gray-500 dark:text-slate-400'}`} />
@@ -900,7 +900,7 @@ const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; trans
                         value={rejectReason}
                         onChange={e => setRejectReason(e.target.value)}
                         placeholder="Lý do từ chối..."
-                        className="flex-1 px-2.5 py-1.5 text-xs border border-red-200 dark:border-red-800 rounded-lg bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500/20 outline-none"
+                        className="flex-1 px-2.5 py-1.5 text-xs border border-red-200 dark:border-red-800 rounded-lg bg-[#FCF9F2] dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500/20 outline-none"
                         autoFocus
                     />
                     <button
@@ -926,7 +926,7 @@ const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; trans
                         value={treasuryRef}
                         onChange={e => setTreasuryRef(e.target.value)}
                         placeholder="Mã giao dịch kho bạc (tùy chọn)..."
-                        className="flex-1 px-2.5 py-1.5 text-xs border border-emerald-200 dark:border-emerald-800 rounded-lg bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        className="flex-1 px-2.5 py-1.5 text-xs border border-emerald-200 dark:border-emerald-800 rounded-lg bg-[#FCF9F2] dark:bg-slate-900 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                         autoFocus
                     />
                     <button
@@ -947,14 +947,14 @@ const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; trans
                 <div className="flex items-center gap-1.5 flex-wrap">
                     {/* Draft → Pending */}
                     {transitions.includes(PaymentStatus.Pending) && (
-                        <button onClick={() => submitMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-amber-500 hover:bg-amber-600 text-white`}>
+                        <button onClick={() => submitMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-primary-500 hover:bg-primary-600 text-white`}>
                             <Clock className="w-3 h-3" /> Gửi duyệt
                         </button>
                     )}
 
                     {/* Pending → Approved */}
                     {transitions.includes(PaymentStatus.Approved) && (
-                        <button onClick={() => approveMutation.mutate({ id: payment.PaymentID, approvedBy: userName })} disabled={isPending} className={`${btnBase} bg-blue-600 hover:bg-blue-700 text-white`}>
+                        <button onClick={() => approveMutation.mutate({ id: payment.PaymentID, approvedBy: userName })} disabled={isPending} className={`${btnBase} bg-primary-600 hover:bg-primary-500 text-white`}>
                             <CheckCircle2 className="w-3 h-3" /> Duyệt
                         </button>
                     )}
@@ -968,7 +968,7 @@ const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; trans
 
                     {/* Rejected → Draft */}
                     {transitions.includes(PaymentStatus.Draft) && (
-                        <button onClick={() => revertMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-slate-500 hover:bg-slate-600 text-white`}>
+                        <button onClick={() => revertMutation.mutate(payment.PaymentID)} disabled={isPending} className={`${btnBase} bg-[#F5EFE6]0 hover:bg-slate-600 text-white`}>
                             <Edit className="w-3 h-3" /> Sửa lại
                         </button>
                     )}
@@ -1000,3 +1000,4 @@ const PaymentActions = ({ payment, transitions }: { payment: PaymentType2; trans
 };
 
 export default BiddingPackageDetail;
+

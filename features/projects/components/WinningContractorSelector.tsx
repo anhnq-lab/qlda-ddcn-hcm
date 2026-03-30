@@ -275,7 +275,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                         key={m.contractor_id}
                         className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${m.role === 'lead'
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                            : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'
+                            : 'bg-[#F5EFE6] dark:bg-slate-800 border-gray-200 dark:border-slate-700'
                             }`}
                     >
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${m.role === 'lead'
@@ -283,7 +283,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                             : 'bg-gray-100 dark:bg-slate-700'
                             }`}>
                             {m.role === 'lead' ? (
-                                <Crown className="w-5 h-5 text-amber-500" />
+                                <Crown className="w-5 h-5 text-primary-500" />
                             ) : (
                                 <Building2 className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                             )}
@@ -297,7 +297,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                                     MST: {m.contractor?.TaxCode || m.contractor_id}
                                 </span>
                                 {m.role === 'lead' && members.length > 1 && (
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded font-medium">
+                                    <span className="text-[10px] px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded font-medium">
                                         Đứng đầu liên danh
                                     </span>
                                 )}
@@ -330,19 +330,19 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
                     key={m.contractor_id}
                     className={`flex items-center gap-2 p-2.5 rounded-lg border ${m.role === 'lead'
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'
+                        : 'bg-[#F5EFE6] dark:bg-slate-800 border-gray-200 dark:border-slate-700'
                         }`}
                 >
                     <button
                         onClick={() => toggleRole(m.contractor_id)}
                         title={members.length > 1 ? (m.role === 'lead' ? 'Đứng đầu liên danh' : 'Click để đặt làm đứng đầu liên danh') : 'Nhà thầu trúng thầu'}
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${m.role === 'lead'
-                            ? 'bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-900/60'
+                            ? 'bg-primary-100 dark:bg-primary-900/40 hover:bg-primary-200 dark:hover:bg-primary-900/60'
                             : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600'
                             }`}
                     >
                         {m.role === 'lead' ? (
-                            <Crown className="w-4 h-4 text-amber-600" />
+                            <Crown className="w-4 h-4 text-primary-600" />
                         ) : (
                             <Building2 className="w-4 h-4 text-gray-400" />
                         )}
@@ -366,7 +366,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
 
             {/* Search & Add */}
             <div ref={dropdownRef} className="relative">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400">
+                <div className="flex items-center gap-2 px-3 py-2 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400">
                     <Search className="w-4 h-4 text-gray-400 dark:text-slate-500 shrink-0" />
                     <input
                         ref={searchRef}
@@ -389,7 +389,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
 
                 {/* Dropdown results */}
                 {isDropdownOpen && (
-                    <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                    <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                         {filteredContractors.length > 0 ? (
                             filteredContractors.map(c => (
                                 <button

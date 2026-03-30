@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { X, Loader2, Save, Calendar, FileText, Building2, AlertCircle, Lightbulb } from 'lucide-react';
 import { BiddingPackage, PackageStatus, BIDDING_THRESHOLDS } from '../../../types';
@@ -357,7 +357,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
             />
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
                     <div>
@@ -724,7 +724,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'timeline' && (
                             <div className="space-y-6">
                                 {/* KHLCNT Section */}
-                                <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                                <div className="p-4 bg-gray-50 dark:bg-slate-700 rounded-xl">
                                     <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Kế hoạch lựa chọn nhà thầu</h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
@@ -790,7 +790,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                                 </div>
 
                                 {/* Plan Group Section */}
-                                <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
+                                <div className="p-4 bg-primary-50 dark:bg-primary-950/30 rounded-xl">
                                     <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Nhóm Kế hoạch LCNT (giai đoạn)</h4>
                                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Trên muasamcong.vn, mỗi KHLCNT (giai đoạn) có mã riêng. Dùng để group các gói thầu theo kế hoạch.</p>
                                     <div className="grid grid-cols-2 gap-4">
@@ -889,7 +889,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'result' && (
                             <div className="space-y-4">
                                 {formData.Status !== PackageStatus.Awarded && formData.Status !== 'Awarded' ? (
-                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-700 rounded-xl">
                                         <AlertCircle className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-3" />
                                         <p className="text-gray-600 dark:text-slate-300">
                                             Chỉ nhập kết quả khi gói thầu có trạng thái <strong>"Đã có kết quả"</strong>
@@ -955,7 +955,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                         <button
                             type="button"
                             onClick={onClose}
@@ -966,7 +966,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+                            className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-lg"
                         >
                             {isSubmitting ? (
                                 <>

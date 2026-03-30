@@ -96,29 +96,32 @@ export class EmployeeService {
     }
 
     /**
-     * Create a new employee
+     * Create a new employee and auth user via Edge Function
      */
     static async create(employeeData: Partial<Employee>): Promise<Employee> {
-        // Generate new ID
-        const { count } = await supabase.from('employees').select('*', { count: 'exact', head: true });
-        const newId = employeeData.EmployeeID || `NV${(count || 0) + 1}`;
-
-        const insertData = employeeToDb({
+        // Prepare payload with default JoinDate and Status
+        const payload = {
             ...employeeData,
-            EmployeeID: newId,
-            AvatarUrl: employeeData.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(employeeData.FullName || 'NV')}&background=random&color=fff`,
             Status: employeeData.Status ?? EmployeeStatus.Active,
             JoinDate: employeeData.JoinDate || new Date().toISOString().split('T')[0],
+        };
+
+        // Call secure Edge Function to handle Auth + Employee + Account linking
+        const { data, error } = await supabase.functions.invoke('create-employee-user', {
+            body: payload,
         });
 
-        const { data, error } = await supabase
-            .from('employees')
-            .insert(insertData)
-            .select()
-            .single();
+        if (error) {
+            console.error('[EmployeeService] Edge function error:', error);
+            throw new Error(`Failed to invoke create-employee-user: ${error.message}`);
+        }
 
-        if (error) throw new Error(`Failed to create employee: ${error.message}`);
-        return dbToEmployee(data);
+        if (data?.error) {
+            throw new Error(`Edge Function execution failed: ${data.error}`);
+        }
+
+        // Return the mapped employee from the DB
+        return dbToEmployee(data.employee);
     }
 
     /**
@@ -173,11 +176,47 @@ export class EmployeeService {
     }
 
     /**
+     * Infer gender from Vietnamese full name heuristic
+     */
+    private static inferGender(fullName: string): 'male' | 'female' {
+        const parts = fullName.trim().split(/\s+/);
+        const firstName = parts[parts.length - 1]?.toLowerCase() || '';
+        const middleName = parts.length >= 3 ? parts[parts.length - 2]?.toLowerCase() : '';
+
+        // Common female first names in Vietnamese
+        const femaleNames = new Set([
+            'anh', 'chi', 'dung', 'giang', 'ha', 'hà', 'hang', 'hằng', 'hanh', 'hạnh',
+            'hien', 'hiền', 'hoa', 'hong', 'hồng', 'huong', 'hương', 'huyen', 'huyền',
+            'lan', 'le', 'lệ', 'linh', 'loan', 'ly', 'lý', 'mai', 'my', 'mỹ',
+            'nga', 'ngoc', 'ngọc', 'nhi', 'nhung', 'nương', 'oanh',
+            'phuong', 'phương', 'quyen', 'quyên', 'sen', 'suong', 'sương',
+            'tam', 'tâm', 'thanh', 'thao', 'thảo', 'thi', 'thu', 'thuy', 'thuý', 'thủy',
+            'tien', 'tiên', 'trang', 'truc', 'trúc', 'tuyet', 'tuyết',
+            'uyen', 'uyên', 'van', 'vân', 'vy', 'xuan', 'xuân', 'yen', 'yên',
+            'dao', 'đào', 'dieu', 'diệu', 'duyen', 'duyên', 'em', 'hạ',
+            'khanh', 'khánh', 'lien', 'liên', 'nhàn', 'nhan', 'như', 'nhu',
+            'phượng', 'phuợng', 'quynh', 'quỳnh', 'thúy', 'tram', 'trâm', 'trinh', 'trinh'
+        ]);
+
+        // Female middle name indicator (Thị)
+        if (middleName === 'thị' || middleName === 'thi') return 'female';
+
+        // Male middle name indicator (Văn)
+        if (middleName === 'văn' || middleName === 'van') return 'male';
+
+        if (femaleNames.has(firstName)) return 'female';
+
+        return 'male'; // Default assumption
+    }
+
+    /**
      * Get employee statistics
      */
     static async getStatistics(): Promise<{
         total: number;
         active: number;
+        male: number;
+        female: number;
         byDepartment: Record<string, number>;
         byRole: Record<Role, number>;
     }> {
@@ -191,11 +230,18 @@ export class EmployeeService {
         };
 
         let active = 0;
+        let male = 0;
+        let female = 0;
 
         employees.forEach(e => {
             if (e.Status === EmployeeStatus.Active) active++;
             byDepartment[e.Department] = (byDepartment[e.Department] || 0) + 1;
             byRole[e.Role]++;
+
+            // Gender from DB field or infer from name
+            const gender = e.Gender?.toLowerCase() || this.inferGender(e.FullName);
+            if (gender === 'female') female++;
+            else male++;
         });
 
         // Cache employees for getNameById sync fallback
@@ -204,6 +250,8 @@ export class EmployeeService {
         return {
             total: employees.length,
             active,
+            male,
+            female,
             byDepartment,
             byRole,
         };

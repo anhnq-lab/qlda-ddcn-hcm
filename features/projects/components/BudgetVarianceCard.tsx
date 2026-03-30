@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface BudgetVarianceProps {
@@ -40,7 +40,7 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
                 {/* Progress bar + percentage */}
                 <div>
                     <div className="flex items-baseline justify-between mb-1">
-                        <span className="text-lg font-black tabular-nums text-amber-700 dark:text-amber-400">{pct.toFixed(1)}%</span>
+                        <span className="text-lg font-black tabular-nums text-primary-700 dark:text-primary-400">{pct.toFixed(1)}%</span>
                         {momChange !== null && momChange !== 0 && (
                             <span className={`flex items-center gap-0.5 text-[10px] font-bold ${momChange > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                 {momChange > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -51,7 +51,7 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
                     <div className="relative h-2 bg-gray-100 dark:bg-slate-600 rounded-full overflow-hidden">
                         <div
                             className="absolute h-full rounded-full transition-all duration-700"
-                            style={{ background: 'linear-gradient(90deg, #A89050, #D4A017)', width: `${Math.min(pct, 100)}%` }}
+                            style={{ background: 'linear-gradient(90deg, #fdba74, #f97316)', width: `${Math.min(pct, 100)}%` }}
                         />
                         {plannedPct !== null && (
                             <div
@@ -65,7 +65,7 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
 
                 {/* Key figures — compact row */}
                 <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg py-1.5 px-1">
+                    <div className="bg-gray-50 dark:bg-slate-700 rounded-lg py-1.5 px-1">
                         <p className="text-[8px] text-gray-400 dark:text-slate-500 uppercase font-bold tracking-wide">Tổng ĐT</p>
                         <p className="text-[11px] font-black text-gray-700 dark:text-slate-200 tabular-nums">{formatShort(totalInvestment)}</p>
                     </div>
@@ -73,7 +73,7 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
                         <p className="text-[8px] text-blue-500 dark:text-blue-400 uppercase font-bold tracking-wide">Đã GN</p>
                         <p className="text-[11px] font-black text-blue-700 dark:text-blue-300 tabular-nums">{formatShort(disbursedAmount)}</p>
                     </div>
-                    <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg py-1.5 px-1">
+                    <div className="bg-gray-50 dark:bg-slate-700 rounded-lg py-1.5 px-1">
                         <p className="text-[8px] text-gray-400 dark:text-slate-500 uppercase font-bold tracking-wide">Còn lại</p>
                         <p className="text-[11px] font-black text-gray-700 dark:text-slate-200 tabular-nums">{formatShort(remaining)}</p>
                     </div>
@@ -84,3 +84,4 @@ export const BudgetVarianceCard: React.FC<BudgetVarianceProps> = ({
 };
 
 export default BudgetVarianceCard;
+

@@ -1,4 +1,4 @@
-// ConfirmModal — Replaces window.confirm with a proper modal dialog
+﻿// ConfirmModal — Replaces window.confirm with a proper modal dialog
 import React from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 
@@ -22,15 +22,15 @@ const VARIANT_CONFIG = {
         icon: Trash2,
     },
     warning: {
-        iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-        iconColor: 'text-amber-600 dark:text-amber-400',
-        buttonBg: 'bg-amber-600 hover:bg-amber-700',
+        iconBg: 'bg-primary-100 dark:bg-primary-900/30',
+        iconColor: 'text-primary-600 dark:text-primary-400',
+        buttonBg: 'bg-primary-600 hover:bg-primary-700',
         icon: AlertTriangle,
     },
     info: {
         iconBg: 'bg-blue-100 dark:bg-blue-900/30',
         iconColor: 'text-blue-600 dark:text-blue-400',
-        buttonBg: 'bg-blue-600 hover:bg-blue-700',
+        buttonBg: 'bg-primary-600 hover:bg-primary-500',
         icon: AlertTriangle,
     },
 };
@@ -53,7 +53,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-6">
                     <div className="flex items-start gap-4">
                         <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shrink-0`}>
@@ -71,18 +71,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         </button>
                     </div>
                 </div>
-                <div className="px-6 py-4 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3">
+                <div className="px-6 py-4 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3">
                     <button
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-4 py-2.5 bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors disabled:opacity-50"
+                        className="px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-600 border border-gray-200 dark:border-slate-500 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-200 hover:bg-[#F5EFE6] dark:hover:bg-[#F5EFE6]0 transition-colors disabled:opacity-50"
                     >
                         {cancelText}
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`px-4 py-2.5 ${config.buttonBg} text-white rounded-xl text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2`}
+                        className={`px-4 py-2.5 ${config.buttonBg} text-white rounded-xl text-sm font-semibold shadow-lg transition-colors disabled:opacity-50 flex items-center gap-2`}
                     >
                         {isLoading && (
                             <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">

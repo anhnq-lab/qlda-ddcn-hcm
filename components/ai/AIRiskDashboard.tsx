@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
     AlertTriangle, Shield, TrendingDown, Clock, FileWarning,
     CheckCircle2, RefreshCw, ChevronRight, Sparkles, AlertCircle,
@@ -15,10 +15,10 @@ const levelConfig = {
         label: 'Nghiêm trọng',
     },
     warning: {
-        bg: 'bg-amber-50 dark:bg-amber-900/20',
-        border: 'border-amber-200 dark:border-amber-800',
-        icon: 'text-amber-600 dark:text-amber-400',
-        badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+        bg: 'bg-primary-50 dark:bg-primary-900/20',
+        border: 'border-primary-200 dark:border-primary-800',
+        icon: 'text-primary-600 dark:text-primary-400',
+        badge: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300',
         label: 'Cảnh báo',
     },
     info: {
@@ -65,11 +65,11 @@ export const AIRiskDashboard: React.FC = () => {
     const warningCount = report?.risks.filter(r => r.level === 'warning').length ?? 0;
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
             {/* Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-red-500 flex items-center justify-center">
                         <Sparkles size={14} className="text-white" />
                     </div>
                     <div>
@@ -84,7 +84,7 @@ export const AIRiskDashboard: React.FC = () => {
                         </span>
                     )}
                     {warningCount > 0 && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">
                             {warningCount} cảnh báo
                         </span>
                     )}
@@ -171,7 +171,7 @@ export const AIRiskDashboard: React.FC = () => {
                                             <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-2">
                                                 {risk.description}
                                             </p>
-                                            <div className="mt-2 p-2 bg-white/60 dark:bg-slate-700/30 rounded text-[11px] text-slate-600 dark:text-slate-300">
+                                            <div className="mt-2 p-2 bg-white/60 dark:bg-slate-700 rounded text-[11px] text-slate-600 dark:text-slate-300">
                                                 <span className="font-medium">💡 Khuyến nghị:</span> {risk.recommendation}
                                             </div>
                                             <div className="flex items-center gap-2 mt-2">
@@ -200,7 +200,7 @@ export const AIRiskDashboard: React.FC = () => {
                                 className={`h-full rounded-full transition-all duration-500 ${report.overallScore >= 70
                                         ? 'bg-emerald-500'
                                         : report.overallScore >= 40
-                                            ? 'bg-amber-500'
+                                            ? 'bg-primary-500'
                                             : 'bg-red-500'
                                     }`}
                                 style={{ width: `${report.overallScore}%` }}

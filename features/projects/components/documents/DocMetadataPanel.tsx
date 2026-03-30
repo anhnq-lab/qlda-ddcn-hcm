@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Document } from '@/types';
 import { Eye, Download, FileCheck } from 'lucide-react';
 
@@ -16,7 +16,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
     doc, meta, onMetaChange, onSave, onClose, onPreview, savingMeta
 }) => {
     return (
-        <div className="mx-3 mb-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700 space-y-3 animate-in slide-in-from-top-2 duration-200">
+        <div className="mx-3 mb-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 space-y-3 animate-in slide-in-from-top-2 duration-200">
             {/* File info row */}
             <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-slate-700">
                 <div className="flex-1 min-w-0">
@@ -50,7 +50,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                         value={meta.document_number || ''}
                         onChange={e => onMetaChange('document_number', e.target.value)}
                         placeholder="VD: 123/QĐ-TTg"
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
                     />
                 </div>
                 <div>
@@ -59,7 +59,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                         type="date"
                         value={meta.issue_date || ''}
                         onChange={e => onMetaChange('issue_date', e.target.value)}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
                     />
                 </div>
                 <div>
@@ -69,7 +69,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                         value={meta.issuing_authority || ''}
                         onChange={e => onMetaChange('issuing_authority', e.target.value)}
                         placeholder="VD: Thủ tướng Chính phủ"
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
                     />
                 </div>
                 <div>
@@ -79,7 +79,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                         value={meta.updated_by || ''}
                         onChange={e => onMetaChange('updated_by', e.target.value)}
                         placeholder="VD: Nguyễn Văn A"
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
                     />
                 </div>
             </div>
@@ -89,7 +89,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                     <select
                         value={meta.legal_status || 'active'}
                         onChange={e => onMetaChange('legal_status', e.target.value)}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all"
                     >
                         <option value="active">✅ Còn hiệu lực</option>
                         <option value="expired">❌ Hết hiệu lực</option>
@@ -104,7 +104,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                         onChange={e => onMetaChange('notes', e.target.value)}
                         placeholder="Nhập ghi chú..."
                         rows={2}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all resize-none"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-300 dark:focus:border-blue-700 transition-all resize-none"
                     />
                 </div>
             </div>
@@ -125,7 +125,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                     <button
                         onClick={(e) => { e.stopPropagation(); onSave(); }}
                         disabled={savingMeta}
-                        className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                        className="px-4 py-1.5 text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-all shadow-lg disabled:opacity-50 flex items-center gap-1.5"
                     >
                         <FileCheck className="w-3.5 h-3.5" />
                         {savingMeta ? 'Đang lưu...' : 'Lưu thông tin'}

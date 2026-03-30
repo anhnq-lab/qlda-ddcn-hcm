@@ -80,6 +80,87 @@ const PROJ_TABS = [
     { id: 'contractors', label: 'Nhà thầu & Tiêu chuẩn', icon: HardHat },
 ];
 
+const FormattedInput = ({ value, onChange, placeholder, className, isDecimal = false, icon: Icon }: any) => {
+    const [localVal, setLocalVal] = useState(() => {
+        if (value == null || value === '' || value === 0) return '';
+        return new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value);
+    });
+    
+    useEffect(() => {
+        if (value == null || value === '' || value === 0) {
+            setLocalVal('');
+        } else {
+            // Check if the external value fundamentally changes (e.g. initial load)
+            const currentParsed = isDecimal 
+                ? parseFloat(localVal.replace(/\./g, '').replace(/,/g, '.'))
+                : parseInt(localVal.replace(/\D/g, ''), 10);
+                
+            if (value !== currentParsed && !isNaN(value)) {
+                setLocalVal(new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value));
+            }
+        }
+    }, [value, isDecimal]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value;
+        if (!/^[0-9.,]*$/.test(val)) return;
+        
+        if (val === '') {
+            setLocalVal('');
+            onChange('');
+            return;
+        }
+
+        let parsed: number;
+        let formattedStr = '';
+
+        if (isDecimal) {
+            let clean = val.replace(/[^\d,]/g, '');
+            const parts = clean.split(',');
+            if (parts.length > 2) {
+                clean = parts[0] + ',' + parts.slice(1).join('');
+            }
+            if (parts[0]) {
+                parts[0] = parseInt(parts[0], 10).toLocaleString('vi-VN');
+            }
+            formattedStr = parts.join(',');
+            parsed = parseFloat(clean.replace(/,/g, '.'));
+        } else {
+            const clean = val.replace(/\D/g, '');
+            if (!clean) {
+                setLocalVal('');
+                onChange('');
+                return;
+            }
+            parsed = parseInt(clean, 10);
+            formattedStr = parsed.toLocaleString('vi-VN');
+        }
+        
+        setLocalVal(formattedStr);
+        if (!isNaN(parsed)) onChange(parsed);
+    };
+
+    const handleBlur = () => {
+        if (value != null && value !== '' && value !== 0) {
+            setLocalVal(new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value));
+        }
+    };
+
+    return (
+        <div className={Icon ? "relative" : ""}>
+            <input
+                type="text"
+                placeholder={placeholder}
+                className={className}
+                value={localVal}
+                onChange={handleChange}
+                onBlur={handleBlur}
+            />
+            {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />}
+        </div>
+    );
+};
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSave, editProject }) => {
     const isEditMode = !!editProject;
     const [isLoading, setIsLoading] = useState(false);
@@ -357,7 +438,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         const dept = e.Department || 'Khác';
         const isSearchMatch = e.FullName.toLowerCase().includes(memberSearch.toLowerCase()) ||
                               dept.toLowerCase().includes(memberSearch.toLowerCase());
-        const matchOtherBan = dept.match(/Ban.*([1-5])/i);
+        const matchOtherBan = dept.match(/Ban.*([1-7])/i);
         const currentBan = String(formData.ManagementBoard);
         const isOtherBan = matchOtherBan && currentBan !== '0' && matchOtherBan[1] !== currentBan;
         return isSearchMatch && !isOtherBan;
@@ -391,56 +472,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const FormattedInput = ({ value, onChange, placeholder, className, isDecimal = false, icon: Icon }: any) => {
-        const [localVal, setLocalVal] = useState(() => {
-            if (value == null || value === '' || value === 0) return '';
-            return new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value);
-        });
-        
-        useEffect(() => {
-            if (value == null || value === '' || value === 0) {
-                setLocalVal('');
-            }
-        }, [value]);
-
-        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            let val = e.target.value;
-            if (!/^[0-9.,]*$/.test(val)) return;
-            setLocalVal(val);
-            
-            let parsed: number;
-            if (isDecimal) {
-                const clean = val.replace(/\./g, '').replace(/,/g, '.');
-                parsed = parseFloat(clean);
-            } else {
-                parsed = parseInt(val.replace(/\D/g, ''), 10);
-            }
-            
-            if (!isNaN(parsed)) onChange(parsed);
-            else if (val === '') onChange('');
-        };
-
-        const handleBlur = () => {
-            if (value != null && value !== '' && value !== 0) {
-                setLocalVal(new Intl.NumberFormat('vi-VN', isDecimal ? { maximumFractionDigits: 2 } : {}).format(value));
-            }
-        };
-
-        return (
-            <div className={Icon ? "relative" : ""}>
-                <input
-                    type="text"
-                    placeholder={placeholder}
-                    className={className}
-                    value={localVal}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                />
-                {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />}
-            </div>
-        );
-    };
-
     const SectionHeader = ({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle: string }) => (
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-slate-700">
             <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -457,19 +488,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     const aiHighlight = (field: string) => aiFilledFields.has(field) ? ' ring-2 ring-emerald-400 dark:ring-emerald-500 border-emerald-400 dark:border-emerald-500 animate-pulse' : '';
 
     // Reusable class strings for dark mode
-    const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all";
-    const inputWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all";
-    const selectClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-white dark:bg-slate-700/50 transition-all";
-    const selectWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-white dark:bg-slate-700/50 transition-all";
+    const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all";
+    const inputWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all";
+    const selectClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-[#FCF9F2] dark:bg-slate-700 transition-all";
+    const selectWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-[#FCF9F2] dark:bg-slate-700 transition-all";
     const labelClass = "block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2";
     const iconClass = "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden border border-gray-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden border border-gray-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800">
                     <div>
                         <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
                             <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -519,7 +550,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     </div>
                                 ) : (
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
-                                        ${aiStatus === 'idle' ? 'bg-gradient-to-br from-amber-500 to-yellow-600' : 'bg-amber-500'}
+                                        ${aiStatus === 'idle' ? 'bg-gradient-to-br from-primary-500 to-primary-600' : 'bg-primary-500'}
                                     `}>
                                         {aiStatus === 'extracting' ? (
                                             <Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -589,7 +620,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 )}
 
                 {/* Tabs Navigation */}
-                <div className="flex flex-wrap px-6 pt-3 pb-1 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 gap-y-2 gap-x-1">
+                <div className="flex flex-wrap px-6 pt-3 pb-1 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 gap-y-2 gap-x-1">
                     {PROJ_TABS.map(tab => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -613,7 +644,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 </div>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto min-h-[50vh]">
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-[50vh]">
+                    <div className="p-6 overflow-y-auto flex-1">
 
                     {/* ═══ SECTION 1: Thông tin cơ bản ═══ */}
                     {activeTab === 'general' && (
@@ -628,7 +660,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             <input
                                 type="text"
                                 readOnly
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/30 text-gray-500 dark:text-slate-400 font-mono outline-none cursor-not-allowed"
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 font-mono outline-none cursor-not-allowed"
                                 value={formData.ProjectID}
                             />
                         </div>
@@ -652,7 +684,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 <label className={labelClass}>Nhóm dự án <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <select
-                                        className={`w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-white dark:bg-slate-700/50`}
+                                        className={`w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none bg-[#FCF9F2] dark:bg-slate-700`}
                                         value={formData.GroupCode}
                                         onChange={e => updateField('GroupCode', e.target.value)}
                                     >
@@ -701,16 +733,16 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         {/* Ban QLDA */}
                         <div className="mt-4">
                             <label className={labelClass}>Ban Quản Lý Dự Án</label>
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="flex flex-wrap sm:grid sm:grid-cols-7 gap-1.5">
                                 {MANAGEMENT_BOARDS.map(board => (
                                     <button
                                         key={board.value}
                                         type="button"
                                         onClick={() => updateField('ManagementBoard', board.value)}
-                                        className={`py-2 rounded-xl text-sm font-bold transition-all border-2 ${
+                                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all border-2 flex-1 sm:min-w-0 min-w-[50px] whitespace-nowrap ${
                                             formData.ManagementBoard === board.value
                                                 ? `${board.color} text-white border-transparent shadow-lg scale-105`
-                                                : 'bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500/50'
+                                                : 'bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500/50'
                                         }`}
                                     >
                                         Ban {board.value}
@@ -776,7 +808,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         {/* Search & Dropdown */}
                         <div className="relative">
                             <div
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 flex items-center gap-2 cursor-pointer hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 flex items-center gap-2 cursor-pointer hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors"
                                 onClick={() => setShowMemberDropdown(!showMemberDropdown)}
                             >
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
@@ -792,13 +824,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             </div>
 
                             {showMemberDropdown && (
-                                <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+                                <div className="absolute z-20 mt-1 w-full bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl max-h-56 overflow-y-auto">
                                     {Object.keys(groupedEmployees).length === 0 ? (
                                         <div className="p-4 text-center text-sm text-gray-400 dark:text-slate-500">Không tìm thấy nhân sự</div>
                                     ) : (
                                         Object.entries(groupedEmployees).map(([dept, emps]: [string, Employee[]]) => (
                                             <div key={dept}>
-                                                <div className="px-3 py-1.5 bg-gray-50 dark:bg-slate-700/60 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider sticky top-0">
+                                                <div className="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider sticky top-0">
                                                     {dept}
                                                 </div>
                                                 {emps.map(emp => {
@@ -813,7 +845,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                                             <img
                                                                 src={emp.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.FullName)}&background=random&color=fff&size=28`}
                                                                 alt={emp.FullName}
-                                                                className="w-7 h-7 rounded-full object-cover ring-2 ring-white dark:ring-slate-700 shadow-sm"
+                                                                className="w-7 h-7 rounded-full object-cover ring-2 ring-white dark:ring-slate-700 shadow-lg"
                                                             />
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">{emp.FullName}</p>
@@ -835,8 +867,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         </div>
 
                         {selectedMembers.length === 0 && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
-                                <span className="inline-block w-1.5 h-1.5 bg-amber-500 dark:bg-amber-400 rounded-full"></span>
+                            <p className="text-[11px] text-primary-600 dark:text-primary-400 mt-2 flex items-center gap-1">
+                                <span className="inline-block w-1.5 h-1.5 bg-primary-500 dark:bg-primary-400 rounded-full"></span>
                                 Có thể bổ sung thành viên sau khi tạo dự án
                             </p>
                         )}
@@ -881,7 +913,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             <div className="relative z-20">
                                 <label className={labelClass}>Nguồn vốn đầu tư</label>
                                 <div 
-                                    className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-100 cursor-pointer flex justify-between items-center transition-all ${showCapitalDropdown ? 'ring-2 ring-blue-500/20 border-blue-500 dark:border-blue-400' : ''}`}
+                                    className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 cursor-pointer flex justify-between items-center transition-all ${showCapitalDropdown ? 'ring-2 ring-blue-500/20 border-blue-500 dark:border-blue-400' : ''}`}
                                     onClick={() => setShowCapitalDropdown(!showCapitalDropdown)}
                                 >
                                     <span className={formData.CapitalSource ? 'text-gray-800 dark:text-slate-100 line-clamp-1' : 'text-gray-500 dark:text-slate-500'}>
@@ -893,14 +925,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 {showCapitalDropdown && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowCapitalDropdown(false)} />
-                                        <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden py-1">
+                                        <div className="absolute z-20 mt-1 w-full bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden py-1">
                                             {['Ngân sách Trung ương', 'Ngân sách Tỉnh', 'Ngân sách Huyện', 'Ngân sách Xã', 'Vốn ODA', 'Vốn tư nhân', 'Khác'].map(source => {
                                                 const currentSources = formData.CapitalSource ? formData.CapitalSource.split(',').map(s => s.trim()).filter(Boolean) : [];
                                                 const isSelected = currentSources.includes(source);
                                                 return (
                                                     <div 
                                                         key={source}
-                                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
                                                         onClick={() => {
                                                             const newSources = isSelected 
                                                                 ? currentSources.filter(s => s !== source)
@@ -1222,16 +1254,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     <Shield className={iconClass} />
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </div>                    </div>
                     )}
 
 
 
-                </form>
+                    </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80 flex justify-between items-center">
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex justify-between items-center rounded-b-2xl">
                     <p className="text-[11px] text-gray-400 dark:text-slate-500">
                         Các trường không bắt buộc có thể bổ sung sau
                     </p>
@@ -1245,9 +1276,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             Hủy bỏ
                         </button>
                         <button
-                            onClick={handleSubmit}
+                            type="submit"
                             disabled={isLoading}
-                            className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/30 hover:bg-blue-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-6 py-2 rounded-lg bg-primary-600 text-white font-bold shadow-lg shadow-primary-200 dark:shadow-primary-900/30 hover:bg-primary-500 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -1260,6 +1291,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         </button>
                     </div>
                 </div>
+                </form>
             </div>
         </div>
     );

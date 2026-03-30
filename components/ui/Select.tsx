@@ -148,10 +148,10 @@ export const Select: React.FC<SelectProps> = ({
                 onKeyDown={handleKeyDown}
                 className={`
                     w-full flex items-center justify-between gap-2
-                    bg-white border rounded-xl
+                    bg-[#FCF9F2] border rounded-xl
                     text-left transition-all duration-200
                     focus:outline-none focus:ring-2
-                    disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+                    disabled:bg-[#F5EFE6] disabled:text-gray-500 disabled:cursor-not-allowed
                     ${sizeStyles[size]}
                     ${isOpen ? 'ring-2 ring-primary-100 border-primary-500' : ''}
                     ${hasError
@@ -178,7 +178,7 @@ export const Select: React.FC<SelectProps> = ({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-dropdown overflow-hidden animate-fade-in-down">
+                <div className="absolute z-50 w-full mt-1 bg-[#FCF9F2] border border-gray-200 rounded-xl shadow-dropdown overflow-hidden animate-fade-in-down">
                     {/* Search Input */}
                     {searchable && (
                         <div className="p-2 border-b border-gray-200">
@@ -190,7 +190,7 @@ export const Select: React.FC<SelectProps> = ({
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Tìm kiếm..."
-                                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+                                    className="w-full pl-9 pr-3 py-2 bg-[#F5EFE6] border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
                                 />
                             </div>
                         </div>
@@ -219,7 +219,7 @@ export const Select: React.FC<SelectProps> = ({
                                             transition-colors
                                             ${option.disabled
                                                 ? 'text-gray-400 cursor-not-allowed'
-                                                : 'hover:bg-gray-50'
+                                                : 'hover:bg-[#F5EFE6]'
                                             }
                                             ${isSelected ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}
                                         `}

@@ -8,6 +8,7 @@ import { Pencil, Trash2, Plus, X, Search, Users, HardHat, Ruler, Eye, MapPin, Ph
 import { useSlidePanel } from '../../context/SlidePanelContext';
 import { ContractorDetailPanel } from '../projects/components/ContractorDetailPanel';
 import { exportContractorsToExcel } from '../../utils/contractorExcelIO';
+import { StatCard } from '../../components/ui';
 
 const ContractorList: React.FC = () => {
     const { showToast } = useToast();
@@ -78,12 +79,12 @@ const ContractorList: React.FC = () => {
 
     const SortHeader = ({ label, field, className = '' }: { label: string; field: typeof sortKey; className?: string }) => (
         <th
-            className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest cursor-pointer select-none hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${className}`}
+            className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest cursor-pointer select-none hover:text-primary-600 dark:hover:text-primary-400 transition-colors ${className}`}
             onClick={() => toggleSort(field)}
         >
             <span className="inline-flex items-center gap-1">
                 {label}
-                <ArrowUpDown className={`w-3 h-3 ${sortKey === field ? 'text-blue-600 dark:text-blue-400' : 'text-gray-300 dark:text-slate-600'}`} />
+                <ArrowUpDown className={`w-3 h-3 ${sortKey === field ? 'text-primary-600 dark:text-primary-400' : 'text-gray-300 dark:text-slate-600'}`} />
             </span>
         </th>
     );
@@ -185,10 +186,10 @@ const ContractorList: React.FC = () => {
     };
 
     const stats = [
-        { label: 'Tổng nhà thầu', value: totalContractors, icon: Users, style: 'stat-card-blue' },
-        { label: 'Thi công', value: typeCounts['Construction'] || 0, icon: HardHat, style: 'stat-card-emerald' },
-        { label: 'Tư vấn / Giám sát', value: (typeCounts['Consultancy'] || 0) + (typeCounts['Supervision'] || 0), icon: Ruler, style: 'stat-card-amber' },
-        { label: 'Khác', value: totalContractors - (typeCounts['Construction'] || 0) - (typeCounts['Consultancy'] || 0) - (typeCounts['Supervision'] || 0), icon: Eye, style: 'stat-card-purple' },
+        { label: 'Tổng nhà thầu', value: totalContractors, icon: Users, color: 'blue' as const },
+        { label: 'Thi công', value: typeCounts['Construction'] || 0, icon: HardHat, color: 'emerald' as const },
+        { label: 'Tư vấn / Giám sát', value: (typeCounts['Consultancy'] || 0) + (typeCounts['Supervision'] || 0), icon: Ruler, color: 'amber' as const },
+        { label: 'Khác', value: totalContractors - (typeCounts['Construction'] || 0) - (typeCounts['Consultancy'] || 0) - (typeCounts['Supervision'] || 0), icon: Eye, color: 'violet' as const },
     ];
 
     const CONTRACTOR_TYPE_COLORS: Record<string, string> = {
@@ -196,7 +197,7 @@ const ContractorList: React.FC = () => {
         Consultancy: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
         Supervision: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
         Survey: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300',
-        Appraisal: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+        Appraisal: 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300',
         Supplier: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
         Other: 'bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300',
     };
@@ -214,27 +215,24 @@ const ContractorList: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {stats.map((stat) => (
-                    <div key={stat.label} className={`stat-card ${stat.style}`}>
-                        <p className="stat-card-label">{stat.label}</p>
-                        <div className="flex items-center justify-between">
-                            <p className="stat-card-value tabular-nums">{stat.value}</p>
-                            <div className="stat-card-icon">
-                                <stat.icon className="w-4 h-4" />
-                            </div>
-                        </div>
-                    </div>
+                    <StatCard
+                        key={stat.label}
+                        label={stat.label}
+                        value={stat.value}
+                        icon={<stat.icon className="w-4 h-4" />}
+                        color={stat.color}
+                    />
                 ))}
             </div>
 
-            {/* Search Bar + Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center gap-4">
+            {/* Toolbar */}
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="relative max-w-sm flex-1">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                         <input
                             type="text"
                             placeholder="Tìm theo tên, mã số thuế, địa chỉ..."
-                            className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="filter-input"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -245,7 +243,7 @@ const ContractorList: React.FC = () => {
                             <select
                                 value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value as ContractorType | '')}
-                                className="pl-8 pr-3 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-medium text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                                className="pl-8 pr-3 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-medium text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none cursor-pointer"
                             >
                                 <option value="">Tất cả loại hình</option>
                                 {(Object.entries(CONTRACTOR_TYPE_LABELS) as [ContractorType, string][]).map(([value, label]) => (
@@ -253,27 +251,33 @@ const ContractorList: React.FC = () => {
                                 ))}
                             </select>
                         </div>
+
+                        {/* Actions Divider */}
+                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+
                         <button
                             onClick={() => exportContractorsToExcel(filteredContractors)}
-                            className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 flex items-center gap-2 whitespace-nowrap shrink-0"
+                            className="btn btn-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg"
                             title="Xuất danh sách nhà thầu ra file Excel"
                         >
                             <Download className="w-4 h-4" /> Export Excel
                         </button>
+                        
                         <button
                             onClick={handleAdd}
-                            className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-blue-900/30 flex items-center gap-2 whitespace-nowrap shrink-0"
+                            className="btn btn-primary shrink-0 ml-1.5"
                         >
-                            <Plus className="w-4 h-4" /> Thêm nhà thầu
+                            <Plus className="w-5 h-5" /> Thêm nhà thầu
                         </button>
                     </div>
-                </div>
+            </div>
 
-                {/* Table */}
+            {/* Danh sách */}
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden mt-4">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
                     <table className="w-full text-left text-sm">
                         <thead>
-                            <tr className="table-header-row">
+                            <tr className="border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                                 <th className="px-3 py-2.5 text-center text-[10px] font-black uppercase tracking-widest w-12">STT</th>
                                 <SortHeader label="Mã số thuế" field="TaxCode" />
                                 <SortHeader label="Tên nhà thầu" field="FullName" />
@@ -299,7 +303,7 @@ const ContractorList: React.FC = () => {
                                 paginatedContractors.map((contractor, index) => (
                                     <tr
                                         key={contractor.ContractorID}
-                                        className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors cursor-pointer group"
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
                                         onClick={() => openPanel({
                                             title: contractor.FullName,
                                             icon: <Building2 size={14} />,
@@ -401,7 +405,7 @@ const ContractorList: React.FC = () => {
                                             onClick={() => setPage(p)}
                                             className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                                                 p === page
-                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                    ? 'bg-primary-600 text-white shadow-lg'
                                                     : 'hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400'
                                             }`}
                                         >
@@ -424,7 +428,7 @@ const ContractorList: React.FC = () => {
             {/* Add/Edit Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">
                                 {isEditing ? 'Cập nhật thông tin' : 'Thêm nhà thầu mới'}
@@ -440,7 +444,7 @@ const ContractorList: React.FC = () => {
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     value={currentContractor.FullName || ''}
                                     onChange={e => { setCurrentContractor(prev => ({ ...prev, FullName: e.target.value })); setFormErrors(prev => ({ ...prev, FullName: '' })); }}
                                     placeholder="VD: Công Ty CP Tư Vấn XD..."
@@ -452,7 +456,7 @@ const ContractorList: React.FC = () => {
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Loại hình <span className="text-red-500">*</span></label>
                                 <select
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     value={currentContractor.ContractorType || 'Construction'}
                                     onChange={e => setCurrentContractor(prev => ({ ...prev, ContractorType: e.target.value as ContractorType }))}
                                 >
@@ -470,7 +474,7 @@ const ContractorList: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-mono"
                                         value={currentContractor.TaxCode || ''}
                                         onChange={e => { setCurrentContractor(prev => ({ ...prev, TaxCode: e.target.value })); setFormErrors(prev => ({ ...prev, TaxCode: '' })); }}
                                         placeholder="0100106112"
@@ -485,7 +489,7 @@ const ContractorList: React.FC = () => {
                                         type="number"
                                         min="1900"
                                         max="2030"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                         value={currentContractor.EstablishedYear || ''}
                                         onChange={e => setCurrentContractor(prev => ({ ...prev, EstablishedYear: e.target.value ? parseInt(e.target.value) : undefined }))}
                                         placeholder="1998"
@@ -500,7 +504,7 @@ const ContractorList: React.FC = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     value={currentContractor.Representative || ''}
                                     onChange={e => setCurrentContractor(prev => ({ ...prev, Representative: e.target.value }))}
                                     placeholder="Nguyễn Văn A"
@@ -514,7 +518,7 @@ const ContractorList: React.FC = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     value={currentContractor.Address || ''}
                                     onChange={e => setCurrentContractor(prev => ({ ...prev, Address: e.target.value }))}
                                 />
@@ -528,7 +532,7 @@ const ContractorList: React.FC = () => {
                                     </label>
                                     <input
                                         type="email"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                         value={currentContractor.Email || ''}
                                         onChange={e => setCurrentContractor(prev => ({ ...prev, Email: e.target.value }))}
                                         placeholder="info@contractor.vn"
@@ -540,7 +544,7 @@ const ContractorList: React.FC = () => {
                                     </label>
                                     <input
                                         type="url"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                         value={currentContractor.Website || ''}
                                         onChange={e => setCurrentContractor(prev => ({ ...prev, Website: e.target.value }))}
                                         placeholder="https://contractor.vn"
@@ -556,7 +560,7 @@ const ContractorList: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                         value={currentContractor.ContactInfo || ''}
                                         onChange={e => setCurrentContractor(prev => ({ ...prev, ContactInfo: e.target.value }))}
                                         placeholder="024 xxxx xxxx"
@@ -566,7 +570,7 @@ const ContractorList: React.FC = () => {
                                     <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Mã chứng chỉ năng lực</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                         value={currentContractor.CapCertCode || ''}
                                         onChange={e => setCurrentContractor(prev => ({ ...prev, CapCertCode: e.target.value }))}
                                     />
@@ -588,7 +592,7 @@ const ContractorList: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-blue-900/30 flex items-center gap-2 disabled:opacity-50"
+                                    className="btn btn-primary disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {saving ? 'Đang lưu...' : 'Lưu thông tin'}
@@ -602,7 +606,7 @@ const ContractorList: React.FC = () => {
             {/* Delete Confirmation Modal */}
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-slate-700 p-6 animate-in zoom-in-95 duration-200">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-slate-700 p-6 animate-in zoom-in-95 duration-200">
                         <div className="text-center">
                             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />

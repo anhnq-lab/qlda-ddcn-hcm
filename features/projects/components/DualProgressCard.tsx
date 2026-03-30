@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { TrendingUp, Activity } from 'lucide-react';
 
 interface DualProgressCardProps {
@@ -72,7 +72,7 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                         <div className="relative">
                             <ProgressRing
                                 progress={physicalProgress}
-                                color="#A89050"
+                                color="#fdba74"
                                 bgColor={ringBg}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -82,7 +82,7 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                             </div>
                         </div>
                         <div className="flex items-center gap-1 mt-1.5">
-                            <TrendingUp className="w-3 h-3 text-amber-600" />
+                            <TrendingUp className="w-3 h-3 text-primary-600" />
                             <span className="text-[10px] font-bold text-gray-600 dark:text-slate-400">{physicalLabel}</span>
                         </div>
                     </div>
@@ -95,7 +95,7 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                         <div className="relative">
                             <ProgressRing
                                 progress={financialProgress}
-                                color="#D4A017"
+                                color="#f97316"
                                 bgColor={ringBg}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -105,17 +105,17 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                             </div>
                         </div>
                         <div className="flex items-center gap-1 mt-1.5">
-                            <TrendingUp className="w-3 h-3 text-yellow-600" />
+                            <TrendingUp className="w-3 h-3 text-primary-600" />
                             <span className="text-[10px] font-bold text-gray-600 dark:text-slate-400">{financialLabel}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Summary Bar */}
-                <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg px-2.5 py-1.5">
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-lg px-2.5 py-1.5">
                     <div className="flex items-center justify-between text-[10px]">
                         <span className="text-gray-500 dark:text-slate-400 font-medium">Trung bình tiến độ</span>
-                        <span className={`font-black tabular-nums ${avgProgress >= 50 ? 'text-emerald-600' : avgProgress > 20 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <span className={`font-black tabular-nums ${avgProgress >= 50 ? 'text-emerald-600' : avgProgress > 20 ? 'text-primary-600' : 'text-red-600'}`}>
                             {avgProgress.toFixed(1)}%
                         </span>
                     </div>
@@ -124,7 +124,7 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                             className="h-full rounded-full transition-all duration-700 ease-out"
                             style={{
                                 background: avgProgress >= 50 ? 'linear-gradient(90deg, #10B981, #059669)' :
-                                    avgProgress > 20 ? 'linear-gradient(90deg, #C4A035, #D4A017)' :
+                                    avgProgress > 20 ? 'linear-gradient(90deg, #fb923c, #f97316)' :
                                         'linear-gradient(90deg, #EF4444, #DC2626)',
                                 width: `${Math.min(100, Math.max(0, avgProgress))}%`
                             }}
@@ -135,7 +135,7 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
                 {/* Variance indicator */}
                 {Math.abs(physicalProgress - financialProgress) > 10 && (
                     <div className={`text-[10px] p-2 mt-3 rounded-md font-medium ${physicalProgress > financialProgress
-                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
                         : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                         }`}>
                         {physicalProgress > financialProgress
@@ -150,3 +150,4 @@ export const DualProgressCard: React.FC<DualProgressCardProps> = ({
 };
 
 export default DualProgressCard;
+

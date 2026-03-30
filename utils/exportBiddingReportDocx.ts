@@ -72,7 +72,7 @@ function mergeAgg(a: AggregatedData, b: AggregatedData): AggregatedData {
 
 export function aggregateBiddingData(packages: BiddingPackage[], projects: Project[]) {
   const projectMap = new Map(projects.map(p => [p.ProjectID, p]));
-  const awardedPackages = packages.filter(p => p.Status === 'Awarded' || p.Status === 'Đã có kết quả');
+  const awardedPackages = packages.filter(p => p.Status === 'Awarded' || p.Status === ('Đã có kết quả' as any));
 
   const byField: Record<string, Record<GroupKey, Record<BidTypeKey, AggregatedData>>> = {};
   for (const f of FIELDS) {
@@ -103,7 +103,7 @@ export function aggregateBiddingData(packages: BiddingPackage[], projects: Proje
     if (!project) continue;
 
     const groupCode = (project.GroupCode || 'C') as GroupKey;
-    const bidType: BidTypeKey = (pkg.BidType === 'Online' || pkg.BidType === 'Đấu thầu qua mạng') ? 'QM' : 'KQM';
+    const bidType: BidTypeKey = (pkg.BidType === 'Online' || pkg.BidType === ('Đấu thầu qua mạng' as any)) ? 'QM' : 'KQM';
     const scope = pkg.BiddingScope || 'Domestic';
 
     // 1. Map Field

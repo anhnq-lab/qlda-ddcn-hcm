@@ -12,6 +12,12 @@ export enum Role {
     Staff = 'Staff'
 }
 
+export enum Gender {
+    Male = 'Male',
+    Female = 'Female',
+    Other = 'Other'
+}
+
 export interface Employee {
     EmployeeID: string;
     FullName: string;
@@ -25,6 +31,7 @@ export interface Employee {
     Username: string;
     Password?: string;
     Role: Role;
+    Gender?: Gender;
     AllowedProjectIDs?: string[];
 }
 

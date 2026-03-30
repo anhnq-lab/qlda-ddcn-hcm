@@ -40,10 +40,6 @@ export const dbToProject = (row: any): Project => ({
     RequiresBIM: row.requires_bim || false,
     BIMStatus: row.bim_status || 'NotRequired',
     CDEProjectCode: row.cde_project_code || '',
-    IsSynced: row.is_synced || false,
-    LastSyncDate: row.last_sync_date || '',
-    NationalProjectCode: row.national_project_code || '',
-    SyncError: row.sync_error || '',
     Coordinates: row.coordinates || undefined,
     Stage: row.stage || 'Preparation',
     FeasibilityContractor: row.feasibility_contractor || '',
@@ -125,27 +121,27 @@ export const projectToDb = (p: Partial<Project>) => {
     if (p.Sector !== undefined) result.sector = p.Sector;
     if (p.RequiresBIM !== undefined) result.requires_bim = p.RequiresBIM;
     if (p.DecisionNumber !== undefined) result.decision_number = p.DecisionNumber;
-    if (p.DecisionDate !== undefined) result.decision_date = p.DecisionDate;
+    if (p.DecisionDate !== undefined) result.decision_date = p.DecisionDate === '' ? null : p.DecisionDate;
     if (p.DecisionAuthority !== undefined) result.decision_authority = p.DecisionAuthority;
-    if (p.StartDate !== undefined) result.start_date = p.StartDate;
-    if (p.ExpectedEndDate !== undefined) result.expected_end_date = p.ExpectedEndDate;
+    if (p.StartDate !== undefined) result.start_date = p.StartDate === '' ? null : p.StartDate;
+    if (p.ExpectedEndDate !== undefined) result.expected_end_date = p.ExpectedEndDate === '' ? null : p.ExpectedEndDate;
     if (p.InvestmentScale !== undefined) result.investment_scale = p.InvestmentScale;
     if (p.PlanningApprovalNumber !== undefined) result.planning_approval_number = p.PlanningApprovalNumber;
-    if (p.PlanningApprovalDate !== undefined) result.planning_approval_date = p.PlanningApprovalDate;
+    if (p.PlanningApprovalDate !== undefined) result.planning_approval_date = p.PlanningApprovalDate === '' ? null : p.PlanningApprovalDate;
     if (p.PCCCApprovalNumber !== undefined) result.pccc_approval_number = p.PCCCApprovalNumber;
-    if (p.PCCCApprovalDate !== undefined) result.pccc_approval_date = p.PCCCApprovalDate;
+    if (p.PCCCApprovalDate !== undefined) result.pccc_approval_date = p.PCCCApprovalDate === '' ? null : p.PCCCApprovalDate;
     if (p.PCCCApprovalAgency !== undefined) result.pccc_approval_agency = p.PCCCApprovalAgency;
     if (p.EnvApprovalNumber !== undefined) result.env_approval_number = p.EnvApprovalNumber;
-    if (p.EnvApprovalDate !== undefined) result.env_approval_date = p.EnvApprovalDate;
+    if (p.EnvApprovalDate !== undefined) result.env_approval_date = p.EnvApprovalDate === '' ? null : p.EnvApprovalDate;
     if (p.EnvApprovalType !== undefined) result.env_approval_type = p.EnvApprovalType;
     if (p.AppraisalResultNumber !== undefined) result.appraisal_result_number = p.AppraisalResultNumber;
-    if (p.AppraisalResultDate !== undefined) result.appraisal_result_date = p.AppraisalResultDate;
+    if (p.AppraisalResultDate !== undefined) result.appraisal_result_date = p.AppraisalResultDate === '' ? null : p.AppraisalResultDate;
     if (p.AppraisalAgency !== undefined) result.appraisal_agency = p.AppraisalAgency;
     if (p.CostBreakdown !== undefined) result.cost_breakdown = p.CostBreakdown;
     if (p.DesignAppraisalNumber !== undefined) result.design_appraisal_number = p.DesignAppraisalNumber;
-    if (p.DesignAppraisalDate !== undefined) result.design_appraisal_date = p.DesignAppraisalDate;
+    if (p.DesignAppraisalDate !== undefined) result.design_appraisal_date = p.DesignAppraisalDate === '' ? null : p.DesignAppraisalDate;
     if (p.DesignApprovalNumber !== undefined) result.design_approval_number = p.DesignApprovalNumber;
-    if (p.DesignApprovalDate !== undefined) result.design_approval_date = p.DesignApprovalDate;
+    if (p.DesignApprovalDate !== undefined) result.design_approval_date = p.DesignApprovalDate === '' ? null : p.DesignApprovalDate;
     if (p.DesignApprovalAuthority !== undefined) result.design_approval_authority = p.DesignApprovalAuthority;
     if (p.FeasibilityContractor !== undefined) result.feasibility_contractor = p.FeasibilityContractor;
     if (p.SurveyContractor !== undefined) result.survey_contractor = p.SurveyContractor;
@@ -153,25 +149,21 @@ export const projectToDb = (p: Partial<Project>) => {
     if (p.ApplicableStandards !== undefined) result.applicable_standards = p.ApplicableStandards;
     if (p.DesignContractor !== undefined) result.design_contractor = p.DesignContractor;
     if (p.SupervisionContractor !== undefined) result.supervision_contractor = p.SupervisionContractor;
-    if (p.ApprovalDate !== undefined) result.approval_date = p.ApprovalDate;
+    if (p.ApprovalDate !== undefined) result.approval_date = p.ApprovalDate === '' ? null : p.ApprovalDate;
     if (p.IsODA !== undefined) result.is_oda = p.IsODA;
     if (p.BIMStatus !== undefined) result.bim_status = p.BIMStatus;
     if (p.CDEProjectCode !== undefined) result.cde_project_code = p.CDEProjectCode;
-    if (p.IsSynced !== undefined) result.is_synced = p.IsSynced;
-    if (p.LastSyncDate !== undefined) result.last_sync_date = p.LastSyncDate;
-    if (p.NationalProjectCode !== undefined) result.national_project_code = p.NationalProjectCode;
-    if (p.SyncError !== undefined) result.sync_error = p.SyncError;
-    if (p.ActualEndDate !== undefined) result.actual_end_date = p.ActualEndDate;
+    if (p.ActualEndDate !== undefined) result.actual_end_date = p.ActualEndDate === '' ? null : p.ActualEndDate;
     if (p.Coordinates !== undefined) result.coordinates = p.Coordinates;
     if (p.ConstructionPermitNumber !== undefined) result.construction_permit_number = p.ConstructionPermitNumber;
-    if (p.ConstructionPermitDate !== undefined) result.construction_permit_date = p.ConstructionPermitDate;
+    if (p.ConstructionPermitDate !== undefined) result.construction_permit_date = p.ConstructionPermitDate === '' ? null : p.ConstructionPermitDate;
     if (p.ConstructionPermitAgency !== undefined) result.construction_permit_agency = p.ConstructionPermitAgency;
-    if (p.ActualStartDateConstruction !== undefined) result.actual_start_date_construction = p.ActualStartDateConstruction;
+    if (p.ActualStartDateConstruction !== undefined) result.actual_start_date_construction = p.ActualStartDateConstruction === '' ? null : p.ActualStartDateConstruction;
     if (p.InsuranceContract !== undefined) result.insurance_contract = p.InsuranceContract;
     if (p.InsuranceValue !== undefined) result.insurance_value = p.InsuranceValue;
     if (p.AcceptanceResult !== undefined) result.acceptance_result = p.AcceptanceResult;
-    if (p.AcceptanceDate !== undefined) result.acceptance_date = p.AcceptanceDate;
-    if (p.HandoverDate !== undefined) result.handover_date = p.HandoverDate;
+    if (p.AcceptanceDate !== undefined) result.acceptance_date = p.AcceptanceDate === '' ? null : p.AcceptanceDate;
+    if (p.HandoverDate !== undefined) result.handover_date = p.HandoverDate === '' ? null : p.HandoverDate;
     if (p.TT24CompletionPct !== undefined) result.tt24_completion_pct = p.TT24CompletionPct;
     if (p.ManagementBoard !== undefined) result.management_board = p.ManagementBoard;
     if (p.ProvinceCode !== undefined) result.province_code = p.ProvinceCode;
@@ -213,7 +205,6 @@ export const dbToBiddingPackage = (row: any): BiddingPackage => ({
     DecisionDate: row.decision_date || '',
     DecisionAgency: row.decision_agency || '',
     DecisionFile: row.decision_file || '',
-    CapitalSource: row.capital_source || '',
     PlanGroupName: row.plan_group_name || '',
     PlanDecisionNumber: row.plan_decision_number || '',
     PlanDecisionDate: row.plan_decision_date || '',
@@ -241,7 +232,6 @@ export const biddingPackageToDb = (bp: Partial<BiddingPackage>) => ({
     ...(bp.ContractType !== undefined && { contract_type: bp.ContractType }),
     ...(bp.Status !== undefined && { status: bp.Status }),
     ...(bp.Duration !== undefined && { duration: bp.Duration }),
-    ...(bp.CapitalSource !== undefined && { capital_source: bp.CapitalSource }),
     ...(bp.PlanGroupName !== undefined && { plan_group_name: bp.PlanGroupName }),
     ...(bp.PlanDecisionNumber !== undefined && { plan_decision_number: bp.PlanDecisionNumber }),
     ...(bp.PlanDecisionDate !== undefined && { plan_decision_date: bp.PlanDecisionDate }),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, RefreshCw, Sparkles, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { forecastProject } from '../../services/ai/forecasting';
@@ -48,7 +48,7 @@ export const AIForecastChart: React.FC<AIForecastChartProps> = ({
         : simpleForecast.projectedYearEnd;
 
     return (
-        <div className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden ${className}`}>
             {/* Header */}
             <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export const AIForecastChart: React.FC<AIForecastChartProps> = ({
 
             {/* KPI Cards */}
             <div className="grid grid-cols-3 gap-2 p-3">
-                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-2.5 text-center">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-slate-400 dark:text-slate-500">Hiện tại</p>
                     <p className="text-lg font-bold text-slate-700 dark:text-slate-200">{currentDisbursementRate}%</p>
                 </div>
@@ -89,7 +89,7 @@ export const AIForecastChart: React.FC<AIForecastChartProps> = ({
                             : <ArrowDownRight size={14} className="text-red-500" />}
                     </p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-2.5 text-center">
+                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-slate-400 dark:text-slate-500">TB/tháng</p>
                     <p className="text-lg font-bold text-slate-700 dark:text-slate-200">{simpleForecast.monthlyAvgRate}%</p>
                 </div>
@@ -102,7 +102,7 @@ export const AIForecastChart: React.FC<AIForecastChartProps> = ({
                         <span className="text-emerald-600 dark:text-emerald-400">
                             🟢 Lạc quan: {forecast.disbursementForecast.scenarios.optimistic}%
                         </span>
-                        <span className="text-amber-600 dark:text-amber-400">
+                        <span className="text-primary-600 dark:text-primary-400">
                             🟡 Cơ sở: {forecast.disbursementForecast.scenarios.baseline}%
                         </span>
                         <span className="text-red-600 dark:text-red-400">

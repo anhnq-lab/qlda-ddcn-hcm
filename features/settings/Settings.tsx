@@ -19,10 +19,10 @@ const Settings: React.FC = () => {
             description: 'Giao diện nền trắng, phù hợp ban ngày',
             icon: Sun,
             preview: {
-                bg: 'bg-white',
+                bg: 'bg-[#FCF9F2]',
                 sidebar: 'bg-gray-100',
-                header: 'bg-white',
-                card: 'bg-gray-50',
+                header: 'bg-[#FCF9F2]',
+                card: 'bg-[#F5EFE6]',
                 text: 'bg-gray-300',
                 accent: 'bg-blue-500',
             }
@@ -37,7 +37,7 @@ const Settings: React.FC = () => {
                 sidebar: 'bg-slate-800',
                 header: 'bg-slate-800',
                 card: 'bg-slate-700',
-                text: 'bg-slate-500',
+                text: 'bg-[#F5EFE6]0',
                 accent: 'bg-blue-500',
             }
         },
@@ -61,8 +61,8 @@ const Settings: React.FC = () => {
                 {/* Cột trái: Giao diện, Thông báo, Bảo mật, Quản trị */}
                 <div className="space-y-6 flex-1 w-full">
                     {/* Appearance Section */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                        <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
                             <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
                                 <Palette className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             </div>
@@ -72,7 +72,7 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-5">
+                        <div className="p-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {themeOptions.map(opt => {
                                     const isActive = theme === opt.key;
@@ -82,7 +82,7 @@ const Settings: React.FC = () => {
                                             onClick={() => setTheme(opt.key)}
                                             className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 group ${isActive
                                                     ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-800'
-                                                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800'
+                                                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 bg-[#FCF9F2] dark:bg-slate-800'
                                                 }`}
                                         >
                                             {/* Mini Preview */}
@@ -118,7 +118,7 @@ const Settings: React.FC = () => {
 
                                             {/* Active Indicator */}
                                             {isActive && (
-                                                <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                                                <div className="absolute top-2.5 right-2.5 w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center">
                                                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
@@ -132,12 +132,12 @@ const Settings: React.FC = () => {
                     </div>
 
                     {/* Other Settings (Placeholder) */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                         <div className="divide-y divide-gray-100 dark:divide-slate-700">
                             {settingSections.map((section, idx) => (
-                                <div key={idx} className="px-5 py-4 flex items-center justify-between opacity-60 cursor-not-allowed">
+                                <div key={idx} className="px-4 py-3 flex items-center justify-between opacity-60 cursor-not-allowed">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl">
+                                        <div className="p-2 bg-[#F5EFE6] dark:bg-slate-700 rounded-xl">
                                             <section.icon className="w-5 h-5 text-gray-500 dark:text-slate-400" />
                                         </div>
                                         <div>
@@ -156,10 +156,10 @@ const Settings: React.FC = () => {
 
                     {/* Admin Section */}
                     {isAdmin && (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                             <Link
                                 to="/admin"
-                                className="px-5 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-xl">
@@ -178,7 +178,7 @@ const Settings: React.FC = () => {
                     {/* Logout */}
                     <button
                         onClick={logout}
-                        className="w-full bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden px-5 py-4 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-colors group"
+                        className="w-full bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden px-4 py-3 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-colors group"
                     >
                         <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl group-hover:bg-red-100 dark:group-hover:bg-red-900/40 transition-colors">
                             <LogOut className="w-5 h-5 text-gray-500 dark:text-slate-400 group-hover:text-red-500 transition-colors" />
@@ -190,8 +190,8 @@ const Settings: React.FC = () => {
                 {/* Cột phải: User Impersonator (Chỉ hiện khi là Admin) */}
                 {isAdmin && (
                     <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[700px] flex-shrink-0 relative">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm sticky top-6">
-                            <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm sticky top-6">
+                            <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
                                 <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
                                     <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                 </div>
@@ -200,7 +200,7 @@ const Settings: React.FC = () => {
                                     <p className="text-xs text-gray-500 dark:text-slate-400">Test phân quyền bằng cách đăng nhập với vai trò khác</p>
                                 </div>
                             </div>
-                            <div className="p-5">
+                            <div className="p-4">
                                 <UserImpersonator />
                             </div>
                         </div>

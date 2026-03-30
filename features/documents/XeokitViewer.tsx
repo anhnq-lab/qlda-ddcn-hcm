@@ -1,8 +1,13 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+// @ts-ignore
 import { Viewer } from '@xeokit/xeokit-sdk/src/viewer/Viewer';
+// @ts-ignore
 import { WebIFCLoaderPlugin } from '@xeokit/xeokit-sdk/src/plugins/WebIFCLoaderPlugin/WebIFCLoaderPlugin';
+// @ts-ignore
 import { NavCubePlugin } from '@xeokit/xeokit-sdk/src/plugins/NavCubePlugin/NavCubePlugin';
+// @ts-ignore
 import { TreeViewPlugin } from '@xeokit/xeokit-sdk/src/plugins/TreeViewPlugin/TreeViewPlugin';
+// @ts-ignore
 import { SectionPlanesPlugin } from '@xeokit/xeokit-sdk/src/plugins/SectionPlanesPlugin/SectionPlanesPlugin';
 import {
     Box, Maximize2, RotateCcw, Loader2, Upload,
@@ -379,7 +384,7 @@ export const XeokitViewer: React.FC<XeokitViewerProps> = ({ projectId }) => {
                     {/* Model loaded badge */}
                     {modelLoaded && !isLoading && (
                         <div className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-lg shadow-emerald-500/30">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> Model Loaded
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#FCF9F2] animate-pulse" /> Model Loaded
                         </div>
                     )}
 

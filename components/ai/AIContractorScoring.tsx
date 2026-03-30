@@ -21,15 +21,15 @@ export const AIContractorScoring: React.FC<{ className?: string }> = ({ classNam
 
     const riskColors = {
         low: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-        medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+        medium: 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400',
         high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
     };
 
     return (
-        <div className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden ${className}`}>
+            <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-orange-500 flex items-center justify-center">
                         <Award size={14} className="text-white" />
                     </div>
                     <div>
@@ -42,7 +42,7 @@ export const AIContractorScoring: React.FC<{ className?: string }> = ({ classNam
                 <button
                     onClick={loadRanking}
                     disabled={loading}
-                    className="text-[11px] px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 transition-colors flex items-center gap-1"
+                    className="text-[11px] px-2.5 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 transition-colors flex items-center gap-1"
                 >
                     {loading ? <RefreshCw size={12} className="animate-spin" /> : <TrendingUp size={12} />}
                     {loading ? 'Đang phân tích...' : ranking ? 'Cập nhật' : 'Phân tích'}
@@ -67,11 +67,11 @@ export const AIContractorScoring: React.FC<{ className?: string }> = ({ classNam
                 {ranking?.rankings.map((score, idx) => (
                     <div
                         key={score.contractorId}
-                        className="rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all cursor-pointer"
+                        className="rounded-lg border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600 transition-all cursor-pointer"
                         onClick={() => setExpanded(expanded === score.contractorId ? null : score.contractorId)}
                     >
                         <div className="flex items-center gap-2.5 p-2.5">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${idx < 3 ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${idx < 3 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
                                 }`}>
                                 {idx + 1}
                             </div>
@@ -104,7 +104,7 @@ export const AIContractorScoring: React.FC<{ className?: string }> = ({ classNam
                                     <div key={d.label} className="flex items-center gap-2">
                                         <span className="text-[10px] text-slate-500 w-16">{d.label}</span>
                                         <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full ${d.value >= 70 ? 'bg-emerald-500' : d.value >= 45 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${d.value}%` }} />
+                                            <div className={`h-full rounded-full ${d.value >= 70 ? 'bg-emerald-500' : d.value >= 45 ? 'bg-primary-500' : 'bg-red-500'}`} style={{ width: `${d.value}%` }} />
                                         </div>
                                         <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 w-8 text-right">{Math.round(d.value)}</span>
                                     </div>
@@ -122,7 +122,7 @@ export const AIContractorScoring: React.FC<{ className?: string }> = ({ classNam
                 ))}
 
                 {ranking?.aiInsight && (
-                    <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800/30 text-[11px] text-amber-800 dark:text-amber-300">
+                    <div className="mt-2 p-2.5 bg-primary-50 dark:bg-primary-900/10 rounded-lg border border-primary-200 dark:border-primary-800/30 text-[11px] text-primary-800 dark:text-primary-300">
                         🤖 {ranking.aiInsight}
                     </div>
                 )}

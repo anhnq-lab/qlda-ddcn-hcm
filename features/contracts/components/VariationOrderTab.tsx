@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useVariationOrders } from '../../../hooks/useVariationOrders';
 import { VariationOrder } from '../../../types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -75,7 +75,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
         mutationSubmit.mutate(form);
     };
 
-    const inputClass = "w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-gray-800 dark:text-slate-200";
+    const inputClass = "w-full px-3 py-2 text-sm bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-gray-800 dark:text-slate-200";
     const labelClass = "block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1";
 
     if (isLoading) return <div className="p-8 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
@@ -89,7 +89,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                 {!isEditing && (
                     <button 
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-xl text-sm transition-colors shadow-lg"
                     >
                         <Plus className="w-4 h-4" /> Thêm phụ lục
                     </button>
@@ -151,7 +151,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                         </div>
                         <div className="flex justify-end gap-2 pt-2 border-t border-blue-200/50 dark:border-blue-800/50 mt-4">
                             <button type="button" onClick={resetForm} className="px-4 py-2 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">Hủy</button>
-                            <button type="submit" disabled={mutationSubmit.isPending} className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50">
+                            <button type="submit" disabled={mutationSubmit.isPending} className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors disabled:opacity-50">
                                 {mutationSubmit.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Lưu phụ lục
                             </button>
@@ -161,9 +161,9 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
             )}
 
             {variationOrders.length > 0 ? (
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs border-b border-slate-200 dark:border-slate-700">
+                        <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs border-b border-slate-200 dark:border-slate-700">
                             <tr>
                                 <th className="px-5 py-3 text-center w-12">STT</th>
                                 <th className="px-5 py-3">Số Phụ lục</th>
@@ -176,7 +176,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-gray-700 dark:text-slate-300">
                             {variationOrders.map((vo, idx) => (
-                                <tr key={vo.VOID} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50">
+                                <tr key={vo.VOID} className="hover:bg-[#F5EFE6] dark:hover:bg-slate-700">
                                     <td className="px-5 py-3 text-center font-mono text-gray-400 dark:text-slate-500">{idx + 1}</td>
                                     <td className="px-5 py-3 font-semibold">{vo.Number}</td>
                                     <td className="px-5 py-3">{vo.SignDate ? new Date(vo.SignDate).toLocaleDateString('vi-VN') : '—'}</td>
@@ -201,7 +201,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                                 </tr>
                             ))}
                         </tbody>
-                        <tfoot className="bg-gray-50 dark:bg-slate-700/50 border-t border-gray-200 dark:border-slate-700 font-bold">
+                        <tfoot className="bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-slate-700 font-bold">
                             <tr>
                                 <td colSpan={4} className="px-5 py-3 text-right uppercase text-xs tracking-wider text-gray-500 dark:text-slate-400">
                                     Tổng giá trị điều chỉnh
@@ -215,7 +215,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                     </table>
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-300 dark:border-slate-600">
+                <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-xl border border-dashed border-gray-300 dark:border-slate-600">
                     <FileText className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
                     <p className="text-gray-500 dark:text-slate-400 font-medium text-sm">Chưa có phụ lục hợp đồng nào</p>
                 </div>

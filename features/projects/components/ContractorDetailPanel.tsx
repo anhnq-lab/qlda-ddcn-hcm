@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -30,10 +30,10 @@ interface ContractorData {
 
 const CONTRACT_STATUS_MAP: Record<number, { label: string; color: string }> = {
     0: { label: 'Đang soạn', color: 'text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700' },
-    1: { label: 'Đang thực hiện', color: 'text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-900/30' },
+    1: { label: 'Đang thực hiện', color: 'text-primary-700 bg-primary-50 dark:text-primary-300 dark:bg-primary-900/30' },
     2: { label: 'Hoàn thành', color: 'text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-900/30' },
     3: { label: 'Đã nghiệm thu', color: 'text-teal-700 bg-teal-50 dark:text-teal-300 dark:bg-teal-900/30' },
-    4: { label: 'Đã thanh lý', color: 'text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/30' },
+    4: { label: 'Đã thanh lý', color: 'text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-900/30' },
 };
 
 export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ contractorId, projectId }) => {
@@ -83,13 +83,13 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
     ] as const;
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-900 relative">
+        <div className="flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900 relative">
             
             {/* ═══ STICKY HEADER ═══ */}
-            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+            <div className="sticky top-0 z-10 bg-[#FCF9F2] dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
                 <div className="p-5 pb-4">
                     <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
                             <Building2 className="w-7 h-7 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -103,7 +103,7 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
                                     </p>
                                 )}
                                 {contractor.contractor_type && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-full uppercase tracking-wider border border-blue-200 dark:border-blue-800">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-[10px] font-bold rounded-full uppercase tracking-wider border border-primary-200 dark:border-primary-800">
                                         <Briefcase className="w-3 h-3" /> {contractor.contractor_type}
                                     </span>
                                 )}
@@ -123,11 +123,11 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 pb-3 px-1 border-b-2 font-bold text-sm transition-colors whitespace-nowrap ${
                                     isActive 
-                                        ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' 
+                                        ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400' 
                                         : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
-                                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500'}`} />
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-slate-500'}`} />
                                 {tab.label}
                             </button>
                         );
@@ -177,23 +177,23 @@ const OverviewTab: React.FC<{ contractor: ContractorData, contractorId: string, 
         <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-3 gap-3">
-                <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl p-3">
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">Số hợp đồng</p>
-                    <p className="text-xl font-black text-amber-700 dark:text-amber-300 mt-1">{stats?.totalContracts ?? '-'}</p>
+                <div className="bg-primary-50/80 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/50 rounded-xl p-3">
+                    <p className="text-[10px] text-primary-600 dark:text-primary-400 font-bold uppercase tracking-wide">Số hợp đồng</p>
+                    <p className="text-xl font-black text-primary-700 dark:text-primary-300 mt-1">{stats?.totalContracts ?? '-'}</p>
                 </div>
                 <div className="bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wide">Tổng giá trị</p>
                     <p className="text-xl font-black text-emerald-700 dark:text-emerald-300 mt-1">{stats ? formatShortCurrency(stats.totalValue) : '-'}</p>
                 </div>
-                <div className="bg-purple-50/80 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl p-3">
-                    <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wide">Gói thầu đã trúng</p>
-                    <p className="text-xl font-black text-purple-700 dark:text-purple-300 mt-1">{stats?.totalPkgs ?? '-'}</p>
+                <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl p-3">
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">Gói thầu đã trúng</p>
+                    <p className="text-xl font-black text-amber-700 dark:text-amber-300 mt-1">{stats?.totalPkgs ?? '-'}</p>
                 </div>
             </div>
 
             {/* General Information */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
-                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-lg shadow-gray-200/50 dark:shadow-none">
+                <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Thông tin tổ chức</h3>
                 </div>
                 <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
@@ -206,8 +206,8 @@ const OverviewTab: React.FC<{ contractor: ContractorData, contractorId: string, 
             </div>
 
             {/* Legal Information */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
-                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-lg shadow-gray-200/50 dark:shadow-none">
+                <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Hồ sơ năng lực & pháp lý</h3>
                 </div>
                 <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
@@ -269,10 +269,10 @@ const ContractsTab: React.FC<{ contractorId: string, projectId?: string }> = ({ 
             {contracts.map(ct => {
                 const st = CONTRACT_STATUS_MAP[ct.status] || { label: 'Không xác định', color: 'bg-gray-100 text-gray-500' };
                 return (
-                    <div key={ct.contract_id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
+                    <div key={ct.contract_id} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start gap-4">
                             <div>
-                                <h4 className="font-bold text-blue-700 dark:text-blue-400 text-sm leading-tight hover:underline cursor-pointer">{ct.contract_name}</h4>
+                                <h4 className="font-bold text-primary-700 dark:text-primary-400 text-sm leading-tight hover:underline cursor-pointer">{ct.contract_name}</h4>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {ct.project_name}</p>
                             </div>
                             <span className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 whitespace-nowrap ${st.color}`}>
@@ -342,7 +342,7 @@ const PackagesTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
                     onClick={() => {
                         openPanel({
                             title: pkg.package_name,
-                            icon: <Package2 className="w-5 h-5 text-indigo-500" />,
+                            icon: <Package2 className="w-5 h-5 text-primary-500" />,
                             component: (
                                 <BiddingPackageDetail
                                     isOpen={true}
@@ -364,11 +364,11 @@ const PackagesTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
                             )
                         });
                     }}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-all cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 group"
+                    className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 group"
                 >
                     <div className="flex justify-between items-start gap-4">
                         <div>
-                            <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400 text-sm leading-tight transition-colors">{pkg.package_name}</h4>
+                            <h4 className="font-bold text-gray-900 group-hover:text-primary-600 dark:text-slate-100 dark:group-hover:text-primary-400 text-sm leading-tight transition-colors">{pkg.package_name}</h4>
                             <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {pkg.project_name}</p>
                         </div>
                         <span className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 whitespace-nowrap bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400`}>
@@ -429,13 +429,13 @@ const DocumentsTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
     }
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
             <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
                 {documents.map(doc => (
                     <div key={doc.doc_id} className="p-3 hover:bg-gray-50/80 dark:hover:bg-slate-750 transition-colors flex items-center justify-between group cursor-pointer">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                                <FileText className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+                            <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5 text-primary-500 dark:text-primary-400" />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 truncate">{doc.doc_name}</p>
@@ -456,7 +456,7 @@ const DocumentsTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
                                 </div>
                             </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 shrink-0 transform group-hover:translate-x-1 transition-all" />
+                        <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-primary-500 dark:group-hover:text-primary-400 shrink-0 transform group-hover:translate-x-1 transition-all" />
                     </div>
                 ))}
             </div>
@@ -469,7 +469,7 @@ const DocumentsTab: React.FC<{ contractorId: string }> = ({ contractorId }) => {
 // ==========================================
 
 const InfoRow: React.FC<{ icon: React.ElementType; label: string; value: string }> = ({ icon: Icon, label, value }) => (
-    <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+    <div className="flex items-start gap-3 px-4 py-3 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors">
         <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
             <Icon className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
         </div>
@@ -481,7 +481,7 @@ const InfoRow: React.FC<{ icon: React.ElementType; label: string; value: string 
 );
 
 const EmptyRow: React.FC<{ icon: React.ElementType; label: string }> = ({ icon: Icon, label }) => (
-    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50/30 dark:bg-slate-800/50">
+    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50/30 dark:bg-slate-800">
         <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 opacity-50">
             <Icon className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
         </div>
@@ -493,7 +493,7 @@ const EmptyRow: React.FC<{ icon: React.ElementType; label: string }> = ({ icon: 
 );
 
 const EmptyState = ({ icon: Icon, title, message }: { icon: React.ElementType, title: string, message: string }) => (
-    <div className="p-8 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-gray-50/50 dark:bg-slate-800/30 h-64">
+    <div className="p-8 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-[#F5EFE6] dark:bg-slate-800 h-64">
         <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
             <Icon className="w-8 h-8 text-gray-400 dark:text-slate-500" />
         </div>

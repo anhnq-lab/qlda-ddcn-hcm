@@ -14,84 +14,8 @@ import { AIRiskDashboard } from '../../components/ai/AIRiskDashboard';
 import { AIAnomalyDetector } from '../../components/ai/AIAnomalyDetector';
 import { AIContractorScoring } from '../../components/ai/AIContractorScoring';
 import { AIResourceOptimizer } from '../../components/ai/AIResourceOptimizer';
+import { StatCard } from '../../components/ui';
 
-// ── StatCard (Chuẩn CIC ERP) ─────────────────────────────────
-const StatCard: React.FC<{
-    title: string;
-    value: string;
-    targetValue?: string;
-    progressLabel?: string;
-    progressPercentage?: number;
-    trendLabel?: string;
-    trendPercentage?: number;
-    icon: React.ElementType;
-    colorVariant: 'slate' | 'amber' | 'blue' | 'emerald' | 'violet';
-    loading?: boolean;
-    onClick?: () => void;
-    footer?: React.ReactNode;
-}> = ({ title, value, targetValue, progressLabel, progressPercentage, trendLabel, trendPercentage, icon: Icon, colorVariant, loading, onClick, footer }) => {
-    const isDark = true; // Always stick to dark context styling based on CIC ERP, or adapt based on Tailwind class
-    return (
-        <div
-            className={`
-                relative overflow-hidden flex flex-col gap-2 p-4 rounded-2xl
-                bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-800/80
-                shadow-sm dark:shadow-none transition-all duration-200
-                ${onClick ? 'cursor-pointer hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-700/80 hover:shadow-md' : 'cursor-default'}
-            `}
-            onClick={onClick}
-            role={onClick ? 'button' : undefined}
-            tabIndex={onClick ? 0 : undefined}
-            onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
-        >
-            {/* Row 1: Title + Trend */}
-            <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase leading-none">{title}</h3>
-                {(trendPercentage !== undefined && trendLabel) && (
-                    <div className={`flex items-center gap-0.5 text-[10px] font-bold ${trendPercentage >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {trendPercentage >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingUp className="w-3 h-3 rotate-180" />}
-                        {Math.abs(trendPercentage)}%
-                        <span className="text-slate-400 dark:text-slate-500 font-medium ml-0.5">{trendLabel}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Row 2: Value + Icon inline */}
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 min-w-0">
-                    <span className="text-xl lg:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-none">
-                        {loading ? <div className="h-7 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /> : value}
-                    </span>
-                    {targetValue && !loading && (
-                        <span className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate">
-                            / {targetValue}
-                        </span>
-                    )}
-                </div>
-                <div className={`shrink-0 p-2 rounded-xl bg-${colorVariant}-50 dark:bg-${colorVariant}-500/10 text-${colorVariant}-600 dark:text-${colorVariant}-400`}>
-                    <Icon className="w-4 h-4 flex-shrink-0" />
-                </div>
-            </div>
-
-            {/* Row 3: Progress bar */}
-            {progressPercentage !== undefined && progressLabel ? (
-                <div>
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{progressLabel}</span>
-                        <span className={`text-[10px] font-bold text-${colorVariant}-600 dark:text-${colorVariant}-400`}>{progressPercentage}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className={`h-full bg-${colorVariant}-500 rounded-full transition-all duration-1000 ease-out`} style={{ width: `${Math.min(100, progressPercentage)}%` }}></div>
-                    </div>
-                </div>
-            ) : (
-                <div className="h-px" /> // minimal spacer
-            )}
-            {/* Row 4: Footer slot */}
-            {footer}
-        </div>
-    );
-};
 
 // ── Phase Badge ──────────────────────────────────────────
 const PhaseBadge: React.FC<{ status: number }> = ({ status }) => {
@@ -108,7 +32,7 @@ const PhaseBadge: React.FC<{ status: number }> = ({ status }) => {
 };
 
 // ── Progress Bar Inline ──────────────────────────────────
-const ProgressBar: React.FC<{ value: number; color?: string }> = ({ value, color = '#D4A017' }) => (
+const ProgressBar: React.FC<{ value: number; color?: string }> = ({ value, color = '#f97316' }) => (
     <div className="flex items-center gap-2">
         <div className="flex-1 h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
@@ -123,7 +47,7 @@ const ProgressBar: React.FC<{ value: number; color?: string }> = ({ value, color
 // ── Empty State ──────────────────────────────────────────
 const EmptyState: React.FC<{ icon: React.ElementType; message: string }> = ({ icon: Icon, message }) => (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="p-3 bg-gray-50 dark:bg-slate-700/50 rounded-full mb-3">
+        <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-full mb-3">
             <Icon className="w-6 h-6 text-gray-300 dark:text-slate-500" />
         </div>
         <p className="text-xs font-medium text-gray-400 dark:text-slate-500">{message}</p>
@@ -268,7 +192,7 @@ const Dashboard: React.FC = () => {
                     {/* Export */}
                     <button
                         onClick={() => navigate('/reports')}
-                        className="px-4 py-2 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 bg-gradient-to-br from-amber-500 to-yellow-600 hover:shadow-amber-500/20"
+                        className="btn btn-primary"
                     >
                         <FileBox className="w-4 h-4" /> Xuất báo cáo
                     </button>
@@ -297,17 +221,17 @@ const Dashboard: React.FC = () => {
             ═══════════════════════════════════════════════════ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatCard
-                    title="Dự án đang quản lý"
+                    label="Dự án đang quản lý"
                     value={filteredRows.length.toString()}
-                    icon={Building2}
-                    colorVariant="slate"
+                    icon={<Building2 className="w-5 h-5 flex-shrink-0" />}
+                    color="slate"
                     loading={loadingProjects}
                     onClick={() => navigate('/projects')}
                     footer={
                         <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
                                 style={{ background: '#F59E0B18', color: '#B45309', border: '1px solid #F59E0B40' }}>
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                                 Chuẩn bị: {statusSummary.prep}
                             </span>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
@@ -324,30 +248,30 @@ const Dashboard: React.FC = () => {
                     }
                 />
                 <StatCard
-                    title="Tổng vốn đầu tư"
+                    label="Tổng vốn đầu tư"
                     value={metrics ? formatShortCurrency(metrics.totalInvestment) : '—'}
-                    icon={Wallet}
-                    colorVariant="amber"
+                    icon={<Wallet className="w-5 h-5 flex-shrink-0" />}
+                    color="amber"
                     progressLabel="Tỷ trọng vốn năm nay"
                     progressPercentage={metrics && metrics.totalInvestment > 0 ? Math.round((metrics.yearlyPlanned / metrics.totalInvestment) * 100) : 0}
                     loading={loadingMetrics}
                 />
                 <StatCard
-                    title={selectedYear ? `Kế hoạch vốn ${selectedYear}` : 'Tổng kế hoạch vốn'}
+                    label={selectedYear ? `Kế hoạch vốn ${selectedYear}` : 'Tổng kế hoạch vốn'}
                     value={metrics ? formatShortCurrency(metrics.yearlyPlanned) : '—'}
                     targetValue={metrics && metrics.totalInvestment ? formatShortCurrency(metrics.totalInvestment) : undefined}
-                    icon={TrendingUp}
-                    colorVariant="violet"
+                    icon={<TrendingUp className="w-5 h-5 flex-shrink-0" />}
+                    color="slate"
                     progressLabel="Giải ngân trên KH"
                     progressPercentage={metrics ? metrics.yearlyDisbursementRate : 0}
                     loading={loadingMetrics}
                 />
                 <StatCard
-                    title={selectedYear ? `Lũy kế giải ngân ${selectedYear}` : 'Lũy kế giải ngân'}
+                    label={selectedYear ? `Lũy kế giải ngân ${selectedYear}` : 'Lũy kế giải ngân'}
                     value={metrics ? formatShortCurrency(metrics.yearlyDisbursed) : '—'}
                     targetValue={metrics ? formatShortCurrency(metrics.yearlyPlanned) : undefined}
-                    icon={Activity}
-                    colorVariant="blue"
+                    icon={<Activity className="w-5 h-5 flex-shrink-0" />}
+                    color="emerald"
                     progressLabel="Hoàn thành kế hoạch"
                     progressPercentage={metrics ? metrics.yearlyDisbursementRate : 0}
                     trendLabel="Tiến độ"
@@ -359,8 +283,8 @@ const Dashboard: React.FC = () => {
             {/* ═══════════════════════════════════════════════════
                 2. BẢNG TỔNG HỢP DỰ ÁN
             ═══════════════════════════════════════════════════ */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
-                <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-[#ece7de] dark:border-slate-700 overflow-hidden">
+                <div className="flex justify-between items-center px-5 py-3 border-b border-[#ece7de]/60 dark:border-slate-700">
                     <h3 className="section-header text-sm">
                         <div className="section-icon"><Building2 className="w-5 h-5" /></div>
                         Tổng hợp dự án
@@ -381,35 +305,35 @@ const Dashboard: React.FC = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-gray-50/80 dark:bg-slate-700/50">
-                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tên dự án</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ban QLDA</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Giai đoạn</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Tiến độ</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Vốn ĐT</th>
-                                    <th className="px-3 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Giải ngân</th>
+                                <tr className="border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
+                                    <th className="px-5 py-3.5 text-[10px] font-black uppercase tracking-widest">Tên dự án</th>
+                                    <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest">Ban QLDA</th>
+                                    <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest">Giai đoạn</th>
+                                    <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest w-36">Tiến độ</th>
+                                    <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-right">Vốn ĐT</th>
+                                    <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-right">Giải ngân</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                                 {filteredRows.map((row) => {
                                     const boardDef = MANAGEMENT_BOARDS.find(b => b.value === row.managementBoard);
                                     return (
                                         <tr
                                             key={row.projectId}
-                                            className="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer group"
+                                            className="hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
                                             onClick={() => navigate(`/projects/${row.projectId}`)}
                                         >
-                                            <td className="px-4 py-3">
-                                                <p className="text-xs font-bold text-gray-800 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
+                                            <td className="px-5 py-3.5">
+                                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 mb-0.5">
                                                     {row.projectName}
                                                 </p>
                                                 {row.startDate && row.expectedEndDate && (
-                                                    <p className="text-[9px] text-gray-400 dark:text-slate-500 mt-0.5">
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500">
                                                         {new Date(row.startDate).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })} → {new Date(row.expectedEndDate).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className="px-3 py-3">
+                                            <td className="px-4 py-3.5">
                                                 <span
                                                     className="text-[10px] font-bold px-2 py-0.5 rounded-md"
                                                     style={{
@@ -420,17 +344,17 @@ const Dashboard: React.FC = () => {
                                                     {row.boardLabel}
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-3"><PhaseBadge status={row.status} /></td>
-                                            <td className="px-3 py-3">
+                                            <td className="px-4 py-3.5"><PhaseBadge status={row.status} /></td>
+                                            <td className="px-4 py-3.5">
                                                 <ProgressBar value={row.progress} color={boardDef?.hex} />
                                             </td>
-                                            <td className="px-3 py-3 text-right">
-                                                <span className="text-xs font-bold text-gray-700 dark:text-slate-200">
+                                            <td className="px-4 py-3.5 text-right">
+                                                <span className="text-[13px] font-semibold tabular-nums text-slate-700 dark:text-slate-200">
                                                     {formatShortCurrency(row.totalInvestment)}
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-3 text-right">
-                                                <span className={`text-xs font-bold ${row.paymentProgress >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-slate-300'}`}>
+                                            <td className="px-4 py-3.5 text-right">
+                                                <span className={`text-[13px] font-semibold tabular-nums ${row.paymentProgress >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
                                                     {row.paymentProgress}%
                                                 </span>
                                             </td>
@@ -449,7 +373,7 @@ const Dashboard: React.FC = () => {
                 3. GIẢI NGÂN THEO BAN (full width)
             ═══════════════════════════════════════════════════ */}
             {capitalVsDisbursement && (
-                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-5 rounded-2xl shadow-lg border border-[#ece7de] dark:border-slate-700">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="section-header text-sm">
                             <div className="section-icon"><Wallet className="w-5 h-5" /></div>
@@ -460,7 +384,7 @@ const Dashboard: React.FC = () => {
                                 <div className="w-2.5 h-2.5 rounded" style={{ background: theme === 'dark' ? '#475569' : '#E5E7EB' }} /> Kế hoạch
                             </span>
                             <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 dark:text-slate-400">
-                                <div className="w-2.5 h-2.5 rounded" style={{ background: '#D4A017' }} /> Thực giải ngân
+                                <div className="w-2.5 h-2.5 rounded" style={{ background: '#f97316' }} /> Thực giải ngân
                             </span>
                         </div>
                     </div>
@@ -483,7 +407,7 @@ const Dashboard: React.FC = () => {
                                         if (!active || !payload?.[0]) return null;
                                         const d = payload[0].payload;
                                         return (
-                                            <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
+                                            <div className="bg-[#FCF9F2] dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
                                                 <p className="text-[10px] font-black text-gray-700 dark:text-slate-200 mb-0.5">{label}</p>
                                                 <p className="text-[9px] text-gray-600 dark:text-slate-300">Kế hoạch: <strong>{d.planned} Tỷ</strong></p>
                                                 <p className="text-[9px] text-gray-600 dark:text-slate-300">Thực giải ngân: <strong>{d.actual} Tỷ</strong></p>
@@ -494,7 +418,7 @@ const Dashboard: React.FC = () => {
                                     cursor={{ fill: theme === 'dark' ? '#1E293B' : '#F3F4F6' }}
                                 />
                                 <Bar dataKey="planned" fill={theme === 'dark' ? '#475569' : '#E5E7EB'} radius={[4, 4, 0, 0]} maxBarSize={40} />
-                                <Bar dataKey="actual" fill="#D4A017" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                <Bar dataKey="actual" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -523,7 +447,7 @@ const Dashboard: React.FC = () => {
             ═══════════════════════════════════════════════════ */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[300px] xl:h-[500px]">
                 {/* Map (2/3) */}
-                <div className="xl:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 relative overflow-hidden h-full flex flex-col">
+                <div className="xl:col-span-2 bg-[#FCF9F2] dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-[#ece7de] dark:border-slate-700 relative overflow-hidden h-full flex flex-col">
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="section-header">
                             <div className="section-icon"><MapIcon className="w-5 h-5" /></div>
@@ -539,12 +463,12 @@ const Dashboard: React.FC = () => {
                             <InteractiveMap projects={filteredProjects} />
                         )}
                         {/* Legend */}
-                        <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-3 rounded-xl border border-gray-200 dark:border-slate-600 shadow-lg z-[1000]">
+                        <div className="absolute top-4 right-4 bg-[#FCF9F2]/90 dark:bg-slate-800 backdrop-blur-sm p-3 rounded-xl border border-[#ece7de] dark:border-slate-600 shadow-xl z-[1000]">
                             <h4 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Chú thích</h4>
                             <div className="space-y-2">
                                 {Object.entries(PROJECT_PHASE_COLORS).map(([key, phase]) => (
                                     <div key={key} className="flex items-center gap-2">
-                                        <span className="w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-sm" style={{ backgroundColor: phase.hex }} />
+                                        <span className="w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-lg" style={{ backgroundColor: phase.hex }} />
                                         <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{phase.label}</span>
                                     </div>
                                 ))}
@@ -554,7 +478,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Alerts (1/3) */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/50 relative overflow-hidden h-full flex flex-col">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-red-100 dark:border-red-900/50 relative overflow-hidden h-full flex flex-col">
                     <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none"><AlertTriangle className="w-32 h-32 text-red-500" /></div>
                     <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10 shrink-0" style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #EF4444' }}>
                         <AlertTriangle className="w-4 h-4" /> Cảnh báo quan trọng
@@ -568,7 +492,7 @@ const Dashboard: React.FC = () => {
                         ) : risks && risks.length > 0 ? (
                             risks.map(r => (
                                 <div key={r.id} className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl flex items-start gap-3 transition-transform hover:scale-[1.02]">
-                                    <div className="p-1.5 bg-white dark:bg-slate-700 rounded-lg text-red-500 shadow-sm shrink-0">
+                                    <div className="p-1.5 bg-[#FCF9F2] dark:bg-slate-700 rounded-lg text-red-500 shadow-lg shrink-0">
                                         <AlertCircle className="w-4 h-4" />
                                     </div>
                                     <div>
@@ -583,7 +507,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <button
                         onClick={() => navigate('/reports')}
-                        className="w-full mt-4 py-2 bg-white dark:bg-slate-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0"
+                        className="w-full mt-4 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0 shadow-lg hover:shadow"
                     >
                         Xem chi tiết báo cáo rủi ro
                     </button>

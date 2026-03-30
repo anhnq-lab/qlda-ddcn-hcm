@@ -127,7 +127,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
-            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-scale-in">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
@@ -155,7 +155,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                 </div>
 
                 {/* Step Progress */}
-                <div className="flex items-center gap-2 px-6 py-3 bg-gray-50 dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-2 px-6 py-3 bg-[#F5EFE6] dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
                     {['upload', 'preview', 'done'].map((s, i) => (
                         <React.Fragment key={s}>
                             {i > 0 && <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600" />}
@@ -255,7 +255,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                                     Đã chọn: {selectedRows.size}/{importResult.packages.length}
                                 </span>
                                 {importResult.warnings.length > 0 && (
-                                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                                    <span className="text-xs text-primary-600 dark:text-primary-400">
                                         ⚠️ {importResult.warnings.length} cảnh báo
                                     </span>
                                 )}
@@ -263,9 +263,9 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
 
                             {/* Warnings */}
                             {importResult.warnings.length > 0 && (
-                                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                                <div className="bg-primary-50 dark:bg-primary-950/30 border border-primary-200 dark:border-primary-800 rounded-lg p-3">
                                     {importResult.warnings.map((w, i) => (
-                                        <p key={i} className="text-xs text-amber-700 dark:text-amber-300">{w}</p>
+                                        <p key={i} className="text-xs text-primary-700 dark:text-primary-300">{w}</p>
                                     ))}
                                 </div>
                             )}
@@ -299,8 +299,8 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                                             <tr
                                                 key={idx}
                                                 className={`border-t border-gray-200 dark:border-slate-700 ${selectedRows.has(idx)
-                                                    ? 'bg-white dark:bg-slate-800'
-                                                    : 'bg-gray-50 dark:bg-slate-850 opacity-50'
+                                                    ? 'bg-[#FCF9F2] dark:bg-slate-800'
+                                                    : 'bg-[#F5EFE6] dark:bg-slate-850 opacity-50'
                                                     } hover:bg-blue-50 dark:hover:bg-slate-750 transition-colors`}
                                             >
                                                 <td className="px-2 py-2 text-center">
@@ -349,7 +349,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                                         ))}
                                     </tbody>
                                     <tfoot>
-                                        <tr className="bg-gray-50 dark:bg-slate-750 font-bold border-t border-gray-200 dark:border-slate-600">
+                                        <tr className="bg-[#F5EFE6] dark:bg-slate-750 font-bold border-t border-gray-200 dark:border-slate-600">
                                             <td colSpan={5} className="px-2 py-2 text-right text-slate-700 dark:text-slate-200">
                                                 Tổng ({selectedRows.size} gói đã chọn):
                                             </td>
@@ -385,7 +385,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-750">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-750">
                     <div>
                         {file && step !== 'done' && (
                             <span className="text-xs text-gray-500 dark:text-slate-400">
@@ -420,7 +420,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                                 <button
                                     onClick={handleImport}
                                     disabled={selectedRows.size === 0 || insertMutation.isPending}
-                                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
                                 >
                                     {insertMutation.isPending ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -435,7 +435,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                         {step === 'done' && (
                             <button
                                 onClick={handleClose}
-                                className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors"
                             >
                                 <CheckCircle2 className="w-4 h-4" />
                                 Đóng

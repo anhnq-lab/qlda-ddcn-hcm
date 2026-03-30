@@ -28,8 +28,8 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-gray-200 dark:border-slate-700">
+        <div className="min-h-screen bg-[#F5EFE6] dark:bg-slate-900 flex items-center justify-center p-4">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-gray-200 dark:border-slate-700">
                 <div className="p-8 pb-6 text-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #4A4A4A 0%, #2D2D2D 100%)' }}>
                     {/* Decorative pattern background */}
                     <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'url("/bg-header-login.png")', backgroundSize: '120%', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' }}></div>
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
                                     placeholder="Nhập tên đăng nhập hoặc email"
                                     value={username}
                                     onChange={e => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
+                                    className="w-full pl-12 pr-4 py-3 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                                     autoFocus
                                 />
                             </div>
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-12 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
+                                    className="w-full pl-12 pr-12 py-3 bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                                 />
                                 <button
                                     type="button"
@@ -83,16 +83,16 @@ const Login: React.FC = () => {
                                 </button>
                             </div>
                             <div className="text-right">
-                                <a href="#" className="text-xs text-yellow-600 hover:underline dark:text-yellow-400">Quên mật khẩu?</a>
+                                <a href="#" className="text-xs text-primary-600 hover:underline dark:text-yellow-400">Quên mật khẩu?</a>
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             className="w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-0.5"
-                            style={{ background: 'linear-gradient(to right, #D4A017, #B8860B)', boxShadow: '0 4px 14px rgba(212, 160, 23, 0.3)' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(to right, #B8860B, #996515)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(to right, #D4A017, #B8860B)'; }}
+                            style={{ background: 'linear-gradient(to right, #f97316, #ea580c)', boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(to right, #ea580c, #996515)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(to right, #f97316, #ea580c)'; }}
                         >
                             Đăng nhập
                         </button>

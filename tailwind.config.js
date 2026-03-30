@@ -16,18 +16,18 @@ export default {
         extend: {
             colors: {
                 // ─── BRAND PALETTE (HCMA / Ban DDCN) ─────────────────────────
-                // Primary = Vàng Kim (màu chủ đạo UI)
+                // Primary = Theme Color (được bind từ index.css variable để dễ tùy chỉnh)
                 primary: {
-                    50:  '#FEFCE8',
-                    100: '#FEF7CD',
-                    200: '#F0D68A',
-                    300: '#E4C45A',
-                    400: '#D4A843',
-                    500: '#D4A017', // Main brand — Vàng Kim
-                    600: '#B8860B',
-                    700: '#996515',
-                    800: '#7A5012',
-                    900: '#5C3D0E',
+                    50:  'var(--color-primary-50)',
+                    100: 'var(--color-primary-100)',
+                    200: 'var(--color-primary-200)',
+                    300: 'var(--color-primary-300)',
+                    400: 'var(--color-primary-400)',
+                    500: 'var(--color-primary-500)',
+                    600: 'var(--color-primary-600)',
+                    700: 'var(--color-primary-700)',
+                    800: 'var(--color-primary-800)',
+                    900: 'var(--color-primary-900)',
                 },
 
                 // Accent = Đỏ cờ (branding, tiêu đề tổ chức)
@@ -102,10 +102,10 @@ export default {
 
                 // ─── SURFACE & TEXT TOKENS ────────────────────────────────────
                 surface: {
-                    primary:   '#fffefb',
-                    secondary: '#f5f4f1',
-                    tertiary:  '#e8e7e4',
-                    elevated:  '#ffffff',
+                    primary:   '#F0ECE1',
+                    secondary: '#E6E0D4',
+                    tertiary:  '#DBD4C4',
+                    elevated:  '#FCF9F2',
                 },
 
                 content: {
@@ -131,23 +131,23 @@ export default {
                 },
 
                 slate: {
-                    50:  '#f5f4f1',
-                    100: '#f1f5f9',
-                    200: '#e2e8f0',
-                    300: '#cbd5e1',
-                    400: '#94a3b8',
-                    500: '#64748b',
-                    600: '#475569',
-                    700: '#334155',
-                    800: '#1e293b',
-                    900: '#0f172a',
-                    950: '#020617',
+                    50:  'var(--color-slate-50)',
+                    100: 'var(--color-slate-100)',
+                    200: 'var(--color-slate-200)',
+                    300: 'var(--color-slate-300)',
+                    400: 'var(--color-slate-400)',
+                    500: 'var(--color-slate-500)',
+                    600: 'var(--color-slate-600)',
+                    700: 'var(--color-slate-700)',
+                    800: 'var(--color-slate-800)',
+                    900: 'var(--color-slate-900)',
+                    950: 'var(--color-slate-950)',
                 },
             },
 
             fontFamily: {
-                sans:    ['Be Vietnam Pro', 'system-ui', '-apple-system', 'sans-serif'],
-                heading: ['Be Vietnam Pro', 'system-ui', '-apple-system', 'sans-serif'],
+                sans:    ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                heading: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
                 mono:    ['JetBrains Mono', 'Fira Code', 'monospace'],
             },
 

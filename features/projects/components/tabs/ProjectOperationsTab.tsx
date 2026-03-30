@@ -20,6 +20,7 @@ import {
     getProjectAssets,
     ASSET_CATEGORIES
 } from '../../../../lib/facilityAssetService';
+import { StatCard } from '../../../../components/ui';
 
 interface Props {
     projectID: string;
@@ -178,7 +179,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
 
     // ── RENDER ──
     return (
-        <div className={`h-full overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-gray-50'}`}>
+        <div className={`h-full overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-[#F5EFE6]'}`}>
             <div className="max-w-[1400px] mx-auto p-6 space-y-6">
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between">
@@ -195,7 +196,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                         <button
                             onClick={() => window.location.reload()}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors
-                                ${isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700' : 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-200'}
+                                ${isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700' : 'bg-[#FCF9F2] hover:bg-[#F5EFE6] text-gray-600 border border-gray-200'}
                             `}
                         >
                             <RefreshCw className="w-3.5 h-3.5" />
@@ -207,50 +208,46 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 {/* ── KPI Cards ── */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Total assets */}
-                    <div className="stat-card stat-card-blue cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Tổng tài sản</span>
-                            <div className="stat-card-icon"><Package className="w-5 h-5" /></div>
-                        </div>
-                        <div className="stat-card-value tabular-nums">{stats.total}</div>
-                        <div className="text-xs text-slate-500 mt-2 font-medium">{stats.hasBim} đã gắn BIM</div>
-                    </div>
+                    <StatCard
+                        label="Tổng tài sản"
+                        value={stats.total}
+                        icon={<Package className="w-5 h-5 flex-shrink-0" />}
+                        color="blue"
+                        footer={<div className="text-xs text-slate-500 mt-1 font-medium">{stats.hasBim} đã gắn BIM</div>}
+                    />
 
                     {/* Active */}
-                    <div className="stat-card stat-card-emerald cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Hoạt động</span>
-                            <div className="stat-card-icon"><CheckCircle2 className="w-5 h-5" /></div>
-                        </div>
-                        <div className="stat-card-value tabular-nums">{stats.byStatus.Active}</div>
-                        <div className="text-xs text-slate-500 mt-2 font-medium">{stats.total > 0 ? Math.round((stats.byStatus.Active / stats.total) * 100) : 0}% tổng số</div>
-                    </div>
+                    <StatCard
+                        label="Hoạt động"
+                        value={stats.byStatus.Active}
+                        icon={<CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
+                        color="emerald"
+                        footer={<div className="text-xs text-slate-500 mt-1 font-medium">{stats.total > 0 ? Math.round((stats.byStatus.Active / stats.total) * 100) : 0}% tổng số</div>}
+                    />
 
                     {/* Maintenance overdue */}
-                    <div className="stat-card stat-card-rose cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Quá hạn bảo trì</span>
-                            <div className="stat-card-icon"><AlertTriangle className="w-5 h-5" /></div>
-                        </div>
-                        <div className="stat-card-value tabular-nums">{stats.maintenanceOverdue}</div>
-                        <div className="text-xs text-slate-500 mt-2 font-medium">Cần xử lý ngay</div>
-                    </div>
+                    <StatCard
+                        label="Quá hạn bảo trì"
+                        value={stats.maintenanceOverdue}
+                        icon={<AlertTriangle className="w-5 h-5 flex-shrink-0" />}
+                        color="rose"
+                        footer={<div className="text-xs text-slate-500 mt-1 font-medium">Cần xử lý ngay</div>}
+                    />
 
                     {/* Warranty expiring */}
-                    <div className="stat-card stat-card-amber cursor-default">
-                        <div className="flex items-center justify-between w-full relative z-10 mb-2">
-                            <span className="stat-card-label">Sắp hết bảo hành</span>
-                            <div className="stat-card-icon"><Shield className="w-5 h-5" /></div>
-                        </div>
-                        <div className="stat-card-value tabular-nums">{stats.warrantyExpiringSoon}</div>
-                        <div className="text-xs text-slate-500 mt-2 font-medium">Trong 90 ngày tới</div>
-                    </div>
+                    <StatCard
+                        label="Sắp hết bảo hành"
+                        value={stats.warrantyExpiringSoon}
+                        icon={<Shield className="w-5 h-5 flex-shrink-0" />}
+                        color="amber"
+                        footer={<div className="text-xs text-slate-500 mt-1 font-medium">Trong 90 ngày tới</div>}
+                    />
                 </div>
 
                 {/* ── Charts Row ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Chart: By Category */}
-                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'} shadow-sm`}>
+                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg`}>
                         <div className="flex items-center gap-2 mb-3">
                             <BarChart3 className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
                             <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Theo danh mục</span>
@@ -269,7 +266,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                     </div>
 
                     {/* Chart: By Status */}
-                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'} shadow-sm`}>
+                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg`}>
                         <div className="flex items-center gap-2 mb-3">
                             <PieChart className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
                             <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Theo trạng thái</span>
@@ -279,7 +276,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                 const count = stats.byStatus[key as keyof typeof stats.byStatus] || 0;
                                 const Icon = cfg.icon;
                                 return (
-                                    <div key={key} className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-gray-50'}`}>
+                                    <div key={key} className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-[#F5EFE6]'}`}>
                                         <Icon className={`w-4 h-4 text-${cfg.color}-500`} />
                                         <div>
                                             <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{count}</div>
@@ -293,10 +290,10 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 </div>
 
                 {/* ── Maintenance Timeline ── */}
-                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'} shadow-sm overflow-hidden`}>
+                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg overflow-hidden`}>
                     <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-slate-800' : 'border-gray-200'}`}>
                         <div className="flex items-center gap-2">
-                            <Calendar className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+                            <Calendar className={`w-4 h-4 ${isDark ? 'text-primary-400' : 'text-primary-500'}`} />
                             <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Lịch bảo trì</span>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
                                 {maintenanceTimeline.length} mục
@@ -319,7 +316,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                         {/* Timeline dot */}
                                         <div className="flex flex-col items-center gap-0.5 shrink-0">
                                             <div className={`w-2.5 h-2.5 rounded-full ${item.overdue ? 'bg-red-500 animate-pulse'
-                                                : item.daysUntil <= 7 ? 'bg-amber-500'
+                                                : item.daysUntil <= 7 ? 'bg-primary-500'
                                                     : item.daysUntil <= 30 ? 'bg-blue-500'
                                                         : 'bg-emerald-500'
                                                 }`} />
@@ -333,7 +330,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                                 {item.date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
                                             </div>
                                             <div className={`text-[10px] ${item.overdue ? 'text-red-400 font-semibold'
-                                                : item.daysUntil <= 7 ? 'text-amber-500'
+                                                : item.daysUntil <= 7 ? 'text-primary-500'
                                                     : isDark ? 'text-slate-500' : 'text-gray-400'
                                                 }`}>
                                                 {item.overdue ? `Quá ${Math.abs(item.daysUntil)} ngày` : item.daysUntil === 0 ? 'Hôm nay' : `${item.daysUntil} ngày nữa`}
@@ -363,10 +360,10 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 </div>
 
                 {/* ── Asset Inventory ── */}
-                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'} shadow-sm overflow-hidden`}>
+                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg overflow-hidden`}>
                     {/* Inventory header — sticky */}
                     <div className={`px-4 py-3 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3 sticky top-0 z-10
-                        ${isDark ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-white'}
+                        ${isDark ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-[#FCF9F2]'}
                     `}>
                         <div className="flex items-center gap-2">
                             <Layers className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
@@ -382,7 +379,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                         <div className="flex items-center gap-2 flex-wrap">
                             {/* Search */}
                             <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border
-                                ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}
+                                ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}
                             `}>
                                 <Search className="w-3.5 h-3.5 opacity-50" />
                                 <input
@@ -399,7 +396,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                 value={statusFilter}
                                 onChange={e => setStatusFilter(e.target.value)}
                                 className={`px-2.5 py-1.5 rounded-lg text-xs border cursor-pointer
-                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}
+                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}
                                 `}
                             >
                                 <option value="all">Tất cả trạng thái</option>
@@ -413,7 +410,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                 value={categoryFilter}
                                 onChange={e => setCategoryFilter(e.target.value)}
                                 className={`px-2.5 py-1.5 rounded-lg text-xs border cursor-pointer
-                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}
+                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}
                                 `}
                             >
                                 <option value="all">Tất cả danh mục</option>
@@ -427,7 +424,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                 value={groupBy}
                                 onChange={e => setGroupBy(e.target.value as any)}
                                 className={`px-2.5 py-1.5 rounded-lg text-xs border cursor-pointer
-                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}
+                                    ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}
                                 `}
                             >
                                 <option value="none">Không nhóm</option>
@@ -454,7 +451,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                         ) : (
                             <table className="w-full text-xs">
                                 <thead className="sticky top-0 z-[5] border-b border-slate-200 dark:border-slate-700">
-                                    <tr className={isDark ? 'bg-slate-800' : 'bg-gray-50'}>
+                                    <tr className={isDark ? 'bg-slate-800' : 'bg-[#F5EFE6]'}>
                                         <th className={`px-3 py-2 text-left font-bold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Mã TS</th>
                                         <th className={`px-3 py-2 text-left font-bold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Tên tài sản</th>
                                         <th className={`px-3 py-2 text-left font-bold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Danh mục</th>
@@ -472,7 +469,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                                             {/* Group header */}
                                             {groupBy !== 'none' && (
                                                 <tr
-                                                    className={`cursor-pointer ${isDark ? 'bg-slate-800/30 hover:bg-slate-800/50' : 'bg-gray-50 hover:bg-gray-100'}`}
+                                                    className={`cursor-pointer ${isDark ? 'bg-slate-800/30 hover:bg-slate-800/50' : 'bg-[#F5EFE6] hover:bg-gray-100'}`}
                                                     onClick={() => toggleGroup(group)}
                                                 >
                                                     <td colSpan={9} className={`px-3 py-2 font-bold ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>

@@ -183,7 +183,7 @@ const ToolDropdown: React.FC<{
                                         ? isDark ? 'bg-cyan-500/10 text-cyan-400 font-medium border-l-2 border-cyan-400 pl-2.5' : 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500 pl-2.5'
                                         : item.danger
                                             ? isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'
-                                            : isDark ? 'text-slate-300 hover:bg-white/5 hover:pl-4' : 'text-gray-700 hover:bg-gray-50 hover:pl-4'}
+                                            : isDark ? 'text-slate-300 hover:bg-white/5 hover:pl-4' : 'text-gray-700 hover:bg-[#F5EFE6] hover:pl-4'}
                                 `}
                             >
                                 <span className="w-5 h-5 flex items-center justify-center shrink-0">{item.icon}</span>
@@ -443,11 +443,11 @@ export const BimToolbar: React.FC<BimToolbarProps> = ({
                     </ToolBtn>
                 }
                 items={[
-                    { id: 'section-plane', icon: <Crosshair className="w-5 h-5 text-amber-400" />, label: 'Section Plane (Click Surface)', active: activeTool === 'section-plane', onClick: () => handleSectionAction('section-plane') },
+                    { id: 'section-plane', icon: <Crosshair className="w-5 h-5 text-primary-400" />, label: 'Section Plane (Click Surface)', active: activeTool === 'section-plane', onClick: () => handleSectionAction('section-plane') },
                     { id: 'clip-x', icon: <ScanLine className="w-5 h-5 text-red-400" />, label: 'Clip X (YZ Plane)', active: activeTool === 'clip-x', onClick: () => handleSectionAction('clip-x') },
                     { id: 'clip-y', icon: <ScanLine className="w-5 h-5 text-green-400" />, label: 'Clip Y (XZ Plane)', active: activeTool === 'clip-y', onClick: () => handleSectionAction('clip-y') },
                     { id: 'clip-z', icon: <ScanLine className="w-5 h-5 text-blue-400" />, label: 'Clip Z (XY Plane)', active: activeTool === 'clip-z', onClick: () => handleSectionAction('clip-z') },
-                    { id: 'section-box', icon: <BoxSelect className="w-5 h-5 text-amber-400" />, label: 'Section Box', active: activeTool === 'section-box', onClick: () => handleSectionAction('section-box') },
+                    { id: 'section-box', icon: <BoxSelect className="w-5 h-5 text-primary-400" />, label: 'Section Box', active: activeTool === 'section-box', onClick: () => handleSectionAction('section-box') },
                     { id: 'clear-sections', icon: <Trash2 className="w-5 h-5" />, label: 'Clear All Sections', divider: true, danger: true, onClick: () => handleSectionAction('clear') },
                 ]}
             />
@@ -499,7 +499,7 @@ export const BimToolbar: React.FC<BimToolbarProps> = ({
                     </ToolBtn>
                 }
                 items={[
-                    { id: 'isolate', icon: <Focus className="w-5 h-5 text-amber-400" />, label: 'Isolate Selected', shortcut: 'I', onClick: onIsolateSelected },
+                    { id: 'isolate', icon: <Focus className="w-5 h-5 text-primary-400" />, label: 'Isolate Selected', shortcut: 'I', onClick: onIsolateSelected },
                     { id: 'hide', icon: <EyeOff className="w-5 h-5" />, label: 'Hide Selected', shortcut: 'H', onClick: onHideSelected },
                     { id: 'show-all', icon: <Eye className="w-5 h-5 text-emerald-400" />, label: 'Show All', shortcut: 'Shift+H', divider: true, onClick: onShowAll },
                 ]}

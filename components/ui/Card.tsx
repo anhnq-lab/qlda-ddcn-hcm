@@ -19,13 +19,13 @@ export interface CardProps {
 
 const variantStyles: Record<CardVariant, string> = {
     default: `
-        bg-white border border-gray-200 shadow-card
+        bg-[#FCF9F2] border border-gray-200 shadow-card
     `,
     outlined: `
-        bg-white border-2 border-gray-200
+        bg-[#FCF9F2] border-2 border-gray-200
     `,
     elevated: `
-        bg-white border border-gray-50 shadow-lg
+        bg-[#FCF9F2] border border-gray-50 shadow-lg
     `,
     glass: `
         bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg
@@ -217,7 +217,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         indigo: 'from-indigo-500 via-indigo-600 to-violet-700',
         emerald: 'from-emerald-500 via-emerald-600 to-teal-700',
         green: 'from-emerald-500 via-emerald-600 to-teal-700',
-        amber: 'from-amber-500 via-amber-600 to-orange-700',
+        amber: 'from-primary-500 via-primary-600 to-orange-700',
         orange: 'from-orange-500 via-orange-600 to-orange-700',
         red: 'from-red-500 via-red-600 to-rose-700',
         violet: 'from-violet-500 via-violet-600 to-purple-700',
@@ -242,7 +242,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 {/* Header */}
                 <div className="flex justify-between items-start">
                     {Icon && (
-                        <div className="p-2.5 rounded-xl bg-white/20 shadow-sm">
+                        <div className="p-2.5 rounded-xl bg-white/20 shadow-lg">
                             <Icon className="w-5 h-5 text-white" />
                         </div>
                     )}
@@ -272,7 +272,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                     {loading ? (
                         <div className="h-8 w-24 bg-white/20 rounded animate-pulse my-1" />
                     ) : (
-                        <h3 className="text-2xl font-black text-white tracking-tight my-1 drop-shadow-sm">
+                        <h3 className="text-2xl font-black text-white tracking-tight my-1 drop-shadow-lg">
                             {value}
                         </h3>
                     )}

@@ -64,7 +64,8 @@ const ProjectList: React.FC = () => {
             navigate(`/projects/${newProject.ProjectID}`);
         } catch (error) {
             console.error('Error creating project:', error);
-            alert('Có lỗi xảy ra khi tạo dự án. Vui lòng thử lại.');
+            const errObj = error as any;
+            alert(`Lỗi khi tạo dự án: ${errObj?.message || JSON.stringify(errObj) || 'Vui lòng thử lại.'}`);
         }
     };
 
@@ -78,12 +79,12 @@ const ProjectList: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-4 items-start">
                 {/* 2. SIDEBAR FILTER (Premium Style) */}
                 <div className={`shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-full lg:w-72' : 'w-0 lg:w-10'}`}>
-                    <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-6 ${!isSidebarOpen ? 'hidden lg:flex lg:items-center lg:justify-center lg:py-4' : ''}`}>
+                    <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-6 ${!isSidebarOpen ? 'hidden lg:flex lg:items-center lg:justify-center lg:py-4' : ''}`}>
                         {/* Collapsed state */}
                         {!isSidebarOpen && (
                             <button
                                 onClick={() => setIsSidebarOpen(true)}
-                                className="p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                                className="p-2 hover:bg-[#F5EFE6] dark:hover:bg-slate-700 rounded-lg transition-all"
                                 title="Mở bộ lọc"
                             >
                                 <ChevronRight className="w-4 h-4 text-slate-500 dark:text-slate-400" />
@@ -93,7 +94,7 @@ const ProjectList: React.FC = () => {
                         {/* Expanded state */}
                         {isSidebarOpen && (
                             <>
-                                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 flex justify-between items-center">
+                                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 flex justify-between items-center">
                                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                         <Filter className="w-4 h-4 text-primary-600 dark:text-primary-400" /> Bộ lọc dự án
                                     </h3>
@@ -121,7 +122,7 @@ const ProjectList: React.FC = () => {
                                                     key={opt.val}
                                                     className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-200 ${selectedStatus === opt.val
                                                         ? 'bg-primary-50 dark:bg-primary-900/30 ring-1 ring-primary-200 dark:ring-primary-800'
-                                                        : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                                        : 'hover:bg-slate-50 dark:hover:bg-slate-700'
                                                         }`}
                                                 >
                                                     <input
@@ -131,7 +132,7 @@ const ProjectList: React.FC = () => {
                                                         onChange={() => setSelectedStatus(opt.val)}
                                                         className="sr-only"
                                                     />
-                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-sm" style={{ backgroundColor: opt.hex }}></span>
+                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-lg" style={{ backgroundColor: opt.hex }}></span>
                                                     <span className={`text-sm flex-1 ${selectedStatus === opt.val ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300 font-medium'}`}>{opt.label}</span>
                                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedStatus === opt.val
                                                         ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
@@ -154,7 +155,7 @@ const ProjectList: React.FC = () => {
                                                 <button
                                                     key={g}
                                                     onClick={() => setSelectedGroup(g)}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedGroup === g ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedGroup === g ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                                         }`}
                                                 >
                                                     <span>{g === 'all' ? 'Tất cả nhóm' : `Nhóm ${g}`}</span>
@@ -177,7 +178,7 @@ const ProjectList: React.FC = () => {
                                         <div className="space-y-1">
                                             <button
                                                 onClick={() => setSelectedBoard('all')}
-                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                                             >
                                                 <span>Tất cả ban</span>
                                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedBoard === 'all'
@@ -191,7 +192,7 @@ const ProjectList: React.FC = () => {
                                                 <button
                                                     key={board.value}
                                                     onClick={() => setSelectedBoard(board.value.toString())}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedBoard === board.value.toString() ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedBoard === board.value.toString() ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                                                 >
                                                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: board.hex }}></span>
                                                     <span className="flex-1">{board.label}</span>
@@ -214,7 +215,7 @@ const ProjectList: React.FC = () => {
                 {/* 3. MAIN LIST AREA */}
                 <div className="flex-1 w-full space-y-4">
                     {/* Toolbar */}
-                    <div className="bg-white dark:bg-slate-800 p-2 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 p-2 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="relative w-full md:flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 w-4 h-4" />
                             <input
@@ -238,14 +239,14 @@ const ProjectList: React.FC = () => {
                             <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-600 shadow text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+                                    className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
                                     aria-label="Hiển thị dạng lưới"
                                 >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+                                    className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
                                     aria-label="Hiển thị dạng danh sách"
                                 >
                                     <ListIcon className="w-4 h-4" />
@@ -268,12 +269,14 @@ const ProjectList: React.FC = () => {
                                 </select>
                             </div>
 
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+
                             <button
                                 onClick={handleCreateProject}
-                                className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5"
-                                
+                                className="btn btn-primary shrink-0"
+                                title="Thêm mới dự án"
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-5 h-5" />
                                 <span>Thêm mới</span>
                             </button>
                         </div>
@@ -284,7 +287,7 @@ const ProjectList: React.FC = () => {
                         {isLoading ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[1, 2, 3, 4, 5, 6].map(i => (
-                                    <div key={i} className="bg-white dark:bg-slate-800 h-72 rounded-2xl p-4 space-y-4 border border-slate-200 dark:border-slate-700">
+                                    <div key={i} className="bg-[#FCF9F2] dark:bg-slate-800 h-72 rounded-2xl p-4 space-y-4 border border-slate-200 dark:border-slate-700">
                                         <Skeleton className="h-40 w-full rounded-xl" />
                                         <Skeleton className="h-4 w-3/4" />
                                         <Skeleton className="h-4 w-1/2" />
@@ -292,7 +295,7 @@ const ProjectList: React.FC = () => {
                                 ))}
                             </div>
                         ) : sortedProjects.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed">
+                            <div className="flex flex-col items-center justify-center py-20 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed">
                                 {/* Inline SVG illustration */}
                                 <div className="mb-6">
                                     <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -323,7 +326,7 @@ const ProjectList: React.FC = () => {
                                 ) : (
                                     <button
                                         onClick={handleCreateProject}
-                                        className="h-full rounded-2xl flex flex-col justify-end p-5 relative overflow-hidden group bg-gradient-to-br from-amber-500 to-yellow-600"
+                                        className="h-full rounded-2xl flex flex-col justify-end p-5 relative overflow-hidden group bg-gradient-to-br from-primary-500 to-primary-600"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Tạo dự án mới

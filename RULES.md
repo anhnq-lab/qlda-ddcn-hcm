@@ -36,13 +36,19 @@ git push origin main
 pull → code → commit → pull → push
 ```
 
-## 3. Auto-Load Skills
+## 3. Development Server
+- **Port**: `5000` (cấu hình trong `vite.config.ts`)
+- **URL**: `http://localhost:5000`
+- **Lệnh chạy**: `npm run dev`
+> ⚠️ LUÔN dùng port 5000. KHÔNG dùng 5173 hay port khác.
+
+## 4. Auto-Load Skills
 Mỗi khi chỉnh sửa liên quan đến giao diện frontend (bao gồm: sửa component, thay đổi layout, styling, colors, animations, responsive, dark mode, typography, spacing, tạo component mới, hoặc bất kỳ thay đổi visual nào), bạn PHẢI:
 1. Đọc file skill: `../.agent/skills/ui-ux-pro-max/SKILL.md`
 2. Áp dụng các nguyên tắc và hướng dẫn trong skill đó vào quá trình thiết kế/chỉnh sửa
 3. Đảm bảo output đạt chất lượng UI/UX cao nhất theo skill guidelines
 
-## 4. 🌙 Dark Mode (BẮT BUỘC)
+## 5. 🌙 Dark Mode (BẮT BUỘC)
 
 > App dùng Tailwind `dark:` class strategy. Mọi element PHẢI có dark variant đồng bộ.
 

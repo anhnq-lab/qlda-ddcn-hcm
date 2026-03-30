@@ -119,7 +119,7 @@ export class UserAccountService {
             throw new Error(`Failed to create account: ${error.message}`);
         }
 
-        return data;
+        return data as any;
     }
 
     /**
@@ -128,8 +128,8 @@ export class UserAccountService {
     static async resetPassword(id: string, newPassword: string): Promise<void> {
         const password_hash = await hashPassword(newPassword);
 
-        const { error } = await supabase
-            .from('user_accounts')
+        const client: any = supabase;
+        const { error } = await (client.from('user_accounts') as any)
             .update({ password_hash, updated_at: new Date().toISOString() })
             .eq('id', id);
 
@@ -140,8 +140,8 @@ export class UserAccountService {
      * Toggle account active status
      */
     static async toggleActive(id: string, is_active: boolean): Promise<void> {
-        const { error } = await supabase
-            .from('user_accounts')
+        const client: any = supabase;
+        const { error } = await (client.from('user_accounts') as any)
             .update({ is_active, updated_at: new Date().toISOString() })
             .eq('id', id);
 
@@ -152,7 +152,8 @@ export class UserAccountService {
      * Delete account
      */
     static async delete(id: string): Promise<void> {
-        const { error } = await supabase
+        const client: any = supabase;
+        const { error } = await client
             .from('user_accounts')
             .delete()
             .eq('id', id);
@@ -177,9 +178,8 @@ export class UserAccountService {
 
         if (byUsername) {
             if (!byUsername.is_active) return null;
-            // Update last_login
-            await supabase
-                .from('user_accounts')
+            const client: any = supabase;
+            await (client.from('user_accounts') as any)
                 .update({ last_login: new Date().toISOString() })
                 .eq('employee_id', byUsername.employee_id);
             return byUsername.employee_id;
@@ -201,8 +201,8 @@ export class UserAccountService {
                 .single();
 
             if (acctByEmail && acctByEmail.is_active) {
-                await supabase
-                    .from('user_accounts')
+                const client: any = supabase;
+                await (client.from('user_accounts') as any)
                     .update({ last_login: new Date().toISOString() })
                     .eq('employee_id', acctByEmail.employee_id);
                 return acctByEmail.employee_id;
@@ -225,8 +225,8 @@ export class UserAccountService {
                 .single();
 
             if (acctByPhone && acctByPhone.is_active) {
-                await supabase
-                    .from('user_accounts')
+                const client: any = supabase;
+                await (client.from('user_accounts') as any)
                     .update({ last_login: new Date().toISOString() })
                     .eq('employee_id', acctByPhone.employee_id);
                 return acctByPhone.employee_id;

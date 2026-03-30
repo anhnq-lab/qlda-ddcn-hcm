@@ -22,7 +22,7 @@ type AssetCondition = FacilityAsset['condition'];
 // ── Status config ────────────────────────────────────
 const STATUS_CONFIG: Record<AssetStatus, { label: string; color: string; darkColor: string; icon: React.ReactNode }> = {
     Active: { label: 'Hoạt động', color: 'bg-emerald-100 text-emerald-700', darkColor: 'bg-emerald-500/20 text-emerald-400', icon: <CheckCircle2 className="w-3 h-3" /> },
-    Maintenance: { label: 'Bảo trì', color: 'bg-amber-100 text-amber-700', darkColor: 'bg-amber-500/20 text-amber-400', icon: <Wrench className="w-3 h-3" /> },
+    Maintenance: { label: 'Bảo trì', color: 'bg-primary-100 text-primary-700', darkColor: 'bg-primary-500/20 text-primary-400', icon: <Wrench className="w-3 h-3" /> },
     Broken: { label: 'Hỏng', color: 'bg-red-100 text-red-700', darkColor: 'bg-red-500/20 text-red-400', icon: <AlertTriangle className="w-3 h-3" /> },
     Retired: { label: 'Ngừng SD', color: 'bg-gray-100 text-gray-500', darkColor: 'bg-slate-600/30 text-slate-400', icon: <XCircle className="w-3 h-3" /> },
 };
@@ -30,7 +30,7 @@ const STATUS_CONFIG: Record<AssetStatus, { label: string; color: string; darkCol
 const CONDITION_CONFIG: Record<AssetCondition, { label: string; color: string; darkColor: string }> = {
     Good: { label: 'Tốt', color: 'text-emerald-600', darkColor: 'text-emerald-400' },
     Fair: { label: 'Khá', color: 'text-blue-600', darkColor: 'text-blue-400' },
-    Poor: { label: 'Kém', color: 'text-amber-600', darkColor: 'text-amber-400' },
+    Poor: { label: 'Kém', color: 'text-primary-600', darkColor: 'text-primary-400' },
     Critical: { label: 'Nguy hiểm', color: 'text-red-600', darkColor: 'text-red-400' },
 };
 
@@ -211,7 +211,7 @@ export const FacilityManagementPanel: React.FC = () => {
     // ── Style helpers ────────────────────────
     const inputCls = `w-full px-3 py-2 text-xs rounded-lg border outline-none transition-colors ${isDarkMode
         ? 'bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500'
-        : 'bg-white border-gray-300 text-gray-800 placeholder:text-gray-400 focus:border-blue-500'
+        : 'bg-[#FCF9F2] border-gray-300 text-gray-800 placeholder:text-gray-400 focus:border-blue-500'
         }`;
 
     const selectCls = `${inputCls} appearance-none`;
@@ -244,7 +244,7 @@ export const FacilityManagementPanel: React.FC = () => {
                     {stats.active}
                 </span>
                 <span className="flex items-center gap-1">
-                    <Wrench className="w-3 h-3 text-amber-500" />
+                    <Wrench className="w-3 h-3 text-primary-500" />
                     {stats.maintenance}
                 </span>
                 {stats.broken > 0 && (
@@ -292,7 +292,7 @@ export const FacilityManagementPanel: React.FC = () => {
                 )}
                 <button
                     onClick={openAddForm}
-                    className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[11px] font-bold transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-500 hover:bg-primary-600 text-white rounded-lg text-[11px] font-bold transition-colors"
                 >
                     <Plus className="w-3 h-3" /> Thêm tài sản
                 </button>
@@ -317,7 +317,7 @@ export const FacilityManagementPanel: React.FC = () => {
                 <select
                     value={filterCategory}
                     onChange={e => setFilterCategory(e.target.value)}
-                    className={`text-xs px-2 py-1.5 rounded-lg border ${isDarkMode ? 'bg-slate-700/50 border-slate-600 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}`}
+                    className={`text-xs px-2 py-1.5 rounded-lg border ${isDarkMode ? 'bg-slate-700/50 border-slate-600 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}`}
                 >
                     <option value="">Tất cả loại</option>
                     {ASSET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -325,7 +325,7 @@ export const FacilityManagementPanel: React.FC = () => {
                 <select
                     value={filterStatus}
                     onChange={e => setFilterStatus(e.target.value)}
-                    className={`text-xs px-2 py-1.5 rounded-lg border ${isDarkMode ? 'bg-slate-700/50 border-slate-600 text-slate-300' : 'bg-white border-gray-200 text-gray-600'}`}
+                    className={`text-xs px-2 py-1.5 rounded-lg border ${isDarkMode ? 'bg-slate-700/50 border-slate-600 text-slate-300' : 'bg-[#FCF9F2] border-gray-200 text-gray-600'}`}
                 >
                     <option value="">Tất cả TT</option>
                     {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
@@ -343,7 +343,7 @@ export const FacilityManagementPanel: React.FC = () => {
             {!loading && (
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
                     <table className="w-full text-[11px]">
-                        <thead className={`sticky top-0 z-10 ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+                        <thead className={`sticky top-0 z-10 ${isDarkMode ? 'bg-slate-800' : 'bg-[#FCF9F2]'}`}>
                             <tr className={isDarkMode ? 'text-slate-500' : 'text-gray-400'}>
                                 <th className="text-left px-3 py-1.5 font-semibold bg-inherit">Mã TS</th>
                                 <th className="text-left px-3 py-1.5 font-semibold bg-inherit">Tên tài sản</th>
@@ -362,7 +362,7 @@ export const FacilityManagementPanel: React.FC = () => {
                                 return (
                                     <tr
                                         key={asset.asset_id}
-                                        className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}
+                                        className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-[#F5EFE6]'}`}
                                     >
                                         <td className={`px-3 py-1.5 font-mono ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                                             {asset.asset_code || '—'}
@@ -490,7 +490,7 @@ export const FacilityManagementPanel: React.FC = () => {
                                 {assets.length === 0 && (
                                     <button
                                         onClick={openAddForm}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition-colors"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-primary-600 text-white rounded-lg text-xs font-medium transition-colors"
                                     >
                                         <Plus className="w-3.5 h-3.5" /> Thêm thủ công
                                     </button>
@@ -504,7 +504,7 @@ export const FacilityManagementPanel: React.FC = () => {
             {/* Add/Edit Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-lg mx-4 rounded-2xl shadow-2xl border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
+                    <div className={`w-full max-w-lg mx-4 rounded-2xl shadow-2xl border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-[#FCF9F2] border-gray-200'
                         }`}>
                         {/* Modal header */}
                         <div className={`flex items-center justify-between px-5 py-3.5 border-b ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>
@@ -653,7 +653,7 @@ export const FacilityManagementPanel: React.FC = () => {
                             <button
                                 onClick={handleSave}
                                 disabled={saving || !form.asset_name?.trim()}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-primary-600 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors"
                             >
                                 {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 {editingAsset ? 'Cập nhật' : 'Thêm'}

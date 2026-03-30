@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 // ========================================
 // TABLE COMPONENT - Design System v2
@@ -59,10 +59,10 @@ export function Table<T extends Record<string, any>>({
     const cellPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
 
     return (
-        <div className={`overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm ${className}`}>
+        <div className={`overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-[#FCF9F2] dark:bg-slate-900 shadow-lg ${className}`}>
             <table className="w-full text-sm">
                 {/* Header */}
-                <thead className={`bg-slate-50 dark:bg-slate-800/80 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                <thead className={`bg-slate-50 dark:bg-slate-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
                     <tr>
                         {columns.map((column, idx) => (
                             <th
@@ -90,7 +90,7 @@ export function Table<T extends Record<string, any>>({
                 </thead>
 
                 {/* Body */}
-                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/50">
+                <tbody className="bg-[#FCF9F2] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/50">
                     {loading ? (
                         // Loading skeleton rows
                         Array.from({ length: loadingRows }).map((_, rowIdx) => (
@@ -126,8 +126,8 @@ export function Table<T extends Record<string, any>>({
                                 key={rowIdx}
                                 onClick={() => onRowClick?.(row, rowIdx)}
                                 className={`
-                                    ${striped && rowIdx % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-800/20' : ''}
-                                    ${hoverable ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors' : ''}
+                                    ${striped && rowIdx % 2 === 1 ? 'bg-[#F5EFE6] dark:bg-slate-800' : ''}
+                                    ${hoverable ? 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors' : ''}
                                     ${onRowClick ? 'cursor-pointer' : ''}
                                     ${rowClassName?.(row, rowIdx) || ''}
                                 `}
@@ -188,7 +188,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
     return (
-        <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 ${className}`}>
+        <div className={`flex items-center justify-between px-4 py-3 bg-[#FCF9F2] border-t border-gray-200 ${className}`}>
             {/* Info */}
             <div className="text-sm text-gray-600">
                 Hiển thị <span className="font-medium">{startItem}</span> - <span className="font-medium">{endItem}</span> trong <span className="font-medium">{totalItems}</span> kết quả

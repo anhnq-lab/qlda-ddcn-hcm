@@ -69,7 +69,7 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
         if (diffDays < 0) {
             daysInfo = { label: `Quá hạn ${Math.abs(diffDays)} ngày`, color: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30', isOverdue: true };
         } else if (diffDays <= 7) {
-            daysInfo = { label: `Còn ${diffDays} ngày`, color: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30', isOverdue: false };
+            daysInfo = { label: `Còn ${diffDays} ngày`, color: 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30', isOverdue: false };
         } else if (diffDays <= 30) {
             daysInfo = { label: `Còn ${diffDays} ngày`, color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30', isOverdue: false };
         }
@@ -93,16 +93,16 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
         },
         in_progress: {
             icon: Clock,
-            color: 'text-yellow-700 dark:text-yellow-400',
+            color: 'text-primary-700 dark:text-yellow-400',
             bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-            progressColor: 'from-yellow-500 to-amber-600',
+            progressColor: 'from-primary-500 to-primary-600',
             borderColor: 'border-l-yellow-500'
         },
         done: {
             icon: CheckCircle2,
-            color: 'text-amber-600 dark:text-amber-400',
-            bgColor: 'bg-amber-100 dark:bg-amber-900/30',
-            progressColor: 'from-amber-500 to-yellow-600',
+            color: 'text-primary-600 dark:text-primary-400',
+            bgColor: 'bg-primary-100 dark:bg-primary-900/30',
+            progressColor: 'from-primary-500 to-primary-600',
             borderColor: 'border-l-amber-500'
         }
     };
@@ -111,10 +111,10 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
     const StatusIcon = config.icon;
 
     return (
-        <div className={`bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border-l-4 ${config.borderColor}`}>
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-md transition-shadow border-l-4 ${config.borderColor}`}>
             {/* Header */}
             <div
-                className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors"
                 onClick={onToggle}
             >
                 <div className="flex items-center gap-4 flex-1">
@@ -134,7 +134,7 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
                             </p>
                             {/* Date Range Badge */}
                             {phaseStartDate && phaseEndDate && (
-                                <span className="hidden md:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
+                                <span className="hidden md:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-[#F5EFE6] dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
                                     <Calendar className="w-3 h-3" />
                                     {phaseStartDate.toLocaleDateString('vi-VN')} → {phaseEndDate.toLocaleDateString('vi-VN')}
                                 </span>
@@ -162,14 +162,14 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
                                     className={`px-2.5 py-1.5 text-[10px] font-semibold rounded-lg flex items-center gap-1 transition-all shrink-0 ${allCreated
                                         ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 cursor-default'
                                         : isBulkCreatingPhase
-                                            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 cursor-wait'
-                                            : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-sm'
+                                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-700 cursor-wait'
+                                            : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-lg'
                                         }`}
                                     title={allCreated ? 'Đã tạo tất cả công việc cho giai đoạn' : `Tạo ${phaseTotalSubTasks} công việc cho giai đoạn này`}
                                 >
                                     {isBulkCreatingPhase ? (
                                         <>
-                                            <div className="w-3 h-3 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                            <div className="w-3 h-3 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
                                             Đang tạo...
                                         </>
                                     ) : allCreated ? (
@@ -204,7 +204,7 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
                         </div>
 
                         {/* Item Counter */}
-                        <div className="flex flex-col items-center px-3 py-1 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600">
+                        <div className="flex flex-col items-center px-3 py-1 bg-[#F5EFE6] dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600">
                             <span className="text-lg font-bold text-gray-800 dark:text-slate-200 tabular-nums">
                                 {completedItems}/{totalItems}
                             </span>

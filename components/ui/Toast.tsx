@@ -50,10 +50,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         key={toast.id}
                         className={`
                             pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right-full duration-300
-                            ${toast.type === 'success' ? 'bg-white border-emerald-100 text-emerald-800' : ''}
-                            ${toast.type === 'error' ? 'bg-white border-red-100 text-red-800' : ''}
-                            ${toast.type === 'info' ? 'bg-white border-blue-100 text-blue-800' : ''}
-                            ${toast.type === 'warning' ? 'bg-white border-orange-100 text-orange-800' : ''}
+                            ${toast.type === 'success' ? 'bg-[#FCF9F2] border-emerald-100 text-emerald-800' : ''}
+                            ${toast.type === 'error' ? 'bg-[#FCF9F2] border-red-100 text-red-800' : ''}
+                            ${toast.type === 'info' ? 'bg-[#FCF9F2] border-blue-100 text-blue-800' : ''}
+                            ${toast.type === 'warning' ? 'bg-[#FCF9F2] border-orange-100 text-orange-800' : ''}
                         `}
                     >
                         {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500" />}

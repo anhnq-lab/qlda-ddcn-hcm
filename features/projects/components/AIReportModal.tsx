@@ -139,12 +139,12 @@ export const AIReportModal: React.FC<AIReportModalProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-4xl max-h-[92vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
+            <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
 
                 {/* ── Header ── */}
-                <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/10">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-primary-900/20 dark:to-yellow-900/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200/50 dark:shadow-amber-900/30">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-200/50 dark:shadow-primary-900/30">
                             <Sparkles className="w-4.5 h-4.5 text-white" />
                         </div>
                         <div>
@@ -199,9 +199,9 @@ const ActionBtn: React.FC<{
         disabled={loading}
         className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
             highlight ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' :
-            accent ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm' :
-            amber ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200' :
-            'bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600'
+            accent ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-lg' :
+            amber ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200' :
+            'bg-[#FCF9F2] dark:bg-slate-700 hover:bg-[#F5EFE6] dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600'
         }`}
     >
         {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Icon className="w-3 h-3" />}
@@ -213,10 +213,10 @@ const ActionBtn: React.FC<{
 const LoadingState = () => (
     <div className="flex flex-col items-center justify-center py-20 gap-5">
         <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-xl animate-pulse">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-xl animate-pulse">
                 <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <Loader2 className="absolute -bottom-1 -right-1 w-6 h-6 text-amber-500 animate-spin" />
+            <Loader2 className="absolute -bottom-1 -right-1 w-6 h-6 text-primary-500 animate-spin" />
         </div>
         <div className="text-center">
             <p className="text-sm font-bold text-gray-700 dark:text-slate-200">AI đang tổng hợp báo cáo...</p>
@@ -238,7 +238,7 @@ const ErrorState: React.FC<{ error: string; onRetry: () => void }> = ({ error, o
         </div>
         <p className="text-sm font-bold text-red-600 dark:text-red-400">Không thể tạo báo cáo</p>
         <p className="text-[11px] text-gray-400 dark:text-slate-500 max-w-sm text-center leading-relaxed">{error}</p>
-        <button onClick={onRetry} className="flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-lg shadow-amber-200/50">
+        <button onClick={onRetry} className="flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-lg shadow-primary-200/50">
             <RefreshCw className="w-3.5 h-3.5" /> Thử lại
         </button>
     </div>
@@ -425,7 +425,7 @@ const reportStyles = `
     letter-spacing: 1px;
     margin: 8px 0 16px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #C4A035;
+    border-bottom: 2px solid #fb923c;
 }
 .dark .report-rendered h1 { border-color: #92702a; }
 
@@ -437,7 +437,7 @@ const reportStyles = `
     margin-bottom: 8px;
     padding: 6px 12px;
     background: linear-gradient(90deg, #fef9ee 0%, transparent 100%);
-    border-left: 3px solid #C4A035;
+    border-left: 3px solid #fb923c;
     border-radius: 0 6px 6px 0;
 }
 .dark .report-rendered h2 {
@@ -465,7 +465,7 @@ const reportStyles = `
     margin-bottom: 4px;
     position: relative;
 }
-.report-rendered li::marker { color: #C4A035; }
+.report-rendered li::marker { color: #fb923c; }
 
 .report-rendered table {
     width: 100%;
@@ -512,3 +512,4 @@ const reportStyles = `
 `;
 
 export default AIReportModal;
+

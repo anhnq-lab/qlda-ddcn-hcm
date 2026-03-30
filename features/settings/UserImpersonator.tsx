@@ -1,4 +1,4 @@
-/**
+﻿/**
  * UserImpersonator — QLDA ĐDCN TP.HCM
  *
  * Admin UI to select an employee OR contractor and impersonate them.
@@ -129,7 +129,7 @@ const UserImpersonator: React.FC = () => {
             Position: 'Nhà thầu',
             Email: ctr.email || '',
             Phone: '',
-            AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(ctr.display_name)}&background=D4A017&color=fff`,
+            AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(ctr.display_name)}&background=f97316&color=fff`,
             JoinDate: '',
             Status: 'Active' as any,
             Username: ctr.username,
@@ -157,13 +157,13 @@ const UserImpersonator: React.FC = () => {
         <div className="space-y-6">
             {/* Active Impersonation Banner */}
             {isImpersonating && impersonatedUser && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-400 rounded-lg p-5">
+                <div className="bg-gradient-to-r from-primary-50 to-orange-50 dark:from-primary-900/30 dark:to-orange-900/30 border border-primary-400 rounded-lg p-5">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center gap-4">
                             <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg ${
                                 impersonatedUser.Role === 'contractor'
-                                    ? 'bg-gradient-to-br from-amber-500 to-yellow-600'
-                                    : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                                    ? 'bg-gradient-to-br from-primary-500 to-primary-600'
+                                    : 'bg-gradient-to-br from-primary-400 to-orange-500'
                             }`}>
                                 {impersonatedUser.Role === 'contractor'
                                     ? <Building2 className="w-7 h-7" />
@@ -172,12 +172,12 @@ const UserImpersonator: React.FC = () => {
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-500 text-white text-xs font-bold">
                                         <UserCheck size={12} />
                                         ĐANG GIẢ LÀM
                                     </span>
                                     {impersonatedUser.Role === 'contractor' && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-600 text-white text-xs font-bold">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-600 text-white text-xs font-bold">
                                             <Building2 size={12} />
                                             NHÀ THẦU
                                         </span>
@@ -201,8 +201,8 @@ const UserImpersonator: React.FC = () => {
 
                     {/* Permissions Preview */}
                     {permissions && (
-                        <div className="mt-5 pt-4 border-t border-amber-200 dark:border-amber-700">
-                            <p className="text-xs font-bold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-1">
+                        <div className="mt-5 pt-4 border-t border-primary-200 dark:border-primary-700">
+                            <p className="text-xs font-bold text-primary-700 dark:text-primary-400 mb-3 flex items-center gap-1">
                                 <Shield size={14} />
                                 QUYỀN CỦA NGƯỜI NÀY ({ROLE_LABELS[systemRole!]}):
                             </p>
@@ -210,7 +210,7 @@ const UserImpersonator: React.FC = () => {
                                 {ALL_RESOURCES.map(resource => {
                                     const actions = (permissions as any)[resource] || [];
                                     return (
-                                        <div key={resource} className={`rounded-lg p-2 text-xs ${actions.length > 0 ? 'bg-white dark:bg-slate-700' : 'bg-slate-100 dark:bg-slate-800 opacity-50'}`}>
+                                        <div key={resource} className={`rounded-lg p-2 text-xs ${actions.length > 0 ? 'bg-[#FCF9F2] dark:bg-slate-700' : 'bg-slate-100 dark:bg-slate-800 opacity-50'}`}>
                                             <span className="font-semibold text-slate-700 dark:text-slate-300 block">
                                                 {RESOURCE_LABELS[resource]}
                                             </span>
@@ -236,7 +236,7 @@ const UserImpersonator: React.FC = () => {
                     type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     disabled={loading}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-[#FCF9F2] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 cursor-pointer"
                 >
                     <span className={loading ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}>
                         {loading ? 'Đang tải danh sách...' : `${totalCount} người dùng có sẵn (${employees.length} NV + ${contractorAccounts.length} NT)`}
@@ -246,15 +246,15 @@ const UserImpersonator: React.FC = () => {
 
                 {/* Dropdown Content */}
                 {isDropdownOpen && !loading && (
-                    <div className="absolute z-50 w-full mt-2 left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
+                    <div className="absolute z-50 w-full mt-2 left-0 right-0 bg-[#FCF9F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
                         {/* Tab Switcher */}
                         <div className="flex border-b border-slate-100 dark:border-slate-700">
                             <button
                                 onClick={() => setActiveTab('employees')}
                                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors ${
                                     activeTab === 'employees'
-                                        ? 'text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10 border-b-2 border-amber-500'
-                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                        ? 'text-primary-700 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/10 border-b-2 border-primary-500'
+                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 <Users size={14} />
@@ -264,8 +264,8 @@ const UserImpersonator: React.FC = () => {
                                 onClick={() => setActiveTab('contractors')}
                                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors ${
                                     activeTab === 'contractors'
-                                        ? 'text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10 border-b-2 border-amber-500'
-                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                        ? 'text-primary-700 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/10 border-b-2 border-primary-500'
+                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 <Building2 size={14} />
@@ -282,7 +282,7 @@ const UserImpersonator: React.FC = () => {
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                     placeholder={activeTab === 'employees' ? 'Tìm theo tên, chức vụ, phòng ban...' : 'Tìm theo tên, đơn vị, username...'}
-                                    className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200"
+                                    className="w-full pl-9 pr-3 py-2 bg-[#F5EFE6] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200"
                                     autoFocus
                                 />
                             </div>
@@ -326,9 +326,9 @@ const UserImpersonator: React.FC = () => {
                                         <button
                                             key={ctr.id}
                                             onClick={() => handleSelectContractor(ctr)}
-                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-b-0"
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors text-left border-b border-slate-50 dark:border-slate-800 last:border-b-0"
                                         >
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-white flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white flex-shrink-0">
                                                 <Building2 size={18} />
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -337,7 +337,7 @@ const UserImpersonator: React.FC = () => {
                                                     {ctr.contractor_name} • @{ctr.username}
                                                 </p>
                                             </div>
-                                            <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-bold shrink-0">
+                                            <span className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded text-[10px] font-bold shrink-0">
                                                 Nhà thầu
                                             </span>
                                             {impersonatedUser?.EmployeeID === ctr.id && (
@@ -377,3 +377,4 @@ const UserImpersonator: React.FC = () => {
 };
 
 export default UserImpersonator;
+

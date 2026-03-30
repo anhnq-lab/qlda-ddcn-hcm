@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Clock, Zap, CheckCircle2 } from 'lucide-react';
 
 export type DateRangeMode = 'range' | 'duration';
@@ -135,7 +135,7 @@ const DateInput: React.FC<DateInputProps> = ({
                     onBlur={handleTextBlur}
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
-                    className={`w-full pl-3 pr-10 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 transition-shadow ${
+                    className={`w-full pl-3 pr-10 py-2.5 text-sm border rounded-xl bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 transition-shadow ${
                         !isValid
                             ? 'border-red-400 focus:ring-red-300 dark:focus:ring-red-700'
                             : `border-gray-300 dark:border-slate-600 ${colorClass}`
@@ -267,7 +267,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
             />
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 rounded-t-2xl">
                     <div className="flex items-center gap-3">
@@ -292,11 +292,11 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                 {/* Body */}
                 <div className="px-6 py-5 space-y-5">
                     {/* Mode Toggle */}
-                    <div className="flex rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden bg-gray-50 dark:bg-slate-900/50 p-1 gap-1">
+                    <div className="flex rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden bg-gray-50 dark:bg-slate-900 p-1 gap-1">
                         <button
                             onClick={() => setMode('range')}
                             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'range'
-                                ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm border border-emerald-200 dark:border-emerald-700'
+                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-lg border border-emerald-200 dark:border-emerald-700'
                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                             }`}
                         >
@@ -306,7 +306,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         <button
                             onClick={() => setMode('duration')}
                             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'duration'
-                                ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
+                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-lg border border-blue-200 dark:border-blue-700'
                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                             }`}
                         >
@@ -345,7 +345,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                                 min={1}
                                 max={3650}
                                 onChange={e => setDurationDays(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-full px-3 py-2.5 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 transition-shadow"
+                                className="w-full px-3 py-2.5 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 transition-shadow"
                             />
                             {/* Preset buttons */}
                             <div className="flex gap-1.5 flex-wrap">
@@ -355,7 +355,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                                         onClick={() => applyPreset(p.days)}
                                         className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-all ${durationDays === p.days
                                             ? 'bg-blue-500 text-white border-blue-500'
-                                            : 'bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-600 hover:border-blue-300 hover:text-blue-600'
+                                            : 'bg-[#FCF9F2] dark:bg-slate-700 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-600 hover:border-blue-300 hover:text-blue-600'
                                         }`}
                                     >
                                         {p.label}
@@ -390,7 +390,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/30 rounded-b-2xl">
+                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 rounded-b-2xl">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
@@ -400,7 +400,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                     <button
                         onClick={handleConfirm}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-all shadow-sm disabled:opacity-60 disabled:cursor-wait"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-all shadow-lg disabled:opacity-60 disabled:cursor-wait"
                     >
                         {isLoading ? (
                             <>

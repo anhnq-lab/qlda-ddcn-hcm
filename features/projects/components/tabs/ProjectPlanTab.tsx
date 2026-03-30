@@ -15,13 +15,14 @@ import { TaskFilterBar, TaskFilter, TaskViewMode } from '../TaskFilterBar';
 import { KanbanBoardView } from '../KanbanBoardView';
 import { ResourceAllocationView } from '../ResourceAllocationView';
 import { ProgressBadge } from '../ProgressSlider';
-import { getSubTasksForStep, hasSubTasks, SubTaskDef } from '@/utils/stepSubtasksRegistry';
 import { SubTaskDetailModal } from '../SubTaskDetailModal';
+import { SubTaskDef } from '../../hooks/useWorkflowPhases';
 import { TaskService } from '@/services/TaskService';
+import { useSlidePanel } from '@/context/SlidePanelContext';
 import { supabase } from '@/lib/supabase';
 import { findByStepCode, buildTT24Key } from '@/utils/docStepMapping';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
-import { getProjectPhases, getGroupLabel } from '@/utils/projectPhases';
+import { useWorkflowPhases } from '../../hooks/useWorkflowPhases';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { useStepAggregates } from '../../hooks/useStepAggregates';
 import { usePlanPersist } from '../../hooks/usePlanPersist';
@@ -59,8 +60,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 }) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    // Dynamic phases based on project group
-    const DECREE_175_PHASES = useMemo(() => getProjectPhases(groupCode, isODA), [groupCode, isODA]);
+    // Dynamic phases from DB workflow templates
+    const { phases: DECREE_175_PHASES, getStepSubTasks, hasStepSubTasks, getGroupLabel, isLoading: isLoadingPhases } = useWorkflowPhases(groupCode, project);
 
     // Employee name lookup map
     const employeeNameMap = useMemo(() => {
@@ -81,10 +82,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const { currentView, currentFilter, setView: setCurrentView, setFilter: setCurrentFilter } = usePlanPersist(projectID);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Smart auto-expand: expand active/overdue phases, collapse 100% done phases
-    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(() => {
+    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
+
+    // Auto-expand logic: runs when phases load from DB
+    useEffect(() => {
+        if (DECREE_175_PHASES.length === 0) return;
         const initial: Record<string, boolean> = {};
-        const phases = getProjectPhases(groupCode, isODA);
+        const phases = DECREE_175_PHASES;
         const today = new Date(); today.setHours(0, 0, 0, 0);
 
         phases.forEach(phase => {
@@ -92,12 +96,12 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 phase.items.some(item => item.code === t.TimelineStep)
             );
             if (phaseTasks.length === 0) {
-                initial[phase.id] = false; // No tasks → collapse
+                initial[phase.id] = false;
                 return;
             }
             const allDone = phaseTasks.every(t => t.Status === TaskStatus.Done);
             if (allDone) {
-                initial[phase.id] = false; // 100% done → auto-collapse
+                initial[phase.id] = false;
                 return;
             }
             const hasActive = phaseTasks.some(t =>
@@ -110,7 +114,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             });
             initial[phase.id] = hasActive || hasOverdue;
         });
-        // If nothing expanded, show first non-done phase
         if (!Object.values(initial).some(v => v) && phases.length > 0) {
             const first = phases.find(p => {
                 const pt = initialTasks.filter(t => p.items.some(i => i.code === t.TimelineStep));
@@ -119,8 +122,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             if (first) initial[first.id] = true;
             else initial[phases[0].id] = true;
         }
-        return initial;
-    });
+        setExpandedPhases(initial);
+    }, [DECREE_175_PHASES]); // Re-run when phases load from DB
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [selectedStep, setSelectedStep] = useState<{ name: string; code: string } | null>(null);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -142,6 +145,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [planModalDesc, setPlanModalDesc] = useState('');
     const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
+    // Slide Panel context
+    const { openPanel } = useSlidePanel();
+
     // Toast notifications
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
     const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -155,11 +161,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         const loadCounts = async () => {
             const taskIds = tasks.map(t => t.TaskID);
             if (taskIds.length === 0) return;
-            const { data } = await supabase
+            const { data } = await (supabase as any)
                 .from('documents')
                 .select('task_id')
-                .eq('source' as any, 'task')
-                .in('task_id' as any, taskIds) as any;
+                .eq('source', 'task')
+                .in('task_id', taskIds);
             if (data) {
                 const counts: Record<string, number> = {};
                 (data as any[]).forEach((row: { task_id: string }) => {
@@ -363,9 +369,21 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     };
 
     const handleEditTask = (task: Task) => {
-        setEditingTask(task);
-        setSelectedStep(null);
-        setIsTaskModalOpen(true);
+        openPanel({
+            title: task.Title,
+            icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />,
+            url: `/tasks/${task.TaskID}`,
+            component: (
+                <ProjectTaskModal
+                    isOpen={true}
+                    onClose={() => {/* panel close handled by SlidePanelContext */}}
+                    onSubmit={handleSaveTask}
+                    initialData={{ ...task }}
+                    allTasks={tasks}
+                    asSlidePanel={true}
+                />
+            ),
+        });
     };
 
     const handleSaveTask = async (taskData: Partial<Task>) => {
@@ -479,7 +497,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (!projectID) return;
         setBulkCreatingStep(stepCode);
         try {
-            const subTaskDefs = getSubTasksForStep(stepCode, groupCode);
+            const subTaskDefs = getStepSubTasks(stepCode);
             if (subTaskDefs.length === 0) return;
 
             // Calculate base date: from custom range or project defaults
@@ -505,7 +523,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             let proportionOffset = 0;
             if (!dateRange) {
                 for (let i = 0; i < currentIdx; i++) {
-                    const prevSubs = getSubTasksForStep(allPhaseItems[i].code, groupCode);
+                    const prevSubs = getStepSubTasks(allPhaseItems[i].code);
                     proportionOffset += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
                 }
             }
@@ -575,7 +593,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setBulkCreatingAll(true);
         try {
             const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
-            const allSteps = allPhaseItems.filter(item => getSubTasksForStep(item.code, groupCode).length > 0);
+            const allSteps = allPhaseItems.filter(item => getStepSubTasks(item.code).length > 0);
             const totalSteps = allSteps.length;
 
             for (let si = 0; si < allSteps.length; si++) {
@@ -583,11 +601,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 // When custom range: split date range proportionally among steps
                 let stepRange: PlanDateRange | undefined;
                 if (dateRange) {
-                    const allSubTasks = allPhaseItems.flatMap(i => getSubTasksForStep(i.code, groupCode));
+                    const allSubTasks = allPhaseItems.flatMap(i => getStepSubTasks(i.code));
                     const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepSubTasks = getSubTasksForStep(item.code, groupCode);
+                    const stepSubTasks = getStepSubTasks(item.code);
                     const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const prevEstimated = allSteps.slice(0, si).flatMap(i => getSubTasksForStep(i.code, groupCode)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const prevEstimated = allSteps.slice(0, si).flatMap(i => getStepSubTasks(i.code)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
                     const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
                     const stepStart = new Date(dateRange.startDate);
                     stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
@@ -707,16 +725,16 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (!phase) return;
         setBulkCreatingPhase(phaseId);
         try {
-            const steps = phase.items.filter(item => getSubTasksForStep(item.code, groupCode).length > 0);
+            const steps = phase.items.filter(item => getStepSubTasks(item.code).length > 0);
             for (let si = 0; si < steps.length; si++) {
                 const item = steps[si];
                 let stepRange: PlanDateRange | undefined;
                 if (dateRange) {
-                    const allSubTasks = steps.flatMap(i => getSubTasksForStep(i.code, groupCode));
+                    const allSubTasks = steps.flatMap(i => getStepSubTasks(i.code));
                     const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepSubTasks = getSubTasksForStep(item.code, groupCode);
+                    const stepSubTasks = getStepSubTasks(item.code);
                     const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const prevEstimated = steps.slice(0, si).flatMap(i => getSubTasksForStep(i.code, groupCode)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
+                    const prevEstimated = steps.slice(0, si).flatMap(i => getStepSubTasks(i.code)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
                     const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
                     const stepStart = new Date(dateRange.startDate);
                     stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
@@ -741,9 +759,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const getPriorityColor = (priority?: string) => {
         switch (priority) {
             case 'High': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700';
-            case 'Medium': return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700';
+            case 'Medium': return 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700';
             case 'Low': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700';
-            default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600';
+            default: return 'text-gray-600 dark:text-gray-400 bg-[#F5EFE6] dark:bg-slate-700 border-gray-200 dark:border-slate-600';
         }
     };
 
@@ -762,20 +780,20 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const renderWBSView = () => (
         <div className="space-y-4">
             {/* Header */}
-            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950 border border-amber-100 dark:border-amber-800 p-4 rounded-xl flex justify-between items-center">
+            <div className="bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-transparent dark:to-transparent dark:bg-slate-800 border border-primary-200 dark:border-slate-700 p-4 rounded-xl flex justify-between items-center shadow-sm">
                 <div>
-                    <h3 className="text-blue-900 dark:text-blue-200 font-bold flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
+                    <h3 className="text-primary-900 dark:text-slate-100 font-bold flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-primary-600 dark:text-slate-300" />
                         Kế hoạch thực hiện dự án
                     </h3>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    <p className="text-xs text-primary-700/80 dark:text-slate-400 mt-1">
                         <LegalReferenceLink text="Căn cứ theo Điều 4, Nghị định 175/NĐ-CP về trình tự đầu tư xây dựng." />
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm text-gray-600 bg-white hover:bg-gray-50 border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg text-gray-600 bg-[#FCF9F2] hover:bg-[#F5EFE6] border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
                         title="Tải lại dữ liệu từ máy chủ (Xóa Cache)"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -791,14 +809,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             'Hệ thống sẽ tự động phân bổ công việc cho tất cả giai đoạn theo tỷ lệ thời gian'
                         )}
                         disabled={bulkCreatingAll}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${bulkCreatingAll
-                            ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 cursor-wait'
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg ${bulkCreatingAll
+                            ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700 cursor-wait'
                             : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border-emerald-200 dark:border-emerald-700 hover:shadow'
                             }`}
                     >
                         {bulkCreatingAll ? (
                             <>
-                                <div className="w-3 h-3 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                <div className="w-3 h-3 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
                                 Đang tạo...
                             </>
                         ) : (
@@ -813,8 +831,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                         <button
                             onClick={handleDeleteAllTasks}
                             disabled={isDeletingAll}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${isDeletingAll
-                                    ? 'text-gray-400 bg-gray-50 border-gray-200 cursor-wait'
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg ${isDeletingAll
+                                    ? 'text-gray-400 bg-[#F5EFE6] border-gray-200 cursor-wait'
                                     : deleteConfirmStep === 1
                                         ? 'text-white bg-red-600 border-red-700 animate-pulse hover:bg-red-700'
                                         : 'text-red-600 bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300'
@@ -841,7 +859,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     )}
                     <button
                         onClick={() => navigate(`/tasks`, { state: { filterProject: projectID } })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-[#FCF9F2] dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-lg"
                     >
                         <ExternalLink className="w-3 h-3" />
                         Xem tất cả công việc
@@ -849,7 +867,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${groupCode === ProjectGroup.A || groupCode === ProjectGroup.QN
                         ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
                         : groupCode === ProjectGroup.B
-                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700'
+                            ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700'
                             : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
                         }`}>
                         {getGroupLabel(groupCode)}
@@ -873,7 +891,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                 'Phân bổ thời gian cho các công việc trong giai đoạn này'
                             )}
                             isBulkCreatingPhase={bulkCreatingPhase === phase.id}
-                            phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getSubTasksForStep(item.code, groupCode).length, 0)}
+                            phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getStepSubTasks(item.code).length, 0)}
                         />
 
                         {/* Expanded Items */}
@@ -900,7 +918,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                             : 'border-l-gray-200';
 
                                     return (
-                                        <div key={item.id} className={`bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 hover:border-gray-200 dark:hover:border-slate-600 transition-colors group border-l-4 ${stepBorderColor}`}>
+                                        <div key={item.id} className={`bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 hover:border-gray-200 dark:hover:border-slate-600 transition-colors group border-l-4 ${stepBorderColor}`}>
                                             {/* Step Header Row */}
                                             <div className="flex items-center gap-3">
                                                 {/* Status Icon */}
@@ -908,7 +926,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                     {isParentDone ? (
                                                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                                                     ) : parentStatus === TaskStatus.Review ? (
-                                                        <AlertCircle className="w-5 h-5 text-indigo-500" />
+                                                        <AlertCircle className="w-5 h-5 text-primary-500" />
                                                     ) : parentStatus === TaskStatus.InProgress ? (
                                                         <Clock className="w-5 h-5 text-orange-500 animate-pulse" />
                                                     ) : (
@@ -930,7 +948,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
                                                 {/* Date Range Badge */}
                                                 {(agg?.startDate || agg?.dueDate) && (
-                                                    <span className="hidden sm:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
+                                                    <span className="hidden sm:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-[#F5EFE6] dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
                                                         <Calendar className="w-3 h-3" />
                                                         {agg.startDate && new Date(agg.startDate).toLocaleDateString('vi-VN')}
                                                         {agg.startDate && agg.dueDate && ' → '}
@@ -950,12 +968,12 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
                                                 {/* Add Task Button */}
                                                 {/* Sub-task expand toggle */}
-                                                {hasSubTasks(item.code) && (
+                                                {hasStepSubTasks(item.code) && (
                                                     <button
                                                         onClick={() => setExpandedSubTasks(prev => ({ ...prev, [item.code]: !prev[item.code] }))}
                                                         className={`px-2 py-1 text-xs font-medium rounded border flex items-center gap-1 shrink-0 transition-colors ${expandedSubTasks[item.code]
-                                                            ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700'
-                                                            : 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border-purple-200 dark:border-purple-700'
+                                                            ? 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700'
+                                                            : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-200 dark:border-amber-700'
                                                             }`}
                                                         title="Xem quy trình chi tiết (NĐ 175, Luật 135, NĐ 140, NĐ 144)"
                                                     >
@@ -978,7 +996,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                 <div className="mt-3 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
                                                     <table className="w-full text-xs">
                                                         <thead>
-                                                            <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                            <tr className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">
                                                                 <th className="px-2 py-2 text-left w-8"></th>
                                                                 <th className="px-2 py-2 text-left">Công việc</th>
                                                                 <th className="px-2 py-2 text-center w-16">Tiến độ</th>
@@ -1002,9 +1020,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                         <button
                                                                             onClick={(e) => handleQuickStatusChange(e, t)}
                                                                             className={`w-4 h-4 rounded-full transition-transform hover:scale-125 focus:outline-none ring-2 ring-offset-1 dark:ring-offset-slate-800 ${t.Status === 'Done' ? 'bg-emerald-500 ring-emerald-200 dark:ring-emerald-700' :
-                                                                                t.Status === 'Review' ? 'bg-indigo-500 ring-indigo-200 dark:ring-indigo-700' :
-                                                                                    t.Status === 'InProgress' ? 'bg-amber-500 ring-amber-200 dark:ring-amber-700' :
-                                                                                        'bg-gray-200 dark:bg-slate-600 ring-gray-100 dark:ring-slate-500 hover:bg-gray-300 dark:hover:bg-slate-500'
+                                                                                t.Status === 'Review' ? 'bg-primary-500 ring-primary-200 dark:ring-primary-700' :
+                                                                                    t.Status === 'InProgress' ? 'bg-primary-500 ring-primary-200 dark:ring-primary-700' :
+                                                                                        'bg-gray-200 dark:bg-slate-600 ring-gray-100 dark:ring-slate-500 hover:bg-gray-300 dark:hover:bg-[#F5EFE6]0'
                                                                                 }`}
                                                                             title="Click để chuyển trạng thái"
                                                                         />
@@ -1013,13 +1031,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                     {/* Title */}
                                                                     <td className={`px-2 py-2 font-medium ${t.Status === 'Done' ? 'text-gray-400 dark:text-slate-500' :
                                                                         isOverdue(t) ? 'text-red-700 dark:text-red-400' :
-                                                                            t.Status === 'Review' ? 'text-indigo-700 dark:text-indigo-400' :
+                                                                            t.Status === 'Review' ? 'text-primary-700 dark:text-primary-400' :
                                                                                 t.Status === 'InProgress' ? 'text-orange-700 dark:text-orange-400' :
                                                                                     'text-gray-700 dark:text-slate-300'
                                                                         }`}>
                                                                         {t.Title}
                                                                         {t.IsCritical && (
-                                                                            <span className="ml-1 px-1 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 text-[8px] rounded font-bold">
+                                                                            <span className="ml-1 px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[8px] rounded font-bold">
                                                                                 CP
                                                                             </span>
                                                                         )}
@@ -1058,8 +1076,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                                     const due = new Date(t.DueDate); due.setHours(0,0,0,0);
                                                                                     const diff = Math.round((due.getTime() - now.getTime()) / 86400000);
                                                                                     if (diff < 0) return <span className="text-[9px] text-red-500 font-bold">Quá hạn {Math.abs(diff)} ngày</span>;
-                                                                                    if (diff === 0) return <span className="text-[9px] text-amber-500 font-bold">Hôm nay!</span>;
-                                                                                    if (diff <= 3) return <span className="text-[9px] text-amber-500">Còn {diff} ngày</span>;
+                                                                                    if (diff === 0) return <span className="text-[9px] text-primary-500 font-bold">Hôm nay!</span>;
+                                                                                    if (diff <= 3) return <span className="text-[9px] text-primary-500">Còn {diff} ngày</span>;
                                                                                     if (diff <= 7) return <span className="text-[9px] text-blue-400">Còn {diff} ngày</span>;
                                                                                     return null;
                                                                                 })()}
@@ -1087,13 +1105,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                                 }}
                                                                                 disabled={uploadingTaskId === t.TaskID}
                                                                                 className={`p-1 rounded transition-colors ${uploadingTaskId === t.TaskID
-                                                                                    ? 'bg-amber-50 text-amber-500'
+                                                                                    ? 'bg-primary-50 text-primary-500'
                                                                                     : 'hover:bg-blue-50 text-gray-400 hover:text-blue-600'
                                                                                     }`}
                                                                                 title="Tải tài liệu hoàn thành"
                                                                             >
                                                                                 {uploadingTaskId === t.TaskID
-                                                                                    ? <div className="w-3.5 h-3.5 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                                                                    ? <div className="w-3.5 h-3.5 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
                                                                                     : <Upload className="w-3.5 h-3.5" />
                                                                                 }
                                                                             </button>
@@ -1148,7 +1166,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
                                             {/* Sub-tasks from Registry */}
                                             {expandedSubTasks[item.code] && (() => {
-                                                const subTasks = getSubTasksForStep(item.code, groupCode);
+                                                const subTasks = getStepSubTasks(item.code);
 
                                                 // ── Auto-fill Start/End dates ──
                                                 // Lấy ngày bắt đầu: từ project.StartDate / ApprovalDate hoặc today
@@ -1163,7 +1181,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                 const currentIdx = allPhaseItems.findIndex(i => i.code === item.code);
                                                 let cumulativeDaysBefore = 0;
                                                 for (let i = 0; i < currentIdx; i++) {
-                                                    const prevSubs = getSubTasksForStep(allPhaseItems[i].code, groupCode);
+                                                    const prevSubs = getStepSubTasks(allPhaseItems[i].code);
                                                     cumulativeDaysBefore += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
                                                 }
 
@@ -1184,11 +1202,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                 const totalStepDays = subTasks.reduce((s, st) => s + (st.estimatedDays || 10), 0);
 
                                                 return (
-                                                    <div className="mt-3 border border-purple-100 dark:border-purple-800 rounded-lg overflow-hidden bg-purple-50/30 dark:bg-purple-900/10">
-                                                        <div className="px-3 py-2 bg-purple-50 dark:bg-purple-900/30 border-b border-purple-100 dark:border-purple-800 flex items-center justify-between">
+                                                    <div className="mt-3 border border-amber-100 dark:border-amber-800 rounded-lg overflow-hidden bg-amber-50/30 dark:bg-amber-900/10">
+                                                        <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-100 dark:border-amber-800 flex items-center justify-between">
                                                             <div className="flex items-center gap-2">
-                                                                <Scale className="w-3.5 h-3.5 text-purple-500" />
-                                                                <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                                                <Scale className="w-3.5 h-3.5 text-amber-500" />
+                                                                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
                                                                     <LegalReferenceLink text="Quy trình theo NĐ 175, Luật 135, NĐ 140, NĐ 144" />
                                                                 </span>
                                                             </div>
@@ -1212,14 +1230,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                             className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg flex items-center gap-1 transition-all ${allCreated
                                                                                 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 cursor-default'
                                                                                 : bulkCreatingStep === item.code
-                                                                                    ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 cursor-wait'
-                                                                                    : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-sm'
+                                                                                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-700 cursor-wait'
+                                                                                    : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-lg'
                                                                                 }`}
                                                                             title={allCreated ? 'Đã tạo công việc cho tất cả bước' : 'Tạo công việc tự động cho tất cả bước quy trình'}
                                                                         >
                                                                             {bulkCreatingStep === item.code ? (
                                                                                 <>
-                                                                                    <div className="w-3 h-3 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                                                                    <div className="w-3 h-3 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
                                                                                     Đang tạo...
                                                                                 </>
                                                                             ) : allCreated ? (
@@ -1236,16 +1254,16 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                         </button>
                                                                     );
                                                                 })()}
-                                                                <span className="text-[10px] text-purple-500 dark:text-purple-400 flex items-center gap-1">
+                                                                <span className="text-[10px] text-amber-500 dark:text-amber-400 flex items-center gap-1">
                                                                     <Calendar className="w-3 h-3" />
                                                                     ~{totalStepDays} ngày
                                                                 </span>
-                                                                <span className="text-[10px] text-purple-500 dark:text-purple-400">
+                                                                <span className="text-[10px] text-amber-500 dark:text-amber-400">
                                                                     {subTasks.length} bước
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <div className="divide-y divide-purple-100 dark:divide-purple-800/50">
+                                                        <div className="divide-y divide-amber-100 dark:divide-amber-800/50">
                                                             {subTasks.map((st, idx) => {
                                                                 const dates = stepDates[idx];
                                                                 const fmtDate = (d: Date) => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -1255,9 +1273,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                     <div
                                                                         key={st.code}
                                                                         onClick={() => setSelectedSubTask({ def: st, stepTitle: item.title, stepCode: item.code })}
-                                                                        className="px-3 py-2.5 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors cursor-pointer group/st"
+                                                                        className="px-3 py-2.5 flex items-center gap-3 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors cursor-pointer group/st"
                                                                     >
-                                                                        <span className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                                                        <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300 text-[10px] font-bold flex items-center justify-center shrink-0">
                                                                             {idx + 1}
                                                                         </span>
                                                                         <div className="flex-1 min-w-0">
@@ -1285,7 +1303,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                         {/* ── AUTO-FILLED DATE RANGE ── */}
                                                                         <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0 min-w-[140px]">
                                                                             <div className="flex items-center gap-1.5 text-[10px]">
-                                                                                <Calendar className="w-3 h-3 text-indigo-400" />
+                                                                                <Calendar className="w-3 h-3 text-primary-400" />
                                                                                 <span className="text-gray-600 dark:text-slate-400 font-medium">
                                                                                     {fmtShort(dates.start)}
                                                                                 </span>
@@ -1297,13 +1315,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                             {/* Mini progress bar */}
                                                                             <div className="w-full h-1 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                                                                 <div
-                                                                                    className="h-full bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full transition-all"
+                                                                                    className="h-full bg-gradient-to-r from-primary-400 to-amber-400 rounded-full transition-all"
                                                                                     style={{ width: `${Math.min(100, (dates.days / totalStepDays) * 100)}%` }}
                                                                                 />
                                                                             </div>
                                                                         </div>
 
-                                                                        <Info className="w-3.5 h-3.5 text-gray-300 group-hover/st:text-purple-400 transition-colors shrink-0" />
+                                                                        <Info className="w-3.5 h-3.5 text-gray-300 group-hover/st:text-amber-400 transition-colors shrink-0" />
                                                                     </div>
                                                                 );
                                                             })}
@@ -1363,7 +1381,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
                 const typeStyles = {
                     danger: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
-                    warn: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
+                    warn: 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400',
                     success: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400',
                 };
 
@@ -1399,7 +1417,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 const inProgress = tasks.filter(t => t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review).length;
                 const pct = total > 0 ? Math.round((done / total) * 100) : 0;
                 return (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-sm">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wide">Tiến độ tổng thể</span>
                             <span className="text-sm font-black text-gray-800 dark:text-white">{pct}%</span>
@@ -1407,7 +1425,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                         <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
                                 className="h-full rounded-full transition-all duration-700 ease-out"
-                                style={{ background: 'linear-gradient(90deg, #A89050, #C4A035, #D4A017)', width: `${pct}%` }}
+                                style={{ background: 'linear-gradient(90deg, #fdba74, #fb923c, #f97316)', width: `${pct}%` }}
                             />
                         </div>
                         <div className="flex items-center gap-4 mt-2 text-[10px] font-medium">
@@ -1435,8 +1453,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     {currentView === 'wbs' && renderWBSView()}
 
                     {currentView === 'gantt' && (
-                        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
-                            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700 flex justify-between items-center">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-700 flex justify-between items-center">
                                 <h4 className="font-bold text-gray-700 dark:text-slate-200 text-xs uppercase flex items-center gap-2">
                                     <Layers className="w-4 h-4" /> Tiến độ tổng thể (Gantt)
                                 </h4>
@@ -1506,14 +1524,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
                             const getScoreInfo = (s: number) => {
                                 if (s >= 80) return { emoji: '🟢', label: 'Tốt', color: 'text-emerald-600', bg: 'bg-emerald-500' };
-                                if (s >= 60) return { emoji: '🟡', label: 'Trung bình', color: 'text-amber-600', bg: 'bg-amber-500' };
+                                if (s >= 60) return { emoji: '🟡', label: 'Trung bình', color: 'text-primary-600', bg: 'bg-primary-500' };
                                 if (s >= 40) return { emoji: '🟠', label: 'Cần cải thiện', color: 'text-orange-600', bg: 'bg-orange-500' };
                                 return { emoji: '🔴', label: 'Rủi ro cao', color: 'text-red-600', bg: 'bg-red-500' };
                             };
                             const info = getScoreInfo(score);
 
                             return (
-                                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-sm">
+                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-lg">
                                     <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                                         Sức khỏe dự án
                                     </h4>
@@ -1609,3 +1627,4 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
     );
 };
+

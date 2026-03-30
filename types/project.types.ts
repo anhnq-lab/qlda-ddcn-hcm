@@ -1,12 +1,14 @@
 // Project-related types — Luật Đầu tư công 58/2024/QH15
 
-/** Ban Quản Lý Dự Án (1–5) */
+/** Ban Quản Lý Dự Án (1–7) */
 export const MANAGEMENT_BOARDS = [
     { value: 1, label: 'Ban QLDA 1', color: 'bg-blue-500', hex: '#3B82F6' },
     { value: 2, label: 'Ban QLDA 2', color: 'bg-emerald-500', hex: '#10B981' },
     { value: 3, label: 'Ban QLDA 3', color: 'bg-violet-500', hex: '#8B5CF6' },
     { value: 4, label: 'Ban QLDA 4', color: 'bg-orange-500', hex: '#F97316' },
     { value: 5, label: 'Ban QLDA 5', color: 'bg-rose-500', hex: '#EF4444' },
+    { value: 6, label: 'Ban QLDA 6', color: 'bg-indigo-500', hex: '#6366F1' },
+    { value: 7, label: 'Ban QLDA 7', color: 'bg-fuchsia-500', hex: '#D946EF' },
 ] as const;
 
 // 3.1. Bảng dữ liệu: Projects (Dự án Đầu tư)
@@ -202,7 +204,7 @@ export interface Project {
     StartDate?: string;
     ExpectedEndDate?: string;
     ActualEndDate?: string;
-    ManagementBoard?: number; // Ban QLDA (1–5)
+    ManagementBoard?: number; // Ban QLDA (1–7)
     ProvinceCode?: string; // Mã tỉnh/thành phố (01-96)
 }
 

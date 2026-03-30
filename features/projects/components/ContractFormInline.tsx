@@ -127,7 +127,7 @@ export const ContractFormInline: React.FC<ContractFormInlineProps> = ({
     };
 
     const inputClass = (field: keyof FormData) =>
-        `w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border rounded-lg outline-none transition-colors
+        `w-full px-3 py-2 text-sm bg-[#FCF9F2] dark:bg-slate-900 border rounded-lg outline-none transition-colors
         ${errors[field]
             ? 'border-red-300 dark:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
             : 'border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
@@ -336,7 +336,7 @@ export const ContractFormInline: React.FC<ContractFormInlineProps> = ({
                 <button
                     type="submit"
                     disabled={saveMutation.isPending}
-                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-500 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                     {saveMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

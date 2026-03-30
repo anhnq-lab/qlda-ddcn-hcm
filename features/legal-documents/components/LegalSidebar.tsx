@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Bookmark, Search, Clock, FileText } from 'lucide-react';
 import { LegalDocument, legalDocuments, getDocArticleCount, LegalArticle } from '../legalData';
 import { DocSidebarItem } from './LegalUI';
@@ -25,16 +25,16 @@ export const LegalSidebar: React.FC<LegalSidebarProps> = ({
     setExpandedChapters, setShowPdfViewer, setShowDeepSearch
 }) => {
     return (
-        <div className={`${readingMode ? 'hidden' : 'w-96'} bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden`}>
+        <div className={`${readingMode ? 'hidden' : 'w-96'} bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden`}>
             {/* Sidebar Header with tabs */}
-            <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
+            <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                 <div className="flex items-center gap-2">
                     <button onClick={() => setShowBookmarks(false)}
                         className={`text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg transition-all ${!showBookmarks ? 'bg-indigo-600 text-white' : 'text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                         <FileText className="w-4 h-4 inline" /> Văn bản ({filteredDocs.length})
                     </button>
                     <button onClick={() => setShowBookmarks(true)}
-                        className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg transition-all ${showBookmarks ? 'bg-amber-500 text-white' : 'text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
+                        className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg transition-all ${showBookmarks ? 'bg-primary-500 text-white' : 'text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                         <Bookmark className="w-4 h-4" /> Đánh dấu ({bookmarks.length})
                     </button>
                     {recentlyViewed.length > 0 && (
@@ -68,8 +68,8 @@ export const LegalSidebar: React.FC<LegalSidebarProps> = ({
                             return (
                                 <button key={bm.articleId}
                                     onClick={() => { setSelectedDocId(bm.docId); setShowBookmarks(false); scrollToArticle(bm.articleId, foundChapterId); }}
-                                    className="w-full text-left p-3 rounded-xl border border-amber-100 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
-                                    <p className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">{doc.shortTitle}</p>
+                                    className="w-full text-left p-3 rounded-xl border border-primary-100 dark:border-primary-900/30 bg-primary-50/50 dark:bg-primary-900/10 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all">
+                                    <p className="text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-wider">{doc.shortTitle}</p>
                                     <p className="text-xs font-bold text-gray-700 dark:text-slate-300 mt-0.5">
                                         <span className="text-gray-400 font-mono text-[10px] mr-1">{foundArticle.code}</span>
                                         {foundArticle.title}

@@ -75,7 +75,7 @@ const CDECommentThread: React.FC<CDECommentThreadProps> = ({ docId, docName }) =
 
     const CommentBubble = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
         <div className={`flex gap-2.5 ${isReply ? 'ml-10' : ''} group`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black text-white ${isReply ? 'bg-gray-400' : 'bg-blue-600'}`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black text-white ${isReply ? 'bg-gray-400' : 'bg-primary-600'}`}>
                 {comment.author_name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
@@ -145,12 +145,12 @@ const CDECommentThread: React.FC<CDECommentThreadProps> = ({ docId, docName }) =
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
                     placeholder="Viết nhận xét..."
                     rows={1}
-                    className="flex-1 resize-none text-xs bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 dark:text-slate-200 dark:placeholder-slate-400 transition-all"
+                    className="flex-1 resize-none text-xs bg-[#F5EFE6] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 dark:text-slate-200 dark:placeholder-slate-400 transition-all"
                 />
                 <button
                     onClick={handleSubmit}
                     disabled={!newComment.trim() || isLoading}
-                    className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-sm"
+                    className="p-2.5 bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg"
                 >
                     <Send className="w-3.5 h-3.5" />
                 </button>

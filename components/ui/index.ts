@@ -5,7 +5,7 @@
 export { Button, IconButton, ButtonGroup } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize, IconButtonProps } from './Button';
 
-export { Card, CardHeader, CardBody, CardFooter, StatCard } from './Card';
+export { Card, CardHeader, CardBody, CardFooter } from './Card';
 export type { CardProps, CardVariant, CardPadding } from './Card';
 
 export { Input, Textarea, Checkbox, Radio } from './Input';
@@ -28,6 +28,26 @@ export {
     SkeletonAvatarGroup
 } from './Skeleton';
 export type { SkeletonProps, SkeletonVariant } from './Skeleton';
+
+// Shared UI Components (v2.1 — đóng gói)
+export { SectionHeader } from './SectionHeader';
+export type { SectionHeaderProps, SectionHeaderSize } from './SectionHeader';
+
+export { StatusBadge } from './StatusBadge';
+export type { StatusBadgeProps, BadgeVariant, BadgeSize } from './StatusBadge';
+
+export { ProgressBar } from './ProgressBar';
+export type { ProgressBarProps, ProgressBarColor, ProgressBarSize } from './ProgressBar';
+
+export { ViewToggle } from './ViewToggle';
+export type { ViewToggleProps, ViewMode } from './ViewToggle';
+
+export { Toolbar } from './Toolbar';
+export type { ToolbarProps } from './Toolbar';
+
+// StatCard — unified, re-exported from common
+export { StatCard } from '../common/StatCard';
+export type { StatCardColor } from '../common/StatCard';
 
 // Legacy Components (for backwards compatibility)
 export { LoadingSpinner, CardSkeleton, TableRowSkeleton } from './LoadingSpinner';

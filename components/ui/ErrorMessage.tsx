@@ -92,7 +92,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
                     {onRetry && (
                         <button
                             onClick={onRetry}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-400 transition-colors font-medium"
                         >
                             <RefreshCw className="w-5 h-5" />
                             Thử lại
@@ -154,7 +154,7 @@ export const EmptyState: React.FC<{
             {action && (
                 <button
                     onClick={action.onClick}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-400 transition-colors font-medium"
                 >
                     {action.label}
                 </button>

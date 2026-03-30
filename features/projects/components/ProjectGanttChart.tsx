@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Task, TaskStatus } from '@/types';
 
 interface ProjectGanttChartProps {
@@ -7,7 +7,7 @@ interface ProjectGanttChartProps {
 
 export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) => {
     if (tasks.length === 0) return (
-        <div className="py-12 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
+        <div className="py-12 text-center text-gray-400 italic bg-[#F5EFE6] dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
             Chưa có dữ liệu tiến độ để hiển thị biểu đồ.
         </div>
     );
@@ -75,7 +75,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
             case TaskStatus.Done: return 'shadow-emerald-200';
             case TaskStatus.Review: return 'shadow-indigo-200';
             case TaskStatus.InProgress: return 'shadow-orange-200';
-            default: return 'shadow-blue-200';
+            default: return 'shadow-primary-200';
         }
     };
 
@@ -92,7 +92,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
         <div className="overflow-x-auto pb-4 rounded-xl border border-gray-200 dark:border-slate-700">
             <div style={{ minWidth: `${280 + totalWidth}px` }}>
                 {/* Year Header */}
-                <div className="flex border-b border-gray-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+                <div className="flex border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                     <div className="w-[280px] shrink-0" />
                     <div className="flex">
                         {yearGroups.map(yg => (
@@ -108,7 +108,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
                 </div>
 
                 {/* Month Header */}
-                <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800/80 sticky top-0 z-10">
+                <div className="flex border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 sticky top-0 z-10">
                     <div className="w-[280px] shrink-0 px-4 py-2 text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                         Hạng mục công việc
                     </div>
@@ -127,7 +127,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
                 </div>
 
                 {/* Body - ALL tasks */}
-                <div className="divide-y divide-gray-50 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                <div className="divide-y divide-gray-50 dark:divide-slate-800 bg-[#FCF9F2] dark:bg-slate-900">
                     {sortedTasks.map((task, idx) => {
                         const dueDate = new Date(task.DueDate);
                         let startDate = task.StartDate ? new Date(task.StartDate) : null;
@@ -146,7 +146,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
                         const todayPos = ((Date.now() - minDate.getTime()) / totalDuration) * 100;
 
                         return (
-                            <div key={task.TaskID} className="flex group hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors">
+                            <div key={task.TaskID} className="flex group hover:bg-blue-50/40 dark:hover:bg-slate-800 transition-colors">
                                 {/* Task Name Column */}
                                 <div className="w-[280px] shrink-0 px-4 py-2.5 flex items-center gap-2">
                                     <div className={`w-2 h-2 rounded-full shrink-0 ${getDotColor(task.Status)}`} />
@@ -183,7 +183,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
 
                                     {/* Task Bar */}
                                     <div
-                                        className={`absolute h-5 rounded-md shadow-sm flex items-center justify-center min-w-[12px] transition-all cursor-pointer hover:opacity-90 hover:shadow-md ${getBarColor(task.Status)} ${getBarShadow(task.Status)}`}
+                                        className={`absolute h-5 rounded-md shadow-lg flex items-center justify-center min-w-[12px] transition-all cursor-pointer hover:opacity-90 hover:shadow-md ${getBarColor(task.Status)} ${getBarShadow(task.Status)}`}
                                         style={{
                                             left: `${Math.max(0, leftPos)}%`,
                                             width: `${Math.max(1.5, width)}%`

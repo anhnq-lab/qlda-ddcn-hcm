@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+﻿import React, { useState, useCallback, useMemo } from 'react';
 import { Send, FileText, Plus, X, Users, Building2, ClipboardList, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -72,7 +72,7 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
                 <div className="flex-1 overflow-y-auto p-6 space-y-5">
                     {/* From/To */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                        <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
                             <p className="text-[10px] font-bold text-gray-400 uppercase mb-1.5">Bên gửi</p>
                             <div className="flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-blue-600" />
@@ -103,9 +103,9 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-500 uppercase">Bên nhận *</label>
                             <input placeholder="Tên đơn vị" value={form.to_org} onChange={e => setForm(f => ({ ...f, to_org: e.target.value }))}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
+                                className="w-full px-3 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
                             <input placeholder="Người nhận" value={form.to_person} onChange={e => setForm(f => ({ ...f, to_person: e.target.value }))}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
+                                className="w-full px-3 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
                         </div>
                     </div>
 
@@ -113,21 +113,21 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold text-gray-500 uppercase">Tiêu đề *</label>
                         <input placeholder="Chuyển giao hồ sơ thiết kế..." value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
-                            className="w-full px-3 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm font-medium dark:text-slate-200" />
+                            className="w-full px-3 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm font-medium dark:text-slate-200" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-500 uppercase">Mục đích</label>
                             <select value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value as TransmittalPurpose }))}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200">
+                                className="w-full px-3 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200">
                                 {PURPOSES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                             </select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-gray-500 uppercase">CC (phân cách dấu phẩy)</label>
                             <input placeholder="abc@email.com, xyz@email.com" value={form.cc} onChange={e => setForm(f => ({ ...f, cc: e.target.value }))}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
+                                className="w-full px-3 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs dark:text-slate-200" />
                         </div>
                     </div>
 
@@ -141,7 +141,7 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
                             {docs.length === 0 ? (
                                 <p className="p-4 text-xs text-gray-400 text-center">Không có tài liệu</p>
                             ) : docs.map(doc => (
-                                <label key={doc.doc_id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50/40 dark:hover:bg-slate-700/40 cursor-pointer transition-all">
+                                <label key={doc.doc_id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50/40 dark:hover:bg-slate-700 cursor-pointer transition-all">
                                     <input type="checkbox" checked={selectedDocIds.includes(doc.doc_id)} onChange={() => toggleDoc(doc.doc_id)}
                                         className="w-3.5 h-3.5 rounded border-gray-300 dark:border-slate-600 text-blue-600" />
                                     <FileText className="w-4 h-4 text-blue-600 shrink-0" />
@@ -158,15 +158,15 @@ const CDETransmittalForm: React.FC<CDETransmittalFormProps> = ({
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold text-gray-500 uppercase">Ghi chú</label>
                         <textarea rows={3} placeholder="Ghi chú bổ sung..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                            className="w-full px-3 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs resize-none dark:text-slate-200" />
+                            className="w-full px-3 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs resize-none dark:text-slate-200" />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between bg-gray-50/80 dark:bg-slate-800/80">
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between bg-gray-50/80 dark:bg-slate-800">
                     <button onClick={onClose} className="px-4 py-2 text-gray-500 text-sm font-medium hover:text-gray-700">Hủy bỏ</button>
                     <button onClick={handleSend} disabled={isPending || !form.subject || !form.to_org || selectedDocIds.length === 0}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md">
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md">
                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         Gửi phiếu chuyển giao
                     </button>

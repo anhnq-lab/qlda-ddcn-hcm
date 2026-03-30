@@ -48,18 +48,18 @@ const CDERevisionHistory: React.FC<CDERevisionHistoryProps> = ({
                         <div key={idx} className="relative group">
                             {/* Timeline dot */}
                             <div className={`absolute -left-[17px] top-4 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 z-10 transition-all ${isCurrent
-                                ? 'bg-blue-600 ring-4 ring-blue-100 dark:ring-blue-900/40'
+                                ? 'bg-primary-600 ring-4 ring-blue-100 dark:ring-blue-900/40'
                                 : isPublished ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-slate-600'
                                 }`} />
 
                             <div className={`p-3.5 rounded-xl border transition-all ml-1 mb-2 ${isCurrent
                                 ? 'bg-blue-50/70 dark:bg-blue-900/15 border-blue-100 dark:border-blue-800'
-                                : 'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600'
+                                : 'bg-[#FCF9F2] dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600'
                                 }`}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
                                         <span className={`text-xs font-black font-mono px-2 py-0.5 rounded-md ${isCurrent
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-primary-600 text-white'
                                             : isPublished ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300'
                                             }`}>

@@ -8,7 +8,7 @@ import {
     ArrowRight, X, PenTool, RefreshCw
 } from 'lucide-react';
 import { Document, Folder, ISO19650Status } from '../../types';
-import { DocumentService, INTERLINKED_WORKFLOW_STEPS } from '../../services/DocumentService';
+import { DocumentService } from '../../services/DocumentService';
 // Hooks
 import { useFolders, useDocuments, useProcessStep } from '../../hooks/useDocuments';
 
@@ -27,22 +27,38 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
     const { data: documents = [], isLoading } = useDocuments(activeFolderId);
     const processStepMutation = useProcessStep();
 
-    const activeFolder = folders.find(f => f.FolderID === activeFolderId);
+    const getStatusLabel = (status?: string) => {
+        if (status === 'S0') return 'Khởi tạo';
+        if (status === 'S1') return 'Đang phối hợp';
+        if (status === 'S2') return 'Đã dùng chung';
+        if (status === 'S3') return 'Đã xuất bản';
+        return status || 'Khởi tạo';
+    };
+
+    const getStatusColor = (status?: string) => {
+        if (status === 'S0') return '#9CA3AF';
+        if (status === 'S1') return '#F59E0B';
+        if (status === 'S2') return '#3B82F6';
+        if (status === 'S3') return '#10B981';
+        return '#9CA3AF';
+    };
+
+    const activeFolder = folders.find(f => (f as any).id === activeFolderId);
 
     const breadcrumbs = useMemo(() => {
         const path: Folder[] = [];
         let current = activeFolder;
         while (current) {
-            path.unshift(current);
-            if (!current.ParentID) break;
-            current = folders.find(f => f.FolderID === current!.ParentID);
+            path.unshift(current as any);
+            if (!(current as any).parent_id) break;
+            current = folders.find(f => (f as any).id === (current as any).parent_id);
         }
         return path;
     }, [activeFolder, folders]);
 
     const nextStep = useMemo(() => {
         if (!selectedDoc) return null;
-        return DocumentService.getNextWorkflowStep(selectedDoc);
+        return (DocumentService as any).getNextWorkflowStep?.(selectedDoc) || null;
     }, [selectedDoc]);
 
     const handleProcessStep = (status: 'Approved' | 'Rejected') => {
@@ -51,11 +67,11 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
         const comment = status === 'Approved' ? `Đã duyệt bước: ${nextStep.name}` : `Yêu cầu chỉnh sửa tại bước: ${nextStep.name}`;
 
         processStepMutation.mutate({
-            docId: selectedDoc.DocID,
-            status,
+            docId: (selectedDoc as any).doc_id,
+            status: status as any,
             comment,
             actorId: 'CURRENT_USER'
-        }, {
+        } as any, {
             onSuccess: () => {
                 // Update local selectedDoc if needed or just re-fetch happens automatically for list.
                 // Since selectedDoc is local state, we might need to manually update it or fetch it fresh.
@@ -67,25 +83,25 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
 
 
     const renderFolderTree = (parentId: string | undefined, level = 0) => {
-        const children = folders.filter(f => f.ParentID === parentId);
+        const children = folders.filter(f => (f as any).parent_id === parentId);
         if (children.length === 0) return null;
 
         return (
             <div className={`space-y-1 ${level > 0 ? 'ml-4 border-l border-gray-200 dark:border-slate-700 pl-2' : ''}`}>
                 {children.map(folder => {
-                    const isActive = folder.FolderID === activeFolderId;
-                    const hasChildren = folders.some(f => f.ParentID === folder.FolderID);
+                    const isActive = (folder as any).id === activeFolderId;
+                    const hasChildren = folders.some(f => (f as any).parent_id === (folder as any).id);
 
                     return (
-                        <div key={folder.FolderID}>
+                        <div key={(folder as any).id}>
                             <div
-                                onClick={() => setActiveFolderId(folder.FolderID)}
-                                className={`flex items-center gap-2 py-1.5 px-3 rounded-lg cursor-pointer transition-colors text-sm ${isActive ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
+                                onClick={() => setActiveFolderId((folder as any).id)}
+                                className={`flex items-center gap-2 py-1.5 px-3 rounded-lg cursor-pointer transition-colors text-sm ${isActive ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700'}`}
                             >
                                 <FolderIcon className={`w-4 h-4 ${isActive ? 'text-blue-600 fill-blue-100' : 'text-gray-400'}`} />
-                                <span className="truncate">{folder.Name}</span>
+                                <span className="truncate">{(folder as any).name}</span>
                             </div>
-                            {hasChildren && renderFolderTree(folder.FolderID, level + 1)}
+                            {hasChildren && renderFolderTree((folder as any).id, level + 1)}
                         </div>
                     );
                 })}
@@ -94,9 +110,9 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[700px]">
-            <div className="w-[300px] border-r border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 flex flex-col">
-                <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[700px]">
+            <div className="w-[300px] border-r border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 flex flex-col">
+                <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-[#FCF9F2] dark:bg-slate-800">
                     <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
                         <FolderOpen className="w-4 h-4 text-blue-600" /> Cấu trúc thư mục (ISO 19650)
                     </h3>
@@ -104,19 +120,19 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     {renderFolderTree(undefined)}
                 </div>
-                <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-gray-400 dark:text-slate-500 text-center">
+                <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-[#FCF9F2] dark:bg-slate-800 text-xs text-gray-400 dark:text-slate-500 text-center">
                     ISO 19650 Compliant
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 overflow-hidden">
+            <div className="flex-1 flex flex-col bg-[#FCF9F2] dark:bg-slate-800 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center">
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                         {breadcrumbs.map((f, i) => (
-                            <React.Fragment key={f.FolderID}>
+                            <React.Fragment key={(f as any).id}>
                                 {i > 0 && <ChevronRight className="w-4 h-4 text-gray-300" />}
-                                <span className={i === breadcrumbs.length - 1 ? 'font-bold text-gray-900 dark:text-slate-100' : 'hover:text-blue-600 cursor-pointer'} onClick={() => setActiveFolderId(f.FolderID)}>
-                                    {f.Name}
+                                <span className={i === breadcrumbs.length - 1 ? 'font-bold text-gray-900 dark:text-slate-100' : 'hover:text-blue-600 cursor-pointer'} onClick={() => setActiveFolderId((f as any).id)}>
+                                    {(f as any).name}
                                 </span>
                             </React.Fragment>
                         ))}
@@ -124,16 +140,16 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
 
                     <div className="flex items-center gap-2">
                         <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
-                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><ListIcon className="w-4 h-4" /></button>
-                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-white dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><LayoutGrid className="w-4 h-4" /></button>
+                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><ListIcon className="w-4 h-4" /></button>
+                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><LayoutGrid className="w-4 h-4" /></button>
                         </div>
-                        <button className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm shadow-blue-200">
+                        <button className="flex items-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-primary-200">
                             <Upload className="w-4 h-4" /> Tải lên
                         </button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 dark:bg-slate-900/30">
+                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 dark:bg-slate-900">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full text-gray-400 text-sm">Đang tải dữ liệu...</div>
                     ) : documents.length === 0 ? (
@@ -143,9 +159,9 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                         </div>
                     ) : (
                         viewMode === 'list' ? (
-                            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
                                 <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] uppercase border-b border-slate-200 dark:border-slate-700">
+                                    <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">
                                         <tr>
                                             <th className="px-5 py-3 w-10"></th>
                                             <th className="px-5 py-3">Tên tài liệu</th>
@@ -155,29 +171,29 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                                             <th className="px-5 py-3 w-10"></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
+                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                                         {documents.map((doc) => (
-                                            <tr key={doc.DocID} onClick={() => setSelectedDoc(doc)} className={`hover:bg-blue-50/50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors ${selectedDoc?.DocID === doc.DocID ? 'bg-blue-50/80 dark:bg-blue-900/30' : ''}`}>
+                                            <tr key={doc.doc_id} onClick={() => setSelectedDoc(doc)} className={`hover:bg-blue-50/50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors ${selectedDoc?.doc_id === doc.doc_id ? 'bg-blue-50/80 dark:bg-blue-900/30' : ''}`}>
                                                 <td className="px-5 py-3 text-center">
-                                                    {doc.DocName.endsWith('.pdf') ? <FileText className="w-5 h-5 text-red-500" /> : <FileText className="w-5 h-5 text-blue-500" />}
+                                                    {(doc as any).doc_name?.endsWith('.pdf') ? <FileText className="w-5 h-5 text-red-500" /> : <FileText className="w-5 h-5 text-blue-500" />}
                                                 </td>
                                                 <td className="px-5 py-3 font-medium text-gray-800 dark:text-slate-100">
-                                                    {doc.DocName}
-                                                    <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-mono mt-0.5">{doc.DocID}</div>
+                                                    {(doc as any).doc_name}
+                                                    <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-mono mt-0.5">{doc.doc_id}</div>
                                                 </td>
                                                 <td className="px-5 py-3">
-                                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded text-[10px] font-bold font-mono">{doc.Version || 'P01.01'}</span>
+                                                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded text-[10px] font-bold font-mono">{(doc as any).version || 'P01.01'}</span>
                                                 </td>
                                                 <td className="px-5 py-3">
                                                     <div className="flex items-center gap-2">
                                                         <span
                                                             className="w-2.5 h-2.5 rounded-full"
-                                                            style={{ backgroundColor: DocumentService.getStatusColor(doc.ISOStatus!) }}
+                                                            style={{ backgroundColor: getStatusColor((doc as any).iso_status) }}
                                                         ></span>
-                                                        <span className="text-[11px] font-bold text-gray-600 dark:text-slate-300">{DocumentService.getStatusLabel(doc.ISOStatus!)}</span>
+                                                        <span className="text-[11px] font-bold text-gray-600 dark:text-slate-300">{getStatusLabel((doc as any).iso_status)}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3 text-right text-xs text-gray-500 dark:text-slate-400 font-mono">{doc.UploadDate}</td>
+                                                <td className="px-5 py-3 text-right text-xs text-gray-500 dark:text-slate-400 font-mono">{(doc as any).created_at ? new Date((doc as any).created_at).toLocaleDateString('vi-VN') : ''}</td>
                                                 <td className="px-5 py-3 text-center">
                                                     <button className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"><MoreVertical className="w-4 h-4" /></button>
                                                 </td>
@@ -189,18 +205,18 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {documents.map(doc => (
-                                    <div key={doc.DocID} onClick={() => setSelectedDoc(doc)} className={`bg-white dark:bg-slate-800 p-4 rounded-xl border hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-3 ${selectedDoc?.DocID === doc.DocID ? 'border-blue-400 ring-2 ring-blue-100 dark:ring-blue-900/50' : 'border-gray-200 dark:border-slate-700'}`}>
-                                        <div className="w-16 h-16 bg-gray-50 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-gray-400">
-                                            {doc.DocName.endsWith('.pdf') ? <FileText className="w-8 h-8 text-red-500" /> : <FileText className="w-8 h-8 text-blue-500" />}
+                                    <div key={doc.doc_id} onClick={() => setSelectedDoc(doc)} className={`bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-xl border hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-3 ${selectedDoc?.doc_id === doc.doc_id ? 'border-blue-400 ring-2 ring-blue-100 dark:ring-blue-900/50' : 'border-gray-200 dark:border-slate-700'}`}>
+                                        <div className="w-16 h-16 bg-[#F5EFE6] dark:bg-slate-700 rounded-2xl flex items-center justify-center text-gray-400">
+                                            {(doc as any).doc_name?.endsWith('.pdf') ? <FileText className="w-8 h-8 text-red-500" /> : <FileText className="w-8 h-8 text-blue-500" />}
                                         </div>
                                         <div className="w-full">
-                                            <p className="text-sm font-bold text-gray-800 dark:text-slate-100 line-clamp-2 min-h-[40px]" title={doc.DocName}>{doc.DocName}</p>
+                                            <p className="text-sm font-bold text-gray-800 dark:text-slate-100 line-clamp-2 min-h-[40px]" title={(doc as any).doc_name}>{(doc as any).doc_name}</p>
                                             <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50 dark:border-slate-700">
-                                                <span className="text-[10px] font-mono bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-slate-300">{doc.Version || 'v1.0'}</span>
+                                                <span className="text-[10px] font-mono bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-slate-300">{(doc as any).version || 'v1.0'}</span>
                                                 <span
                                                     className="w-2.5 h-2.5 rounded-full"
-                                                    title={DocumentService.getStatusLabel(doc.ISOStatus!)}
-                                                    style={{ backgroundColor: DocumentService.getStatusColor(doc.ISOStatus!) }}
+                                                    title={getStatusLabel((doc as any).iso_status)}
+                                                    style={{ backgroundColor: getStatusColor((doc as any).iso_status) }}
                                                 ></span>
                                             </div>
                                         </div>
@@ -213,8 +229,8 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
             </div>
 
             {selectedDoc && (
-                <div className="w-[360px] bg-white dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 flex flex-col shadow-xl animate-in slide-in-from-right-4 duration-300 relative z-10">
-                    <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800/80">
+                <div className="w-[360px] bg-[#FCF9F2] dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 flex flex-col shadow-xl animate-in slide-in-from-right-4 duration-300 relative z-10">
+                    <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800">
                         <span className="text-xs font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest">PHÊ DUYỆT HỒ SƠ</span>
                         <button onClick={() => setSelectedDoc(null)} className="text-gray-400 hover:text-red-500"><X className="w-5 h-5" /></button>
                     </div>
@@ -225,26 +241,26 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                                 <FileText className="w-6 h-6" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-black text-gray-800 dark:text-slate-100 line-clamp-2">{selectedDoc.DocName}</h4>
-                                <p className="text-[10px] font-mono text-gray-400 mt-1 uppercase">Mã: {selectedDoc.DocID} • v{selectedDoc.Version}</p>
+                                <h4 className="text-sm font-black text-gray-800 dark:text-slate-100 line-clamp-2">{(selectedDoc as any).doc_name}</h4>
+                                <p className="text-[10px] font-mono text-gray-400 mt-1 uppercase">Mã: {selectedDoc.doc_id} • v{(selectedDoc as any).version}</p>
                             </div>
                         </div>
 
                         <div className="py-2">
                             <div className="flex justify-between mb-4">
-                                {INTERLINKED_WORKFLOW_STEPS.map((step, idx) => {
+                                {[{ id: 'w1', name: 'Soạn thảo' }, { id: 'w2', name: 'Kiểm tra' }, { id: 'w3', name: 'Phê duyệt' }].map((step, idx) => {
                                     const isCompleted = selectedDoc.WorkflowHistory?.some(h => h.StepName === step.name && h.Status === 'Approved');
                                     const isCurrent = nextStep?.id === step.id;
 
                                     return (
                                         <div key={idx} className="flex flex-col items-center gap-1.5 flex-1 relative">
-                                            {idx < INTERLINKED_WORKFLOW_STEPS.length - 1 && (
+                                            {idx < 2 && (
                                                 <div className={`absolute left-1/2 right-[-50%] top-2.5 h-0.5 z-0 ${isCompleted ? 'bg-emerald-500' : 'bg-gray-100 dark:bg-slate-700'}`}></div>
                                             )}
 
                                             <div className={`w-5 h-5 rounded-full flex items-center justify-center z-10 text-[8px] font-black border-2 transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' :
-                                                isCurrent ? 'bg-white border-blue-600 text-blue-600 ring-2 ring-blue-100' :
-                                                    'bg-white border-gray-200 text-gray-300'
+                                                isCurrent ? 'bg-[#FCF9F2] border-blue-600 text-blue-600 ring-2 ring-blue-100' :
+                                                    'bg-[#FCF9F2] border-gray-200 text-gray-300'
                                                 }`}>
                                                 {isCompleted ? <CheckCircle2 className="w-3 h-3" /> : (idx + 1)}
                                             </div>
@@ -267,7 +283,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                                     <ShieldCheck className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-black text-gray-800 dark:text-slate-100">{DocumentService.getStatusLabel(selectedDoc.ISOStatus!)}</p>
+                                    <p className="text-xs font-black text-gray-800 dark:text-slate-100">{getStatusLabel((selectedDoc as any).iso_status)}</p>
                                     {nextStep && <p className="text-[10px] text-blue-600 font-bold mt-0.5">Đang chờ: {nextStep.name}</p>}
                                 </div>
                             </div>
@@ -294,7 +310,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                         </div>
                     </div>
 
-                    <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80 space-y-3">
+                    <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 space-y-3">
                         {nextStep ? (
                             <>
                                 <div className="flex flex-col gap-2">
@@ -302,7 +318,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                                         <button
                                             disabled={processStepMutation.isPending}
                                             onClick={() => handleProcessStep('Rejected')}
-                                            className="flex-1 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                                            className="flex-1 py-2.5 bg-[#FCF9F2] border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
                                         >
                                             <X className="w-4 h-4" /> Từ chối
                                         </button>

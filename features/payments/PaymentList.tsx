@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { ProgressBar, StatCard } from '../../components/ui';
 
 const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'all' }) => {
     const navigate = useNavigate();
@@ -153,11 +154,11 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
         );
     }
 
-    const CARD_STYLES: Record<number, string> = {
-        0: 'stat-card-blue',
-        1: 'stat-card-emerald',
-        2: 'stat-card-amber',
-        3: 'stat-card-violet',
+    const CARD_COLORS: Record<number, "blue" | "emerald" | "amber" | "violet"> = {
+        0: 'blue',
+        1: 'emerald',
+        2: 'amber',
+        3: 'violet',
     };
 
     const statCards = [
@@ -195,49 +196,42 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                 {/* === Stat Cards === */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                     {statCards.map((card, idx) => {
-                        const s = CARD_STYLES[idx] || CARD_STYLES[0];
+                        const color = CARD_COLORS[idx] || "blue";
                         return (
-                            <div
+                            <StatCard
                                 key={idx}
-                                className={`stat-card ${s} cursor-default`}
-                            >
-                                {(card as any).highlight && (
-                                    <div className="absolute top-2 right-2">
-                                        <span className="flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between w-full relative z-10">
-                                    <div>
-                                        <p className="stat-card-label">{card.label}</p>
-                                        <p className="stat-card-value tabular-nums mt-1">{card.value}</p>
-                                    </div>
-                                    <div className="stat-card-icon">
-                                        <card.icon className="w-6 h-6" />
-                                    </div>
-                                </div>
-                                {(card as any).progressPercent !== undefined && (
-                                    <div className="mt-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                                        <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min((card as any).progressPercent, 100)}%` }}></div>
-                                    </div>
-                                )}
-                                <p className="text-xs text-slate-500 mt-2 font-medium">{card.sub}</p>
-                            </div>
+                                label={
+                                    <span className="flex items-center gap-2">
+                                        {card.label}
+                                        {(card as any).highlight && (
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+                                            </span>
+                                        )}
+                                    </span>
+                                }
+                                value={card.value}
+                                icon={<card.icon className="w-5 h-5" />}
+                                color={color}
+                                progressPercentage={(card as any).progressPercent}
+                                footer={
+                                    <p className="text-xs text-slate-500 mt-1 font-medium">{card.sub}</p>
+                                }
+                            />
                         );
                     })}
                 </div>
 
                 {/* === Toolbar === */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 p-4">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg p-4">
                     <div className="flex flex-col md:flex-row items-center gap-3">
                         <div className="relative w-full md:w-80">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Tìm mã TT, mã HĐ, nhà thầu, Kho bạc..."
-                                className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
+                                className="filter-input"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -257,12 +251,12 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     key={opt.value}
                                     onClick={() => setFilterStatus(opt.value)}
                                     className={`px-3 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${filterStatus === opt.value
-                                        ? 'bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 shadow-sm'
+                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-slate-700 dark:text-slate-200 shadow-lg'
                                         : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     {opt.label}
-                                    <span className={`ml-1 text-[10px] ${filterStatus === opt.value ? 'text-blue-600' : 'text-gray-400'}`}>
+                                    <span className={`ml-1 text-[10px] ${filterStatus === opt.value ? 'text-primary-600' : 'text-gray-400'}`}>
                                         {opt.count}
                                     </span>
                                 </button>
@@ -281,7 +275,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     key={opt.value}
                                     onClick={() => setFilterType(opt.value)}
                                     className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all ${filterType === opt.value
-                                        ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-200 shadow-sm'
+                                        ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-200 shadow-lg'
                                         : 'text-gray-500 hover:bg-gray-100'
                                         }`}
                                 >
@@ -291,7 +285,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                         </div>
 
                         <div className="ml-auto flex items-center gap-2">
-                            <button className="px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 bg-white border border-gray-200 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-2 hover:shadow-sm">
+                            <button className="px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-600 transition-colors flex items-center gap-2 hover:shadow-lg">
                                 <Download className="w-4 h-4" />
                                 Xuất Excel
                             </button>
@@ -300,11 +294,11 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                 </div>
 
                 {/* === Table === */}
-                <Card className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-100 dark:bg-slate-800">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
                     <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
                         <table className="w-full text-left text-sm">
                             <thead>
-                                <tr className="table-header-row">
+                                <tr className="border-b border-slate-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                                     <th className="px-3 py-2.5 text-center text-[10px] font-black uppercase tracking-widest w-12">STT</th>
                                     <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest">Mã TT</th>
                                     <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest">Hợp đồng</th>
@@ -317,18 +311,16 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     <th className="px-5 py-4 w-10"></th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                                 {filteredPayments.map((payment, rowIdx) => {
                                     const contractorName = getContractorName(payment.ContractID);
                                     const projectName = getProjectName(payment.ContractID);
                                     const contractValue = getContractValue(payment.ContractID);
                                     const payPercent = contractValue > 0 ? (payment.Amount / contractValue) * 100 : 0;
-                                    const isEven = rowIdx % 2 === 0;
-
                                     return (
                                         <tr
                                             key={payment.PaymentID}
-                                            className={`group cursor-pointer transition-all duration-200 hover:bg-blue-50/60 hover:shadow-sm ${isEven ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/30 dark:bg-slate-900/30'} border-b border-gray-50 dark:border-slate-700`}
+                                            className="group cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                                             onClick={() => handleNavigateToSource(payment.ContractID)}
                                         >
                                             {/* STT */}
@@ -408,7 +400,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                                     const sc = PaymentService.getStatusColor(payment.Status);
                                                     return (
                                                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold whitespace-nowrap ring-1 ${sc.bg} ${sc.text} ${sc.ring} ${sc.darkBg} ${sc.darkText} ${sc.darkRing}`}>
-                                                            {payment.Status === PaymentStatus.Pending && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>}
+                                                            {payment.Status === PaymentStatus.Pending && <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></span>}
                                                             {payment.Status === PaymentStatus.Transferred && <CheckCircle2 className="w-3 h-3" />}
                                                             {PaymentService.getStatusLabel(payment.Status)}
                                                         </span>
@@ -430,7 +422,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                     </div>
 
                     {/* Summary Footer */}
-                    <div className="bg-gradient-to-r from-gray-50 to-emerald-50/30 border-t border-gray-200 px-6 py-4 dark:from-slate-900 dark:to-slate-800/30 dark:border-slate-700">
+                    <div className="table-footer">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
@@ -438,8 +430,8 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     <span className="text-xs text-gray-500 dark:text-slate-400">Đã chuyển: <span className="font-bold text-emerald-700">{formatCurrency(stats.transferredAmount)}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-amber-500" />
-                                    <span className="text-xs text-gray-500 dark:text-slate-400">Chờ duyệt: <span className="font-bold text-amber-700">{formatCurrency(stats.pendingAmount)}</span></span>
+                                    <Clock className="w-3.5 h-3.5 text-primary-500" />
+                                    <span className="text-xs text-gray-500 dark:text-slate-400">Chờ duyệt: <span className="font-bold text-primary-700">{formatCurrency(stats.pendingAmount)}</span></span>
                                 </div>
                                 <div className="w-px h-4 bg-gray-200 dark:bg-slate-600"></div>
                                 <span className="text-xs text-gray-500 dark:text-slate-400">Tổng: <span className="font-bold text-gray-900 dark:text-slate-100">{formatCurrency(stats.totalAmount)}</span></span>
@@ -457,7 +449,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                             <p className="text-gray-400 text-sm mt-2">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                         </div>
                     )}
-                </Card >
+                </div>
             </div >
 
         </>

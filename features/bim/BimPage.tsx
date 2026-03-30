@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { getAllBimModels, BimModel } from '../../lib/bimStorage';
+import { StatCard } from '../../components/ui';
 
 const ProjectBimTab = React.lazy(() =>
     import('../projects/components/tabs/ProjectBimTab').then(m => ({ default: m.ProjectBimTab }))
@@ -40,14 +41,16 @@ class BimErrorBoundary extends React.Component<BimEBProps, BimEBState> {
                         {this.state.error?.message || 'Unknown error'}
                     </div>
                     <button
+                        // @ts-ignore
                         onClick={() => this.setState({ hasError: false, error: null })}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-primary-600"
                     >
                         Thử lại
                     </button>
                 </div>
             );
         }
+        // @ts-ignore
         return this.props.children;
     }
 }
@@ -71,7 +74,7 @@ const DISCIPLINE_LABELS: Record<string, { label: string; color: string; darkColo
     ARCH: { label: 'Kiến trúc', color: 'bg-blue-100 text-blue-700', darkColor: 'bg-blue-500/20 text-blue-300' },
     STRU: { label: 'Kết cấu', color: 'bg-orange-100 text-orange-700', darkColor: 'bg-orange-500/20 text-orange-300' },
     MEP: { label: 'MEP', color: 'bg-green-100 text-green-700', darkColor: 'bg-green-500/20 text-green-300' },
-    ELEC: { label: 'Điện', color: 'bg-yellow-100 text-yellow-700', darkColor: 'bg-yellow-500/20 text-yellow-300' },
+    ELEC: { label: 'Điện', color: 'bg-yellow-100 text-primary-700', darkColor: 'bg-yellow-500/20 text-yellow-300' },
     HVAC: { label: 'HVAC', color: 'bg-cyan-100 text-cyan-700', darkColor: 'bg-cyan-500/20 text-cyan-300' },
     PLUM: { label: 'Cấp thoát nước', color: 'bg-teal-100 text-teal-700', darkColor: 'bg-teal-500/20 text-teal-300' },
     FIRE: { label: 'PCCC', color: 'bg-red-100 text-red-700', darkColor: 'bg-red-500/20 text-red-300' },
@@ -81,7 +84,7 @@ const DISCIPLINE_LABELS: Record<string, { label: string; color: string; darkColo
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; darkColor: string }> = {
     ready: { label: 'Sẵn sàng', icon: CheckCircle2, color: 'text-green-600', darkColor: 'text-green-400' },
-    converting: { label: 'Đang xử lý', icon: Clock, color: 'text-amber-600', darkColor: 'text-amber-400' },
+    converting: { label: 'Đang xử lý', icon: Clock, color: 'text-primary-600', darkColor: 'text-primary-400' },
     uploading: { label: 'Đang tải lên', icon: Loader2, color: 'text-blue-600', darkColor: 'text-blue-400' },
     error: { label: 'Lỗi', icon: AlertCircle, color: 'text-red-600', darkColor: 'text-red-400' },
 };
@@ -306,7 +309,7 @@ const BimPage: React.FC = () => {
                         }}
                     >
                         {/* Header bar */}
-                        <div className={`shrink-0 flex items-center gap-3 px-4 py-2 border-b ${isDark ? 'border-slate-700 bg-slate-900' : 'border-gray-200 bg-white'}`}>
+                        <div className={`shrink-0 flex items-center gap-3 px-4 py-2 border-b ${isDark ? 'border-slate-700 bg-slate-900' : 'border-gray-200 bg-[#FCF9F2]'}`}>
                             <button onClick={handleBack} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${isDark ? 'text-slate-300 hover:bg-slate-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
                                 <ArrowLeft className="w-4 h-4" />Quay lại
                             </button>
@@ -359,19 +362,21 @@ const BimPage: React.FC = () => {
                         {!loading && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                                 {[
-                                    { icon: Box, label: 'Tổng mô hình', value: kpi.totalModels, sub: `${kpi.projectsWithBim} dự án`, color: isDark ? 'text-cyan-400' : 'text-blue-600' },
-                                    { icon: HardDrive, label: 'Dung lượng', value: formatFileSize(kpi.totalSize), sub: 'Tổng dữ liệu BIM', color: isDark ? 'text-purple-400' : 'text-purple-600' },
-                                    { icon: CheckCircle2, label: 'Sẵn sàng', value: kpi.ready, sub: kpi.processing > 0 ? `${kpi.processing} đang xử lý` : 'Tất cả sẵn sàng', color: isDark ? 'text-green-400' : 'text-green-600' },
-                                    { icon: Cpu, label: 'Bộ môn', value: kpi.allDisciplines.length, sub: kpi.allDisciplines.slice(0, 3).join(', ') || '—', color: isDark ? 'text-amber-400' : 'text-amber-600' },
+                                    { icon: Box, label: 'Tổng mô hình', value: kpi.totalModels, sub: `${kpi.projectsWithBim} dự án`, color: 'blue' as const },
+                                    { icon: HardDrive, label: 'Dung lượng', value: formatFileSize(kpi.totalSize), sub: 'Tổng dữ liệu BIM', color: 'slate' as const },
+                                    { icon: CheckCircle2, label: 'Sẵn sàng', value: kpi.ready, sub: kpi.processing > 0 ? `${kpi.processing} đang xử lý` : 'Tất cả sẵn sàng', color: 'emerald' as const },
+                                    { icon: Cpu, label: 'Bộ môn', value: kpi.allDisciplines.length, sub: kpi.allDisciplines.slice(0, 3).join(', ') || '—', color: 'amber' as const },
                                 ].map((card, i) => (
-                                    <div key={i} className={`px-4 py-3 rounded-xl border ${isDark ? 'bg-slate-800/60 border-slate-700/50' : 'bg-white border-gray-200'}`}>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <card.icon className={`w-4 h-4 ${card.color}`} />
-                                            <span className={`text-[11px] font-medium ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{card.label}</span>
-                                        </div>
-                                        <p className={`text-lg font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{card.value}</p>
-                                        <p className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{card.sub}</p>
-                                    </div>
+                                    <StatCard
+                                        key={i}
+                                        label={card.label}
+                                        value={card.value}
+                                        icon={<card.icon className="w-5 h-5" />}
+                                        color={card.color as any}
+                                        footer={
+                                            <p className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{card.sub}</p>
+                                        }
+                                    />
                                 ))}
                             </div>
                         )}
@@ -387,7 +392,7 @@ const BimPage: React.FC = () => {
                                     onChange={e => setSearchQuery(e.target.value)}
                                     className={`w-full pl-10 pr-4 py-2 rounded-xl text-sm border transition-all ${isDark
                                         ? 'bg-slate-800 border-slate-700 text-slate-200 placeholder-slate-500 focus:border-cyan-500/50'
-                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400'}`}
+                                        : 'bg-[#FCF9F2] border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400'}`}
                                 />
                             </div>
 
@@ -438,7 +443,7 @@ const BimPage: React.FC = () => {
                         {loading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className={`rounded-2xl border p-4 animate-pulse ${isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-gray-200'}`}>
+                                    <div key={i} className={`rounded-2xl border p-4 animate-pulse ${isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-[#FCF9F2] border-gray-200'}`}>
                                         <div className={`h-24 rounded-xl mb-3 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
                                         <div className={`h-4 rounded w-3/4 mb-2 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
                                         <div className={`h-3 rounded w-1/2 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
@@ -475,7 +480,7 @@ const BimPage: React.FC = () => {
                                                     className={`group flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all duration-200
                                                         ${isDark
                                                             ? 'bg-slate-800/40 border-slate-700/40 hover:border-slate-600 hover:bg-slate-800/70'
-                                                            : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-white'
+                                                            : 'bg-[#F5EFE6] border-gray-200 hover:border-gray-300 hover:bg-[#FCF9F2]'
                                                         }
                                                     `}
                                                 >
@@ -518,9 +523,9 @@ const BimProjectCard: React.FC<{
     const primaryDiscipline = summary.disciplines[0];
     const gradientMap: Record<string, string> = {
         ARCH: isDark ? 'from-blue-600/25 via-indigo-600/15 to-slate-900/0' : 'from-blue-100 via-indigo-50 to-white',
-        STRU: isDark ? 'from-orange-600/25 via-amber-600/15 to-slate-900/0' : 'from-orange-100 via-amber-50 to-white',
+        STRU: isDark ? 'from-orange-600/25 via-primary-600/15 to-slate-900/0' : 'from-orange-100 via-primary-50 to-white',
         MEP: isDark ? 'from-green-600/25 via-emerald-600/15 to-slate-900/0' : 'from-green-100 via-emerald-50 to-white',
-        ELEC: isDark ? 'from-yellow-600/25 via-amber-600/15 to-slate-900/0' : 'from-yellow-100 via-amber-50 to-white',
+        ELEC: isDark ? 'from-primary-600/25 via-primary-600/15 to-slate-900/0' : 'from-yellow-100 via-primary-50 to-white',
         HVAC: isDark ? 'from-cyan-600/25 via-teal-600/15 to-slate-900/0' : 'from-cyan-100 via-teal-50 to-white',
         FIRE: isDark ? 'from-red-600/25 via-rose-600/15 to-slate-900/0' : 'from-red-100 via-rose-50 to-white',
         COMBINE: isDark ? 'from-purple-600/25 via-violet-600/15 to-slate-900/0' : 'from-purple-100 via-violet-50 to-white',
@@ -537,7 +542,7 @@ const BimProjectCard: React.FC<{
             className={`group relative w-full text-left rounded-2xl border transition-all duration-300 overflow-hidden
                 ${isDark
                     ? 'bg-slate-800/80 border-slate-700/50 hover:border-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-0.5'
-                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-0.5'
+                    : 'bg-[#FCF9F2] border-gray-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-0.5'
                 }
             `}
         >
@@ -579,7 +584,7 @@ const BimProjectCard: React.FC<{
                                 </span>
                             )}
                             {processingCount > 0 && (
-                                <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+                                <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
                                     <Loader2 className="w-3 h-3 animate-spin" />{processingCount}
                                 </span>
                             )}

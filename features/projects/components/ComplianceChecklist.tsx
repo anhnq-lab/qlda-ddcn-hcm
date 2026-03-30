@@ -70,21 +70,21 @@ export const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ projec
                 };
             case 'warning':
                 return {
-                    bg: 'bg-amber-50',
-                    border: 'border-amber-200',
-                    icon: 'text-amber-600',
-                    text: 'text-amber-700'
+                    bg: 'bg-primary-50',
+                    border: 'border-primary-200',
+                    icon: 'text-primary-600',
+                    text: 'text-primary-700'
                 };
             case 'pending':
                 return {
-                    bg: 'bg-gray-50',
+                    bg: 'bg-[#F5EFE6]',
                     border: 'border-gray-200',
                     icon: 'text-gray-400',
                     text: 'text-gray-600'
                 };
             case 'na':
                 return {
-                    bg: 'bg-slate-50',
+                    bg: 'bg-[#F5EFE6]',
                     border: 'border-slate-200',
                     icon: 'text-slate-400',
                     text: 'text-slate-500'
@@ -102,8 +102,8 @@ export const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ projec
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div className="bg-[#FCF9F2] rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+            <div className="px-4 py-3 bg-[#F5EFE6] border-b border-gray-200">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
                     Tuân thủ pháp lý
                 </h4>

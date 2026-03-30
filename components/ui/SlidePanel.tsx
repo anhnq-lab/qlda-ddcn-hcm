@@ -169,7 +169,7 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
 
             {/* Panel Body */}
             <div
-                className={`relative h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 
+                className={`relative h-full bg-[#FCF9F2] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 
           flex flex-col overflow-hidden slide-panel-stacked
           ${isExiting ? 'slide-panel-exit' : 'slide-panel-enter'}
           ${isResizing ? 'slide-panel-resizing' : ''}`}
@@ -257,14 +257,14 @@ const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidt
                                 transition-all duration-200
                                 whitespace-nowrap
                                 ${isTopPanel
-                                    ? 'bg-amber-600 dark:bg-amber-500 border-amber-700 dark:border-amber-600 text-white shadow-xl shadow-amber-500/30 dark:shadow-amber-700/50'
-                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-600 shadow-lg shadow-slate-900/15 dark:shadow-slate-950/50 cursor-pointer'
+                                    ? 'bg-primary-600 dark:bg-primary-500 border-primary-700 dark:border-primary-600 text-white shadow-xl shadow-primary-500/30 dark:shadow-primary-700/50'
+                                    : 'bg-[#FCF9F2] dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-300 dark:hover:border-primary-600 shadow-lg shadow-slate-900/15 dark:shadow-slate-950/50 cursor-pointer'
                                 }`}
                             title={panel.title || 'Panel'}
                         >
                             {/* Icon */}
                             <span className={`flex-shrink-0 w-4 h-4 flex items-center justify-center ${isTopPanel
-                                ? 'text-amber-200'
+                                ? 'text-primary-200'
                                 : 'text-slate-400 dark:text-slate-500'
                                 }`}>
                                 {panel.icon || <FileText size={14} />}
@@ -281,7 +281,7 @@ const PanelTabsOverlay: React.FC<PanelTabsOverlayProps> = ({ panels, sidebarWidt
                                     onClick={(e) => { e.stopPropagation(); onClose(panel.id); }}
                                     className="flex-shrink-0 w-5 h-5 flex items-center justify-center
                                         rounded-full ml-1
-                                        text-amber-200 hover:text-white hover:bg-amber-700 dark:hover:bg-amber-600
+                                        text-primary-200 hover:text-white hover:bg-primary-700 dark:hover:bg-primary-600
                                         transition-all duration-150 cursor-pointer"
                                     title="Đóng"
                                 >

@@ -145,7 +145,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
     // Compact mode
     if (compact) {
         return (
-            <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-700 rounded-full px-3 py-1.5">
+            <div className="flex items-center gap-1 bg-[#F5EFE6] dark:bg-slate-700 rounded-full px-3 py-1.5">
                 {STAGES.map((stage, index) => {
                     const status = getStepStatus(index);
                     return (
@@ -172,7 +172,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 
     return (
         <>
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-lg">
                 {/* Header */}
             <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
@@ -183,7 +183,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                         {stageHistory.length > 0 && (
                             <button
                                 onClick={() => setShowHistoryPanel(!showHistoryPanel)}
-                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold text-gray-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold text-gray-600 dark:text-slate-400 hover:bg-[#FCF9F2] dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
                                 <History className="w-3.5 h-3.5" />
                                 Lịch sử
@@ -192,8 +192,8 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                         {editable && prevStage && (
                             <button
                                 onClick={handleRevertStage}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm"
-                                style={{ background: '#B8860B' }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg transition-colors shadow-lg"
+                                style={{ background: '#ea580c' }}
                             >
                                 <ArrowLeft className="w-3.5 h-3.5" />
                                 Lùi giai đoạn
@@ -202,7 +202,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                         {editable && nextStage && (
                             <button
                                 onClick={handleAdvanceStage}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg transition-colors shadow-lg"
                                 
                             >
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -234,7 +234,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                             >
                                 {/* Circle/Icon — mỗi giai đoạn giữ màu riêng */}
                                 <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer text-white
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg cursor-pointer text-white
                                         ${status === 'current' ? 'ring-3 scale-110' : ''}
                                         ${status === 'upcoming' ? 'opacity-40' : ''}
                                     `}
@@ -301,7 +301,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                 const stageConfig = STAGES.find(s => s.key === entry.stage);
                                 const Icon = stageConfig?.icon || Circle;
                                 return (
-                                    <div key={idx} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 hover:shadow-sm transition-shadow">
+                                    <div key={idx} className="flex items-center gap-3 p-3 bg-[#FCF9F2] dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 hover:shadow-lg transition-shadow">
                                         <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                             <Icon className="w-4 h-4" />
                                         </div>
@@ -329,7 +329,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
             {/* Stage Transition Modal */}
             {showTransitionModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md m-4 animate-in zoom-in-95 duration-200">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md m-4 animate-in zoom-in-95 duration-200">
                         <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                             <h3 className="text-lg font-black text-gray-800 dark:text-slate-100">Chuyển giai đoạn dự án</h3>
                             <button
@@ -342,15 +342,15 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 
                         <div className="p-5 space-y-4">
                             {/* Current → Target Stage visual */}
-                            <div className="flex items-center justify-center gap-4 py-4 bg-gray-50 dark:bg-slate-700 rounded-xl">
+                            <div className="flex items-center justify-center gap-4 py-4 bg-[#F5EFE6] dark:bg-slate-700 rounded-xl">
                                 <div className="text-center">
-                                    <div className={`w-12 h-12 rounded-full ${isGoingBackward ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'} flex items-center justify-center mx-auto mb-2`}>
-                                        {React.createElement(STAGES[currentIndex].icon, { className: `w-5 h-5 ${isGoingBackward ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}` })}
+                                    <div className={`w-12 h-12 rounded-full ${isGoingBackward ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'} flex items-center justify-center mx-auto mb-2`}>
+                                        {React.createElement(STAGES[currentIndex].icon, { className: `w-5 h-5 ${isGoingBackward ? 'text-primary-600 dark:text-primary-400' : 'text-emerald-600 dark:text-emerald-400'}` })}
                                     </div>
                                     <span className="text-xs font-bold text-gray-600 dark:text-slate-300">{STAGES[currentIndex].label}</span>
                                 </div>
                                 {isGoingBackward ? (
-                                    <RotateCcw className="w-6 h-6 text-amber-500" />
+                                    <RotateCcw className="w-6 h-6 text-primary-500" />
                                 ) : (
                                     <ArrowRight className="w-6 h-6 text-gray-400" />
                                 )}
@@ -372,7 +372,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                         type="date"
                                         value={transitionData.startDate || ''}
                                         onChange={(e) => setTransitionData(d => ({ ...d, startDate: e.target.value }))}
-                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
+                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                                     />
                                 </div>
                                 <div>
@@ -384,7 +384,7 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                                         placeholder="VD: QĐ 123/QĐ-UBND"
                                         value={transitionData.decisionNumber || ''}
                                         onChange={(e) => setTransitionData(d => ({ ...d, decisionNumber: e.target.value }))}
-                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
+                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                                     />
                                 </div>
                                 <div>
@@ -402,9 +402,9 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                             </div>
 
                             {/* Warning */}
-                            <div className={`flex items-start gap-2 p-3 ${isGoingBackward ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'} rounded-lg`}>
-                                <AlertCircle className={`w-4 h-4 ${isGoingBackward ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'} shrink-0 mt-0.5`} />
-                                <p className={`text-[11px] ${isGoingBackward ? 'text-amber-700 dark:text-amber-300' : 'text-blue-700 dark:text-blue-300'}`}>
+                            <div className={`flex items-start gap-2 p-3 ${isGoingBackward ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800' : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'} rounded-lg`}>
+                                <AlertCircle className={`w-4 h-4 ${isGoingBackward ? 'text-primary-600 dark:text-primary-400' : 'text-blue-600 dark:text-blue-400'} shrink-0 mt-0.5`} />
+                                <p className={`text-[11px] ${isGoingBackward ? 'text-primary-700 dark:text-primary-300' : 'text-blue-700 dark:text-blue-300'}`}>
                                     {isGoingBackward
                                         ? 'Bạn đang lùi giai đoạn dự án. Việc này sẽ được ghi lại vào lịch sử.'
                                         : 'Việc chuyển giai đoạn sẽ được ghi lại vào lịch sử dự án.'
@@ -416,14 +416,14 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
                         <div className="p-5 border-t border-gray-200 dark:border-slate-700 flex gap-3">
                             <button
                                 onClick={() => setShowTransitionModal(false)}
-                                className="flex-1 py-2.5 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                className="flex-1 py-2.5 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors"
                             >
                                 Hủy
                             </button>
                             <button
                                 onClick={confirmTransition}
                                 disabled={!transitionData.startDate}
-                                className={`flex-1 py-2.5 ${isGoingBackward ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200 dark:shadow-amber-900/30' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 dark:shadow-blue-900/30'} text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
+                                className={`flex-1 py-2.5 ${isGoingBackward ? 'bg-primary-500 hover:bg-primary-600 shadow-primary-200 dark:shadow-primary-900/30' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-200 dark:shadow-primary-900/30'} text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
                             >
                                 {isGoingBackward ? 'Xác nhận lùi' : 'Xác nhận chuyển'}
                             </button>
@@ -436,3 +436,4 @@ export const LifecycleStepper: React.FC<LifecycleStepperProps> = ({
 };
 
 export default LifecycleStepper;
+

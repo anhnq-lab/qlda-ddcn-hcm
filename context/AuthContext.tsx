@@ -110,7 +110,7 @@ async function fetchUserProfile(authUserId: string): Promise<{
                     Position: 'Nhà thầu',
                     Email: data.email || '',
                     Phone: data.phone || '',
-                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=D4A017&color=fff`,
+                    AvatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(contractorName)}&background=f97316&color=fff`,
                     JoinDate: '',
                     Status: 'Active' as any,
                     Username: data.username || '',
@@ -331,3 +331,4 @@ export const useAuth = () => {
     }
     return context;
 };
+

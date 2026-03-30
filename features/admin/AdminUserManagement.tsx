@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ShieldCheck, Users, Shield, Building2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -65,7 +65,7 @@ const AdminUserManagement: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 pt-5 pb-0">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl shadow-lg shadow-amber-500/20">
+                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/20">
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
                         Quản trị Hệ thống
@@ -90,8 +90,8 @@ const AdminUserManagement: React.FC = () => {
                                     flex items-center gap-2 px-4 py-2.5 text-sm font-medium
                                     rounded-t-lg transition-all duration-200 relative
                                     ${isActive
-                                        ? 'text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10'
-                                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                                        ? 'text-primary-700 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/10'
+                                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'
                                     }
                                 `}
                             >
@@ -99,7 +99,7 @@ const AdminUserManagement: React.FC = () => {
                                 {tab.label}
                                 {/* Active underline */}
                                 {isActive && (
-                                    <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" />
+                                    <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-primary-500 to-primary-500 rounded-full" />
                                 )}
                             </button>
                         );
@@ -112,7 +112,7 @@ const AdminUserManagement: React.FC = () => {
                 <React.Suspense
                     fallback={
                         <div className="flex items-center justify-center h-64">
-                            <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                         </div>
                     }
                 >

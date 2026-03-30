@@ -19,8 +19,8 @@ export const AIResourceOptimizer: React.FC<{ className?: string }> = ({ classNam
     }, []);
 
     return (
-        <div className={`bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden ${className}`}>
+            <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                         <BarChart3 size={14} className="text-white" />
@@ -65,9 +65,9 @@ export const AIResourceOptimizer: React.FC<{ className?: string }> = ({ classNam
                             <p className="text-lg font-black text-red-700 dark:text-red-300">{result.overloadedProjects.length}</p>
                             <p className="text-[9px] text-red-500">Quá tải</p>
                         </div>
-                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2 text-center">
-                            <p className="text-lg font-black text-amber-700 dark:text-amber-300">{result.underutilizedProjects.length}</p>
-                            <p className="text-[9px] text-amber-500">Chưa khai thác</p>
+                        <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-2 text-center">
+                            <p className="text-lg font-black text-primary-700 dark:text-primary-300">{result.underutilizedProjects.length}</p>
+                            <p className="text-[9px] text-primary-500">Chưa khai thác</p>
                         </div>
                     </div>
                 )}
@@ -80,7 +80,7 @@ export const AIResourceOptimizer: React.FC<{ className?: string }> = ({ classNam
                             <span className="text-[10px] font-bold text-slate-500">{alloc.utilizationRate}%</span>
                         </div>
                         <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-1.5">
-                            <div className={`h-full rounded-full ${alloc.utilizationRate >= 70 ? 'bg-emerald-500' : alloc.utilizationRate >= 30 ? 'bg-cyan-500' : 'bg-amber-500'
+                            <div className={`h-full rounded-full ${alloc.utilizationRate >= 70 ? 'bg-emerald-500' : alloc.utilizationRate >= 30 ? 'bg-cyan-500' : 'bg-primary-500'
                                 }`} style={{ width: `${Math.min(100, alloc.utilizationRate)}%` }} />
                         </div>
                         <div className="flex items-center gap-3 text-[10px] text-slate-400">
