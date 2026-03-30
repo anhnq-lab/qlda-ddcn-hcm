@@ -1,0 +1,258 @@
+import React, { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  Info, FileText, Gavel, CheckSquare, Zap, 
+  Users, Clock, Layers, AlertCircle, 
+  Play, Send, CheckCircle, XCircle, FolderOpen, Upload, UserPlus,
+  ThumbsUp, ThumbsDown, History, File, Trash2, Download
+} from 'lucide-react';
+import { WorkflowService } from '@/services/WorkflowService';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/Toast';
+
+interface WorkflowStepDetailPanelProps {
+  nodeId: string;
+  instanceId?: string;
+  projectId: string;
+  staticNode?: any;
+}
+
+export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = ({
+  nodeId,
+  instanceId,
+  projectId,
+  staticNode
+}) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'cde' | 'history'>('overview');
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [approvalComment, setApprovalComment] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 1. Fetch Node & Task details
+  const { data: dbDetails, isLoading } = useQuery({
+    queryKey: ['workflow-task-detail', instanceId, nodeId],
+    queryFn: async () => {
+      if (!instanceId) return null;
+      const { instance, nodes, tasks } = await WorkflowService.getInstanceDetails(instanceId);
+      const node = nodes.find(n => n.id === nodeId);
+      const task = tasks.find(t => t.node_id === nodeId);
+      return { instance, node, task };
+    },
+    enabled: !!instanceId && !!nodeId
+  });
+
+  const details = dbDetails || { node: staticNode, task: undefined, instance: undefined };
+
+  // 2. Fetch Project Members (Chỉ khi có projectId)
+  const { data: members } = useQuery({
+    queryKey: ['project-members', projectId],
+    queryFn: async () => {
+      if (!projectId) return [];
+      const { data, error } = await (supabase as any)
+        .from('project_members')
+        .select(`
+          employee_id,
+          employee:employees(id, full_name, email, department)
+        `)
+        .eq('project_id', projectId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!projectId
+  });
+
+  // 3. Fetch CDE Documents
+  const { data: cdeDocuments } = useQuery({
+    queryKey: ['workflow-task-cde', details?.task?.cde_folder_id],
+    queryFn: async () => {
+      if (!details?.task?.cde_folder_id) return [];
+      const { data, error } = await (supabase as any)
+        .from('documents')
+        .select('*')
+        .eq('folder_id', details.task.cde_folder_id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!details?.task?.cde_folder_id
+  });
+
+  // 4. Fetch Audit Timeline
+  const { data: timeline } = useQuery({
+    queryKey: ['workflow-timeline', instanceId],
+    queryFn: () => instanceId ? WorkflowService.getInstanceTimeline(instanceId) : Promise.resolve([]),
+    enabled: activeTab === 'history' && !!instanceId
+  });
+
+  // ─── Mutations ─────────────────────────────────────────
+
+  const startTaskMutation = useMutation({
+    mutationFn: async () => {
+      if (!details?.node || !details?.instance) return;
+      const taskTitle = details.node.name || 'Nhiệm vụ';
+      const currentUser = selectedAssignee || user?.id || 'system';
+      const folderId = await WorkflowService.getOrCreateTaskFolder(
+        instanceId!, nodeId, taskTitle, currentUser
+      );
+      if (details?.task?.id) {
+        await WorkflowService.startTask(details.task.id, currentUser, folderId);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflow-task-detail'] });
+      addToast({ title: 'Thành công', message: 'Đã bắt đầu thực hiện', type: 'success' });
+    }
+  });
+
+  const submitTaskMutation = useMutation({
+    mutationFn: async () => {
+      if (details?.task?.id) {
+        await WorkflowService.submitTask(details.task.id, notes);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflow-task-detail'] });
+      addToast({ title: 'Thành công', message: 'Đã nộp hồ sơ thành công', type: 'success' });
+    }
+  });
+
+  const approvalMutation = useMutation({
+    mutationFn: async (action: 'approve' | 'reject') => {
+      if (!details?.task?.id) return;
+      await WorkflowService.processApproval(
+        details.task.id, action, approvalComment, user?.id
+      );
+    },
+    onSuccess: (_, action) => {
+      queryClient.invalidateQueries({ queryKey: ['workflow-task-detail'] });
+      addToast({ title: 'Thành công', message: action === 'approve' ? 'Đã phê duyệt' : 'Đã từ chối' });
+    }
+  });
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || !details?.task?.cde_folder_id) return;
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const filePath = `cde/${projectId}/${details.task.cde_folder_id}/${Date.now()}_${file.name}`;
+        const { error: uploadErr } = await supabase.storage.from('documents').upload(filePath, file);
+        if (uploadErr) throw uploadErr;
+        await (supabase as any).from('documents').insert({
+          folder_id: details.task.cde_folder_id,
+          doc_name: file.name,
+          url: filePath,
+          size: file.size.toString(),
+          uploaded_by: user?.id
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['workflow-task-cde'] });
+    } catch (err: any) {
+      addToast({ title: 'Lỗi', message: err.message, type: 'error' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // ─── Render ────────────────────────────────────────────
+
+  if (instanceId && isLoading) return <div className="p-8">Loading...</div>;
+  if (!details?.node) return <div className="p-8">Không tìm thấy thông tin bước</div>;
+
+  const { node, task, instance } = details;
+  const isApprovalNode = node.type === 'approval';
+  const meta = (node.metadata as any) || {};
+
+  return (
+    <div className="flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800">
+      <div className="p-6 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
+        <div className="flex items-start gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${
+            isApprovalNode ? 'bg-violet-600' : 'bg-primary-600'
+          }`}>
+            <Layers className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold dark:text-slate-100">{node.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs font-medium text-gray-500">{(instance as any)?.workflow?.name || 'Workflow Template'}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800">{task?.status || 'Active'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 mt-6">
+          {[
+            { id: 'overview', label: 'Thông tin', icon: Info },
+            { id: 'actions', label: 'Thực hiện', icon: Zap },
+            { id: 'cde', label: 'Hồ sơ CDE', icon: FolderOpen },
+            { id: 'history', label: 'Lịch sử', icon: History },
+          ].map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+              className={`flex items-center gap-2 pb-2 border-b-2 transition-all font-bold text-sm ${
+                activeTab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500'
+              }`}>
+              <t.icon size={16} />{t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {activeTab === 'overview' && (
+          <div className="space-y-6 animate-fade-in">
+            <Section title="Mô tả công việc" icon={FileText}>
+              <p className="text-sm text-gray-700 dark:text-slate-300">{meta.description || 'Chưa có mô tả.'}</p>
+            </Section>
+            <div className="grid grid-cols-2 gap-4">
+              <Section title="Căn cứ pháp lý" icon={Gavel} color="amber">
+                <p className="text-xs text-amber-700">{meta.legal_basis || 'Theo quy định'}</p>
+              </Section>
+              <Section title="SLA" icon={Clock} color="blue">
+                <p className="text-xs text-blue-700">{node.sla_formula || 'N/A'}</p>
+              </Section>
+            </div>
+            <Section title="Sản phẩm đầu ra" icon={CheckSquare} color="emerald">
+              <p className="text-xs text-emerald-700">{meta.output || 'Hồ sơ đầu ra'}</p>
+            </Section>
+          </div>
+        )}
+
+        {activeTab === 'actions' && (
+          <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-100">
+             <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+             <h3 className="font-bold mb-2">Thông tin Nghiệp vụ</h3>
+             <p className="text-sm text-slate-500">Mục thực hiện này chỉ khả dụng khi quy trình được khởi chạy trong dự án cụ thể.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Section: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; color?: string }> = ({ 
+  title, icon: Icon, children, color = 'gray' 
+}) => {
+  const colorMap: any = {
+    gray: 'bg-gray-100 text-gray-500',
+    amber: 'bg-amber-100 text-amber-600',
+    blue: 'bg-blue-100 text-blue-600',
+    emerald: 'bg-emerald-100 text-emerald-600'
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className={`p-1.5 rounded-lg ${colorMap[color]}`}><Icon size={14} /></div>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</h3>
+      </div>
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">{children}</div>
+    </div>
+  );
+};
+
+export default WorkflowStepDetailPanel;

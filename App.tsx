@@ -45,7 +45,7 @@ const Settings = React.lazy(() => import('./features/settings/Settings'));
 const AuditLogViewer = React.lazy(() => import('./features/admin/AuditLogViewer'));
 const AdminUserManagement = React.lazy(() => import('./features/admin/AdminUserManagement'));
 
-const ISOManagerPage = React.lazy(() => import('./features/workflows/ISOManagerPage'));
+const WorkflowManagerPage = React.lazy(() => import('./features/workflows/WorkflowManagerPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -130,8 +130,8 @@ const App: React.FC = () => {
                                                 </React.Suspense>
                                             </ProtectedRoute>
                                         } />
-                                        {/* ISO Workflow Manager */}
-                                        <Route path="iso-workflows" element={<React.Suspense fallback={<PageLoadingFallback />}><ISOManagerPage /></React.Suspense>} />
+                                        {/* Workflow Manager */}
+                                        <Route path="workflows" element={<React.Suspense fallback={<PageLoadingFallback />}><WorkflowManagerPage /></React.Suspense>} />
                                         {/* Backward-compatible redirects */}
                                         <Route path="user-accounts" element={<Navigate to="/admin?tab=accounts" replace />} />
                                         <Route path="permissions" element={<Navigate to="/admin?tab=permissions" replace />} />

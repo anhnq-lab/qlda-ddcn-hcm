@@ -1,0 +1,657 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../components/ui/Toast';
+import { Save, FileText, Tag, Hash, ToggleLeft, LayoutList, Settings2, Clock, Shield, FileInput, CheckCircle2, ChevronRight, ArrowRight, PenLine, ArrowUp, ArrowDown, Trash2, Plus, X, FileSpreadsheet, ChevronDown } from 'lucide-react';
+import type { Workflow, WorkflowCategory, WorkflowNode } from '../../../types/workflow.types';
+import { useSlidePanel } from '../../../context/SlidePanelContext';
+import NodeDetailPanel from './NodeDetailPanel';
+
+interface WorkflowSlidePanelProps {
+    workflowId: string; // empty string = CREATE mode
+    onClose: () => void;
+    onUpdate?: () => void;
+    initialTab?: 'overview' | 'settings';
+    onViewFlowchart?: () => void;
+}
+
+const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
+    workflowId, onClose, onUpdate, initialTab = 'overview', onViewFlowchart
+}) => {
+    const isCreateMode = !workflowId;
+    const [workflow, setWorkflow] = useState<Workflow | null>(null);
+    const [nodes, setNodes] = useState<WorkflowNode[]>([]);
+    const [isLoading, setIsLoading] = useState(!isCreateMode);
+    const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState<'overview' | 'settings'>(isCreateMode ? 'settings' : initialTab);
+    const { addToast } = useToast();
+    const { openPanel } = useSlidePanel();
+
+    const [name, setName] = useState('');
+    const [code, setCode] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState<WorkflowCategory>('project');
+    const [isActive, setIsActive] = useState(true);
+    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
+    const [expandedSubProcesses, setExpandedSubProcesses] = useState<Record<string, boolean>>({});
+    const [isWorkflowCodeExpanded, setIsWorkflowCodeExpanded] = useState(true);
+
+    const togglePhase = (phaseKey: string) => {
+        setExpandedPhases(prev => ({ ...prev, [phaseKey]: prev[phaseKey] === undefined ? false : !prev[phaseKey] }));
+    };
+
+    const toggleSubProcess = (subProcessKey: string) => {
+        setExpandedSubProcesses(prev => ({ ...prev, [subProcessKey]: prev[subProcessKey] === undefined ? false : !prev[subProcessKey] }));
+    };
+
+    useEffect(() => {
+        if (isCreateMode) return;
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const [wfRes, nodesRes] = await Promise.all([
+                    supabase.from('workflows').select('*').eq('id', workflowId).single(),
+                    supabase.from('workflow_nodes').select('*').eq('workflow_id', workflowId).order('created_at', { ascending: true })
+                ]);
+                if (wfRes.error) throw wfRes.error;
+                setWorkflow(wfRes.data);
+                setName(wfRes.data.name || '');
+                setCode(wfRes.data.code || '');
+                setDescription(wfRes.data.description || '');
+                setCategory(wfRes.data.category || 'project');
+                setIsActive(wfRes.data.is_active ?? true);
+                setNodes(nodesRes.data || []);
+            } catch (err: any) {
+                addToast({ title: 'Lỗi tải dữ liệu', message: err.message, type: 'error' });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, [workflowId, addToast, isCreateMode]);
+
+    // ─── CREATE ───────────────────────────────────────────────
+    const handleCreate = async () => {
+        if (!name.trim()) {
+            addToast({ title: 'Thiếu thông tin', message: 'Vui lòng nhập tên quy trình.', type: 'error' });
+            return;
+        }
+        if (!code.trim()) {
+            addToast({ title: 'Thiếu thông tin', message: 'Vui lòng nhập mã quy trình.', type: 'error' });
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const { data, error } = await supabase.from('workflows')
+                .insert({ 
+                    name: name.trim(), 
+                    code: code.trim().toUpperCase(), 
+                    description: description || null, 
+                    category, 
+                    is_active: isActive, 
+                    version: 1 
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            
+            addToast({ title: 'Tạo thành công', message: `Quy trình "${data.name}" đã được tạo.`, type: 'success' });
+            if (onUpdate) onUpdate();
+        } catch (err: any) {
+            addToast({ title: 'Lỗi tạo quy trình', message: err.message, type: 'error' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // ─── UPDATE ───────────────────────────────────────────────
+    const handleSave = async () => {
+        if (!workflow) return;
+        setIsSaving(true);
+        try {
+            const { error } = await supabase.from('workflows')
+                .update({ name, code, description: description || null, category, is_active: isActive, updated_at: new Date().toISOString() })
+                .eq('id', workflowId);
+            if (error) throw error;
+            addToast({ title: 'Cập nhật thành công', message: 'Đã lưu cấu hình quy trình.', type: 'success' });
+            if (onUpdate) onUpdate();
+        } catch (err: any) {
+            addToast({ title: 'Lỗi khi lưu', message: err.message, type: 'error' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // ─── DELETE WORKFLOW ──────────────────────────────────────
+    const handleDeleteWorkflow = async () => {
+        if (!workflow) return;
+        if (!window.confirm(`Xác nhận xóa quy trình "${workflow.name}"?\n\nTất cả bước nghiệp vụ liên quan sẽ bị xóa.`)) return;
+        
+        try {
+            await supabase.from('workflow_edges').delete().eq('workflow_id', workflowId);
+            await supabase.from('workflow_nodes').delete().eq('workflow_id', workflowId);
+            const { error } = await supabase.from('workflows').delete().eq('id', workflowId);
+            if (error) throw error;
+            addToast({ title: 'Đã xóa', message: `Xóa quy trình "${workflow.name}" thành công.`, type: 'success' });
+            if (onUpdate) onUpdate();
+            onClose();
+        } catch (err: any) {
+            addToast({ title: 'Lỗi xóa', message: err.message, type: 'error' });
+        }
+    };
+
+    // ─── NODE CRUD ────────────────────────────────────────────
+    const handleSaveNode = async (nodeId: string, updatedData: any) => {
+        try {
+            const { error } = await supabase.from('workflow_nodes')
+                .update(updatedData)
+                .eq('id', nodeId);
+            if (error) throw error;
+            addToast({ title: 'Cập nhật thành công', message: 'Đã lưu thay đổi bước quy trình.', type: 'success' });
+            setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, ...updatedData } : n));
+        } catch (err: any) {
+            addToast({ title: 'Lỗi cập nhật', message: err.message, type: 'error' });
+        }
+    };
+
+    const rebuildLinearEdges = async (orderedNodes: WorkflowNode[]) => {
+        try {
+            await supabase.from('workflow_edges').delete().eq('workflow_id', workflowId);
+            const newEdges = [];
+            for (let i = 0; i < orderedNodes.length - 1; i++) {
+                newEdges.push({
+                    workflow_id: workflowId,
+                    source_node: orderedNodes[i].id,
+                    target_node: orderedNodes[i + 1].id
+                });
+            }
+            if (newEdges.length > 0) {
+                await supabase.from('workflow_edges').insert(newEdges);
+            }
+        } catch (err) {
+            console.error('Lỗi khi cập nhật liên kết:', err);
+        }
+    };
+
+    const reorderDatabaseCreatedDates = async (orderedNodes: WorkflowNode[]) => {
+        const now = new Date().getTime();
+        for (let i = 0; i < orderedNodes.length; i++) {
+            const newDate = new Date(now + i * 1000).toISOString();
+            await supabase.from('workflow_nodes')
+                .update({ created_at: newDate })
+                .eq('id', orderedNodes[i].id);
+            orderedNodes[i].created_at = newDate;
+        }
+        return orderedNodes;
+    };
+
+    const moveNodeUp = async (nodeId: string) => {
+        const idx = nodes.findIndex(n => n.id === nodeId);
+        if (idx <= 0) return;
+        const newNodes = [...nodes];
+        [newNodes[idx - 1], newNodes[idx]] = [newNodes[idx], newNodes[idx - 1]];
+        setNodes(newNodes);
+        
+        const finalNodes = await reorderDatabaseCreatedDates(newNodes);
+        await rebuildLinearEdges(finalNodes);
+        addToast({ title: 'Cập nhật', message: 'Đã đẩy bước lên trên', type: 'success' });
+    };
+
+    const moveNodeDown = async (nodeId: string) => {
+        const idx = nodes.findIndex(n => n.id === nodeId);
+        if (idx < 0 || idx >= nodes.length - 1) return;
+        const newNodes = [...nodes];
+        [newNodes[idx], newNodes[idx + 1]] = [newNodes[idx + 1], newNodes[idx]];
+        setNodes(newNodes);
+
+        const finalNodes = await reorderDatabaseCreatedDates(newNodes);
+        await rebuildLinearEdges(finalNodes);
+        addToast({ title: 'Cập nhật', message: 'Đã kéo bước xuống dưới', type: 'success' });
+    };
+
+    const addNode = async () => {
+        try {
+            const newNodeCode = (nodes.length + 1).toString().padStart(2, '0');
+            const { data, error } = await supabase.from('workflow_nodes')
+                .insert({
+                    workflow_id: workflowId,
+                    name: `[NEW-${newNodeCode}] Bước mới`,
+                    type: 'input',
+                    assignee_role: 'Chưa giao'
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            
+            const newNodes = [...nodes, data];
+            setNodes(newNodes);
+            await rebuildLinearEdges(newNodes);
+            addToast({ title: 'Thêm bước', message: 'Đã thêm bước mới vào cuối', type: 'success' });
+        } catch (err: any) {
+            addToast({ title: 'Lỗi thêm bước', message: err.message, type: 'error' });
+        }
+    };
+
+    const deleteNode = async (nodeId: string) => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa bước này?')) return;
+        try {
+            const { error } = await supabase.from('workflow_nodes').delete().eq('id', nodeId);
+            if (error) throw error;
+
+            const newNodes = nodes.filter(n => n.id !== nodeId);
+            setNodes(newNodes);
+            await rebuildLinearEdges(newNodes);
+            addToast({ title: 'Đã xóa', message: 'Xóa bước thành công', type: 'success' });
+        } catch (err: any) {
+            addToast({ title: 'Lỗi xóa bước', message: err.message, type: 'error' });
+        }
+    };
+
+    if (isLoading) return (
+        <div className="flex flex-col h-full bg-white dark:bg-slate-900 p-8 pt-16">
+            <div className="animate-pulse space-y-4">
+                {[...Array(4)].map((_, i) => <div key={i} className="h-8 bg-slate-200 dark:bg-slate-800 rounded" />)}
+            </div>
+        </div>
+    );
+
+    if (!isCreateMode && !workflow) return null;
+
+    const displayNodes = nodes;
+
+    const PHASE_NAMES: Record<string, string> = {
+        preparation: 'Chuẩn bị dự án',
+        execution: 'Thực hiện dự án',
+        completion: 'Kết thúc xây dựng'
+    };
+
+    const groupedPhases = displayNodes.reduce((acc: any, node) => {
+        const meta = (node.metadata as any) || {};
+        const phaseKey = meta.phase || 'other';
+        const subProcessKey = meta.sub_process || 'Mặc định';
+
+        if (!acc[phaseKey]) {
+            acc[phaseKey] = {
+                title: PHASE_NAMES[phaseKey] || 'KHÁC',
+                sub_processes: {}
+            };
+        }
+
+        if (!acc[phaseKey].sub_processes[subProcessKey]) {
+            acc[phaseKey].sub_processes[subProcessKey] = [];
+        }
+
+        acc[phaseKey].sub_processes[subProcessKey].push(node);
+        return acc;
+    }, {});
+
+    const openEditPanel = (node: WorkflowNode) => {
+        openPanel({
+            id: 'node-detail-' + node.id,
+            title: 'Chi tiết Bước',
+            icon: <PenLine size={16} />,
+            component: <NodeDetailPanel node={node} onSave={handleSaveNode} />
+        });
+    };
+
+    const parseSla = (f?: string | null) => {
+        if (!f) return null;
+        const val = f.match(/^(\d+)/)?.[0] || '';
+        if (f.endsWith('wd')) return `${val} ngày làm việc`;
+        if (f.endsWith('h')) return `${val} giờ`;
+        return `${val} ngày`;
+    };
+
+    const nodeTypeConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
+        approval: { icon: Shield, color: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30', label: 'Phê duyệt' },
+        input: { icon: FileInput, color: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30', label: 'Lập hồ sơ' },
+        automated: { icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30', label: 'Tự động' },
+        start: { icon: ChevronRight, color: 'text-emerald-600 bg-emerald-100', label: 'Bắt đầu' },
+        end: { icon: CheckCircle2, color: 'text-slate-500 bg-slate-100', label: 'Kết thúc' },
+    };
+
+    const CATEGORY_OPTIONS: { value: WorkflowCategory; label: string }[] = [
+        { value: 'project', label: 'Dự án Đầu tư' },
+        { value: 'implementation', label: 'Thực hiện Dự án' },
+        { value: 'investment', label: 'Đầu tư công' },
+        { value: 'procurement', label: 'Đấu thầu' },
+        { value: 'document', label: 'Văn bản' },
+        { value: 'finance', label: 'Tài chính' },
+        { value: 'hr', label: 'Nhân sự' },
+        { value: 'asset', label: 'Tài sản' },
+        { value: 'other', label: 'Khác' },
+    ];
+
+    return (
+        <div className="flex flex-col h-full bg-[#FAFAF8] dark:bg-slate-900 relative">
+            <div className="p-6 pb-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                            <LayoutList size={20} className="text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black text-slate-800 dark:text-white leading-tight font-display">
+                                {isCreateMode ? 'Tạo Quy Trình Mới' : workflow?.name}
+                            </h2>
+                            {!isCreateMode && (
+                                <p className="text-xs font-mono text-slate-400">{workflow?.code} · v{workflow?.version}.0</p>
+                            )}
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+                        title="Đóng panel"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                {!isCreateMode && (
+                    <div className="flex gap-1">
+                        {[
+                            { id: 'overview', label: 'Tổng quan', icon: LayoutList },
+                            { id: 'settings', label: 'Cài đặt', icon: Settings2 },
+                        ].map(t => (
+                            <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+                                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition-colors ${
+                                    activeTab === t.id
+                                        ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                                        : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}>
+                                <t.icon size={14} />{t.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="flex-1 overflow-auto p-6 custom-scrollbar pb-28">
+                {!isCreateMode && activeTab === 'overview' && (
+                    <div className="space-y-5 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm space-y-3">
+                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                {workflow?.description || 'Chưa có mô tả quy trình.'}
+                            </p>
+                            <div className="flex items-center gap-3 pt-1">
+                                <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                                    {displayNodes.length} bước thực hiện
+                                </div>
+                                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                                    isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                             : 'bg-slate-100 text-slate-500'}`}>
+                                    {isActive ? '● Đang hoạt động' : '○ Tạm dừng'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {onViewFlowchart && (
+                            <button onClick={onViewFlowchart}
+                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition shadow-md hover:shadow-lg">
+                                <ArrowRight size={16} />
+                                Xem Sơ đồ Quy trình
+                            </button>
+                        )}
+
+                        <div className="space-y-3 pt-4">
+                            <h3 className="text-[13px] font-bold text-slate-800 dark:text-white uppercase tracking-wider">Quy trình chi tiết</h3>
+                            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+                                <table className="w-full min-w-[1400px] text-left text-[13px] border-collapse table-fixed">
+                                    <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700">
+                                        <tr className="font-bold text-slate-700 dark:text-slate-300">
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 text-center w-12 align-middle border-b-2">TT</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-24 align-middle text-center border-b-2">Thời gian</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[25%] align-middle border-b-2">Công việc chi tiết</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[12%] align-middle">Đơn vị thực hiện</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[18%] align-middle">Đầu ra quy định</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[18%] align-middle">Mẫu số/Ghi chú</th>
+                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[20%] align-middle">Cơ sở pháp lý</th>
+                                            <th className="p-3 border-slate-200 dark:border-slate-700 text-center w-16 align-middle">Tác vụ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
+                                        {Object.entries(groupedPhases).map(([phaseKey, phaseGroup]: [string, any]) => {
+                                            const isExpanded = expandedPhases[phaseKey] !== false;
+                                            return (
+                                                <React.Fragment key={phaseKey}>
+                                                    <tr 
+                                                        className="bg-slate-200/50 dark:bg-slate-800/80 cursor-pointer hover:bg-slate-300/50 dark:hover:bg-slate-700 transition-colors"
+                                                        onClick={() => togglePhase(phaseKey)}
+                                                    >
+                                                        <td colSpan={8} className="p-3 font-bold text-slate-800 dark:text-white uppercase tracking-wide text-[13px] border-b border-slate-300 dark:border-slate-600">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-slate-500 dark:text-slate-400">
+                                                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                                                </span>
+                                                                Giai đoạn: {phaseGroup.title} 
+                                                                <span className="text-slate-500 dark:text-slate-400 font-medium text-xs normal-case ml-2">
+                                                                    ({Object.values(phaseGroup.sub_processes).reduce((count: number, nodes: any) => count + nodes.length, 0)} bước)
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {isExpanded && Object.entries(phaseGroup.sub_processes).map(([subKey, subNodes]: [string, any]) => {
+                                                        const spToggleKey = `${phaseKey}-${subKey}`;
+                                                        const isSpExpanded = expandedSubProcesses[spToggleKey] !== false;
+
+                                                        return (
+                                                            <React.Fragment key={spToggleKey}>
+                                                                {subKey !== 'Mặc định' && (
+                                                                    <tr 
+                                                                        className="bg-emerald-50/70 dark:bg-emerald-900/40 cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/60 transition-colors"
+                                                                        onClick={() => toggleSubProcess(spToggleKey)}
+                                                                    >
+                                                                        <td colSpan={8} className="p-2 pl-6 font-semibold text-emerald-800 dark:text-emerald-300 tracking-wide text-[13px] border-b border-emerald-200 dark:border-emerald-800/50">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-emerald-600 dark:text-emerald-500">
+                                                                                    {isSpExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                                                                </span>
+                                                                                <FileSpreadsheet size={16} className="text-emerald-500 dark:text-emerald-500" />
+                                                                                <span>{subKey}</span>
+                                                                                <span className="text-emerald-600/70 dark:text-emerald-400/70 font-medium text-[11px] normal-case ml-2">({(subNodes as any[]).length} bước)</span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+
+                                                                {isSpExpanded && (subNodes as any[]).map((node: any, index: number) => {
+                                                                    const meta = (node.metadata as any) || {};
+                                                                    const duration = parseSla(node.sla_formula);
+                                                                    const subTasks = meta.sub_tasks || [];
+
+                                                                    return (
+                                                                        <React.Fragment key={node.id}>
+                                                                            <tr className="bg-slate-50 dark:bg-slate-800/50 group border-b text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700">
+                                                                                <td className="p-3 border-r border-slate-200 dark:border-slate-700 text-center font-bold text-slate-500">
+                                                                                    {index + 1}
+                                                                                </td>
+                                                                                <td colSpan={6} className="p-3 cursor-pointer" onClick={() => openEditPanel(node)}>
+                                                                                    <div className="font-bold text-sm text-primary-700 dark:text-primary-400">{node.name}</div>
+                                                                                    {meta.description && <div className="text-xs text-slate-500 mt-0.5">{meta.description}</div>}
+                                                                                </td>
+                                                                                <td className="p-2 text-center align-middle border-slate-200 dark:border-slate-700">
+                                                                                    <div className="flex items-center justify-center gap-1 opacity-100">
+                                                                                        <button onClick={(e) => { e.stopPropagation(); moveNodeUp(node.id); }}
+                                                                                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Lên trên">
+                                                                                            <ArrowUp size={14} />
+                                                                                        </button>
+                                                                                        <button onClick={(e) => { e.stopPropagation(); moveNodeDown(node.id); }}
+                                                                                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Xuống dưới">
+                                                                                            <ArrowDown size={14} />
+                                                                                        </button>
+                                                                                        <button onClick={(e) => { e.stopPropagation(); openEditPanel(node); }}
+                                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Chỉnh sửa">
+                                                                                            <PenLine size={14} />
+                                                                                        </button>
+                                                                                        <button onClick={(e) => { e.stopPropagation(); deleteNode(node.id); }}
+                                                                                            className="p-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-lg transition-colors" title="Xóa">
+                                                                                            <Trash2 size={14} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                            {/* Render Sub Tasks */}
+                                                                            {subTasks.map((st: any, stIdx: number) => (
+                                                                                <tr key={st.id || stIdx} className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-center text-xs font-semibold text-slate-400">
+                                                                                        {index + 1}.{stIdx + 1}
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10">
+                                                                                        {stIdx === 0 ? duration : '-'}
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800">
+                                                                                        <div className="font-medium text-slate-700 dark:text-slate-300 text-[13px] whitespace-pre-wrap">{st.name}</div>
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-xs">
+                                                                                        {st.assignee_role}
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-[13px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                                                                        {st.output}
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-[13px] text-blue-600 dark:text-blue-400 italic whitespace-pre-wrap">
+                                                                                        {st.template_forms}
+                                                                                        {st.template_url && (
+                                                                                            <a href={st.template_url} target="_blank" rel="noreferrer" className="block mt-1 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 underline">
+                                                                                                [Tải biểu mẫu]
+                                                                                            </a>
+                                                                                        )}
+                                                                                    </td>
+                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 whitespace-pre-wrap">
+                                                                                        {st.legal_basis}
+                                                                                    </td>
+                                                                                    <td className="p-2 border-slate-100 dark:border-slate-800"></td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </React.Fragment>
+                                                                    );
+                                                                })}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </React.Fragment>
+                                            );
+                                        })}
+                                        {displayNodes.length === 0 && (
+                                            <tr>
+                                                <td colSpan={8} className="p-10 text-center text-slate-500 font-medium">
+                                                    Chưa có bước nghiệp vụ nào. Hãy thêm bước đầu tiên.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                                <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-center">
+                                    <button onClick={addNode} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-xl transition-colors border border-dashed border-primary-200 dark:border-primary-800">
+                                        <Plus size={16} /> Thêm Bước Nghiệp Vụ Mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── TAB CÀI ĐẶT (also used for CREATE) ── */}
+                {(activeTab === 'settings' || isCreateMode) && (
+                    <div className="space-y-6 animate-fade-in">
+                        {isCreateMode && (
+                            <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-4 flex items-start gap-3">
+                                <Plus size={18} className="text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-bold text-primary-800 dark:text-primary-300">Tạo quy trình mới</p>
+                                    <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">Điền thông tin bên dưới để tạo khung quy trình. Sau khi tạo, bạn có thể thêm các bước nghiệp vụ.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                                    <FileText size={14} className="text-primary-500" /> Tên quy trình <span className="text-rose-500">*</span>
+                                </label>
+                                <input type="text" value={name} onChange={e => setName(e.target.value)}
+                                    placeholder="VD: Quy trình phê duyệt thiết kế cơ sở"
+                                    className="w-full h-11 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                                        <Hash size={14} className="text-emerald-500" /> Mã quy trình <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" value={code} onChange={e => setCode(e.target.value)}
+                                        placeholder="VD: QT-TKCS"
+                                        className="w-full h-11 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-sm font-semibold uppercase font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                                        <Tag size={14} className="text-blue-500" /> Phân loại
+                                    </label>
+                                    <select value={category} onChange={e => setCategory(e.target.value as WorkflowCategory)}
+                                        className="w-full h-11 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors">
+                                        {CATEGORY_OPTIONS.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                                    <FileText size={14} className="text-slate-500" /> Mô tả
+                                </label>
+                                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
+                                    placeholder="Mô tả quy trình, mục đích, phạm vi áp dụng..."
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors custom-scrollbar" />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                        <ToggleLeft size={16} className={isActive ? 'text-emerald-500' : 'text-slate-400'} />
+                                        Trạng thái hoạt động
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500 mt-1">Bật để hệ thống có thể tạo hồ sơ từ chuẩn này.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" className="sr-only peer" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500" />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Delete zone (only for edit mode) */}
+                        {!isCreateMode && (
+                            <div className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800/50 rounded-xl p-4">
+                                <h4 className="text-sm font-bold text-rose-700 dark:text-rose-400 mb-2">Vùng nguy hiểm</h4>
+                                <p className="text-xs text-rose-600 dark:text-rose-500 mb-3">Xóa quy trình sẽ xóa tất cả các bước nghiệp vụ liên quan. Thao tác này không thể hoàn tác.</p>
+                                <button onClick={handleDeleteWorkflow}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors">
+                                    <Trash2 size={15} /> Xóa Quy Trình Này
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Footer */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 z-10">
+                <button onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
+                    Đóng
+                </button>
+                {(activeTab === 'settings' || isCreateMode) && (
+                    <button onClick={isCreateMode ? handleCreate : handleSave} disabled={isSaving}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 transition shadow-md flex items-center gap-2 disabled:opacity-50">
+                        {isSaving ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={15} />}
+                        {isCreateMode ? 'Tạo Quy Trình' : 'Lưu cài đặt'}
+                    </button>
+                )}
+            </div>
+
+            {/* Removal of NodeEditModal Component since we are using openEditPanel slide panel */}
+        </div>
+    );
+};
+
+export default WorkflowSlidePanel;

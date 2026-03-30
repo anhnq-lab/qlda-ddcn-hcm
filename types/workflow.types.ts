@@ -1,14 +1,14 @@
-export type IsoWorkflowCategory = 'project' | 'document' | 'finance' | 'hr' | 'asset' | 'other';
-export type IsoWorkflowNodeType = 'start' | 'end' | 'approval' | 'input' | 'automated';
-export type IsoWorkflowInstanceStatus = 'draft' | 'in_progress' | 'completed' | 'rejected' | 'cancelled';
-export type IsoWorkflowTaskStatus = 'pending' | 'in_progress' | 'completed' | 'rejected' | 'skipped' | 'transferred';
+export type WorkflowCategory = 'project' | 'implementation' | 'investment' | 'procurement' | 'document' | 'finance' | 'hr' | 'asset' | 'other';
+export type WorkflowNodeType = 'start' | 'end' | 'approval' | 'input' | 'automated';
+export type WorkflowInstanceStatus = 'draft' | 'in_progress' | 'completed' | 'rejected' | 'cancelled';
+export type WorkflowTaskStatus = 'pending' | 'in_progress' | 'completed' | 'rejected' | 'skipped' | 'transferred';
 
-export interface IsoWorkflow {
+export interface Workflow {
     id: string;
     code: string;
     name: string;
     description: string | null;
-    category: IsoWorkflowCategory;
+    category: WorkflowCategory;
     version: number;
     is_active: boolean;
     metadata: Record<string, any>;
@@ -17,11 +17,11 @@ export interface IsoWorkflow {
     updated_at: string;
 }
 
-export interface IsoWorkflowNode {
+export interface WorkflowNode {
     id: string;
     workflow_id: string;
     name: string;
-    type: IsoWorkflowNodeType;
+    type: WorkflowNodeType;
     assignee_role: string | null;
     sla_formula: string | null;
     form_config: Record<string, any>;
@@ -31,7 +31,7 @@ export interface IsoWorkflowNode {
     updated_at: string;
 }
 
-export interface IsoWorkflowEdge {
+export interface WorkflowEdge {
     id: string;
     workflow_id: string;
     source_node: string;
@@ -40,13 +40,13 @@ export interface IsoWorkflowEdge {
     created_at: string;
 }
 
-export interface IsoWorkflowInstance {
+export interface WorkflowInstance {
     id: string;
     workflow_id: string;
     workflow?: any; // joined data
     reference_id: string | null;
     reference_type: string | null;
-    status: IsoWorkflowInstanceStatus;
+    status: WorkflowInstanceStatus;
     current_node_id: string | null;
     context_data: Record<string, any>;
     created_by: string;
@@ -55,12 +55,12 @@ export interface IsoWorkflowInstance {
     updated_at: string;
 }
 
-export interface IsoWorkflowTask {
+export interface WorkflowTask {
     id: string;
     instance_id: string;
     node_id: string;
     assignee_id: string | null;
-    status: IsoWorkflowTaskStatus;
+    status: WorkflowTaskStatus;
     action_taken: string | null;
     comments: string | null;
     digital_signature: Record<string, any> | null;

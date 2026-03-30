@@ -28,7 +28,6 @@ import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
 import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
 import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
 import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
-import ProjectWorkflowTab from './components/ProjectWorkflowTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2, GitBranch } from 'lucide-react';
@@ -43,7 +42,6 @@ import { generateMonthlyReport } from '@/services/aiService';
 const TAB_DEFINITIONS = [
     { id: 'info', label: 'TỔNG QUAN', icon: Info },
     { id: 'plan', label: 'KẾ HOẠCH', icon: CalendarCheck },
-    { id: 'workflow', label: 'QUY TRÌNH', icon: GitBranch },
     { id: 'packages', label: 'GÓI THẦU', icon: Briefcase },
     { id: 'capital', label: 'VỐN & GIẢI NGÂN', icon: Landmark },
     { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
@@ -159,7 +157,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [planMounted, setPlanMounted] = useState(activeTab === 'plan');
     const [packagesMounted, setPackagesMounted] = useState(activeTab === 'packages');
     const [capitalMounted, setCapitalMounted] = useState(activeTab === 'capital');
-    const [workflowMounted, setWorkflowMounted] = useState(activeTab === 'workflow');
 
     // Mount heavy tabs on first visit
     useEffect(() => {
@@ -167,8 +164,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (activeTab === 'plan' && !planMounted) setPlanMounted(true);
         if (activeTab === 'packages' && !packagesMounted) setPackagesMounted(true);
         if (activeTab === 'capital' && !capitalMounted) setCapitalMounted(true);
-        if (activeTab === 'workflow' && !workflowMounted) setWorkflowMounted(true);
-    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted, workflowMounted]);
+    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted]);
 
     // Keyboard: Arrow Left/Right to switch tabs
     const activeTabRef = React.useRef(activeTab);
@@ -598,18 +594,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     style={activeTab === 'operations' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ProjectOperationsTab projectID={project.ProjectID} />
-                </div>
-            )}
-            {workflowMounted && (
-                <div
-                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'workflow' ? '' : 'absolute inset-0 pointer-events-none'}`}
-                    style={activeTab === 'workflow' ? undefined : { visibility: 'hidden', zIndex: -1 }}
-                >
-                    <ProjectWorkflowTab
-                        projectId={project.ProjectID}
-                        projectGroup={project.GroupCode || 'C'}
-                        projectName={project.ProjectName}
-                    />
                 </div>
             )}
 

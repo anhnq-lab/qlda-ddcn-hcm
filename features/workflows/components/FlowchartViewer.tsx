@@ -18,7 +18,7 @@ interface FlowEdge {
     condition?: string;
 }
 
-interface ISOFlowchartViewerProps {
+interface FlowchartViewerProps {
     workflowName: string;
     nodes: ActivityNode[];
     edges: FlowEdge[];
@@ -29,12 +29,12 @@ interface ISOFlowchartViewerProps {
 }
 
 /**
- * ISOFlowchartViewer: Sơ đồ quy trình ISO chuyên nghiệp
+ * FlowchartViewer: Sơ đồ quy trình  chuyên nghiệp
  * - Phân biệt rõ node types (Start=tròn, Approval=hình thoi, Input=chữ nhật, End=tròn đôi)
  * - Hiển thị SLA, trạng thái (completed/active/rejected/pending)
  * - Hỗ trợ branching (multiple nodes per level)
  */
-const ISOFlowchartViewer: React.FC<ISOFlowchartViewerProps> = ({
+const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
     workflowName,
     nodes,
     edges,
@@ -264,4 +264,4 @@ const ISOFlowchartViewer: React.FC<ISOFlowchartViewerProps> = ({
     );
 };
 
-export default ISOFlowchartViewer;
+export default FlowchartViewer;
