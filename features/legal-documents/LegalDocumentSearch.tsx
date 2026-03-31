@@ -7,7 +7,19 @@ import { LegalDetail } from './components/LegalDetail';
 import { LegalTOC } from './components/LegalTOC';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-const LegalDocumentSearch: React.FC = () => {
+interface LegalDocumentSearchProps {
+    isEmbedded?: boolean;
+    initialSearchQuery?: string;
+    initialDocId?: string | null;
+    initialArticleId?: string | null;
+}
+
+const LegalDocumentSearch: React.FC<LegalDocumentSearchProps> = ({ 
+    isEmbedded = false, 
+    initialSearchQuery = '', 
+    initialDocId = null, 
+    initialArticleId = null 
+}) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const urlDocId = searchParams.get('docId');
     const urlArticleId = searchParams.get('articleId');
@@ -18,9 +30,9 @@ const LegalDocumentSearch: React.FC = () => {
     const [fromPath] = useState<string | null>(urlFrom);
 
     // 1. Shared State
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-    const [selectedDocId, setSelectedDocId] = useState<string>(urlDocId || legalDocuments[0]?.id || '');
+    const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
+    const [selectedDocId, setSelectedDocId] = useState<string>(initialDocId || urlDocId || legalDocuments[0]?.id || '');
     const [filterType, setFilterType] = useState<DocType | 'all'>('all');
 
     // UI State
@@ -84,19 +96,23 @@ const LegalDocumentSearch: React.FC = () => {
     useEffect(() => {
         if (selectedDoc) {
             // Preserve from param when updating URL
-            const newParams: Record<string, string> = { docId: selectedDoc.id };
-            if (fromPath) newParams.from = fromPath;
-            setSearchParams(newParams);
+            if (!isEmbedded) {
+                const newParams: Record<string, string> = { docId: selectedDoc.id };
+                if (fromPath) newParams.from = fromPath;
+                setSearchParams(newParams);
+            }
 
             // if we haven't loaded anything yet or we switch docs
-            if (expandedChapters.size === 0) {
-                // If there's a urlArticleId, we should open that chapter instead
+            if (expandedChapters.size === 0 || initialArticleId) {
+                // If there's a urlArticleId or initialArticleId, we should open that chapter instead
+                const targetArticleId = initialArticleId || urlArticleId;
                 let targetChapterId = selectedDoc.chapters[0]?.id;
-                if (urlArticleId) {
-                    const chapterWithArticle = selectedDoc.chapters.find(c => c.articles.some(a => a.id === urlArticleId));
+                
+                if (targetArticleId) {
+                    const chapterWithArticle = selectedDoc.chapters.find(c => c.articles.some(a => a.id === targetArticleId));
                     if (chapterWithArticle) {
                         targetChapterId = chapterWithArticle.id;
-                        setTimeout(() => scrollToArticle(urlArticleId, targetChapterId), 300);
+                        setTimeout(() => scrollToArticle(targetArticleId, targetChapterId), 300);
                     }
                 }
                 setExpandedChapters(new Set([targetChapterId]));
@@ -104,7 +120,7 @@ const LegalDocumentSearch: React.FC = () => {
                 setExpandedArticles(new Set(allArticles));
             }
         }
-    }, [selectedDocId, selectedDoc]);
+    }, [selectedDocId, selectedDoc, isEmbedded, fromPath, initialArticleId, urlArticleId]);
 
     // Handlers
     const toggleChapter = (chapterId: string) => {
@@ -191,9 +207,9 @@ const LegalDocumentSearch: React.FC = () => {
     ) : null;
 
     return (
-        <div className={`flex flex-col ${readingMode ? 'fixed inset-0 z-50 bg-[#FCF9F2] dark:bg-slate-900 p-6' : 'h-[calc(100vh-140px)]'} animate-in fade-in duration-300`}>
+        <div className={`flex flex-col ${readingMode ? 'fixed inset-0 z-50 bg-[#FCF9F2] dark:bg-slate-900 p-6' : (isEmbedded ? 'h-full' : 'h-[calc(100vh-140px)]')} animate-in fade-in duration-300`}>
             {/* Back Navigation Banner */}
-            {fromPath && fromLabel && (
+            {!isEmbedded && fromPath && fromLabel && (
                 <div className="shrink-0 mb-2">
                     <button
                         onClick={() => navigate(-1)}

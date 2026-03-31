@@ -131,7 +131,8 @@ const App: React.FC = () => {
                                             </ProtectedRoute>
                                         } />
                                         {/* Workflow Manager */}
-                                        <Route path="workflows" element={<React.Suspense fallback={<PageLoadingFallback />}><WorkflowManagerPage /></React.Suspense>} />
+                                        <Route path="quy-trinh" element={<React.Suspense fallback={<PageLoadingFallback />}><WorkflowManagerPage /></React.Suspense>} />
+                                        <Route path="workflows" element={<Navigate to="/quy-trinh" replace />} />
                                         {/* Backward-compatible redirects */}
                                         <Route path="user-accounts" element={<Navigate to="/admin?tab=accounts" replace />} />
                                         <Route path="permissions" element={<Navigate to="/admin?tab=permissions" replace />} />

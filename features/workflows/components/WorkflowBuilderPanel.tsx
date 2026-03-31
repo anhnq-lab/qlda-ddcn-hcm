@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../components/ui/Toast';
-import { Save, FileText, Tag, Hash, ToggleLeft, LayoutList, Settings2, Clock, Shield, FileInput, CheckCircle2, ChevronRight, ArrowRight, PenLine, ArrowUp, ArrowDown, Trash2, Plus, X, FileSpreadsheet, ChevronDown } from 'lucide-react';
+import { Save, FileText, Tag, Hash, ToggleLeft, LayoutList, Settings2, Clock, Shield, FileInput, CheckCircle2, ChevronRight, ArrowRight, PenLine, ArrowUp, ArrowDown, Trash2, Plus, X, FileSpreadsheet, ChevronDown, Download } from 'lucide-react';
 import type { Workflow, WorkflowCategory, WorkflowNode } from '../../../types/workflow.types';
 import { useSlidePanel } from '../../../context/SlidePanelContext';
 import NodeDetailPanel from './NodeDetailPanel';
+import { SubTaskDetailPanel } from './SubTaskDetailPanel';
+import LegalDocumentSearch from '../../legal-documents/LegalDocumentSearch';
+import { legalDocuments } from '../../legal-documents/legalData';
 
 interface WorkflowSlidePanelProps {
     workflowId: string; // empty string = CREATE mode
@@ -24,7 +27,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'settings'>(isCreateMode ? 'settings' : initialTab);
     const { addToast } = useToast();
-    const { openPanel } = useSlidePanel();
+    const { openPanel, closePanel } = useSlidePanel();
 
     const [name, setName] = useState('');
     const [code, setCode] = useState('');
@@ -34,6 +37,55 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
     const [expandedSubProcesses, setExpandedSubProcesses] = useState<Record<string, boolean>>({});
     const [isWorkflowCodeExpanded, setIsWorkflowCodeExpanded] = useState(true);
+
+    const handleOpenLegalSearch = (basisText: string) => {
+        if (!basisText || !basisText.trim()) {
+            openPanel({
+                id: 'legal-search',
+                title: 'Tra cứu pháp luật',
+                component: <LegalDocumentSearch isEmbedded />
+            });
+            return;
+        }
+
+        let foundDocId: string | undefined = undefined;
+        let foundArticleId: string | undefined = undefined;
+        
+        const lowerText = basisText.toLowerCase();
+
+        if (lowerText.includes('luật đầu tư công') || lowerText.includes('luật số 58') || lowerText.includes('luật đtc')) {
+            foundDocId = 'luat-dau-tu-cong-2024';
+        }
+
+        const dieuMatch = lowerText.match(/điều\s+(\d+[a-z]?)/);
+        if (dieuMatch && foundDocId) {
+            const articleNumber = dieuMatch[1];
+            const doc = legalDocuments.find(d => d.id === foundDocId);
+            if (doc) {
+                for (const chapter of doc.chapters) {
+                    const article = chapter.articles.find(a => 
+                        a.code.toLowerCase().includes(`điều ${articleNumber}.`) || 
+                        a.code.toLowerCase() === `điều ${articleNumber}`
+                    );
+                    if (article) {
+                        foundArticleId = article.id;
+                        break;
+                    }
+                }
+            }
+        }
+
+        openPanel({
+            id: 'legal-search-parsed',
+            title: 'Tra cứu pháp luật',
+            component: <LegalDocumentSearch 
+                isEmbedded 
+                initialDocId={foundDocId} 
+                initialArticleId={foundArticleId} 
+                initialSearchQuery={!foundDocId ? basisText : ''} 
+            />
+        });
+    };
 
     const togglePhase = (phaseKey: string) => {
         setExpandedPhases(prev => ({ ...prev, [phaseKey]: prev[phaseKey] === undefined ? false : !prev[phaseKey] }));
@@ -365,18 +417,18 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                 )}
             </div>
 
-            <div className="flex-1 overflow-auto p-6 custom-scrollbar pb-28">
+            <div className="flex-1 overflow-hidden p-6 pb-20 flex flex-col">
                 {!isCreateMode && activeTab === 'overview' && (
-                    <div className="space-y-5 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm space-y-3">
+                    <div className="flex flex-col gap-3 animate-fade-in h-full">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
                             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                                 {workflow?.description || 'Chưa có mô tả quy trình.'}
                             </p>
-                            <div className="flex items-center gap-3 pt-1">
-                                <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <div className="flex items-center gap-2 pt-2">
+                                <div className="px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
                                     {displayNodes.length} bước thực hiện
                                 </div>
-                                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                                <div className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                                     isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                              : 'bg-slate-100 text-slate-500'}`}>
                                     {isActive ? '● Đang hoạt động' : '○ Tạm dừng'}
@@ -384,28 +436,29 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                             </div>
                         </div>
 
-                        {onViewFlowchart && (
-                            <button onClick={onViewFlowchart}
-                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition shadow-md hover:shadow-lg">
-                                <ArrowRight size={16} />
-                                Xem Sơ đồ Quy trình
-                            </button>
-                        )}
-
-                        <div className="space-y-3 pt-4">
-                            <h3 className="text-[13px] font-bold text-slate-800 dark:text-white uppercase tracking-wider">Quy trình chi tiết</h3>
-                            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
-                                <table className="w-full min-w-[1400px] text-left text-[13px] border-collapse table-fixed">
-                                    <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700">
+                        <div className="flex flex-col gap-2 flex-1 min-h-0">
+                            <div className="flex items-center justify-between flex-shrink-0">
+                                <h3 className="text-[13px] font-bold text-slate-800 dark:text-white uppercase tracking-wider">Quy trình chi tiết</h3>
+                                {onViewFlowchart && (
+                                    <button onClick={onViewFlowchart}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs transition shadow-sm"
+                                        title="Xem Sơ đồ Quy trình">
+                                        <ArrowRight size={13} /> Sơ đồ
+                                    </button>
+                                )}
+                            </div>
+                            <div className="overflow-y-auto flex-1 min-h-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm custom-scrollbar">
+                                <table className="w-full text-left text-[13px] border-collapse table-fixed">
+                                    <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[5]">
                                         <tr className="font-bold text-slate-700 dark:text-slate-300">
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 text-center w-12 align-middle border-b-2">TT</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-24 align-middle text-center border-b-2">Thời gian</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[25%] align-middle border-b-2">Công việc chi tiết</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[12%] align-middle">Đơn vị thực hiện</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[18%] align-middle">Đầu ra quy định</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[18%] align-middle">Mẫu số/Ghi chú</th>
-                                            <th className="p-3 border-r border-slate-200 dark:border-slate-700 w-[20%] align-middle">Cơ sở pháp lý</th>
-                                            <th className="p-3 border-slate-200 dark:border-slate-700 text-center w-16 align-middle">Tác vụ</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 text-center w-10 align-middle border-b-2">TT</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-14 align-middle text-center border-b-2">SLA</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[26%] align-middle border-b-2">Công việc chi tiết</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đơn vị thực hiện</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đầu ra</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[10%] align-middle">Biểu mẫu</th>
+                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Cơ sở pháp lý</th>
+                                            <th className="p-2.5 border-slate-200 dark:border-slate-700 text-center w-20 align-middle">Tác vụ</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
@@ -491,37 +544,80 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                                                                 </td>
                                                                             </tr>
                                                                             {/* Render Sub Tasks */}
-                                                                            {subTasks.map((st: any, stIdx: number) => (
-                                                                                <tr key={st.id || stIdx} className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-center text-xs font-semibold text-slate-400">
+                                                                            {subTasks.map((st: any, stIdx: number) => {
+                                                                                const stSlaStr = st.sla ? `${st.sla}${st.sla_unit || 'd'}` : null;
+                                                                                const stSla = stSlaStr ? parseSla(stSlaStr) : null;
+                                                                                return (
+                                                                                <tr key={st.id || stIdx}
+                                                                                    className="bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                                                                    onClick={() => openPanel({
+                                                                                        id: 'subtask-' + (st.id || `${node.id}-${stIdx}`),
+                                                                                        title: `Công việc con: ${st.name?.substring(0, 50)}`,
+                                                                                        icon: <FileText size={16} className="text-blue-500" />,
+                                                                                        component: (
+                                                                                            <SubTaskDetailPanel 
+                                                                                                node={node} 
+                                                                                                subTaskId={st.id} 
+                                                                                                onSave={handleSaveNode} 
+                                                                                                closePanel={() => closePanel()} 
+                                                                                            />
+                                                                                        )
+                                                                                    })}
+                                                                                >
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-center text-xs font-semibold text-slate-400">
                                                                                         {index + 1}.{stIdx + 1}
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10">
-                                                                                        {stIdx === 0 ? duration : '-'}
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10">
+                                                                                        {stSla || ''}
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800">
-                                                                                        <div className="font-medium text-slate-700 dark:text-slate-300 text-[13px] whitespace-pre-wrap">{st.name}</div>
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800">
+                                                                                        <div className="font-medium text-slate-700 dark:text-slate-300 text-[12px] whitespace-pre-wrap leading-snug">{st.name}</div>
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-xs">
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px]">
                                                                                         {st.assignee_role}
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-[13px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[12px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
                                                                                         {st.output}
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-[13px] text-blue-600 dark:text-blue-400 italic whitespace-pre-wrap">
-                                                                                        {st.template_forms}
-                                                                                        {st.template_url && (
-                                                                                            <a href={st.template_url} target="_blank" rel="noreferrer" className="block mt-1 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 underline">
-                                                                                                [Tải biểu mẫu]
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] align-middle">
+                                                                                        {st.template_url ? (
+                                                                                            <a href={st.template_url} target="_blank" rel="noreferrer" 
+                                                                                               onClick={(e) => e.stopPropagation()}
+                                                                                               className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors group border border-indigo-100 dark:border-indigo-800/50"
+                                                                                               title="Tải biểu mẫu đính kèm">
+                                                                                                <Download size={13} className="shrink-0 group-hover:-translate-y-0.5 transition-transform" />
+                                                                                                <span className="font-semibold italic line-clamp-2">
+                                                                                                    {st.template_forms || "Biểu mẫu đính kèm"}
+                                                                                                </span>
                                                                                             </a>
+                                                                                        ) : (
+                                                                                            <span className="text-slate-500 dark:text-slate-400 italic break-words line-clamp-2" title={st.template_forms}>
+                                                                                                {st.template_forms || "-"}
+                                                                                            </span>
                                                                                         )}
                                                                                     </td>
-                                                                                    <td className="p-3 border-r border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 whitespace-pre-wrap">
-                                                                                        {st.legal_basis}
+                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                                                                                        {st.legal_basis ? (
+                                                                                            <button 
+                                                                                                type="button"
+                                                                                                onClick={(e) => {
+                                                                                                    e.preventDefault();
+                                                                                                    e.stopPropagation();
+                                                                                                    handleOpenLegalSearch(st.legal_basis);
+                                                                                                }}
+                                                                                                className="text-left text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition-colors focus:outline-none"
+                                                                                                title="Nhấn để tra cứu nhanh"
+                                                                                            >
+                                                                                                {st.legal_basis}
+                                                                                            </button>
+                                                                                        ) : null}
                                                                                     </td>
-                                                                                    <td className="p-2 border-slate-100 dark:border-slate-800"></td>
+                                                                                    <td className="p-1.5 border-slate-100 dark:border-slate-800 text-center">
+                                                                                        <ChevronRight size={12} className="text-slate-300 mx-auto" />
+                                                                                    </td>
                                                                                 </tr>
-                                                                            ))}
+                                                                                );
+                                                                            })}
                                                                         </React.Fragment>
                                                                     );
                                                                 })}
@@ -552,7 +648,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
 
                 {/* ── TAB CÀI ĐẶT (also used for CREATE) ── */}
                 {(activeTab === 'settings' || isCreateMode) && (
-                    <div className="space-y-6 animate-fade-in">
+                    <div className="space-y-6 animate-fade-in overflow-auto custom-scrollbar flex-1 pb-8">
                         {isCreateMode && (
                             <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-4 flex items-start gap-3">
                                 <Plus size={18} className="text-primary-600 dark:text-primary-400 mt-0.5 shrink-0" />
@@ -635,9 +731,9 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 z-10">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700 flex justify-end gap-3 z-10">
                 <button onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800 transition border border-slate-700">
                     Đóng
                 </button>
                 {(activeTab === 'settings' || isCreateMode) && (

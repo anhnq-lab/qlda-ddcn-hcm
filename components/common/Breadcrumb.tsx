@@ -38,6 +38,7 @@ const routeLabels: Record<string, string> = {
     'legal-documents': 'Văn bản pháp luật',
     'reports': 'Báo cáo',
     'regulations': 'Quy chế làm việc',
+    'quy-trinh': 'Quy trình',
     'settings': 'Cài đặt',
     'new': 'Tạo mới',
     'edit': 'Chỉnh sửa',

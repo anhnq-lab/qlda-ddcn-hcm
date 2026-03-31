@@ -18,6 +18,8 @@ interface SubTask {
     template_forms: string;
     legal_basis: string;
     template_url?: string;
+    sla?: string;
+    sla_unit?: string;
 }
 
 const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
@@ -39,13 +41,16 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
+    const activeUploadIdRef = useRef<string | null>(null);
+    const [uploadingId, setUploadingId] = useState<string | null>(null);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        const activeUploadId = activeUploadIdRef.current;
         if (!file || !activeUploadId) return;
 
         setIsUploading(true);
+        setUploadingId(activeUploadId);
         try {
             const filePath = `templates/${node.id}/${Date.now()}_${file.name}`;
             const { error: uploadErr } = await supabase.storage.from('documents').upload(filePath, file);
@@ -53,13 +58,45 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
 
             const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
             
-            setSubTasks(subTasks.map(st => st.id === activeUploadId ? { ...st, template_url: publicUrlData.publicUrl } : st));
+            const newName = file.name.replace(/\.[^/.]+$/, "");
+            const updatedSubTasks = subTasks.map(st => {
+                if (st.id !== activeUploadId) return st;
+                let tForm = st.template_forms || '';
+                if (!tForm.trim()) {
+                    tForm = newName;
+                } else if (!tForm.includes(newName)) {
+                    tForm = tForm + ', ' + newName;
+                }
+                return { 
+                    ...st, 
+                    template_url: publicUrlData.publicUrl,
+                    template_forms: tForm
+                };
+            });
+            setSubTasks(updatedSubTasks);
+            
+            // Auto-persist immediately
+            await onSave(node.id, {
+                metadata: {
+                    ...(node.metadata as any || {}),
+                    description,
+                    phase,
+                    sub_tasks: updatedSubTasks
+                }
+            });
+
             addToast({ title: 'Tải thành công', message: 'Đã đính kèm biểu mẫu.', type: 'success' });
+            // Cần reset lại input để cho phép chọn lại cùng 1 file nếu cần thiết
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            activeUploadIdRef.current = null;
         } catch (err: any) {
             addToast({ title: 'Lỗi tải lên', message: err.message, type: 'error' });
         } finally {
             setIsUploading(false);
-            setActiveUploadId(null);
+            setUploadingId(null);
+            activeUploadIdRef.current = null;
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
@@ -158,7 +195,9 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             output: '',
             template_forms: '',
             legal_basis: '',
-            template_url: ''
+            template_url: '',
+            sla: '',
+            sla_unit: 'd'
         }]);
     };
 
@@ -301,21 +340,48 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
                                         </div>
                                     </div>
 
+                                    {/* SLA cho công việc con */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                                            <Clock size={12} className="text-amber-500" /> Thời gian (SLA)
+                                        </label>
+                                        <div className="flex bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all w-full max-w-xs">
+                                            <input type="text" 
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                value={st.sla || ''} 
+                                                onChange={e => {
+                                                    const v = e.target.value.replace(/\D/g, '');
+                                                    updateSubTask(st.id, 'sla', v);
+                                                }}
+                                                placeholder=""
+                                                className="w-16 flex-1 h-9 bg-transparent px-3 text-xs font-bold text-center border-r border-slate-200 dark:border-slate-700 focus:outline-none text-slate-800 dark:text-white" />
+                                            <select 
+                                                value={st.sla_unit || 'd'} 
+                                                onChange={e => updateSubTask(st.id, 'sla_unit', e.target.value)}
+                                                className="min-w-[90px] h-9 bg-slate-100 dark:bg-slate-800 px-2.5 text-[11px] font-semibold focus:outline-none text-slate-700 dark:text-slate-300 border-none cursor-pointer">
+                                                <option value="d">Ngày lịch</option>
+                                                <option value="wd">Ngày LV</option>
+                                                <option value="h">Giờ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><FileSpreadsheet size={12} className="text-indigo-500"/> Mẫu số/Ghi chú</label>
+                                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><FileSpreadsheet size={12} className="text-indigo-500"/> Biểu mẫu</label>
                                                 <button type="button" 
                                                     onClick={(e) => { 
                                                         e.preventDefault(); 
                                                         e.stopPropagation(); 
-                                                        setActiveUploadId(st.id);
+                                                        activeUploadIdRef.current = st.id;
                                                         fileInputRef.current?.click();
                                                     }} 
-                                                    disabled={isUploading && activeUploadId === st.id}
+                                                    disabled={isUploading && uploadingId === st.id}
                                                     className="flex items-center gap-1 px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded block transition-colors text-[10px] font-bold disabled:opacity-50"
                                                 >
-                                                    {isUploading && activeUploadId === st.id ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />} Tải file lên
+                                                    {isUploading && uploadingId === st.id ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />} Tải file lên
                                                 </button>
                                             </div>
                                             <textarea value={st.template_forms} onChange={e => updateSubTask(st.id, 'template_forms', e.target.value)} rows={2}
@@ -348,10 +414,19 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
 
             </div>
 
+            {/* Hidden file input for uploading template forms */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                className="hidden" 
+                accept=".doc,.docx,.xls,.xlsx,.pdf,.zip"
+            />
+
              {/* Footer */}
-             <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 z-10">
+             <div className="absolute bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700 flex justify-end gap-3 z-10">
                 <button onClick={() => closePanel()}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800 transition border border-slate-700">
                     Hủy
                 </button>
                  <button onClick={handleSave} disabled={isSaving}
