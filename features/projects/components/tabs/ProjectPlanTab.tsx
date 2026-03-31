@@ -18,6 +18,8 @@ import { ProgressBadge } from '../ProgressSlider';
 import { SubTaskDetailModal } from '../SubTaskDetailModal';
 import { SubTaskDef } from '../../hooks/useWorkflowPhases';
 import { TaskService } from '@/services/TaskService';
+import { WorkflowService } from '@/services/WorkflowService';
+import { WorkflowTask } from '@/types/workflow.types';
 import { useSlidePanel } from '@/context/SlidePanelContext';
 import { supabase } from '@/lib/supabase';
 import { findByStepCode, buildTT24Key } from '@/utils/docStepMapping';
@@ -26,11 +28,12 @@ import { useWorkflowPhases } from '../../hooks/useWorkflowPhases';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { useStepAggregates } from '../../hooks/useStepAggregates';
 import { usePlanPersist } from '../../hooks/usePlanPersist';
+import { workflowTaskKeys } from '@/hooks/useWorkflowTasks';
 import { PlanDateRangeModal, PlanDateRange } from '../PlanDateRangeModal';
 
 
 interface ProjectPlanTabProps {
-    tasks: Task[];
+    workflowTasks: WorkflowTask[];
     projectID?: string;
     onSaveTask?: (task: Task) => void;
     employees?: Employee[];
@@ -49,7 +52,7 @@ type PlanTrigger =
     | { type: 'step'; stepCode: string; stepTitle: string };
 
 export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
-    tasks: initialTasks,
+    workflowTasks,
     projectID,
     onSaveTask,
     employees = [],
@@ -70,13 +73,42 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         return map;
     }, [employees]);
 
+    // Helper: Map WorkflowTask to Task
+    const mappedTasks = useMemo<Task[]>(() => {
+        return workflowTasks.map((wt: any) => {
+            const phase = wt.workflow_nodes?.metadata?.phase || wt.metadata?.phase || wt.metadata?.groupCode || 'KH';
+            let mappedStatus = TaskStatus.Todo;
+            if (wt.status === 'in_progress') mappedStatus = TaskStatus.InProgress;
+            else if (wt.status === 'completed') mappedStatus = TaskStatus.Done;
+            // Note: If overdue state exists in your legacy Tasks, map it here, otherwise keep as Todo or InProgress.
+            else if (wt.status === 'overdue') mappedStatus = TaskStatus.InProgress;
+            
+            return {
+                TaskID: wt.id,
+                ProjectID: projectID || '',
+                Title: wt.name || 'Untitled Task',
+                Description: wt.comments || wt.metadata?.description || '',
+                Status: mappedStatus,
+                Priority: TaskPriority.Medium,
+                StartDate: wt.start_date || wt.created_at,
+                DueDate: wt.due_date || undefined,
+                AssigneeID: wt.assignee_id || '',
+                TimelineStep: wt.node_id || '',
+                StepCode: wt.node_id || '',
+                LegalBasis: wt.workflow_nodes?.metadata?.legalBasis || '',
+                DurationDays: wt.metadata?.estimatedDays || 10,
+                Phase: phase,
+            } as Task;
+        });
+    }, [workflowTasks, projectID]);
+
     // 1. Local Tasks State (Optimistic UI)
-    const [tasks, setTasks] = useState<Task[]>(initialTasks);
+    const [tasks, setTasks] = useState<Task[]>(mappedTasks);
 
     // Sync from props
     useEffect(() => {
-        setTasks(initialTasks);
-    }, [initialTasks]);
+        setTasks(mappedTasks);
+    }, [mappedTasks]);
 
     // UI State — persisted to localStorage per project
     const { currentView, currentFilter, setView: setCurrentView, setFilter: setCurrentFilter } = usePlanPersist(projectID);
@@ -92,7 +124,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         const today = new Date(); today.setHours(0, 0, 0, 0);
 
         phases.forEach(phase => {
-            const phaseTasks = initialTasks.filter(t =>
+            const phaseTasks = mappedTasks.filter(t =>
                 phase.items.some(item => item.code === t.TimelineStep)
             );
             if (phaseTasks.length === 0) {
@@ -116,7 +148,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         });
         if (!Object.values(initial).some(v => v) && phases.length > 0) {
             const first = phases.find(p => {
-                const pt = initialTasks.filter(t => p.items.some(i => i.code === t.TimelineStep));
+                const pt = mappedTasks.filter(t => p.items.some(i => i.code === t.TimelineStep));
                 return pt.length === 0 || !pt.every(t => t.Status === TaskStatus.Done);
             });
             if (first) initial[first.id] = true;
@@ -130,7 +162,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     // Sub-task registry state
     const [expandedSubTasks, setExpandedSubTasks] = useState<Record<string, boolean>>({});
     const [selectedSubTask, setSelectedSubTask] = useState<{ def: SubTaskDef; stepTitle: string; stepCode: string } | null>(null);
-    const [bulkCreatingStep, setBulkCreatingStep] = useState<string | null>(null);
     const [bulkCreatingAll, setBulkCreatingAll] = useState(false);
     const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
     const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
@@ -389,239 +420,77 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const handleSaveTask = async (taskData: Partial<Task>) => {
         // ── Auto-derive status from progress ──
         const progress = taskData.ProgressPercent ?? (taskData as any).Progress ?? 0;
-        if (taskData.ProgressPercent !== undefined || (taskData as any).Progress !== undefined) {
-            // Only auto-derive if status wasn't explicitly changed in this call
-            const currentTask = tasks.find(t => t.TaskID === taskData.TaskID);
-            const statusExplicitlyChanged = taskData.Status !== undefined && taskData.Status !== currentTask?.Status;
-            if (!statusExplicitlyChanged) {
-                // Keep InProgress at 100% — user must click "Báo cáo hoàn thành" to move to Review
-                if (progress >= 1) {
-                    taskData.Status = TaskStatus.InProgress;
-                } else {
-                    taskData.Status = TaskStatus.Todo;
-                }
+        
+        // ── Map back to WorkflowTask schema ──
+        const workflowTaskData: any = {
+            id: taskData.TaskID && !taskData.TaskID.startsWith('NEW_') ? taskData.TaskID : undefined,
+            name: taskData.Title,
+            status: taskData.Status?.toLowerCase() || 'pending',
+            progress: progress,
+            start_date: taskData.StartDate,
+            due_date: taskData.DueDate,
+            started_at: taskData.ActualStartDate,
+            completed_at: taskData.ActualEndDate,
+            assignee_id: taskData.AssigneeID || currentUserId,
+            project_id: projectID, // Dùng để auto-find instance_id trong service
+            metadata: {
+                priority: taskData.Priority || 'Medium',
+                step_code: taskData.TimelineStep || taskData.StepCode || selectedStep?.code,
+                predecessor_id: taskData.PredecessorTaskID,
             }
-        }
-        // ── Auto-sync progress when status is set explicitly ──
-        if (taskData.Status === TaskStatus.Done && (progress < 100)) {
-            taskData.ProgressPercent = 100;
-            (taskData as any).Progress = 100;
-        } else if (taskData.Status === TaskStatus.Todo && progress > 0) {
-            taskData.ProgressPercent = 0;
-            (taskData as any).Progress = 0;
-        } else {
-            taskData.ProgressPercent = progress;
-            (taskData as any).Progress = progress;
+        };
+
+        // Nếu là task mới được tạo từ nút "Thêm công việc" trong một Step
+        if (!workflowTaskData.id && selectedStep) {
+            workflowTaskData.task_type = 'ad-hoc';
         }
 
-        let updatedTask: Task;
-
-        if (taskData.TaskID && !taskData.TaskID.startsWith('NEW_')) {
-            updatedTask = { ...editingTask, ...taskData } as Task;
-            setTasks(prev => prev.map(t => t.TaskID === updatedTask.TaskID ? updatedTask : t));
-        } else {
-            updatedTask = {
-                ...taskData as Task,
-                TaskID: taskData.TaskID || `T-${Math.random().toString(36).substring(2, 10)}`,
-                ProjectID: projectID || 'PROJ_TEMP',
-                CreatedDate: new Date().toISOString()
-            } as Task;
-            setTasks(prev => [...prev, updatedTask]);
-        }
-
-        // Persist to DB
         try {
-            const savedTask = await TaskService.saveTask(updatedTask);
+            const savedTask = await WorkflowService.saveWorkflowTask(workflowTaskData);
 
-            // ── Auto-propagate ActualEndDate → next task's ActualStartDate ──
-            if (savedTask.ActualEndDate) {
-                const successorTasks: Task[] = [];
-
-                // 1. Find tasks linked by PredecessorTaskID
-                const predecessorSuccessors = tasks.filter(t =>
-                    t.PredecessorTaskID === savedTask.TaskID && !t.ActualStartDate
-                );
-                successorTasks.push(...predecessorSuccessors);
-
-                // 2. Find the next task in same TimelineStep (by StartDate order)
-                if (savedTask.TimelineStep) {
-                    const sameStepTasks = tasks
-                        .filter(t => t.TimelineStep === savedTask.TimelineStep && t.TaskID !== savedTask.TaskID)
-                        .sort((a, b) => {
-                            const dateA = a.StartDate ? new Date(a.StartDate).getTime() : 0;
-                            const dateB = b.StartDate ? new Date(b.StartDate).getTime() : 0;
-                            return dateA - dateB;
-                        });
-                    const currentIdx = sameStepTasks.findIndex(t => {
-                        const tStart = t.StartDate ? new Date(t.StartDate).getTime() : 0;
-                        const savedStart = savedTask.StartDate ? new Date(savedTask.StartDate).getTime() : 0;
-                        return tStart > savedStart;
-                    });
-                    if (currentIdx >= 0 && !sameStepTasks[currentIdx].ActualStartDate) {
-                        const nextTask = sameStepTasks[currentIdx];
-                        if (!successorTasks.some(t => t.TaskID === nextTask.TaskID)) {
-                            successorTasks.push(nextTask);
-                        }
-                    }
-                }
-
-                // Update successor tasks
+            // ── Auto-propagate ActualEndDate → next task's ActualStartDate (giữ logic cũ) ──
+            if (savedTask.completed_at) {
+                // Logic này có thể chuyển vào service sau, tạm thời giữ ở UI để đảm bảo tính năng
+                const successorTasks = tasks.filter(t => t.PredecessorTaskID === savedTask.id && !t.ActualStartDate);
                 for (const successor of successorTasks) {
-                    const updated = { ...successor, ActualStartDate: savedTask.ActualEndDate };
-                    try {
-                        await TaskService.saveTask(updated);
-                        setTasks(prev => prev.map(t => t.TaskID === updated.TaskID ? updated : t));
-                    } catch (err) {
-                        console.error('Failed to propagate ActualStartDate:', err);
-                    }
+                    await WorkflowService.saveWorkflowTask({
+                        id: successor.TaskID,
+                        started_at: savedTask.completed_at
+                    });
                 }
             }
 
-            queryClient.invalidateQueries({ queryKey: ['tasks'] });
-            // Toast success
+            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+            
             const isNew = !taskData.TaskID || taskData.TaskID.startsWith('NEW_');
-            showToast(isNew ? `✅ Tạo công việc "${updatedTask.Title}" thành công` : `💾 Đã lưu thay đổi"${updatedTask.Title}"`, 'success');
-        } catch (err) {
+            showToast(isNew ? `✅ Tạo công việc "${savedTask.name}" thành công` : `💾 Đã lưu thay đổi "${savedTask.name}"`, 'success');
+        } catch (err: any) {
             console.error('Failed to save task:', err);
-            showToast('❌ Lưu thất bại, vui lòng thử lại', 'error');
+            showToast(`❌ Lỗi: ${err.message || 'Không thể lưu công việc'}`, 'error');
         }
 
-        if (onSaveTask) {
-            onSaveTask(updatedTask);
-        }
         setIsTaskModalOpen(false);
     };
 
-    // ── Bulk create tasks from workflow sub-steps (with custom date range) ──
-    const handleBulkCreateFromSubTasks = async (stepCode: string, stepTitle: string, dateRange?: PlanDateRange) => {
-        if (!projectID) return;
-        setBulkCreatingStep(stepCode);
-        try {
-            const subTaskDefs = getStepSubTasks(stepCode);
-            if (subTaskDefs.length === 0) return;
-
-            // Calculate base date: from custom range or project defaults
-            const getBaseDate = (): Date => {
-                if (dateRange) return new Date(dateRange.startDate);
-                if (project?.StartDate) return new Date(project.StartDate);
-                if (project?.ApprovalDate) return new Date(project.ApprovalDate);
-                return new Date();
-            };
-
-            // Total available days for this step
-            const getTotalDays = (): number => {
-                if (dateRange) return dateRange.totalDays;
-                return subTaskDefs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-            };
-
-            // Already-linked step codes to avoid duplicates
-            const existingTitles = new Set(tasks.filter(t => t.TimelineStep === stepCode).map(t => t.Title));
-
-            // Calculate cumulative proportion offset (0 if custom range given)
-            const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
-            const currentIdx = allPhaseItems.findIndex(i => i.code === stepCode);
-            let proportionOffset = 0;
-            if (!dateRange) {
-                for (let i = 0; i < currentIdx; i++) {
-                    const prevSubs = getStepSubTasks(allPhaseItems[i].code);
-                    proportionOffset += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                }
-            }
-
-            const baseDate = getBaseDate();
-            const totalDays = getTotalDays();
-            // Sum of estimatedDays for this step (denominator for proportional allocation)
-            const stepTotalEstimated = subTaskDefs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-
-            let runningDays = proportionOffset;
-            const newTasks: Task[] = [];
-
-            for (let idx = 0; idx < subTaskDefs.length; idx++) {
-                const st = subTaskDefs[idx];
-                if (existingTitles.has(st.title)) continue;
-
-                // Proportional day allocation within the custom range
-                const estimated = st.estimatedDays || 10;
-                const days = dateRange
-                    ? Math.max(1, Math.round((estimated / stepTotalEstimated) * totalDays))
-                    : estimated;
-
-                const startDate = new Date(baseDate);
-                startDate.setDate(startDate.getDate() + runningDays);
-                const dueDate = new Date(startDate);
-                dueDate.setDate(dueDate.getDate() + days);
-                runningDays += days;
-
-                const shortId = Math.random().toString(36).substring(2, 10);
-                const task: Task = {
-                    TaskID: `T-${shortId}${idx}`,
-                    ProjectID: projectID,
-                    Title: st.title,
-                    Description: st.description || `Bước trong quy trình: ${stepTitle}. Phụ trách: ${st.responsible}.${st.legalBasis ? ` Căn cứ: ${st.legalBasis}` : ''}`,
-                    Status: TaskStatus.Todo,
-                    Priority: TaskPriority.Medium,
-                    StartDate: startDate.toISOString(),
-                    DueDate: dueDate.toISOString(),
-                    AssigneeID: st.responsible,
-                    TimelineStep: stepCode,
-                    StepCode: stepCode,
-                    LegalBasis: st.legalBasis || '',
-                    DurationDays: days,
-                    Phase: stepTitle,
-                } as Task;
-                newTasks.push(task);
-            }
-
-            if (newTasks.length === 0) {
-                setBulkCreatingStep(null);
-                return;
-            }
-
-            await TaskService.saveTasks(newTasks);
-            setTasks(prev => [...prev, ...newTasks]);
-            queryClient.invalidateQueries({ queryKey: ['tasks'] });
-        } catch (error) {
-            console.error('Failed to bulk create tasks:', error);
-        } finally {
-            setBulkCreatingStep(null);
-        }
-    };
-
-    // ── Bulk create ALL tasks across ALL steps ──
-    const handleBulkCreateAll = async (dateRange?: PlanDateRange) => {
+    // ── Bulk create ALL tasks via Workflow Engine (Phương án 1) ──
+    const handleBulkCreateAll = async (dateRange: PlanDateRange, workflowId: string) => {
         if (!projectID) return;
         setBulkCreatingAll(true);
         try {
-            const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
-            const allSteps = allPhaseItems.filter(item => getStepSubTasks(item.code).length > 0);
-            const totalSteps = allSteps.length;
-
-            for (let si = 0; si < allSteps.length; si++) {
-                const item = allSteps[si];
-                // When custom range: split date range proportionally among steps
-                let stepRange: PlanDateRange | undefined;
-                if (dateRange) {
-                    const allSubTasks = allPhaseItems.flatMap(i => getStepSubTasks(i.code));
-                    const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepSubTasks = getStepSubTasks(item.code);
-                    const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const prevEstimated = allSteps.slice(0, si).flatMap(i => getStepSubTasks(i.code)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
-                    const stepStart = new Date(dateRange.startDate);
-                    stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
-                    const stepEnd = new Date(stepStart);
-                    stepEnd.setDate(stepEnd.getDate() + stepDays);
-                    stepRange = {
-                        startDate: stepStart.toISOString().split('T')[0],
-                        endDate: stepEnd.toISOString().split('T')[0],
-                        totalDays: stepDays,
-                    };
-                }
-                await handleBulkCreateFromSubTasks(item.code, item.title, stepRange);
-            }
-            showToast(`✅ Đã tạo kế hoạch cho ${totalSteps} giai đoạn`, 'success');
+            const newInstance = await WorkflowService.createProjectPlanInstance(
+                projectID,
+                workflowId,
+                dateRange.startDate,
+                dateRange.endDate,
+                currentUserId
+            );
+            
+            showToast(`✅ Đã thiết lập kế hoạch dựa trên quy trình mẫu`, 'success');
+            // We fetch tasks directly from workflow_tasks based on this new instance
+            queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['workflow_instances'] });
         } catch (error) {
-            console.error('Failed to bulk create all tasks:', error);
+            console.error('Failed to bulk create framework tasks:', error);
             showToast('❌ Tạo kế hoạch thất bại', 'error');
         } finally {
             setBulkCreatingAll(false);
@@ -636,16 +505,18 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setPlanModalOpen(true);
     };
 
-    const handlePlanModalConfirm = async (range: PlanDateRange) => {
+    const handlePlanModalConfirm = async (range: PlanDateRange, workflowId?: string) => {
         if (!planTrigger) return;
         setPlanModalLoading(true);
         try {
             if (planTrigger.type === 'all') {
-                await handleBulkCreateAll(range);
-            } else if (planTrigger.type === 'phase') {
-                await handleBulkCreatePhase(planTrigger.phaseId, range);
-            } else if (planTrigger.type === 'step') {
-                await handleBulkCreateFromSubTasks(planTrigger.stepCode, planTrigger.stepTitle, range);
+                if (!workflowId) {
+                    showToast('❌ Vui lòng chọn quy trình', 'error');
+                    return;
+                }
+                await handleBulkCreateAll(range, workflowId);
+            } else {
+                showToast('❌ Vui lòng lập kế hoạch từ cấp độ dự án đối với kiến trúc Workflow', 'error');
             }
             setPlanModalOpen(false);
         } finally {
@@ -659,9 +530,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (!confirm(`Xóa công việc "${taskTitle}"?`)) return;
         setDeletingTaskId(taskId);
         try {
-            await (supabase.from('tasks') as any).delete().eq('task_id', taskId);
-            setTasks(prev => prev.filter(t => t.TaskID !== taskId));
-            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            await WorkflowService.deleteWorkflowTask(taskId);
+            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
             showToast(`🗑️ Đã xóa "${taskTitle}"`, 'info');
         } catch (err) {
             console.error('Failed to delete task:', err);
@@ -696,19 +566,21 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setDeleteConfirmStep(0);
         setIsDeletingAll(true);
         try {
-            // Gọi RPC function trực tiếp (SECURITY DEFINER, bypass RLS)
-            const { data, error } = await (supabase.rpc as any)('delete_project_tasks', {
-                p_project_id: projectID,
-            });
+            // Xóa tất cả workflow_instances của dự án này, workflow_tasks sẽ tự động bị cascade delete.
+            const { data, error } = await supabase.from('workflow_instances')
+                .delete()
+                .eq('reference_id', projectID)
+                .eq('reference_type', 'project');
 
             if (error) {
-                console.error('RPC delete_project_tasks error:', error);
+                console.error('workflow_instances delete error:', error);
                 throw new Error(error.message);
             }
 
-            console.log(`✅ Đã xoá ${data} công việc cho dự án ${projectID}`);
+            console.log(`✅ Đã xoá toàn bộ kế hoạch cho dự án ${projectID}`);
             setTasks([]); // Xóa local state
-            queryClient.invalidateQueries({ queryKey: ['tasks'] }); // Cập nhật React Query cache
+            queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] }); // Cập nhật React Query cache
+            queryClient.invalidateQueries({ queryKey: ['workflow_instances'] }); 
         } catch (err: any) {
             console.error('Failed to delete all tasks:', err);
             alert(`Lỗi khi xóa: ${err?.message || 'Không xác định'}. Vui lòng thử lại!`);
@@ -717,43 +589,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         }
     };
 
-    // ── Bulk create tasks for a specific PHASE (with custom date range) ──
-    const [bulkCreatingPhase, setBulkCreatingPhase] = useState<string | null>(null);
-    const handleBulkCreatePhase = async (phaseId: string, dateRange?: PlanDateRange) => {
-        if (!projectID) return;
-        const phase = DECREE_175_PHASES.find(p => p.id === phaseId);
-        if (!phase) return;
-        setBulkCreatingPhase(phaseId);
-        try {
-            const steps = phase.items.filter(item => getStepSubTasks(item.code).length > 0);
-            for (let si = 0; si < steps.length; si++) {
-                const item = steps[si];
-                let stepRange: PlanDateRange | undefined;
-                if (dateRange) {
-                    const allSubTasks = steps.flatMap(i => getStepSubTasks(i.code));
-                    const totalEstimated = allSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepSubTasks = getStepSubTasks(item.code);
-                    const stepEstimated = stepSubTasks.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const prevEstimated = steps.slice(0, si).flatMap(i => getStepSubTasks(i.code)).reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                    const stepDays = Math.max(1, Math.round((stepEstimated / totalEstimated) * dateRange.totalDays));
-                    const stepStart = new Date(dateRange.startDate);
-                    stepStart.setDate(stepStart.getDate() + Math.round((prevEstimated / totalEstimated) * dateRange.totalDays));
-                    const stepEnd = new Date(stepStart);
-                    stepEnd.setDate(stepEnd.getDate() + stepDays);
-                    stepRange = {
-                        startDate: stepStart.toISOString().split('T')[0],
-                        endDate: stepEnd.toISOString().split('T')[0],
-                        totalDays: stepDays,
-                    };
-                }
-                await handleBulkCreateFromSubTasks(item.code, item.title, stepRange);
-            }
-        } catch (error) {
-            console.error('Failed to bulk create phase tasks:', error);
-        } finally {
-            setBulkCreatingPhase(null);
-        }
-    };
+    // Removed Phase Bulk creation since it's now handled by Master Workflow engine
 
     // Priority color helper
     const getPriorityColor = (priority?: string) => {
@@ -885,12 +721,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             tasks={filteredTasks}
                             isExpanded={expandedPhases[phase.id]}
                             onToggle={() => togglePhase(phase.id)}
-                            onBulkCreatePhase={() => openPlanModal(
-                                { type: 'phase', phaseId: phase.id },
-                                `Tạo công việc: ${phase.title || phase.id}`,
-                                'Phân bổ thời gian cho các công việc trong giai đoạn này'
-                            )}
-                            isBulkCreatingPhase={bulkCreatingPhase === phase.id}
                             phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getStepSubTasks(item.code).length, 0)}
                         />
 
@@ -1226,21 +1056,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                                     'Phân bổ thời gian cho các bước trong quy trình này'
                                                                                 );
                                                                             }}
-                                                                            disabled={bulkCreatingStep === item.code || allCreated}
+                                                                            disabled={allCreated}
                                                                             className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg flex items-center gap-1 transition-all ${allCreated
                                                                                 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 cursor-default'
-                                                                                : bulkCreatingStep === item.code
-                                                                                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-700 cursor-wait'
-                                                                                    : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-lg'
+                                                                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-lg'
                                                                                 }`}
                                                                             title={allCreated ? 'Đã tạo công việc cho tất cả bước' : 'Tạo công việc tự động cho tất cả bước quy trình'}
                                                                         >
-                                                                            {bulkCreatingStep === item.code ? (
-                                                                                <>
-                                                                                    <div className="w-3 h-3 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
-                                                                                    Đang tạo...
-                                                                                </>
-                                                                            ) : allCreated ? (
+                                                                            {allCreated ? (
                                                                                 <>
                                                                                     <CheckCircle2 className="w-3 h-3" />
                                                                                     Đã tạo {existingCount} việc
@@ -1622,6 +1445,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     ? new Date(project.StartDate).toISOString().split('T')[0]
                     : undefined}
                 isLoading={planModalLoading}
+                showWorkflowOption={planTrigger?.type === 'all'}
             />
         </div>
 

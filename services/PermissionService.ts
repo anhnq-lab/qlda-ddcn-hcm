@@ -16,6 +16,7 @@ import {
 // Use `as any` for .from() since user_permissions may not yet be in the generated DB types.
 // This is the same pattern used in cic-erp-contract.
 const db = () => (supabase as any).from('user_permissions');
+const auditDb = () => (supabase as any).from('audit_logs');
 
 // Helper to convert snake_case DB response to camelCase
 const mapDbToPermission = (row: any): UserPermission => ({
@@ -26,6 +27,35 @@ const mapDbToPermission = (row: any): UserPermission => ({
     createdAt: row.created_at,
     updatedAt: row.updated_at,
 });
+
+/**
+ * Log permission change to audit_logs table
+ */
+async function logPermissionChange(
+    targetUserId: string,
+    resource: string,
+    oldActions: PermissionAction[],
+    newActions: PermissionAction[],
+    changedBy: string
+): Promise<void> {
+    try {
+        await auditDb().insert({
+            action: 'permission_update',
+            target_entity: 'user_permissions',
+            target_id: targetUserId,
+            changed_by: changedBy,
+            details: JSON.stringify({
+                resource,
+                before: oldActions,
+                after: newActions,
+                added: newActions.filter(a => !oldActions.includes(a)),
+                removed: oldActions.filter(a => !newActions.includes(a)),
+            }),
+        });
+    } catch (err) {
+        console.warn('[PermService] Audit log failed:', err);
+    }
+}
 
 export const PermissionService = {
     /**
@@ -52,9 +82,28 @@ export const PermissionService = {
     },
 
     /**
-     * Update or create permission for a user on a resource
+     * Update or create permission for a user on a resource.
+     * Optionally logs the change to audit_logs.
      */
-    async upsert(userId: string, resource: PermissionResource, actions: PermissionAction[]): Promise<UserPermission> {
+    async upsert(
+        userId: string,
+        resource: PermissionResource,
+        actions: PermissionAction[],
+        changedBy?: string
+    ): Promise<UserPermission> {
+        // Fetch old actions for audit trail
+        let oldActions: PermissionAction[] = [];
+        if (changedBy) {
+            try {
+                const { data: existing } = await db()
+                    .select('actions')
+                    .eq('user_id', userId)
+                    .eq('resource', resource)
+                    .single();
+                if (existing) oldActions = existing.actions || [];
+            } catch { /* new record, old = [] */ }
+        }
+
         const { data, error } = await db()
             .upsert({
                 user_id: userId,
@@ -68,6 +117,12 @@ export const PermissionService = {
             .single();
 
         if (error) throw error;
+
+        // Log the change
+        if (changedBy) {
+            await logPermissionChange(userId, resource, oldActions, actions, changedBy);
+        }
+
         return mapDbToPermission(data);
     },
 

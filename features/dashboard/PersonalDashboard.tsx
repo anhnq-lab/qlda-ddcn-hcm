@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -23,9 +23,15 @@ const PersonalDashboard: React.FC = () => {
     const { contracts } = useContracts();
     const tasks = allTasks || [];
 
-    // Get projects where current user is a member
+    // Get projects where current user is a member (or all if Admin/Director)
     const myProjects = useMemo(() => {
         if (!currentUser) return [];
+        
+        // Admins and Directors have visibility across all projects
+        if (currentUser.Role === ('Admin' as any) || currentUser.Role === ('Director' as any)) {
+            return projects;
+        }
+        
         return projects.filter(p =>
             p.Members?.includes(currentUser.EmployeeID)
         );

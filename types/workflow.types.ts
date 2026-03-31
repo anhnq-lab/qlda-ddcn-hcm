@@ -58,7 +58,12 @@ export interface WorkflowInstance {
 export interface WorkflowTask {
     id: string;
     instance_id: string;
-    node_id: string;
+    node_id: string | null;
+    name: string | null;
+    task_type: string;
+    start_date: string | null;
+    progress: number;
+    metadata: Record<string, any>;
     assignee_id: string | null;
     status: WorkflowTaskStatus;
     action_taken: string | null;

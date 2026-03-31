@@ -1,4 +1,4 @@
-﻿// Seed Data: 3 Quy trình DAXD theo Sổ tay ĐTCHD 2025
+// Seed Data: 3 Quy trình DAXD theo Sổ tay ĐTCHD 2025
 // Extracted from WorkflowManagerPage.tsx for maintainability
 
 export interface WorkflowTemplate {
@@ -478,7 +478,12 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                 }
             ];
 
-            const COMMON_PREP_LATE: any[] = [];
+            // CÁC BƯỚC CHUẨN BỊ ĐẦU TƯ (GIAI ĐOẠN SAU) - Dùng chung
+            const COMMON_PREP_LATE: any[] = [
+                { type: 'input', role: 'nha_thau_tu_van', sla: '30d' },
+                { type: 'approval', role: 'cq_chuyen_mon', sla: '15d' },
+                { type: 'approval', role: 'nguoi_quyet_dinh_dt', sla: '20d' }
+            ];
 
             // Implementation phase common steps
             const IMPL_KHLCNT = {

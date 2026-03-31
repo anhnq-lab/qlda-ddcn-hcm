@@ -87,42 +87,118 @@ const App: React.FC = () => {
                                         <Route path="my-dashboard" element={<React.Suspense fallback={<PageLoadingFallback />}><PersonalDashboard /></React.Suspense>} />
 
                                         {/* Projects Routes */}
-                                        <Route path="projects" element={<React.Suspense fallback={<PageLoadingFallback />}><ProjectList /></React.Suspense>} />
-                                        <Route path="projects/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ProjectDetail /></React.Suspense>} />
-                                        <Route path="projects/:projectId/packages/:packageId" element={<React.Suspense fallback={<PageLoadingFallback />}><PackageDetail /></React.Suspense>} />
+                                        <Route path="projects" element={
+                                            <ProtectedRoute resource="projects">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ProjectList /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="projects/:id" element={
+                                            <ProtectedRoute resource="projects">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ProjectDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="projects/:projectId/packages/:packageId" element={
+                                            <ProtectedRoute resource="bidding">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><PackageDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* Tasks Routes */}
-                                        <Route path="tasks" element={<React.Suspense fallback={<PageLoadingFallback />}><TaskList /></React.Suspense>} />
-                                        <Route path="tasks/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><TaskDetail /></React.Suspense>} />
+                                        <Route path="tasks" element={
+                                            <ProtectedRoute resource="tasks">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><TaskList /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="tasks/:id" element={
+                                            <ProtectedRoute resource="tasks">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><TaskDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* HR Routes */}
-                                        <Route path="employees" element={<React.Suspense fallback={<PageLoadingFallback />}><EmployeeList /></React.Suspense>} />
-                                        <Route path="employees/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><EmployeeDetail /></React.Suspense>} />
+                                        <Route path="employees" element={
+                                            <ProtectedRoute resource="employees">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><EmployeeList /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="employees/:id" element={
+                                            <ProtectedRoute resource="employees">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><EmployeeDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
                                         <Route path="org-chart" element={<Navigate to="/employees" replace />} />
 
                                         {/* Contractor Routes */}
-                                        <Route path="contractors" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorList /></React.Suspense>} />
-                                        <Route path="contractors/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractorDetail /></React.Suspense>} />
+                                        <Route path="contractors" element={
+                                            <ProtectedRoute resource="contractors">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ContractorList /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="contractors/:id" element={
+                                            <ProtectedRoute resource="contractors">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ContractorDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* Bidding & Contract Module (merged) */}
-                                        <Route path="bidding" element={<React.Suspense fallback={<PageLoadingFallback />}><BiddingContractPage /></React.Suspense>} />
-                                        <Route path="contracts/:id" element={<React.Suspense fallback={<PageLoadingFallback />}><ContractDetail /></React.Suspense>} />
+                                        <Route path="bidding" element={
+                                            <ProtectedRoute resource="bidding">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><BiddingContractPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="contracts/:id" element={
+                                            <ProtectedRoute resource="contracts">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ContractDetail /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
                                         {/* Backward-compatible redirects */}
                                         <Route path="contracts" element={<Navigate to="/bidding?tab=contracts" replace />} />
                                         <Route path="payments" element={<Navigate to="/bidding?tab=payments" replace />} />
-                                        <Route path="capital-planning" element={<React.Suspense fallback={<PageLoadingFallback />}><MidTermCapitalPage /></React.Suspense>} />
+                                        <Route path="capital-planning" element={
+                                            <ProtectedRoute resource="capital">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><MidTermCapitalPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* Documents & Reports */}
                                         <Route path="documents" element={<Navigate to="/cde" replace />} />
-                                        <Route path="cde" element={<React.Suspense fallback={<PageLoadingFallback />}><CDEPage /></React.Suspense>} />
-                                        <Route path="bim" element={<React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>} />
-                                        <Route path="bim/:projectId" element={<React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>} />
-                                        <Route path="legal-documents" element={<React.Suspense fallback={<PageLoadingFallback />}><LegalDocumentSearch /></React.Suspense>} />
-                                        <Route path="reports" element={<React.Suspense fallback={<PageLoadingFallback />}><ReportCenter /></React.Suspense>} />
-                                        <Route path="regulations" element={<React.Suspense fallback={<PageLoadingFallback />}><Regulations /></React.Suspense>} />
+                                        <Route path="cde" element={
+                                            <ProtectedRoute resource="cde">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><CDEPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="bim" element={
+                                            <ProtectedRoute resource="bim">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="bim/:projectId" element={
+                                            <ProtectedRoute resource="bim">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><BimPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="legal-documents" element={
+                                            <ProtectedRoute resource="legal_docs">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><LegalDocumentSearch /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="reports" element={
+                                            <ProtectedRoute resource="reports">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><ReportCenter /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="regulations" element={
+                                            <ProtectedRoute resource="regulations">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><Regulations /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
 
                                         {/* Admin */}
-                                        <Route path="audit-log" element={<React.Suspense fallback={<PageLoadingFallback />}><AuditLogViewer /></React.Suspense>} />
+                                        <Route path="audit-log" element={
+                                            <ProtectedRoute resource="admin_audit">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><AuditLogViewer /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
                                         <Route path="admin" element={
                                             <ProtectedRoute resource="admin_accounts">
                                                 <React.Suspense fallback={<PageLoadingFallback />}>
@@ -131,7 +207,11 @@ const App: React.FC = () => {
                                             </ProtectedRoute>
                                         } />
                                         {/* Workflow Manager */}
-                                        <Route path="quy-trinh" element={<React.Suspense fallback={<PageLoadingFallback />}><WorkflowManagerPage /></React.Suspense>} />
+                                        <Route path="quy-trinh" element={
+                                            <ProtectedRoute resource="workflows">
+                                                <React.Suspense fallback={<PageLoadingFallback />}><WorkflowManagerPage /></React.Suspense>
+                                            </ProtectedRoute>
+                                        } />
                                         <Route path="workflows" element={<Navigate to="/quy-trinh" replace />} />
                                         {/* Backward-compatible redirects */}
                                         <Route path="user-accounts" element={<Navigate to="/admin?tab=accounts" replace />} />

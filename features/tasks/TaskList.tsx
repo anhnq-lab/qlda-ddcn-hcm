@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PermissionGate from '../../components/PermissionGate';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
@@ -378,13 +379,15 @@ const TaskList: React.FC = () => {
                             </button>
                         </div>
 
-                        <button
-                            onClick={openCreateModal}
-                            className="btn btn-primary"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>Tạo công việc</span>
-                        </button>
+                        <PermissionGate resource="tasks" action="create">
+                            <button
+                                onClick={openCreateModal}
+                                className="btn btn-primary"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Tạo công việc</span>
+                            </button>
+                        </PermissionGate>
                     </div>
                 </div>
             </div>
@@ -600,20 +603,24 @@ const TaskList: React.FC = () => {
                                                         {/* Actions */}
                                                         <td className="px-4 py-3.5">
                                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
-                                                                    className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
-                                                                    title="Chỉnh sửa"
-                                                                >
-                                                                    <Edit className="w-3.5 h-3.5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(task.TaskID); }}
-                                                                    className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                                                                    title="Xóa"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
+                                                                <PermissionGate resource="tasks" action="update">
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
+                                                                        className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
+                                                                        title="Chỉnh sửa"
+                                                                    >
+                                                                        <Edit className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </PermissionGate>
+                                                                <PermissionGate resource="tasks" action="delete">
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); handleDelete(task.TaskID); }}
+                                                                        className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                                                                        title="Xóa"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </PermissionGate>
                                                             </div>
                                                         </td>
                                                     </tr>

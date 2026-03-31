@@ -129,6 +129,8 @@ async function fetchUserProfile(authUserId: string): Promise<{
     }
 }
 
+let autoLoginAttempted = false;
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<Employee | null>(null);
     const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
@@ -177,38 +179,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     }, []);
 
-    // Dev bypass: inject mock Admin profile when VITE_DEV_BYPASS_AUTH=true
-    const isDevBypass = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
-
-    useEffect(() => {
-        const isDemoBypass = localStorage.getItem('demoBypassActive') === 'true';
-        if (isDevBypass || isDemoBypass) {
-            console.log('[Auth] 🔧 Dev/Demo bypass active – injecting mock Admin profile');
-            setCurrentUser({
-                EmployeeID: 'NV001',
-                FullName: 'Quản trị viên (Dev/Demo)',
-                Role: 'Admin' as any,
-                Department: 'Ban Quản lý',
-                Position: 'Quản trị viên',
-                Email: 'admin@bqlddcn.gov.vn',
-                Phone: '',
-                AvatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff',
-                JoinDate: '2024-01-01',
-                Status: 'Active' as any,
-                Username: 'Admin',
-                Password: '',
-            });
-            setUserType('employee');
-            setIsLoading(false);
-        }
-    }, [isDevBypass]);
-
     // Initialize: restore session + setup auth listener
     useEffect(() => {
-        // If dev bypass is active, skip session init entirely
-        const isDemoBypass = localStorage.getItem('demoBypassActive') === 'true';
-        if (isDevBypass || isDemoBypass) return;
-
         let mounted = true;
 
         // Safety timeout: reduced from 8s to 5s for faster UX
@@ -219,23 +191,76 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         }, 5000);
 
-        // Restore existing session
-        supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-            if (!mounted) return;
-            setSession(existingSession);
-            handleAuthUser(existingSession?.user ?? null).finally(() => {
+        const initAuth = async () => {
+            try {
+                // Wrap getSession in a 2-second timeout to avoid Web Lock API deadlocks from Vite HMR
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise<{data: {session: null}, error: Error}>((_, reject) => {
+                    setTimeout(() => reject(new Error('Supabase getSession timeout (Vite HMR Deadlock)')), 2000);
+                });
+
+                let existingSession: Session | null = null;
+                try {
+                    const result = await Promise.race([sessionPromise, timeoutPromise]);
+                    if (result.error) throw result.error;
+                    existingSession = result.data.session;
+                } catch (e: any) {
+                    console.warn('[Auth] getSession failed or timed out:', e.message);
+                    // Provide a hint to the user for HMR deadlocks
+                    if (e.message.includes('Deadlock')) {
+                        console.error('🚨 HMR DEADLOCK DETECTED! PLEASE HARD REFRESH THE BROWSER (F5 or CMD+R) TO RELEASE SUPABASE AUTH LOCKS 🚨');
+                    }
+                }
+                
+                // --- DEV AUTO-LOGIN ---
+                // Dành cho local development: Không cần đăng nhập, tự động có full quyền
+                if (import.meta.env.DEV && !existingSession) {
+                    // Check if user explicitly logged out in this tab
+                    const explicitlyLoggedOut = localStorage.getItem('explicitlyLoggedOut') === 'true';
+                    
+                    if (!explicitlyLoggedOut && !autoLoginAttempted) {
+                        autoLoginAttempted = true; // Prevent concurrent calls in React.StrictMode
+                        console.log('[Auth] 🔧 Local Dev: Auto-logging in as Admin...');
+                        const demoLogin = await supabase.auth.signInWithPassword({
+                            email: 'admin@bqlddcn.gov.vn',
+                            password: '123456',
+                        });
+                        
+                        // Give it a tiny delay to let lock release from Supabase JS internals
+                        await new Promise(r => setTimeout(r, 100));
+                        
+                        if (demoLogin.data?.session) {
+                            if (!mounted) return;
+                            setSession(demoLogin.data.session);
+                            await handleAuthUser(demoLogin.data.user);
+                            setIsLoading(false);
+                            clearTimeout(timeout);
+                            return; // Dừng ở đây vì login thành công
+                        } else if (demoLogin.error) {
+                            console.error('[Auth] Local Dev Auto-login failed:', demoLogin.error.message);
+                        }
+                    }
+                }
+                
+                // Normal flow
+                if (!mounted) return;
+                setSession(existingSession);
+                await handleAuthUser(existingSession?.user ?? null);
+            } catch (err) {
+                console.error('[Auth] initAuth failed:', err);
+                if (mounted) {
+                    setSession(null);
+                    await handleAuthUser(null);
+                }
+            } finally {
                 if (mounted) {
                     setIsLoading(false);
                     clearTimeout(timeout);
                 }
-            });
-        }).catch((err) => {
-            console.error('[Auth] getSession failed:', err);
-            if (mounted) {
-                setIsLoading(false);
-                clearTimeout(timeout);
             }
-        });
+        };
+
+        initAuth();
 
         // Listen for auth changes (login/logout/token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -258,7 +283,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Clear any stale session that might block Supabase queries
         try {
-            await supabase.auth.signOut({ scope: 'local' });
+            await Promise.race([
+                supabase.auth.signOut({ scope: 'local' }),
+                new Promise((res) => setTimeout(res, 500))
+            ]);
         } catch (e) {
             // Ignore signOut errors
         }
@@ -278,36 +306,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (error || !data.user) {
             console.error('[Auth] Login failed via Supabase Auth:', error?.message);
-            
-            // --- DEMO FALLBACK: Allow "Admin / 123456" even if real Auth fails ---
-            if (identifier.toLowerCase() === 'admin' && pass === '123456') {
-                console.warn('[Auth] Applying Demo Admin Override');
-                setCurrentUser({
-                    EmployeeID: 'NV001',
-                    FullName: 'Quản trị viên (Demo)',
-                    Role: 'Admin' as any,
-                    Department: 'Ban Quản lý',
-                    Position: 'Quản trị viên',
-                    Email: 'admin@bqlddcn.gov.vn',
-                    Phone: '',
-                    AvatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff',
-                    JoinDate: '2024-01-01',
-                    Status: 'Active' as any,
-                    Username: 'Admin',
-                    Password: '',
+            // If we are in Dev and they typed "admin", maybe the network failed, but we still allow real login attempt
+            if (import.meta.env.DEV && identifier.toLowerCase() === 'admin' && pass === '123456') {
+                console.warn('[Auth] ⚠️ Network issue? DEV Admin fallback triggered.');
+                const demoLogin = await supabase.auth.signInWithPassword({
+                    email: 'admin@bqlddcn.gov.vn',
+                    password: '123456',
                 });
-                setUserType('employee');
-                setContractorId(null);
-                
-                // Keep the bypass active on page reloads by using a flag
-                localStorage.setItem('demoBypassActive', 'true');
-                return true;
+                if (demoLogin.data?.session) {
+                    localStorage.removeItem('explicitlyLoggedOut');
+                    setSession(demoLogin.data.session);
+                    setSupabaseUser(demoLogin.data.user);
+                    return true;
+                }
             }
-
             return false;
         }
 
         console.log('[Auth] Login success for:', email);
+        localStorage.removeItem('explicitlyLoggedOut');
 
         // Update last_login (fire-and-forget)
         supabase
@@ -334,6 +351,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setContractorId(null);
         localStorage.removeItem('currentUser');
         localStorage.removeItem('demoBypassActive');
+        localStorage.setItem('explicitlyLoggedOut', 'true');
     };
 
     return (

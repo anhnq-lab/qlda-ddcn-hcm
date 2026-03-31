@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { ProjectCard } from './ProjectCard';
+import PermissionGate from '../../components/PermissionGate';
 import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { CreateProjectModal, SelectedMember } from './components/CreateProjectModal';
@@ -271,14 +272,16 @@ const ProjectList: React.FC = () => {
 
                             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
 
-                            <button
-                                onClick={handleCreateProject}
-                                className="btn btn-primary shrink-0"
-                                title="Thêm mới dự án"
-                            >
-                                <Plus className="w-5 h-5" />
-                                <span>Thêm mới</span>
-                            </button>
+                            <PermissionGate resource="projects" action="create">
+                                <button
+                                    onClick={handleCreateProject}
+                                    className="btn btn-primary shrink-0"
+                                    title="Thêm mới dự án"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    <span>Thêm mới</span>
+                                </button>
+                            </PermissionGate>
                         </div>
                     </div>
 
@@ -324,13 +327,15 @@ const ProjectList: React.FC = () => {
                                         Xóa tất cả bộ lọc
                                     </button>
                                 ) : (
-                                    <button
-                                        onClick={handleCreateProject}
-                                        className="h-full rounded-2xl flex flex-col justify-end p-5 relative overflow-hidden group bg-gradient-to-br from-primary-500 to-primary-600"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Tạo dự án mới
-                                    </button>
+                                    <PermissionGate resource="projects" action="create">
+                                        <button
+                                            onClick={handleCreateProject}
+                                            className="h-full rounded-2xl flex flex-col justify-end p-5 relative overflow-hidden group bg-gradient-to-br from-primary-500 to-primary-600"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Tạo dự án mới
+                                        </button>
+                                    </PermissionGate>
                                 )}
                             </div>
                         ) : (

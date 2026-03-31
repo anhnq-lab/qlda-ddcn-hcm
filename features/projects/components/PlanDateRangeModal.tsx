@@ -1,5 +1,7 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Clock, Zap, CheckCircle2 } from 'lucide-react';
+
+import { supabase } from '@/lib/supabase';
 
 export type DateRangeMode = 'range' | 'duration';
 
@@ -12,11 +14,12 @@ export interface PlanDateRange {
 interface PlanDateRangeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (range: PlanDateRange) => void;
+    onConfirm: (range: PlanDateRange, workflowId?: string) => void;
     title: string;
     description?: string;
     defaultStartDate?: string;
     isLoading?: boolean;
+    showWorkflowOption?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -179,12 +182,34 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
     description,
     defaultStartDate,
     isLoading = false,
+    showWorkflowOption = false,
 }) => {
     const [mode, setMode] = useState<DateRangeMode>('range');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [durationDays, setDurationDays] = useState<number>(365);
     const [error, setError] = useState('');
+    const [workflows, setWorkflows] = useState<any[]>([]);
+    const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>('');
+
+    // Fetch workflows when modal opens
+    useEffect(() => {
+        if (!isOpen || !showWorkflowOption) return;
+        const fetchWorkflows = async () => {
+            const { data, error } = await supabase
+                .from('workflows')
+                .select('id, name')
+                .eq('is_active', true)
+                .eq('category', 'project')
+                .order('created_at', { ascending: false });
+            
+            if (data && !error) {
+                setWorkflows(data);
+                if (data.length > 0) setSelectedWorkflowId(data[0].id);
+            }
+        };
+        fetchWorkflows();
+    }, [isOpen, showWorkflowOption]);
 
     // Initialize default dates when modal opens
     useEffect(() => {
@@ -233,7 +258,12 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
             return;
         }
 
-        onConfirm({ startDate, endDate, totalDays });
+        if (showWorkflowOption && !selectedWorkflowId) {
+            setError('Vui lòng chọn quy trình dự án');
+            return;
+        }
+
+        onConfirm({ startDate, endDate, totalDays }, showWorkflowOption ? selectedWorkflowId : undefined);
     };
 
     const presets = [
@@ -323,6 +353,25 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         onChange={setStartDate}
                         colorClass="focus:ring-emerald-300 dark:focus:ring-emerald-700"
                     />
+
+                    {/* Workflow Template Selection */}
+                    {showWorkflowOption && (
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300">
+                                Quy trình dự án <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={selectedWorkflowId}
+                                onChange={(e) => setSelectedWorkflowId(e.target.value)}
+                                className="w-full pl-3 pr-10 py-2.5 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-700 transition-shadow appearance-none cursor-pointer"
+                            >
+                                <option value="" disabled>-- Chọn quy trình --</option>
+                                {workflows.map(wf => (
+                                    <option key={wf.id} value={wf.id}>{wf.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     {/* Conditional: End Date or Duration */}
                     {mode === 'range' ? (

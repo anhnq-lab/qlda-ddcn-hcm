@@ -5,7 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ProjectService } from '@/services/ProjectService';
 import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
 import { Project, Employee, ProjectStage } from '@/types';
-import { useTasks, useUpdateTask } from '@/hooks/useTasks';
+import { useUpdateTask } from '@/hooks/useTasks';
+import { useProjectWorkflowTasks } from '@/hooks/useWorkflowTasks';
 import { useBiddingPackages } from '@/hooks/useBiddingPackages';
 
 /** Props when rendering inside a SlidePanel */
@@ -214,7 +215,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     }, [id]);
 
     // Derived Data
-    const { data: tasks = [] } = useTasks({ projectId: project?.ProjectID });
+    const { data: workflowTasks = [] } = useProjectWorkflowTasks(project?.ProjectID);
     const { mutate: saveTask } = useUpdateTask();
 
     // Get bidding packages for this project
@@ -433,7 +434,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         const isActive = activeTab === t.id;
                         // Badge counts
                         const badgeCount = t.id === 'packages' ? packages.length :
-                                           t.id === 'plan' ? tasks.length : 0;
+                                           t.id === 'plan' ? workflowTasks.length : 0;
                         return (
                             <button
                                 id={`tab-${t.id}`}
@@ -552,7 +553,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     style={activeTab === 'plan' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ProjectPlanTab
-                        tasks={tasks}
+                        workflowTasks={workflowTasks}
                         projectID={project.ProjectID}
                         onSaveTask={(t) => saveTask(t)}
                         groupCode={project.GroupCode}

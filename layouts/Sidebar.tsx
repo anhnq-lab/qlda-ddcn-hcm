@@ -54,14 +54,16 @@ const navItems: NavItem[] = [
   { name: 'Công việc', path: '/tasks', icon: CheckSquare, badge: 5, resource: 'tasks' },
   { name: 'Nhân sự', path: '/employees', icon: UserCircle, resource: 'employees' },
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },
-  { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase, resource: 'contracts' },
-  { name: 'KH Vốn & Giải ngân', path: '/capital-planning', icon: CalendarRange, resource: 'projects' },
+  { name: 'Đấu thầu & Hợp đồng', path: '/bidding', icon: Briefcase, resource: 'bidding' },
+  { name: 'KH Vốn & Giải ngân', path: '/capital-planning', icon: CalendarRange, resource: 'capital' },
   { name: 'Môi trường dữ liệu chung', path: '/cde', icon: FolderTree, resource: 'cde' },
-  { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'projects' },
+  { name: 'Mô hình BIM', path: '/bim', icon: Layers, resource: 'bim' },
   { name: 'Văn bản pháp luật', path: '/legal-documents', icon: Scale, resource: 'legal_docs' },
   { name: 'Báo cáo', path: '/reports', icon: BarChart2, resource: 'reports' },
   { name: 'Quy chế làm việc', path: '/regulations', icon: BookOpen, resource: 'regulations' },
-  { name: 'Quy trình', path: '/quy-trinh', icon: GitBranch, resource: 'projects' },
+  { name: 'Quy trình', path: '/quy-trinh', icon: GitBranch, resource: 'workflows' },
+  { name: 'Quản lý tài khoản', path: '/admin', icon: ShieldCheck, resource: 'admin_accounts' },
+  { name: 'Nhật ký hệ thống', path: '/audit-log', icon: Network, resource: 'admin_audit' },
 ];
 
 // Contractor-only: limited menu

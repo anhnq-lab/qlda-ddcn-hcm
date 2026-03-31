@@ -17,13 +17,17 @@ export type PermissionResource =
     | 'tasks'
     | 'employees'
     | 'contractors'
+    | 'bidding'
     | 'contracts'
     | 'payments'
+    | 'capital'
     | 'documents'
     | 'cde'
+    | 'bim'
     | 'legal_docs'
     | 'reports'
     | 'regulations'
+    | 'workflows'
     | 'admin_accounts'
     | 'admin_roles'
     | 'admin_audit';
@@ -58,13 +62,17 @@ export const RESOURCE_LABELS: Record<PermissionResource, string> = {
     tasks: 'Công việc',
     employees: 'Nhân sự',
     contractors: 'Nhà thầu',
+    bidding: 'Đấu thầu',
     contracts: 'Hợp đồng',
     payments: 'Thanh toán',
+    capital: 'KH Vốn & Giải ngân',
     documents: 'Hồ sơ tài liệu',
     cde: 'CDE',
+    bim: 'Mô hình BIM',
     legal_docs: 'VB Pháp luật',
     reports: 'Báo cáo',
     regulations: 'Quy chế',
+    workflows: 'Quy trình',
     admin_accounts: 'Tài khoản',
     admin_roles: 'Phân quyền',
     admin_audit: 'Nhật ký HT',
@@ -112,8 +120,9 @@ export const CORE_ACTIONS: PermissionAction[] = ['view', 'create', 'update', 'de
 
 export const ALL_RESOURCES: PermissionResource[] = [
     'dashboard', 'projects', 'tasks', 'employees', 'contractors',
-    'contracts', 'payments', 'documents', 'cde',
-    'legal_docs', 'reports', 'regulations',
+    'bidding', 'contracts', 'payments', 'capital',
+    'documents', 'cde', 'bim',
+    'legal_docs', 'reports', 'regulations', 'workflows',
     'admin_accounts', 'admin_roles', 'admin_audit',
 ];
 
@@ -198,13 +207,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update', 'delete'],
         employees: ['view', 'create', 'update', 'delete'],
         contractors: ['view', 'create', 'update'],
+        bidding: ['view', 'create', 'update', 'delete', 'approve', 'export'],
         contracts: ['view', 'create', 'update', 'delete', 'approve'],
         payments: ['view', 'create', 'update', 'delete', 'approve'],
+        capital: ['view', 'create', 'update', 'delete', 'approve', 'export'],
         documents: ['view', 'create', 'update', 'delete'],
         cde: ['view', 'create', 'update', 'delete', 'approve'],
+        bim: ['view', 'create', 'update', 'delete'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view', 'create', 'update', 'delete'],
         admin_accounts: ['view', 'create', 'update', 'delete'],
         admin_roles: ['view', 'create', 'update', 'delete'],
         admin_audit: ['view'],
@@ -217,13 +230,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view'],
+        bidding: ['view', 'approve'],
         contracts: ['view', 'approve'],
         payments: ['view', 'approve'],
+        capital: ['view', 'approve', 'export'],
         documents: ['view'],
         cde: ['view', 'approve'],
+        bim: ['view'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view'],
         admin_accounts: ['view'],
         admin_audit: ['view'],
     },
@@ -235,13 +252,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view'],
+        bidding: ['view', 'approve'],
         contracts: ['view', 'approve'],
         payments: ['view', 'approve'],
+        capital: ['view', 'approve', 'export'],
         documents: ['view'],
         cde: ['view', 'approve'],
+        bim: ['view'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view'],
     },
 
     // ── Kế toán trưởng ──
@@ -251,13 +272,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view'],
         employees: ['view'],
         contractors: ['view'],
+        bidding: ['view'],
         contracts: ['view'],
         payments: ['view', 'create', 'update', 'delete', 'approve'],
+        capital: ['view', 'create', 'update', 'approve', 'export'],
         documents: ['view'],
         cde: ['view'],
+        bim: ['view'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view'],
     },
 
     // ── Trưởng phòng / Trưởng ban ──
@@ -267,13 +292,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update', 'delete'],
         employees: ['view'],
         contractors: ['view', 'create', 'update'],
+        bidding: ['view', 'create', 'update', 'export'],
         contracts: ['view', 'create', 'update'],
         payments: ['view', 'create', 'update'],
+        capital: ['view', 'create', 'update'],
         documents: ['view', 'create', 'update', 'delete'],
         cde: ['view', 'create', 'update', 'approve'],
+        bim: ['view', 'create', 'update'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view', 'create', 'update'],
     },
 
     // ── Phó phòng ──
@@ -283,13 +312,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view', 'create', 'update'],
+        bidding: ['view', 'create', 'update'],
         contracts: ['view', 'create', 'update'],
         payments: ['view', 'create', 'update'],
+        capital: ['view', 'create', 'update'],
         documents: ['view', 'create', 'update'],
         cde: ['view', 'create', 'update'],
+        bim: ['view', 'create', 'update'],
         legal_docs: ['view'],
         reports: ['view', 'export'],
         regulations: ['view'],
+        workflows: ['view'],
     },
 
     // ── Chuyên viên / Kỹ sư ──
@@ -299,13 +332,17 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view', 'create', 'update'],
+        bidding: ['view', 'create', 'update'],
         contracts: ['view', 'create', 'update'],
         payments: ['view', 'create'],
+        capital: ['view'],
         documents: ['view', 'create', 'update'],
         cde: ['view', 'create', 'update'],
+        bim: ['view', 'create', 'update'],
         legal_docs: ['view'],
         reports: ['view'],
         regulations: ['view'],
+        workflows: ['view'],
     },
 
     // ── Nhân viên (hành chính) ──
@@ -315,18 +352,24 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
         tasks: ['view'],
         employees: ['view'],
         contractors: ['view'],
+        bidding: ['view'],
         contracts: ['view'],
         payments: ['view'],
+        capital: ['view'],
         documents: ['view', 'create'],
         cde: ['view'],
+        bim: ['view'],
         legal_docs: ['view'],
         reports: ['view'],
         regulations: ['view'],
+        workflows: ['view'],
     },
 
     // ── Nhà thầu ──
     contractor: {
         projects: ['view'],       // project-scoped
+        contracts: ['view'],      // project-scoped: xem HĐ liên quan
+        payments: ['view'],       // project-scoped: xem thanh toán liên quan
         cde: ['view', 'create'],  // project-scoped: xem + upload tài liệu
     },
 };
