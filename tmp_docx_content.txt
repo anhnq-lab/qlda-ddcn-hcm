@@ -1,0 +1,52 @@
+Dưới đây là khung sườn chi tiết cho 15 Slide thuyết trình, kèm theo kế hoạch triển khai trong 3 tháng để bạn trình lãnh đạo.
+CẤU TRÚC CHI TIẾT 15 SLIDE
+Phần 1: Đặt vấn đề & Mục tiêu
+Slide 1: Tiêu đề dự án: "Kế hoạch chi tiết Triển khai thiết lập Tiêu chuẩn BIM - Ban Quản lý Dự án Đầu tư Xây dựng các công trình Dân dụng và Công nghiệp TP.HCM".
+Slide 2: Mục tiêu chiến lược: Chuẩn hóa quy trình, tối ưu hóa phối hợp liên phòng ban, kiểm soát tiến độ/chi phí và nâng cao năng lực nhân sự.
+Phần 2: Nội dung triển khai (Trọng tâm)
+Slide 3: Bước 1: Khảo sát & Đánh giá hiện trạng. Phối hợp với các phòng ban thu thập quy trình hiện hữu (phê duyệt, thẩm định, hồ sơ). CIC nghiên cứu chuyển đổi sang quy trình số hóa BIM.
+Slide 4: Bước 2: Chuẩn hóa hạ tầng thông tin. Thống nhất quy tắc đặt tên (Naming Convention), cấu trúc thư mục lưu trữ tập trung theo chuẩn quốc tế (ISO 19650).
+Slide 5: Bước 3: Thiết lập bộ Tiêu chuẩn BIM (BIM Standards). Xây dựng bộ khung hướng dẫn kỹ thuật chung cho toàn Ban.
+Slide 6: Bước 4: Xác định yêu cầu trao đổi thông tin (EIR). Thiết lập mẫu EIR cho từng giai đoạn: FS, Thiết kế, Thi công, Hoàn công. Phân cấp mức độ ứng dụng: Cơ bản $\rightarrow$ Nâng cao.
+Slide 7: Bước 5: Kỹ thuật quản lý mô hình. Thiết lập bảng mức độ chi tiết thông tin (LOD), Ma trận kiểm soát va chạm, và Kế hoạch chuyển giao thông tin chính (MIDP).
+Slide 8: Bước 6: Quản lý nhà thầu qua BEP. Xây dựng mẫu Kế hoạch triển khai BIM (BEP Template) bắt buộc để các nhà thầu tuân thủ đồng bộ.
+Slide 9: Bước 7: Môi trường dữ liệu chung (CDE). Thiết lập nền tảng lưu trữ, xét duyệt online, đảm bảo "Dữ liệu đúng - Người dùng đúng - Thời điểm đúng".
+Slide 10: Bước 8: Chương trình Đào tạo nhân sự (Phần 1). Đào tạo nhận thức cho BGĐ và các GĐ/PGĐ Ban điều hành (Tập trung vào quản lý, phê duyệt).
+Slide 11: Bước 9: Chương trình Đào tạo nhân sự (Phần 2). Đào tạo chuyên sâu cho các Chuyên viên chính, Phòng KT, Kế hoạch, Kế toán (Tập trung vào công cụ và quy trình thực thi).
+Slide 12: Bước 10: Hỗ trợ vận hành (On-job Training). CIC đồng hành cùng nhân sự trong quá trình áp dụng thực tế vào dự án điểm.
+Phần 3: Kế hoạch triển khai & Kết luận
+Slide 13: Lộ trình triển khai chi tiết 3 tháng (Xem bảng bên dưới).
+Slide 14: Cam kết đầu ra & Giá trị mang lại (Hồ sơ chuẩn hóa, nhân sự làm chủ công nghệ).
+Slide 15: Kết luận & Kiến nghị (Lời cảm ơn và mong muốn nhận chỉ đạo tiếp theo).
+KẾ HOẠCH TRIỂN KHAI CHI TIẾT (3 THÁNG)
+Bạn có thể đưa bảng này vào Slide 13:
+Tháng
+Tuần
+Nội dung công việc chính
+Đầu ra dự kiến
+Tháng 1
+1-2
+Khảo sát quy trình hiện hữu & Trao đổi quy tắc đặt tên (Bước 1, 2)
+Báo cáo đánh giá hiện trạng
+3-4
+Thiết lập tiêu chuẩn BIM & Mẫu EIR các giai đoạn (Bước 3, 4)
+Dự thảo Bộ tiêu chuẩn & Mẫu EIR
+Tháng 2
+5-6
+Thiết lập bảng LOD, Ma trận va chạm, MIDP & BEP Template (Bước 5, 6)
+Sổ tay hướng dẫn kỹ thuật
+7-8
+Cấu hình hệ thống CDE & Phân quyền truy cập (Bước 7)
+Hệ thống lưu trữ trực tuyến
+Tháng 3
+9-11
+Đào tạo phân cấp (BGĐ, Lãnh đạo phòng, Chuyên viên) (Bước 8)
+Chứng nhận & Kỹ năng nhân sự
+12
+Tổng kết, chuyển giao và hỗ trợ thực tế (Bước 9)
+Bộ quy trình hoàn chỉnh
+MỘT SỐ LƯU Ý KHI TRÌNH BÀY CHO BAN DÂN DỤNG:
+Nhấn mạnh tính pháp lý: Nhắc đến việc tuân thủ các quyết định của Chính phủ về lộ trình áp dụng BIM tại Việt Nam.
+Tính thực tiễn: Nhấn mạnh rằng các quy trình này sẽ giúp giảm thiểu việc "sửa đi sửa lại" hồ sơ và minh bạch hóa quá trình thẩm định.
+Đào tạo: Ban Dân dụng thường có khối lượng công việc rất lớn, nên nhấn mạnh việc CIC sẽ hỗ trợ sát sao để nhân sự không bị quá tải khi tiếp cận cái mới.
+Bạn có muốn tôi mô tả chi tiết hơn nội dung của một Slide cụ thể nào (ví dụ Slide về EIR hoặc CDE) để bạn đưa vào bài thuyết trình không?

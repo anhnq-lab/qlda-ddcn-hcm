@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Network, Plus, AlertCircle, FileText, DownloadCloud, ArrowLeft, LayoutGrid, List as ListIcon, Search, Trash2 } from 'lucide-react';
 import type { Workflow, WorkflowNode, WorkflowEdge } from '../../types/workflow.types';
@@ -32,19 +32,16 @@ const WorkflowManagerPage: React.FC = () => {
         fetchWorkflows();
     }, []);
 
+    const hasAutoSeeded = useRef(false);
+
     useEffect(() => {
-        // Automatically seed workflow data if we don't have the standard 'I.2' and haven't seeded this session.
-        if (!isLoading && workflows.length > 0 && !isSeeding && !sessionStorage.getItem('auto_seeded_v6_templates_i2')) {
-            const hasStandardWf = workflows.some(w => w.code === 'I.2');
-            if (!hasStandardWf) {
-                sessionStorage.setItem('auto_seeded_v6_templates_i2', 'true');
-                // Auto seed immediately without prompt
+        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B → tự động seed
+        if (!isLoading && !isSeeding && !hasAutoSeeded.current) {
+            const hasStandard = workflows.some(w => w.code === 'QT-TK1B');
+            if (!hasStandard) {
+                hasAutoSeeded.current = true;
                 handleSeedWorkflows(true);
             }
-        } else if (!isLoading && workflows.length === 0 && !isSeeding && !sessionStorage.getItem('auto_seeded_v6_empty')) {
-            // Also seed if entirely empty
-            sessionStorage.setItem('auto_seeded_v6_empty', 'true');
-            handleSeedWorkflows(true);
         }
     }, [workflows, isLoading, isSeeding]);
 
@@ -658,6 +655,7 @@ const WorkflowManagerPage: React.FC = () => {
                 type: 'input', role: 'CĐT / Sở Tài chính', sla: '30d',
                 metadata: {
                     phase: 'execution',
+                    sub_process: 'II.1. Lựa chọn nhà thầu',
                     description: 'CĐT lập Tờ trình KHLCNT (Mẫu 7). Sở TC/Phòng TC-KH thẩm định ≤20 ngày (phấn đấu 7 ngày). NTQ phê duyệt ≤10 ngày (phấn đấu 3 ngày). Đăng tải lên mạng ĐTQG trong 5 ngày.',
                     legal_basis: 'Điều 36, 37, 38, 39, 40 Luật Đấu thầu 2023; Khoản 3 Điều 45 Luật ĐT 2023',
                     output: 'Tờ trình (Mẫu 7), BC thẩm định (Mẫu 8), QĐ phê duyệt KHLCNT (Mẫu 9)',
@@ -669,6 +667,7 @@ const WorkflowManagerPage: React.FC = () => {
                 type: 'input', role: 'UBND cấp huyện / CĐT / Tổ GPMB', sla: '90d',
                 metadata: {
                     phase: 'execution',
+                    sub_process: 'II.2. Giải phóng mặt bằng',
                     description: 'Song song với thiết kế. Tổ chức cắm mốc, lập bản đồ thu hồi đất, kiểm đếm, lên phương án bồi thường trình UBND phê duyệt. Thực hiện chi trả bồi thường và bàn giao mặt bằng.',
                     legal_basis: 'Luật Đất đai 2024; NĐ 88/2024/NĐ-CP về bồi thường, hỗ trợ, TĐC',
                     output: 'QĐ thu hồi đất, Phương án bồi thường đã duyệt, Biên bản bàn giao mặt bằng',
@@ -680,6 +679,7 @@ const WorkflowManagerPage: React.FC = () => {
                 type: 'input', role: 'CĐT / BMT / Tổ chuyên gia', sla: '47d',
                 metadata: {
                     phase: 'execution',
+                    sub_process: 'II.1. Lựa chọn nhà thầu',
                     description: 'Đấu thầu rộng rãi (≈47 ngày: phát hành HSMT → mở thầu → đánh giá KT, TC → thương thảo → ký HĐ) hoặc Chỉ định thầu (≤45 ngày thông thường, ≤90 ngày gói thầu lớn phức tạp).',
                     legal_basis: 'Luật Đấu thầu 2023; NĐ 24/2024/NĐ-CP; Phụ lục 1 Sổ tay ĐTCHD 2025',
                     output: 'QĐ phê duyệt KQLCNT, Hợp đồng thi công, HĐ tư vấn giám sát',
@@ -691,6 +691,7 @@ const WorkflowManagerPage: React.FC = () => {
                 type: 'input', role: 'Nhà thầu TC / TV Giám sát / CĐT', sla: '1095d',
                 metadata: {
                     phase: 'execution',
+                    sub_process: 'II.3. Thi công xây dựng',
                     description: 'Thông báo khởi công cho cơ quan QLNN. Nhà thầu thi công theo TKBVTC đã duyệt. TV giám sát và CĐT quản lý chất lượng liên tục. Thanh toán khối lượng hoàn thành định kỳ (Mẫu 25, 28, 30). SLA thực hiện: Nhóm A ≤6 năm; Nhóm B ≤4 năm; Nhóm C ≤3 năm.',
                     legal_basis: 'NĐ 06/2021/NĐ-CP; NĐ 99/2021/NĐ-CP về thanh toán vốn ĐTC; Điều 125 Luật XD',
                     output: 'Nhật ký thi công, Biên bản nghiệm thu từng phần, Giấy đề nghị thanh toán (Mẫu 25)',
@@ -702,6 +703,7 @@ const WorkflowManagerPage: React.FC = () => {
                 type: 'input', role: 'CĐT / TV GS / NT Thi công / CQ KT nhà nước', sla: '30d',
                 metadata: {
                     phase: 'execution',
+                    sub_process: 'II.3. Thi công xây dựng',
                     description: 'CĐT tổ chức nghiệm thu hoàn thành. Cơ quan chuyên môn về XD kiểm tra: Cấp I/đặc biệt ≤30 ngày (phấn đấu 25 ngày); Còn lại ≤20 ngày (phấn đấu 15 ngày). Bàn giao hồ sơ hoàn thành.',
                     legal_basis: 'Phụ lục VI, VII NĐ 06/2021/NĐ-CP; Điều 123, 124 Luật XD 2014',
                     output: 'BC hoàn thành thi công XD (Mẫu 19A), Danh mục hồ sơ CT (Mẫu 19B), Thông báo KT nghiệm thu (Mẫu 20), Bản vẽ hoàn công',
@@ -715,6 +717,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'input', role: 'CĐT / Nhà thầu TC / Đơn vị tiếp nhận', sla: '15d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.1. Bàn giao công trình',
                         description: 'CĐT và nhà thầu bàn giao tài liệu: bản vẽ hoàn công, quy trình vận hành, bảo trì, danh mục vật tư thiết bị dự trữ thay thế. Đơn vị tiếp nhận kiểm tra và ký biên bản bàn giao.',
                         legal_basis: 'Điều 124 Luật XD 2014; NĐ 06/2021/NĐ-CP',
                         output: 'Biên bản bàn giao công trình, Hồ sơ hoàn công, Quy trình vận hành bảo trì',
@@ -725,6 +728,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'input', role: 'CĐT / Các nhà thầu', sla: '120d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.2. Quyết toán dự án hoàn thành',
                         description: 'CĐT và các nhà thầu lập bộ hồ sơ tổng hợp quyết toán. QT chi phí GPMB nếu có. SLA: Nhóm A ≤9 tháng; Nhóm B ≤6 tháng; Nhóm C ≤4 tháng.',
                         legal_basis: 'Điều 34, 47 NĐ 99/2021/NĐ-CP; Điểm b Khoản 3 Điều 32 NĐ 99',
                         output: 'Hồ sơ quyết toán dự án hoàn thành',
@@ -735,6 +739,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'input', role: 'Nhà thầu Kiểm toán độc lập', sla: '60d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.2. Quyết toán dự án hoàn thành',
                         description: 'Bắt buộc với dự án nhóm A. Nhóm B, C do NQĐ ĐT xem xét quyết định. CĐT tổ chức lựa chọn nhà thầu kiểm toán, ký hợp đồng kiểm toán.',
                         legal_basis: 'Khoản 3 Điều 35 NĐ 99/2021/NĐ-CP; Luật Đấu thầu 2023; NĐ 24/2024/NĐ-CP',
                         output: 'Báo cáo kiểm toán quyết toán dự án hoàn thành',
@@ -745,6 +750,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'input', role: 'Sở Tài chính / Phòng TC-KH', sla: '90d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.2. Quyết toán dự án hoàn thành',
                         description: 'Sở TC (dự án tỉnh) hoặc Phòng TC-KH cấp huyện thẩm tra hồ sơ quyết toán. SLA: Nhóm A ≤8 tháng; Nhóm B ≤4 tháng; Nhóm C ≤3 tháng.',
                         legal_basis: 'Điều 34 đến 44 NĐ 99/2021/NĐ-CP',
                         output: 'Báo cáo thẩm tra quyết toán',
@@ -755,6 +761,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'approval', role: 'Chủ tịch UBND các cấp', sla: '30d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.2. Quyết toán dự án hoàn thành',
                         description: 'NQĐ ĐT phê duyệt quyết toán dựa trên báo cáo thẩm tra. SLA: Nhóm A ≤1 tháng; Nhóm B ≤20 ngày; Nhóm C ≤15 ngày.',
                         legal_basis: 'Điều 35, 45, 47 NĐ 99/2021/NĐ-CP',
                         output: 'QĐ phê duyệt quyết toán dự án hoàn thành',
@@ -765,6 +772,7 @@ const WorkflowManagerPage: React.FC = () => {
                     type: 'end', role: 'CĐT / Kho bạc Nhà nước', sla: '15d',
                     metadata: {
                         phase: 'completion',
+                        sub_process: 'III.3. Tất toán, đóng dự án',
                         description: 'CĐT thanh toán hết công nợ, thu hồi số dư tạm ứng. Kho bạc Nhà nước xác nhận tài khoản có số dư bằng 0. Đóng mã dự án trên hệ thống.',
                         legal_basis: 'NĐ 99/2021/NĐ-CP; Thông tư hướng dẫn của Bộ Tài chính',
                         output: 'Xác nhận tất toán KBNN, Thông báo đóng mã dự án',
@@ -778,7 +786,7 @@ const WorkflowManagerPage: React.FC = () => {
             const WF_I_1 = {
                 name: 'Trình tự, thủ tục quyết định chủ trương đầu tư dự án nhóm A, B, C sử dụng vốn ĐTC do địa phương quản lý',
                 code: 'I.1',
-                category: 'investment' as const,
+                category: 'project' as const,
                 description: 'Quy trình thực hiện giai đoạn chuẩn bị dự án - Quyết định chủ trương đầu tư.',
                 steps: COMMON_PREP_STEPS
             };
@@ -789,7 +797,7 @@ const WorkflowManagerPage: React.FC = () => {
             const WF_I_2 = {
                 name: 'Trình tự, thủ tục chuẩn bị đầu tư, chuẩn bị dự án',
                 code: 'I.2',
-                category: 'investment' as const,
+                category: 'project' as const,
                 description: 'Quy trình I.2: Chuẩn bị đầu tư, chuẩn bị dự án bao gồm 8 bước theo Sổ tay Quản lý DAĐTC Hải Dương 2025.',
                 steps: [
                     {
@@ -912,6 +920,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '47d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Lập nhiệm vụ KSTK triển khai sau TKCS (bao gồm đo đạc, cắm mốc GPMB). Tổ chức đấu thầu chọn nhà thầu khảo sát, tư vấn thiết kế kỹ thuật, tư vấn thẩm tra.',
                             legal_basis: 'Điều 76 Luật XD 2014 (sửa đổi Luật 62); Điều 14 NĐ 10/2021/NĐ-CP',
                             output: 'QĐ phê duyệt nhiệm vụ KSTK, HĐ tư vấn thiết kế',
@@ -922,6 +931,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '80d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Bước TK thứ 2/3. Nhà thầu TK lập hồ sơ TKKT chi tiết kết cấu, vật liệu, hệ thống kỹ thuật. SLA: Nhóm A ≥80 ngày. Đồng thời thỏa thuận PCCC, quy hoạch (30 ngày).',
                             legal_basis: 'Điều 79, 80 Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'Hồ sơ TKKT (thuyết minh, bản vẽ, chỉ dẫn kỹ thuật)',
@@ -932,6 +942,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'Sở XD / CQ chuyên môn về XD', sla: '40d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'CQ chuyên môn về XD thẩm định TKKT. SLA: Cấp I/đặc biệt ≤40 ngày; Cấp II,III ≤30 ngày; Còn lại ≤20 ngày.',
                             legal_basis: 'Điều 82, 83a Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'Báo cáo thẩm định TKKT (Mẫu 14)',
@@ -942,6 +953,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'approval', role: 'Chủ đầu tư', sla: '7d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'CĐT phê duyệt TKKT trong 7 ngày kể từ ngày nhận báo cáo thẩm định.',
                             legal_basis: 'Khoản 8 Điều 82 Luật XD 2014',
                             output: 'QĐ phê duyệt TKKT (Mẫu 15)',
@@ -952,6 +964,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '60d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Bước TK thứ 3/3. Lập TKBVTC chi tiết và dự toán xây dựng dựa trên TKKT đã duyệt. Đây là bản vẽ thi công cuối cùng để nhà thầu thi công thực hiện.',
                             legal_basis: 'Điều 80 Luật XD 2014; NĐ 10/2021/NĐ-CP',
                             output: 'Hồ sơ TKBVTC + Dự toán XD (Tờ trình thẩm định Mẫu 13)',
@@ -962,6 +975,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'approval', role: 'CĐT / CQ chuyên môn XD', sla: '30d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Thẩm định TKBVTC-DT: Cấp II,III ≤30 ngày; Còn lại ≤20 ngày. CĐT phê duyệt trong 7 ngày.',
                             legal_basis: 'Điều 82, 83a Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'BC thẩm định (Mẫu 14), QĐ phê duyệt TKBVTC-DT (Mẫu 15)',
@@ -997,6 +1011,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '47d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Lập nhiệm vụ KSTK triển khai sau TKCS. Tổ chức đấu thầu chọn nhà thầu khảo sát, tư vấn lập TKBVTC, tư vấn thẩm tra.',
                             legal_basis: 'Điều 76 Luật XD 2014 (sửa đổi Luật 62); Điều 14 NĐ 10/2021/NĐ-CP',
                             output: 'QĐ phê duyệt nhiệm vụ KSTK, HĐ tư vấn',
@@ -1007,6 +1022,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '60d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Bước TK thứ 2/2. Lập TKBVTC và dự toán XD triển khai trực tiếp từ TKCS đã duyệt (không qua TKKT). SLA: Nhóm B,C ≥60 ngày. Thỏa thuận PCCC, quy hoạch (30 ngày).',
                             legal_basis: 'Điều 79, 80 Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'Hồ sơ TKBVTC + Dự toán XD (Tờ trình Mẫu 13)',
@@ -1017,6 +1033,7 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'approval', role: 'CĐT / CQ chuyên môn XD', sla: '30d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Thiết kế triển khai sau TKCS',
                             description: 'Thẩm định TKBVTC-DT: Cấp II,III ≤30 ngày; Còn lại ≤20 ngày. CĐT phê duyệt trong 7 ngày.',
                             legal_basis: 'Điều 82, 83a Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'BC thẩm định (Mẫu 14), QĐ phê duyệt TK-DT (Mẫu 15)',
@@ -1041,12 +1058,20 @@ const WorkflowManagerPage: React.FC = () => {
                 category: 'project' as const,
                 description: 'Quy trình thực hiện dự án đầu tư xây dựng áp dụng thiết kế 1 bước (TKBVTC tích hợp trong BCKT-KT) dành cho dự án Nhóm C quy mô nhỏ, đơn giản. KHÔNG cần lập thiết kế triển khai sau. Theo Sổ tay ĐTCHD 2025.',
                 steps: [
-                    ...COMMON_PREP_STEPS,
+                    COMMON_PREP_STEPS[0], // 1. Lập BCNCTKT/ Báo cáo đề xuất CTrĐT
+                    COMMON_PREP_STEPS[1], // 2. Thẩm định Báo cáo đề xuất
+                    COMMON_PREP_STEPS[2], // 3. Hoàn thiện Báo cáo
+                    COMMON_PREP_STEPS[3], // 4. Quyết định CTrĐT
+                    COMMON_PREP_STEPS[4], // 5. Giao CĐT
+                    COMMON_PREP_STEPS[5], // 6. Lập, thẩm định NV dự toán CBĐT
+                    COMMON_PREP_STEPS[6], // 7. KHLCNT bước CBĐT
+                    { ...COMMON_PREP_STEPS[7], name: '8. LCNT khảo sát, lập BCKT-KT' },
                     {
                         name: '9. Lập Báo cáo KT-KT (tích hợp TKBVTC + Dự toán)',
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '60d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Lập hồ sơ BCKT-KT',
                             description: 'Đặc thù TK 1 bước: TKBVTC và Dự toán được lập tích hợp trong BCKT-KT. Không cần TKCS riêng. Tư vấn khảo sát và lập hồ sơ BCKT-KT đồng thời. SLA: ≥60 ngày.',
                             legal_basis: 'Khoản 3 Điều 52 Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'Hồ sơ BCKT-KT (có TKBVTC + Dự toán tích hợp)',
@@ -1057,24 +1082,26 @@ const WorkflowManagerPage: React.FC = () => {
                         type: 'input', role: 'Phòng KT-HT / Sở chuyên ngành', sla: '20d',
                         metadata: {
                             phase: 'execution',
+                            sub_process: 'II.0. Lập hồ sơ BCKT-KT',
                             description: 'CQ chuyên môn XD thẩm định BCKT-KT (bao gồm cả TKBVTC tích hợp). SLA: Nhóm C ≤20 ngày (phấn đấu 15 ngày). Lấy ý kiến sở ngành ≤5 ngày.',
                             legal_basis: 'Điều 59 Luật XD 2014; NĐ 175/2024/NĐ-CP',
                             output: 'Báo cáo thẩm định BCKT-KT (Mẫu 11c)',
                         }
                     },
                     {
-                        name: '11. Phê duyệt BCKT-KT (= phê duyệt TK luôn)',
+                        name: '11. Phê duyệt BCKT-KT (= phê duyệt dự án)',
                         type: 'approval', role: 'Chủ tịch UBND / CĐT', sla: '5d',
                         metadata: {
                             phase: 'execution',
-                            description: 'Phê duyệt BCKT-KT đồng nghĩa phê duyệt luôn TKBVTC + Dự toán (TK 1 bước). Nhóm C: ≤5 ngày. Dự án chuyển thẳng sang đấu thầu thi công, KHÔNG cần lập TK triển khai thêm.',
+                            sub_process: 'II.0. Lập hồ sơ BCKT-KT',
+                            description: 'Phê duyệt BCKT-KT đồng nghĩa phê duyệt luôn dự án, TKBVTC + Dự toán (TK 1 bước). Nhóm C: ≤5 ngày. Dự án chuyển thẳng sang đấu thầu thi công, KHÔNG cần lập TK triển khai thêm.',
                             legal_basis: 'Khoản 1 Điều 60 Luật XD 2014',
                             output: 'QĐ phê duyệt BCKT-KT (Mẫu 12b) — bao gồm phê duyệt TKBVTC',
                         }
                     },
                     // IMPLEMENTATION — skip TK triển khai, go straight to LCNT
                     { ...IMPL_KHLCNT, name: '12. Lập, thẩm định, phê duyệt KHLCNT dự án' },
-                    { ...IMPL_GPMB, name: '13. Bồi thường, GPMB' },
+                    { ...IMPL_GPMB, name: '13. Bồi thường, GPMB (nếu có)' },
                     { ...IMPL_LCNT_TC, name: '14. Lựa chọn nhà thầu Giám sát & Thi công' },
                     { ...IMPL_THICONG, name: '15. Khởi công, Thi công & QLCL' },
                     { ...IMPL_NGHIEMTHU, name: '16. Nghiệm thu hoàn thành CT' },
@@ -1133,13 +1160,14 @@ const WorkflowManagerPage: React.FC = () => {
             setIsSeeding(false);
         }
     };
-    useEffect(() => {
-        if (!localStorage.getItem('force_seed_v3_subtasks')) {
+    /* Removed redundant localStorage-based auto-seed — the useEffect on line 35 handles it */
+    /* useEffect(() => {
+        if (!localStorage.getItem('force_seed_v4_full_data')) {
             handleSeedWorkflows(true).then(() => {
-                localStorage.setItem('force_seed_v3_subtasks', 'true');
+                localStorage.setItem('force_seed_v4_full_data', 'true');
             });
         }
-    }, [workflows.length]); // depend on workflows to ensure supabase is ready
+    }, [workflows.length]); */
 
     // ─── Category label helper ────────────────────────────────
     const getCategoryLabel = (cat: string) => {
