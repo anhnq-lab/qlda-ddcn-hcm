@@ -33,7 +33,7 @@ const Login: React.FC = () => {
                 <div className="p-8 pb-6 text-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #4A4A4A 0%, #2D2D2D 100%)' }}>
                     {/* Decorative pattern background */}
                     <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'url("/bg-header-login.png")', backgroundSize: '120%', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' }}></div>
-                    <img src="/ddcn-logo.png" alt="Logo Ban DDCN TP.HCM" className="relative z-10 w-44 mx-auto mb-4 drop-shadow-xl object-contain" />
+                    <img src="/logo-ddcn-final.png" alt="Logo Ban DDCN TP.HCM" className="relative z-10 w-44 mx-auto mb-4 drop-shadow-xl object-contain" />
                     <h1 className="relative z-10 text-base font-extrabold text-white leading-snug uppercase" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)', letterSpacing: '0.5px' }}>Ban Quản lý dự án đầu tư xây dựng các công trình</h1>
                     <h2 className="relative z-10 text-base font-extrabold leading-snug uppercase" style={{ color: '#FFD700', textShadow: '0 2px 4px rgba(0,0,0,0.3)', letterSpacing: '0.5px' }}>Dân dụng và Công nghiệp</h2>
                     <p className="relative z-10 text-gray-300 text-sm mt-2 font-medium tracking-wide">UBND Thành phố Hồ Chí Minh</p>

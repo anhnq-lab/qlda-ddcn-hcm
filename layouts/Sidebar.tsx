@@ -108,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Logo - Expanded state */}
           <div className={`flex items-center overflow-hidden transition-all duration-300 gap-3 ${isCollapsed ? 'md:hidden' : 'w-auto'}`}>
             <div className="w-10 h-10 bg-[#FCF9F2] rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-lg border border-[#ece7de]">
-               <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
+               <img src="/logo-ddcn-final.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
             </div>
             <div className="animate-fade-in flex flex-col justify-center min-w-0">
                <h1 className="text-[12px] font-black text-slate-900 dark:text-slate-100 leading-tight truncate uppercase tracking-tight w-full">Ban QLDA ĐTXD ĐDCN</h1>
@@ -119,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Logo - Collapsed state */}
           <div className={`hidden transition-all duration-300 ${isCollapsed ? 'md:flex justify-center' : ''}`}>
              <div className="w-10 h-10 bg-[#FCF9F2] rounded-lg p-0.5 flex items-center justify-center shrink-0 shadow-lg border border-[#ece7de]">
-               <img src="/logo-ddcn-v3.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
+               <img src="/logo-ddcn-final.png" alt="Logo" className="w-full h-full object-cover rounded-md" />
              </div>
           </div>
         </div>
