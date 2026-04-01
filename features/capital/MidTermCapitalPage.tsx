@@ -158,7 +158,7 @@ const CapitalPlanningPage: React.FC = () => {
 
     if (loadingPlans) {
         return (
-            <div className="p-8 text-center text-gray-500 dark:text-slate-400">
+            <div className="p-4 text-center text-gray-500 dark:text-slate-400">
                 <CalendarRange className="w-10 h-10 mx-auto mb-3 opacity-30 animate-pulse" />
                 Đang tải dữ liệu...
             </div>
@@ -171,7 +171,7 @@ const CapitalPlanningPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl flex items-center gap-3" style={{ fontFamily: 'var(--font-heading)' }}>
-                        <div className="p-2.5 rounded-xl shadow-lg bg-gradient-to-br from-primary-500 to-primary-600">
+                        <div className="p-2.5 rounded-xl shadow-sm bg-gradient-to-br from-primary-500 to-primary-600">
                             <Landmark className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-gray-800 dark:text-slate-100">Kế hoạch Vốn & Giải ngân</span>
@@ -212,7 +212,7 @@ const CapitalPlanningPage: React.FC = () => {
                             currentExportData, activeTab, yearFilter,
                             { disbPlans: disbPlans as any[], disbursements: disbursements as any[], annualPlans: filteredAnnual }
                         )}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-lg transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
                         title="Xuất dữ liệu ra Excel"
                     >
                         <Download className="w-3.5 h-3.5" />
@@ -353,7 +353,7 @@ const MidTermTab: React.FC<{plans: any[]; annualPlans: any[]; searchTerm: string
                             const linked = annualPlans.filter((a: any) => a.project_id === plan.project_id && a.year >= plan.period_start && a.year <= plan.period_end);
 
                             return (
-                                <div key={plan.plan_id} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                                <div key={plan.plan_id} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                                     <div className="px-5 py-3 cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors" onClick={() => setExpandedPlan(isExp ? null : plan.plan_id)}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">

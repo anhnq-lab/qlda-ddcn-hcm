@@ -144,7 +144,7 @@ const Login: React.FC = () => {
             </div>
 
             {/* ─── RIGHT COLUMN: LOGIN FORM ─── */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 relative bg-white dark:bg-[#060A14] transition-colors duration-300">
+            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-4 sm:p-12 relative bg-[#FCF9F2] dark:bg-[#060A14] transition-colors duration-300">
                 <div className="w-full max-w-[420px]">
                     
                     {/* Logo & Headers */}
@@ -192,7 +192,7 @@ const Login: React.FC = () => {
                                 placeholder="Tài khoản hoặc Email"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-[#E8E1D5] dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-500 transition-all text-sm font-medium placeholder-slate-400 text-slate-800 dark:text-slate-200 shadow-sm"
+                                className="w-full pl-11 pr-4 py-3 bg-[#FCF9F2] dark:bg-slate-900 border border-[#E8E1D5] dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-500 transition-all text-sm font-medium placeholder-slate-400 text-slate-800 dark:text-slate-200 shadow-sm"
                                 autoFocus
                             />
                         </div>
@@ -207,7 +207,7 @@ const Login: React.FC = () => {
                                 placeholder="Mật khẩu"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
-                                className="w-full pl-11 pr-12 py-3 bg-white dark:bg-slate-900 border border-[#E8E1D5] dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-500 transition-all text-sm font-medium placeholder-slate-400 text-slate-800 dark:text-slate-200 shadow-sm"
+                                className="w-full pl-11 pr-12 py-3 bg-[#FCF9F2] dark:bg-slate-900 border border-[#E8E1D5] dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-500 transition-all text-sm font-medium placeholder-slate-400 text-slate-800 dark:text-slate-200 shadow-sm"
                             />
                             <button
                                 type="button"

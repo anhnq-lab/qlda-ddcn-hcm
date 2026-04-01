@@ -59,6 +59,8 @@ export interface WorkflowTask {
     id: string;
     instance_id: string;
     node_id: string | null;
+    workflow_nodes?: any; // joined data from Supabase
+    instance?: any; // joined data from Supabase
     name: string | null;
     task_type: string;
     start_date: string | null;

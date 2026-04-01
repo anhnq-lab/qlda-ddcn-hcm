@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Project, ProjectGroup, CostBreakdown } from '@/types';
 import { ProjectService } from '@/services/ProjectService';
 import {
@@ -6,7 +6,7 @@ import {
     CheckCircle2, AlertCircle, Clock, RefreshCw, Database, Save,
     FileCheck, Pencil, ExternalLink, Trash2
 } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateFromImage } from '@/services/ai/geminiProxy';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/utils/format';
 
@@ -330,16 +330,8 @@ const getGroupLabel = (g: string) => {
 
 // formatCurrency and formatDate imported from @/utils/format
 
-/** Trích xuất dữ liệu từ file bằng Gemini */
+/** Trích xuất dữ liệu từ file bằng Gemini qua Edge Function Proxy */
 const extractWithGemini = async (file: File, prompt: string, subFields: { key: string; label: string }[]): Promise<Record<string, string>> => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-        || (typeof process !== 'undefined' && (process.env as any)?.GEMINI_API_KEY)
-        || 'AIzaSyD0gKHf3JCjPRRnlv7HddHxrhfAJe2pOQY';
-    if (!apiKey) throw new Error('Thiếu API key Gemini');
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     // Convert file to base64
     const buffer = await file.arrayBuffer();
     const base64 = btoa(
@@ -348,26 +340,17 @@ const extractWithGemini = async (file: File, prompt: string, subFields: { key: s
 
     const fieldsList = subFields.map(f => `"${f.key}": "${f.label}"`).join(', ');
 
-    const result = await model.generateContent([
-        {
-            inlineData: {
-                mimeType: file.type || 'application/pdf',
-                data: base64,
-            },
-        },
-        {
-            text: `Bạn là một chuyên gia pháp lý xây dựng Việt Nam. Hãy đọc văn bản đính kèm và ${prompt}.
+    const fullPrompt = `Bạn là một chuyên gia pháp lý xây dựng Việt Nam. Hãy đọc văn bản đính kèm và ${prompt}.
 
 Trả về KẾT QUẢ DƯỚI DẠNG JSON object với đúng các key sau: {${fieldsList}}.
 Nếu không tìm thấy thông tin cho field nào, để giá trị là chuỗi rỗng "".
 Ngày tháng phải ở dạng YYYY-MM-DD (ví dụ: 2024-03-15).
-CHỈ TRẢ VỀ JSON, KHÔNG có markdown hay text khác.`,
-        },
-    ]);
+CHỈ TRẢ VỀ JSON, KHÔNG có markdown hay text khác.`;
 
-    const text = result.response.text().trim();
+    const text = await generateFromImage(base64, file.type || 'application/pdf', fullPrompt);
+
     // Parse JSON from response (strip markdown code fences if present)
-    const jsonStr = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+    const jsonStr = text.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
     try {
         return JSON.parse(jsonStr);
     } catch {
@@ -743,7 +726,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
                             <Upload className="w-3.5 h-3.5" /> Upload VB ký số
                         </button>
                     ) : (
-                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-700 rounded-lg px-3 py-1.5">
+                        <div className="flex items-center gap-2 bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 rounded-lg px-3 py-1.5">
                             <FileCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                             <span className="text-xs text-gray-700 dark:text-slate-300 truncate max-w-[200px]">{upload.fileName}</span>
                             {renderStatusBadge(upload.status)}
@@ -812,7 +795,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
         <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-5 py-4">
 
             {/* ── Header ── */}
-            <div className="rounded-2xl p-5 text-white shadow-lg bg-gradient-to-br from-slate-800 via-primary-900 to-yellow-900">
+            <div className="rounded-2xl p-5 text-white shadow-sm bg-gradient-to-br from-slate-800 via-primary-900 to-yellow-900">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
@@ -863,7 +846,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
             </div>
 
             {/* ── Table ── */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
 
                 {/* Table Header */}
                 <div className="grid grid-cols-[56px_1fr_130px_1fr] gap-0 bg-[#F5EFE6] dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-[10px] font-black text-gray-600 dark:text-slate-300 uppercase tracking-widest">
@@ -897,7 +880,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
                                 ? 'bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-slate-700 dark:to-slate-700 cursor-pointer hover:from-primary-100 hover:to-yellow-100 dark:hover:from-slate-600 dark:hover:to-slate-600'
                                 : isHeading
                                     ? 'bg-[#F5EFE6] dark:bg-slate-700'
-                                    : 'hover:bg-gray-50 dark:hover:bg-slate-700'
+                                    : 'hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700'
                                 }`}
                             onClick={isMainHeading ? () => toggleSection(row.stt) : undefined}
                         >
@@ -961,7 +944,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
             </div>
 
             {/* ── Footer Note ── */}
-            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
+            <div className="bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
                 <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
                     <strong>Ghi chú:</strong> Khi upload văn bản ký số (PDF/ảnh), hệ thống sử dụng AI để tự động trích xuất dữ liệu.
                     Các dữ liệu không có trong văn bản sẽ tự động lấy từ thông tin dự án đã nhập.

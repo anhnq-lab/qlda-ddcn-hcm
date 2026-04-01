@@ -102,7 +102,7 @@ export const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ projec
     };
 
     return (
-        <div className="bg-[#FCF9F2] rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+        <div className="bg-[#FCF9F2] rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-[#F5EFE6] border-b border-gray-200">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
                     Tuân thủ pháp lý

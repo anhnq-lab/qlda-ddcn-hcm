@@ -187,7 +187,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
             </div>
 
             {/* Filters */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm">
                 <div className="flex flex-wrap gap-4">
                     {/* Search */}
                     <div className="flex-1 min-w-[250px] relative">
@@ -236,7 +236,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
             </div>
 
             {/* Log Table */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -341,8 +341,8 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({ isOpen = true, o
     if (!standalone) {
         if (!isOpen) return null;
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/60 backdrop-blur-sm">
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-sm p-4">
                     {content}
                 </div>
             </div>

@@ -183,7 +183,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ tasks }) =
 
                                     {/* Task Bar */}
                                     <div
-                                        className={`absolute h-5 rounded-md shadow-lg flex items-center justify-center min-w-[12px] transition-all cursor-pointer hover:opacity-90 hover:shadow-md ${getBarColor(task.Status)} ${getBarShadow(task.Status)}`}
+                                        className={`absolute h-5 rounded-md shadow-sm flex items-center justify-center min-w-[12px] transition-all cursor-pointer hover:opacity-90 hover:shadow-md ${getBarColor(task.Status)} ${getBarShadow(task.Status)}`}
                                         style={{
                                             left: `${Math.max(0, leftPos)}%`,
                                             width: `${Math.max(1.5, width)}%`

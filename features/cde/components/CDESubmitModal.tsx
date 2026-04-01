@@ -45,7 +45,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200" onClick={onClose}>
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between bg-[#F5EFE6] dark:bg-slate-800">
                     <div>
@@ -60,7 +60,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                 </div>
 
                 {/* Form */}
-                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
                     {/* File Upload */}
                     <div>
                         <label className="text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider mb-1.5 block">
@@ -80,7 +80,7 @@ const CDESubmitModal: React.FC<CDESubmitModalProps> = ({
                         ) : (
                             <div
                                 onClick={() => fileRef.current?.click()}
-                                className="border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:border-blue-500 dark:hover:bg-blue-900/10 transition-all"
+                                className="border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:border-blue-500 dark:hover:bg-blue-900/10 transition-all"
                             >
                                 <Upload className="w-10 h-10 text-gray-300 dark:text-slate-500 mx-auto mb-2" />
                                 <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">Click để chọn file hoặc kéo thả vào đây</p>

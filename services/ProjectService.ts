@@ -115,12 +115,42 @@ export class ProjectService {
      * Delete a project
      */
     static async delete(id: string): Promise<void> {
-        const { error } = await supabase
-            .from('projects')
-            .delete()
-            .eq('project_id', id);
+        try {
+            // Delete dependent records first to prevent FK constraint failures
+            const tablesWithProjectId = [
+                'project_members',
+                'capital_plans',
+                'disbursements',
+                'tasks',
+                'project_workflow_steps',
+                'project_workflows',
+                'bidding_packages',
+                'contracts',
+                'documents'
+            ];
 
-        if (error) throw new Error(`Failed to delete project: ${error.message}`);
+            // 1. Delete instances in workflow_instances (FK is reference_id and reference_type)
+            await supabase.from('workflow_instances').delete().eq('reference_id', id).eq('reference_type', 'project');
+
+            // 2. Delete rows in tables with project_id
+            for (const table of tablesWithProjectId) {
+                await supabase.from(table as any).delete().eq('project_id', id);
+            }
+
+            // 3. Delete the project itself
+            const { error } = await supabase
+                .from('projects')
+                .delete()
+                .eq('project_id', id);
+
+            if (error) {
+                console.error("Failed to delete project:", error);
+                throw new Error(error.message);
+            }
+        } catch (error: any) {
+            console.error("Project deletion error:", error);
+            throw new Error(`Xóa dự án thất bại: ${error.message}`);
+        }
     }
 
     /**

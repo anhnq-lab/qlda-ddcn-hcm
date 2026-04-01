@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { Contractor, ContractorType, CONTRACTOR_TYPE_LABELS } from '../../types';
@@ -9,6 +9,7 @@ import {
     ChevronRight, ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 interface ContractorSlidePanelProps {
     contractor: Contractor;
@@ -148,11 +149,11 @@ const ContractorSlidePanel: React.FC<ContractorSlidePanelProps> = ({ contractor,
             />
 
             {/* Panel */}
-            <div className="fixed right-0 top-0 bottom-0 left-64 bg-[#FCF9F2] dark:bg-slate-900 z-50 shadow-2xl border-l border-gray-200 dark:border-slate-700 animate-in slide-in-from-right duration-300 flex flex-col">
+            <div className="fixed right-0 top-0 bottom-0 left-64 bg-[#FCF9F2] dark:bg-slate-900 z-50 shadow-sm border-l border-gray-200 dark:border-slate-700 animate-in slide-in-from-right duration-300 flex flex-col">
 
                 {/* ═══ HEADER ═══ */}
                 <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-start gap-4 shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/20">
                         <Building2 className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -327,10 +328,10 @@ const ContractorSlidePanel: React.FC<ContractorSlidePanelProps> = ({ contractor,
                                     <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                                 </div>
                             ) : contracts.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <FileText className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-500 dark:text-slate-400">Chưa có hợp đồng nào</p>
-                                </div>
+                                <EmptyState
+                                    icon={<FileText className="w-10 h-10 text-slate-300 dark:text-slate-600" />}
+                                    title="Chưa có hợp đồng nào"
+                                />
                             ) : (
                                 contracts.map(ct => {
                                     const st = statusInfo(ct.status);
@@ -386,10 +387,10 @@ const ContractorSlidePanel: React.FC<ContractorSlidePanelProps> = ({ contractor,
                                     <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                                 </div>
                             ) : biddingPackages.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <Award className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-500 dark:text-slate-400">Chưa có gói thầu trúng</p>
-                                </div>
+                                <EmptyState
+                                    icon={<Award className="w-10 h-10 text-slate-300 dark:text-slate-600" />}
+                                    title="Chưa có gói thầu trúng"
+                                />
                             ) : (
                                 biddingPackages.map(pkg => (
                                     <div

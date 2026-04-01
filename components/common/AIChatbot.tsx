@@ -148,7 +148,7 @@ export const AIChatbot: React.FC = () => {
             let errorMessage = 'Xin lỗi, tôi đang gặp sự cố.';
             if (error instanceof Error) {
                 if (error.message.includes('API_KEY')) {
-                    errorMessage = 'Chưa cấu hình Gemini API Key. Vui lòng đặt VITE_GEMINI_API_KEY trong file .env.local';
+                    errorMessage = 'Lỗi kết nối AI. Vui lòng kiểm tra cấu hình Edge Function hoặc thử lại sau.';
                 } else {
                     errorMessage += ` (${error.message})`;
                 }

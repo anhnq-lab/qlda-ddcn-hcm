@@ -24,7 +24,7 @@ interface BreadcrumbProps {
 const routeLabels: Record<string, string> = {
     '': 'Tổng quan',
     'my-dashboard': 'Dashboard cá nhân',
-    'projects': 'Dự án đầu tư',
+    'projects': 'Quản lý dự án',
     'tasks': 'Công việc',
     'employees': 'Nhân sự',
     'contractors': 'Nhà thầu',

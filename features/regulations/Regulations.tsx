@@ -20,7 +20,7 @@ const Regulations: React.FC = () => {
     }, [searchQuery]);
 
     return (
-        <div className="flex h-[calc(100vh-100px)] bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden font-sans">
+        <div className="flex h-[calc(100vh-100px)] bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden font-sans">
 
             {/* LEFT SIDEBAR - NAVIGATION */}
             <div className="w-80 bg-[#F5EFE6] dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col">
@@ -47,7 +47,7 @@ const Regulations: React.FC = () => {
                             key={chapter.id}
                             onClick={() => setSelectedChapterId(chapter.id)}
                             className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${selectedChapterId === chapter.id
-                                ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 shadow-lg'
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 shadow-sm'
                                 : 'hover:bg-gray-100 dark:hover:bg-slate-700 border border-transparent'
                                 }`}
                         >
@@ -99,20 +99,20 @@ const Regulations: React.FC = () => {
                 </div>
 
                 {/* Content Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[#F5EFE6] dark:bg-slate-900">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-[#F5EFE6] dark:bg-slate-900">
                     <div className="max-w-6xl mx-auto space-y-6 pb-20">
                         {selectedChapter?.articles.map((article, idx) => (
                             <div key={idx} id={article.id} className="group relative transition-all duration-500 animate-in slide-in-from-bottom-2">
                                 {/* Article Header Badge */}
                                 <div className="flex items-center gap-3 mb-3 ml-1">
-                                    <span className="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest whitespace-nowrap">
+                                    <span className="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest whitespace-nowrap">
                                         {formatCode(article.id)}
                                     </span>
                                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">{article.title}</h3>
                                 </div>
 
                                 {/* Content Card */}
-                                <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-lg hover:shadow-md transition-shadow relative">
+                                <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative">
 
 
                                     {/* Dynamic Content Rendering */}

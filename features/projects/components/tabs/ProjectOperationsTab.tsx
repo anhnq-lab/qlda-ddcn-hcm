@@ -180,7 +180,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
     // ── RENDER ──
     return (
         <div className={`h-full overflow-y-auto ${isDark ? 'bg-slate-950' : 'bg-[#F5EFE6]'}`}>
-            <div className="max-w-[1400px] mx-auto p-6 space-y-6">
+            <div className="max-w-[1400px] mx-auto p-4 space-y-6">
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between">
                     <div>
@@ -247,7 +247,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 {/* ── Charts Row ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Chart: By Category */}
-                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg`}>
+                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-sm`}>
                         <div className="flex items-center gap-2 mb-3">
                             <BarChart3 className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
                             <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Theo danh mục</span>
@@ -266,7 +266,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                     </div>
 
                     {/* Chart: By Status */}
-                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg`}>
+                    <div className={`rounded-xl p-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-sm`}>
                         <div className="flex items-center gap-2 mb-3">
                             <PieChart className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
                             <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Theo trạng thái</span>
@@ -290,7 +290,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 </div>
 
                 {/* ── Maintenance Timeline ── */}
-                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg overflow-hidden`}>
+                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-sm overflow-hidden`}>
                     <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-slate-800' : 'border-gray-200'}`}>
                         <div className="flex items-center gap-2">
                             <Calendar className={`w-4 h-4 ${isDark ? 'text-primary-400' : 'text-primary-500'}`} />
@@ -360,7 +360,7 @@ export const ProjectOperationsTab: React.FC<Props> = ({ projectID }) => {
                 </div>
 
                 {/* ── Asset Inventory ── */}
-                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-lg overflow-hidden`}>
+                <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'} shadow-sm overflow-hidden`}>
                     {/* Inventory header — sticky */}
                     <div className={`px-4 py-3 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3 sticky top-0 z-10
                         ${isDark ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-[#FCF9F2]'}

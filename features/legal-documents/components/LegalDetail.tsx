@@ -40,7 +40,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
 }) => {
     if (!selectedDoc) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700">
                 <Scale className="w-16 h-16 text-gray-200 dark:text-slate-700 mb-4" />
                 <h3 className="text-lg font-bold text-gray-400 dark:text-slate-500">Chọn văn bản để xem chi tiết</h3>
                 <p className="text-sm text-gray-300 dark:text-slate-600 mt-1">Sử dụng thanh tìm kiếm hoặc bộ lọc bên trên</p>
@@ -123,7 +123,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
                     <div ref={contentRef} className="absolute inset-0 overflow-y-auto custom-scrollbar">
                         {showPdfViewer ? (
                             <div className="h-full w-full bg-gray-100/50 dark:bg-slate-900 p-4">
-                                <div className="w-full h-full bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                                <div className="w-full h-full bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden flex flex-col">
                                     <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 border-b border-gray-200 dark:border-slate-600 flex justify-between items-center">
                                         <span className="text-xs font-bold text-gray-600 dark:text-slate-300 flex items-center gap-2">
                                             <FileDown className="w-4 h-4" /> Bản gốc PDF
@@ -134,7 +134,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-8 lg:px-12 xl:px-16 max-w-4xl mx-auto" style={{ fontSize: `${fontSize}px` }}>
+                            <div className="p-4 lg:px-12 xl:px-16 max-w-4xl mx-auto" style={{ fontSize: `${fontSize}px` }}>
                                 {selectedDoc.chapters.map(chapter => (
                                     <div key={chapter.id} className="mb-10 last:mb-0">
                                         <div
@@ -145,7 +145,7 @@ export const LegalDetail: React.FC<LegalDetailProps> = ({
                                                 <h3 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">{chapter.code}</h3>
                                                 <h4 className="text-lg font-bold text-gray-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{chapter.title}</h4>
                                             </div>
-                                            <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
+                                            <div className="p-2 bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 rounded-xl group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
                                                 {expandedChapters.has(chapter.id) ? (
                                                     <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-indigo-500" />
                                                 ) : (

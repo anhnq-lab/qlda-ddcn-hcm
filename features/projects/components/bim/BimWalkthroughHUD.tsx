@@ -33,7 +33,7 @@ export const BimWalkthroughHUD: React.FC<BimWalkthroughHUDProps> = ({ isActive, 
             {/* Top bar: mode indicator + exit button */}
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
                 <div className={`
-                    flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl border shadow-lg
+                    flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl border shadow-sm
                     ${isDark
                         ? 'bg-slate-900/90 border-cyan-500/30 text-cyan-400'
                         : 'bg-white/90 border-blue-400/30 text-blue-600'
@@ -53,7 +53,7 @@ export const BimWalkthroughHUD: React.FC<BimWalkthroughHUDProps> = ({ isActive, 
 
             {/* Bottom-left: controls guide */}
             <div className={`
-                absolute bottom-14 left-3 z-40 px-3 py-2.5 rounded-xl backdrop-blur-xl border shadow-lg
+                absolute bottom-14 left-3 z-40 px-3 py-2.5 rounded-xl backdrop-blur-xl border shadow-sm
                 text-[10px] leading-relaxed select-none
                 ${isDark
                     ? 'bg-slate-900/80 border-slate-700/50 text-slate-400'
@@ -72,7 +72,7 @@ export const BimWalkthroughHUD: React.FC<BimWalkthroughHUDProps> = ({ isActive, 
 
             {/* Bottom-right: speed gauge */}
             <div className={`
-                absolute bottom-14 right-3 z-40 px-3 py-2 rounded-xl backdrop-blur-xl border shadow-lg
+                absolute bottom-14 right-3 z-40 px-3 py-2 rounded-xl backdrop-blur-xl border shadow-sm
                 flex items-center gap-2
                 ${isDark
                     ? 'bg-slate-900/80 border-slate-700/50 text-slate-400'

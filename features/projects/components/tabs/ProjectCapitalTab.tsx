@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ProjectService from '../../../../services/ProjectService';
 import { TaskService } from '../../../../services/TaskService';
@@ -17,6 +17,7 @@ import { CapitalPlanModal } from '../CapitalPlanModal';
 import { DisbursementPlanModal } from '../DisbursementPlanModal';
 import { DisbursementModal } from '../DisbursementModal';
 import { StatCard } from '../../../../components/ui';
+import { EmptyState } from '../../../../components/ui/EmptyState';
 import {
     APPROVAL_BADGES, SOURCE_COLORS, SOURCE_LABELS as SOURCE_LABELS_MAP,
     DISBURSEMENT_TYPE_LABELS, normalizeSource
@@ -351,8 +352,8 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
     }, [filteredPlanData]);
 
     // Early returns AFTER all hooks
-    if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Đang tải dữ liệu vốn...</div>;
-    if (!data) return <div className="p-8 text-center text-red-500 dark:text-red-400">Không có dữ liệu vốn</div>;
+    if (isLoading) return <div className="p-4 text-center text-gray-500 dark:text-slate-400">Đang tải dữ liệu vốn...</div>;
+    if (!data) return <div className="p-4 text-center text-red-500 dark:text-red-400">Không có dữ liệu vốn</div>;
 
     return (
         <div className="space-y-6">
@@ -415,18 +416,18 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                ════════════════════════════════════════════ */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Capital Plan Table with Sub-tabs */}
-                <div className="lg:col-span-2 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                <div className="lg:col-span-2 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2 bg-[#F5EFE6] dark:bg-slate-700">
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCapitalSubTab('mid_term')}
-                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${capitalSubTab === 'mid_term' ? 'bg-primary-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-600'}`}
+                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${capitalSubTab === 'mid_term' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-600'}`}
                             >
                                 <CalendarRange className="w-3.5 h-3.5" /> Trung hạn
                             </button>
                             <button
                                 onClick={() => setCapitalSubTab('annual')}
-                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${capitalSubTab === 'annual' ? 'bg-primary-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-600'}`}
+                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${capitalSubTab === 'annual' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-600'}`}
                             >
                                 <Calendar className="w-3.5 h-3.5" /> Hàng năm
                             </button>
@@ -434,7 +435,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         {capitalSubTab === 'annual' && !capitalPlans.some(p => p.PlanType === 'mid_term') ? null : (
                             <button
                                 onClick={() => { setEditingPlan(null); setModalPlanType(capitalSubTab); setPlanModalOpen(true); }}
-                                className="px-3 py-1.5 bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-1.5 transition-all"
+                                className="px-3 py-1.5 bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
                             >
                                 <Plus className="w-3.5 h-3.5" /> {capitalSubTab === 'mid_term' ? 'Nhập KH trung hạn' : 'Nhập KH hằng năm'}
                             </button>
@@ -447,11 +448,12 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         return (
                             <div className="p-4 space-y-3">
                                 {midTermPlans.length === 0 ? (
-                                <div className="text-center py-10 text-gray-400 dark:text-slate-500">
-                                    <CalendarRange className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                                    <p className="text-xs font-bold">Chưa có KH vốn trung hạn</p>
-                                    <p className="text-[10px] mt-1">Nhấn "Nhập KH trung hạn" để tạo giai đoạn 5 năm</p>
-                                </div>
+                                <EmptyState
+                                    icon={<CalendarRange className="w-12 h-12 text-gray-400 dark:text-slate-500" />}
+                                    title="Chưa có KH vốn trung hạn"
+                                    description={'Nhấn "Nhập KH trung hạn" để tạo giai đoạn 5 năm'}
+                                    className="border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"
+                                />
                                 ) : (
                                     midTermPlans.map(plan => {
                                         const isExpanded = expandedMidTermPlan === plan.PlanID;
@@ -536,7 +538,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                                                         </div>
 
                                                         {plan.Notes && (
-                                                            <div className="bg-gray-50 dark:bg-slate-700 p-2.5 rounded-lg mb-4 text-xs text-gray-600 dark:text-slate-300 italic flex items-start gap-1.5">
+                                                            <div className="bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 p-2.5 rounded-lg mb-4 text-xs text-gray-600 dark:text-slate-300 italic flex items-start gap-1.5">
                                                                 <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-gray-400" />
                                                                 <span>{plan.Notes}</span>
                                                             </div>
@@ -736,7 +738,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                 </div>
 
                 {/* Donut Chart — Nguồn vốn */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-4 flex items-center gap-2">
                         <Wallet className="w-4 h-4 text-purple-600" />
                         Phân bổ nguồn vốn
@@ -781,7 +783,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             {/* ════════════════════════════════════════════
                 SECTION C — Kế hoạch giải ngân theo tháng
                ════════════════════════════════════════════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-3 bg-[#F5EFE6] dark:bg-slate-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                         <CalendarRange className="w-4 h-4 text-violet-600" />
@@ -794,7 +796,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                                     key={year}
                                     onClick={() => setPlanYearFilter(year)}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${planYearFilter === year
-                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-800 dark:text-slate-100 shadow-lg'
+                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-800 dark:text-slate-100 shadow-sm'
                                         : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
                                     }`}
                                 >
@@ -813,7 +815,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         </div>
                         <button
                             onClick={() => { setDisbPlanModalOpen(true); }}
-                            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-1.5 transition-all ml-2"
+                            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all ml-2"
                         >
                             <Plus className="w-3.5 h-3.5" /> Lập KH tháng
                         </button>
@@ -933,16 +935,18 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         </table>
                     </div>
                 ) : (
-                    <div className="text-center py-10 text-gray-400 dark:text-slate-500 mt-4 border-t border-gray-100 dark:border-slate-700/50">
-                        Chưa có kế hoạch giải ngân cho năm {planYearFilter}
-                    </div>
+                    <EmptyState
+                        icon={<CalendarRange className="w-12 h-12 text-gray-400 dark:text-slate-500" />}
+                        title={`Chưa có kế hoạch giải ngân cho năm ${planYearFilter}`}
+                        className="mt-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"
+                    />
                 )}
             </div>
 
             {/* ════════════════════════════════════════════
                 SECTION D — Lịch sử giải ngân chi tiết
                ════════════════════════════════════════════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-3">
                     <h3 className="font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
                         <ArrowDownUp className="w-4 h-4 text-emerald-600" />
@@ -960,7 +964,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                                     key={key}
                                     onClick={() => setDisbursementFilter(key)}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${disbursementFilter === key
-                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-800 dark:text-slate-100 shadow-lg'
+                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-800 dark:text-slate-100 shadow-sm'
                                         : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
                                         }`}
                                 >
@@ -970,7 +974,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         </div>
                         <button
                             onClick={() => { setEditingDisb(null); setDisbModalOpen(true); }}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-1.5 transition-all"
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
                             title="Nhập thanh toán tại tab Gói thầu → Thanh quyết toán, dữ liệu sẽ tự đồng bộ về đây"
                         >
                             <Plus className="w-3.5 h-3.5" /> Thêm bút toán
@@ -994,7 +998,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
                             {[...filteredDisbursements].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime()).map((d) => (
-                                <tr key={d.DisbursementID} className={`hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors ${d.Type === 'ThuHoiTamUng' ? 'bg-green-50/30 dark:bg-green-900/10' :
+                                <tr key={d.DisbursementID} className={`hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 transition-colors ${d.Type === 'ThuHoiTamUng' ? 'bg-green-50/30 dark:bg-green-900/10' :
                                     d.Type === 'TamUng' ? 'bg-primary-50/20 dark:bg-primary-900/10' : ''
                                     }`}>
                                     <td className="px-4 py-3.5 text-gray-600 dark:text-slate-400 font-mono text-xs whitespace-nowrap">
@@ -1080,7 +1084,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
                 SECTION E — Cảnh báo rủi ro
                ════════════════════════════════════════════ */}
             {alerts.length > 0 && (
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div className="px-6 py-3 border-b border-gray-200 dark:border-slate-700 bg-orange-50/50 dark:bg-orange-900/20">
                         <h3 className="text-sm font-bold text-orange-800 dark:text-orange-400 flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4" />
@@ -1104,27 +1108,27 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             {/* ════════════════════════════════════════════
                 SECTION F — Xuất văn bản (Toolbar)
                ════════════════════════════════════════════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg p-5">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
                 <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-blue-600" />
                     Xuất văn bản thanh toán (NĐ 99/2021/NĐ-CP)
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-lg">
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-sm">
                         <FileDown className="w-4 h-4 text-primary-600" />
                         <div className="text-left">
                             <div className="font-semibold">Mẫu 25</div>
                             <div className="text-[10px] text-gray-400 dark:text-slate-500 -mt-0.5">Đề nghị thanh toán vốn</div>
                         </div>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-lg">
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-sm">
                         <FileDown className="w-4 h-4 text-blue-600" />
                         <div className="text-left">
                             <div className="font-semibold">Mẫu 26</div>
                             <div className="text-[10px] text-gray-400 dark:text-slate-500 -mt-0.5">Đề nghị rút vốn</div>
                         </div>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-lg">
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-[#F5EFE6] dark:hover:bg-slate-600 hover:border-gray-300 transition-all text-sm font-medium shadow-sm">
                         <FileDown className="w-4 h-4 text-green-600" />
                         <div className="text-left">
                             <div className="font-semibold">Mẫu 27</div>
@@ -1174,7 +1178,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             {/* Delete Confirmation Dialog */}
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 border border-gray-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-sm mx-4 p-4 border border-gray-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                                 <Trash2 className="w-5 h-5 text-red-600" />

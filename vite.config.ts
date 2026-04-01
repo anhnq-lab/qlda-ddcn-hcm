@@ -11,8 +11,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      // Gemini API key đã chuyển sang Edge Function secrets (gemini-proxy)
+      // Không còn expose API key trong client bundle
     },
     resolve: {
       alias: {

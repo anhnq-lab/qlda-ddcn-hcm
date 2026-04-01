@@ -49,3 +49,6 @@ resources/*.zip
 Slide_Bao*
 annual_tab*
 slide_content*
+
+# Archive folder (temp/presentation files)
+_archive/

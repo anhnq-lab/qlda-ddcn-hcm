@@ -134,7 +134,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                     {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}
                 </div>
                 <Skeleton className="h-14 rounded-2xl" />
-                <Card className="p-6"><div className="space-y-4">{[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div></Card>
+                <Card className="p-4"><div className="space-y-4">{[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div></Card>
             </div>
         );
     }
@@ -227,7 +227,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                 key={opt.value}
                                 onClick={() => setStatusFilter(opt.value)}
                                 className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${statusFilter === opt.value
-                                    ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-900 dark:text-slate-200 shadow-lg'
+                                    ? 'bg-[#FCF9F2] dark:bg-slate-600 text-gray-900 dark:text-slate-200 shadow-sm'
                                     : 'text-slate-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                                     }`}
                             >
@@ -304,7 +304,7 @@ const ContractList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'a
                                         {/* Contractor */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
+                                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm">
                                                     <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                                                 </div>
                                                 <span className="font-semibold text-slate-800 dark:text-slate-200 max-w-[200px] truncate leading-tight text-xs" title={contractorName}>

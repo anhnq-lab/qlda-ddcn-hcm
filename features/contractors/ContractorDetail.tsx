@@ -22,7 +22,7 @@ const ContractorDetail: React.FC = () => {
     // Find Contracts
     const contracts = allContracts.filter(c => c.ContractorID === id);
 
-    if (!contractor) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Không tìm thấy nhà thầu.</div>;
+    if (!contractor) return <div className="p-4 text-center text-gray-500 dark:text-slate-400">Không tìm thấy nhà thầu.</div>;
 
     // Derived Stats
     const totalWonValue = wonPackages.reduce((sum, p) => sum + (p.WinningPrice || 0), 0);
@@ -44,14 +44,14 @@ const ContractorDetail: React.FC = () => {
     ];
 
     return (
-        <div className="bg-[#F5EFE6] dark:bg-slate-900 min-h-screen p-8 animate-in fade-in duration-300">
+        <div className="bg-[#F5EFE6] dark:bg-slate-900 min-h-screen p-4 animate-in fade-in duration-300">
             {/* Header */}
             <div className="max-w-6xl mx-auto mb-8">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors mb-4">
                     <ArrowLeft className="w-4 h-4" /> Quay lại danh sách
                 </button>
 
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 p-8">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 p-4">
                     <div className="flex flex-col md:flex-row justify-between gap-8">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
@@ -87,7 +87,7 @@ const ContractorDetail: React.FC = () => {
 
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Won Packages List */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 p-8">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 p-4">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-6 flex items-center gap-2">
                         <Award className="w-6 h-6 text-yellow-500" /> Lịch sử đấu thầu & Trúng thầu
                     </h3>
@@ -127,7 +127,7 @@ const ContractorDetail: React.FC = () => {
                 </div>
 
                 {/* Contracts List */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 p-8">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 p-4">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-6 flex items-center gap-2">
                         <FileText className="w-6 h-6 text-blue-500" /> Hợp đồng đã ký ({contracts.length})
                     </h3>

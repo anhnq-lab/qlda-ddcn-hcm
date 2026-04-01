@@ -21,7 +21,7 @@ const PackageDetail: React.FC = () => {
                 </div>
             </div>
 
-            <Card className="p-8 text-center text-gray-500">
+            <Card className="p-4 text-center text-gray-500">
                 <p>Nội dung chi tiết gói thầu đang được xây dựng.</p>
             </Card>
         </div>

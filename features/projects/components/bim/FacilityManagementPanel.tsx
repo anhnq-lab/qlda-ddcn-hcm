@@ -504,7 +504,7 @@ export const FacilityManagementPanel: React.FC = () => {
             {/* Add/Edit Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-lg mx-4 rounded-2xl shadow-2xl border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-[#FCF9F2] border-gray-200'
+                    <div className={`w-full max-w-lg mx-4 rounded-2xl shadow-sm border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-[#FCF9F2] border-gray-200'
                         }`}>
                         {/* Modal header */}
                         <div className={`flex items-center justify-between px-5 py-3.5 border-b ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>

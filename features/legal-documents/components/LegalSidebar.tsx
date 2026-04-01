@@ -25,7 +25,7 @@ export const LegalSidebar: React.FC<LegalSidebarProps> = ({
     setExpandedChapters, setShowPdfViewer, setShowDeepSearch
 }) => {
     return (
-        <div className={`${readingMode ? 'hidden' : 'w-96'} bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden`}>
+        <div className={`${readingMode ? 'hidden' : 'w-96'} bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden`}>
             {/* Sidebar Header with tabs */}
             <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                 <div className="flex items-center gap-2">

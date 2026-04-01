@@ -71,7 +71,7 @@ export const BimPerformanceStats: React.FC<{ visible: boolean; onClose: () => vo
 
     return (
         <div
-            className={`absolute bottom-14 left-3 z-40 rounded-xl backdrop-blur-xl border shadow-2xl overflow-hidden select-none
+            className={`absolute bottom-14 left-3 z-40 rounded-xl backdrop-blur-xl border shadow-sm overflow-hidden select-none
                 ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 text-slate-300' : 'bg-white/90 border-gray-200 text-gray-700'}
             `}
             style={{ minWidth: 180, fontSize: '11px' }}

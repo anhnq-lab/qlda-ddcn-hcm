@@ -9,6 +9,7 @@ interface EmptyStateProps {
     onAction?: () => void;
     variant?: 'default' | 'search' | 'error' | 'folder';
     className?: string;
+    children?: React.ReactNode;
 }
 
 const iconMap = {
@@ -30,6 +31,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     onAction,
     variant = 'default',
     className = '',
+    children,
 }) => {
     const displayIcon = icon || iconMap[variant];
 
@@ -62,6 +64,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                     {actionLabel}
                 </button>
             )}
+
+            {/* Custom Children */}
+            {children}
         </div>
     );
 };

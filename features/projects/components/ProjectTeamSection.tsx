@@ -45,7 +45,7 @@ export const ProjectTeamSection: React.FC<ProjectTeamSectionProps> = ({
                             <img
                                 src={member.AvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.FullName)}&background=random`}
                                 alt={member.FullName}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-lg"
+                                className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
                             />
                         </div>
 

@@ -111,7 +111,7 @@ export const PhaseProgressCard: React.FC<PhaseProgressCardProps> = ({
     const StatusIcon = config.icon;
 
     return (
-        <div className={`bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg hover:shadow-md transition-shadow border-l-4 ${config.borderColor}`}>
+        <div className={`bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border-l-4 ${config.borderColor}`}>
             {/* Header */}
             <div
                 className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors"

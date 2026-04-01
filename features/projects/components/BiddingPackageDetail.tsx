@@ -26,6 +26,7 @@ import { DocumentAttachments } from '../../../components/common/DocumentAttachme
 import { SettlementSection } from './SettlementSection';
 import ContractDetail from '../../contracts/ContractDetail';
 import { useSlidePanel } from '../../../context/SlidePanelContext';
+import { EmptyState } from '../../../components/ui/EmptyState';
 
 // ========================================
 // BIDDING PACKAGE DETAIL - Full Lifecycle Management
@@ -197,7 +198,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
     ] as const;
 
     const content = (
-        <div className={asSlidePanel ? "flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900" : "relative bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col"}>
+        <div className={asSlidePanel ? "flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900" : "relative bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-sm w-full max-w-6xl max-h-[95vh] overflow-hidden animate-scale-in flex flex-col"}>
             {/* Header with Package Info */}
             <div className="shrink-0 px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800">
                 <div className="flex items-start justify-between">
@@ -281,7 +282,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                             return (
                                 <div key={stage.id} className="flex flex-col items-center z-10 relative" style={{ width: `${100 / lifecycleStages.length}%` }}>
                                     <div className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-lg
+                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-sm
                                         ${isCompleted ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200 dark:shadow-primary-900' :
                                             isCurrent ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white ring-4 ring-primary-100 dark:ring-primary-900 shadow-primary-200 dark:shadow-primary-900' :
                                                 'bg-[#FCF9F2] dark:bg-slate-700 text-gray-400 dark:text-slate-500 border-2 border-gray-200 dark:border-slate-600'}
@@ -324,7 +325,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 bg-[#F5EFE6] dark:bg-slate-900">
+                <div className="flex-1 overflow-y-auto p-4 bg-[#F5EFE6] dark:bg-slate-900">
                     {/* Tab 1: KHLCNT & TBMT */}
                     {activeTab === 'khlcnt' && (
                         <div className="grid grid-cols-2 gap-6">
@@ -374,11 +375,12 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="text-center py-6">
-                                            <ExternalLink className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
-                                            <p className="text-gray-500 dark:text-slate-400">Chưa đăng tải TBMT</p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Gói thầu đang trong giai đoạn lập kế hoạch</p>
-                                        </div>
+                                        <EmptyState
+                                            icon={<ExternalLink className="w-8 h-8 text-slate-300 dark:text-slate-600" />}
+                                            title="Chưa đăng tải TBMT"
+                                            description="Gói thầu đang trong giai đoạn lập kế hoạch"
+                                            className="bg-transparent border-0 shadow-none py-6"
+                                        />
                                     )}
                                 </SectionCard>
 
@@ -401,10 +403,11 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                     {(() => {
                                         const reqs = getMSCRequirements(pkg);
                                         if (reqs.length === 0) return (
-                                            <div className="text-center py-4">
-                                                <CheckCircle2 className="w-8 h-8 text-green-400 dark:text-green-500 mx-auto mb-2" />
-                                                <p className="text-sm text-gray-500 dark:text-slate-400">Không có yêu cầu đăng tải</p>
-                                            </div>
+                                            <EmptyState
+                                                icon={<CheckCircle2 className="w-8 h-8 text-green-400 dark:text-green-500" />}
+                                                title="Không có yêu cầu đăng tải"
+                                                className="bg-transparent border-0 shadow-none py-4"
+                                            />
                                         );
                                         return (
                                             <div className="space-y-2">
@@ -540,7 +543,11 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                             </div>
                                         </div>
                                     ) : (
-                                        <EmptyState icon={Building2} message="Chưa có nhà thầu" />
+                                        <EmptyState
+                                            icon={<Building2 className="w-8 h-8 text-slate-300 dark:text-slate-600" />}
+                                            title="Chưa có nhà thầu"
+                                            className="bg-transparent border-0 shadow-none py-6"
+                                        />
                                     )}
                                 </SectionCard>
 
@@ -604,10 +611,12 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
 
                             {/* Create contract form */}
                             {!relatedContract && !isCreatingContract && (
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
-                                    <FileSignature className="w-12 h-12 text-yellow-400 dark:text-yellow-500 mx-auto mb-3" />
-                                    <p className="font-medium text-gray-700 dark:text-slate-200">Chưa có hợp đồng</p>
-                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Tạo hợp đồng để quản lý thực hiện gói thầu</p>
+                                <EmptyState
+                                    icon={<FileSignature className="w-10 h-10 text-yellow-500 dark:text-yellow-600" />}
+                                    title="Chưa có hợp đồng"
+                                    description="Tạo hợp đồng để quản lý thực hiện gói thầu"
+                                    className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+                                >
                                     {pkg.WinningContractorID ? (
                                         <button
                                             onClick={() => setIsCreatingContract(true)}
@@ -622,7 +631,7 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                             Cần chọn nhà thầu trúng thầu trước khi tạo hợp đồng
                                         </p>
                                     )}
-                                </div>
+                                </EmptyState>
                             )}
 
                             {!relatedContract && isCreatingContract && (
@@ -785,11 +794,12 @@ export const BiddingPackageDetail: React.FC<BiddingPackageDetailProps> = ({
                                     </SectionCard>
                                 </>
                             ) : (
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
-                                    <AlertTriangle className="w-12 h-12 text-yellow-400 dark:text-yellow-500 mx-auto mb-3" />
-                                    <p className="font-medium text-gray-700 dark:text-slate-200">Chưa có hợp đồng</p>
-                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Cần tạo hợp đồng ở tab "Hợp đồng" trước khi quản lý thanh quyết toán</p>
-                                </div>
+                                <EmptyState
+                                    icon={<AlertTriangle className="w-10 h-10 text-yellow-500 dark:text-yellow-600" />}
+                                    title="Chưa có hợp đồng"
+                                    description="Cần tạo hợp đồng ở tab &quot;Hợp đồng&quot; trước khi quản lý thanh quyết toán"
+                                    className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+                                />
                             )}
                         </div>
                     )}
@@ -856,14 +866,6 @@ const InfoRow = ({ label, value, highlight }: { label: string; value: React.Reac
     <div className={`flex justify-between py-1.5 ${highlight ? 'bg-yellow-50 dark:bg-yellow-900/20 -mx-2 px-2 rounded' : ''}`}>
         <span className="text-gray-500 dark:text-slate-400">{label}</span>
         <span className={`font-medium text-gray-800 dark:text-slate-200 text-right ${highlight ? 'text-orange-600 dark:text-orange-400' : ''}`}>{value || '-'}</span>
-    </div>
-);
-
-const EmptyState = ({ icon: Icon, message, hint }: { icon: React.ElementType; message: string; hint?: string }) => (
-    <div className="text-center py-6">
-        <Icon className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
-        <p className="text-gray-500 dark:text-slate-400">{message}</p>
-        {hint && <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{hint}</p>}
     </div>
 );
 

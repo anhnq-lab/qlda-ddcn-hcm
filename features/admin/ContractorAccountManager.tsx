@@ -218,7 +218,7 @@ const ContractorAccountManager: React.FC = () => {
         <div className="space-y-6">
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border-t-[3px] border-primary-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border-t-[3px] border-primary-500 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <Building2 className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><Building2 className="w-5 h-5 text-white" /></div>
@@ -228,7 +228,7 @@ const ContractorAccountManager: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="relative overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 border-t-[3px] border-slate-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 border-t-[3px] border-slate-500 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <UserPlus className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><UserPlus className="w-5 h-5 text-white" /></div>
@@ -238,7 +238,7 @@ const ContractorAccountManager: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 to-emerald-900 border-t-[3px] border-emerald-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 to-emerald-900 border-t-[3px] border-emerald-500 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <ToggleRight className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><ToggleRight className="w-5 h-5 text-white" /></div>
@@ -274,7 +274,7 @@ const ContractorAccountManager: React.FC = () => {
                         </button>
                     )}
                     <button onClick={() => { setCreateForContractor(null); setShowCreateModal(true); }}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium shadow-lg shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap">
+                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium shadow-sm shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap">
                         <UserPlus className="w-5 h-5" />Tạo tài khoản
                     </button>
                 </div>
@@ -282,7 +282,7 @@ const ContractorAccountManager: React.FC = () => {
 
             {/* Grouped Accordion */}
             {loading ? (
-                <div className="p-8 text-center text-gray-400">
+                <div className="p-4 text-center text-gray-400">
                     <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-3" />
                     Đang tải...
                 </div>
@@ -297,7 +297,7 @@ const ContractorAccountManager: React.FC = () => {
                         const isExpanded = expandedOrgs.has(group.contractor_id);
                         return (
                             <div key={group.contractor_id}
-                                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden transition-shadow hover:shadow-md">
+                                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
                                 {/* Org Header */}
                                 <div
                                     className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors select-none"
@@ -419,7 +419,7 @@ const ContractorAccountManager: React.FC = () => {
             {/* Password Management Modal */}
             {resetTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setResetTarget(null)}>
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-md p-4 shadow-sm" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-1">Quản lý mật khẩu</h3>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mb-5">
                             <strong>{resetTarget.display_name}</strong> · {resetTarget.username}
@@ -474,7 +474,7 @@ const ContractorAccountManager: React.FC = () => {
                         <div className="flex gap-3 mt-6">
                             <button onClick={() => setResetTarget(null)} className="flex-1 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Đóng</button>
                             <button onClick={handleResetPassword} disabled={!newPassword}
-                                className="flex-1 py-2.5 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 shadow-lg shadow-primary-500/25">Đổi mật khẩu</button>
+                                className="flex-1 py-2.5 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 shadow-sm shadow-primary-500/25">Đổi mật khẩu</button>
                         </div>
                     </div>
                 </div>
@@ -483,7 +483,7 @@ const ContractorAccountManager: React.FC = () => {
             {/* Project Assignment Modal */}
             {projectTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setProjectTarget(null)}>
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-4 shadow-sm max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Gán dự án</h3>
@@ -627,7 +627,7 @@ const CreateContractorAccountModal: React.FC<CreateModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-4 shadow-sm max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">
                         <UserPlus className="w-5 h-5 text-white" />
@@ -777,7 +777,7 @@ const CreateContractorAccountModal: React.FC<CreateModalProps> = ({
                             Hủy
                         </button>
                         <button type="submit" disabled={submitting || !selectedContractor || !displayName || !username || !password}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-lg shadow-primary-500/25">
+                            className="flex-1 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-sm shadow-primary-500/25">
                             {submitting ? 'Đang tạo...' : 'Tạo tài khoản'}
                         </button>
                     </div>

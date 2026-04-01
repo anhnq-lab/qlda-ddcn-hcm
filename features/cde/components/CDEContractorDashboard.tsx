@@ -36,7 +36,7 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-3 duration-500">
             {/* Welcome Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br from-primary-500 to-primary-600">
+            <div className="relative overflow-hidden rounded-2xl p-4 text-white shadow-sm bg-gradient-to-br from-primary-500 to-primary-600">
                 <div className="absolute -right-10 -top-10 w-40 h-40 opacity-10">
                     <Building2 className="w-full h-full" />
                 </div>
@@ -48,7 +48,7 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
                     </div>
                     <button
                         onClick={onSubmitNew}
-                        className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-5 py-3 rounded-xl text-sm font-bold transition-all border border-white/20 hover:border-white/40 shadow-lg"
+                        className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-5 py-3 rounded-xl text-sm font-bold transition-all border border-white/20 hover:border-white/40 shadow-sm"
                     >
                         <Upload className="w-4 h-4" /> Nộp hồ sơ mới
                     </button>
@@ -69,7 +69,7 @@ const CDEContractorDashboard: React.FC<CDEContractorDashboardProps> = ({
             </div>
 
             {/* Recent Submissions */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />

@@ -110,7 +110,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
     };
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[700px]">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[700px]">
             <div className="w-[300px] border-r border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 flex flex-col">
                 <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-[#FCF9F2] dark:bg-slate-800">
                     <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
@@ -143,13 +143,13 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                             <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><ListIcon className="w-4 h-4" /></button>
                             <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-[#FCF9F2] dark:bg-slate-600 shadow text-blue-600' : 'text-gray-400 dark:text-slate-500'}`}><LayoutGrid className="w-4 h-4" /></button>
                         </div>
-                        <button className="flex items-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-primary-200">
+                        <button className="flex items-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold rounded-lg transition-colors shadow-sm shadow-primary-200">
                             <Upload className="w-4 h-4" /> Tải lên
                         </button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 dark:bg-slate-900">
+                <div className="flex-1 overflow-y-auto p-4 bg-gray-50/30 dark:bg-slate-900">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full text-gray-400 text-sm">Đang tải dữ liệu...</div>
                     ) : documents.length === 0 ? (
@@ -159,7 +159,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                         </div>
                     ) : (
                         viewMode === 'list' ? (
-                            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                                 <table className="w-full text-left text-sm">
                                     <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">
                                         <tr>
@@ -229,7 +229,7 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
             </div>
 
             {selectedDoc && (
-                <div className="w-[360px] bg-[#FCF9F2] dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 flex flex-col shadow-xl animate-in slide-in-from-right-4 duration-300 relative z-10">
+                <div className="w-[360px] bg-[#FCF9F2] dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 flex flex-col shadow-sm animate-in slide-in-from-right-4 duration-300 relative z-10">
                     <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800">
                         <span className="text-xs font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest">PHÊ DUYỆT HỒ SƠ</span>
                         <button onClick={() => setSelectedDoc(null)} className="text-gray-400 hover:text-red-500"><X className="w-5 h-5" /></button>
@@ -318,14 +318,14 @@ export const CDEManager: React.FC<CDEManagerProps> = ({ projectId, projectCode }
                                         <button
                                             disabled={processStepMutation.isPending}
                                             onClick={() => handleProcessStep('Rejected')}
-                                            className="flex-1 py-2.5 bg-[#FCF9F2] border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
+                                            className="flex-1 py-2.5 bg-[#FCF9F2] border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
                                         >
                                             <X className="w-4 h-4" /> Từ chối
                                         </button>
                                         <button
                                             disabled={processStepMutation.isPending}
                                             onClick={() => handleProcessStep('Approved')}
-                                            className={`flex-[2] py-2.5 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 ${nextStep.id === 'LEADER_SIGN' ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
+                                            className={`flex-[2] py-2.5 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${nextStep.id === 'LEADER_SIGN' ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
                                                 }`}
                                         >
                                             {processStepMutation.isPending ? (

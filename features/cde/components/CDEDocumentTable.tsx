@@ -47,7 +47,7 @@ const CDEDocumentTable: React.FC<CDEDocumentTableProps> = ({
     }, [docs, searchQuery]);
 
     return (
-        <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden min-w-0">
+        <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden min-w-0">
             {/* Toolbar */}
             <div className="px-5 py-3 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-[#F5EFE6] dark:bg-slate-800">
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 min-w-0">
@@ -87,7 +87,7 @@ const CDEDocumentTable: React.FC<CDEDocumentTableProps> = ({
                         <Loader2 className="w-6 h-6 animate-spin" />
                     </div>
                 ) : filteredDocs.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full p-4 text-gray-400">
                         <div className="w-20 h-20 bg-[#F5EFE6] dark:bg-slate-700 rounded-2xl flex items-center justify-center mb-4">
                             <FolderOpen className="w-10 h-10 text-gray-200 dark:text-slate-500" />
                         </div>

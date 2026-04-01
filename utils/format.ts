@@ -3,38 +3,52 @@
  * Shows full number with thousand separators, e.g. "105.876.566"
  */
 export const formatCurrency = (amount: number | undefined | null): string => {
-    if (amount === undefined || amount === null) return '0 ₫';
+    if (amount === undefined || amount === null) return '0 VNĐ';
+    // Format exactly as 1.000.000 VNĐ (or with decimals if needed, but standard is no decimal for VND)
+    // If the user requires precisely ",00" we can use minimumFractionDigits: 2, but standard VND usually skips it.
+    // Given the task says "1.000.000,00 VNĐ", let's make it 2 decimal places if there are decimals, or 0 if integer.
+    // Actually, "Tuyệt đối không dùng dấu phẩy cho hàng nghìn", vi-VN uses `.` for thousands and `,` for decimals.
     return new Intl.NumberFormat('vi-VN', {
-        maximumFractionDigits: 0
-    }).format(amount);
+        maximumFractionDigits: 2
+    }).format(amount) + ' VNĐ';
 };
 
 /** Format currency with abbreviated units (Tỷ, Tr) — used in dashboards & cards */
 export const formatShortCurrency = (amount: number): string => {
-    if (amount >= 1_000_000_000) {
-        const val = amount / 1_000_000_000;
+    const isNegative = amount < 0;
+    const absAmount = Math.abs(amount);
+    
+    if (absAmount >= 1_000_000_000) {
+        const val = absAmount / 1_000_000_000;
         const formatted = val.toLocaleString('vi-VN', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
-        return formatted + ' Tỷ';
+        return `${isNegative ? '-' : ''}${formatted} tỷ`;
     }
-    if (amount >= 1_000_000) {
-        const val = amount / 1_000_000;
-        return val.toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' Tr';
+    if (absAmount >= 1_000_000) {
+        const val = absAmount / 1_000_000;
+        return `${isNegative ? '-' : ''}${val.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} tr`;
     }
-    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + ' ₫';
+    return `${isNegative ? '-' : ''}${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(absAmount)} VNĐ`;
 };
 
 /** Alias: full VND format */
 export const formatFullCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    return new Intl.NumberFormat('vi-VN', { 
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }).format(amount) + ' VNĐ';
 };
 
-/** Format a date string to Vietnamese locale (dd/mm/yyyy) */
+/** Format a date string to Vietnamese locale (dd/MM/yyyy) */
 export const formatDate = (dateString: string | Date | undefined | null): string => {
     if (!dateString) return '';
     try {
         const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
         if (isNaN(date.getTime())) return typeof dateString === 'string' ? dateString : '';
-        return new Intl.DateTimeFormat('vi-VN').format(date);
+        return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
     } catch {
         return typeof dateString === 'string' ? dateString : '';
     }
@@ -45,10 +59,17 @@ export const formatDateTime = (dateString: string | Date | undefined | null): st
     if (!dateString) return '';
     try {
         const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-        if (isNaN(date.getTime())) return '';
-        return date.toLocaleString('vi-VN');
+        if (isNaN(date.getTime())) return typeof dateString === 'string' ? dateString : '';
+        return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(date);
     } catch {
-        return '';
+        return typeof dateString === 'string' ? dateString : '';
     }
 };
 

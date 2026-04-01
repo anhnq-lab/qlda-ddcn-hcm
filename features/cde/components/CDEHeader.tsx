@@ -30,7 +30,7 @@ const CDEHeader: React.FC<CDEHeaderProps> = ({
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h1 className="text-2xl font-black text-gray-800 dark:text-slate-100 tracking-tight flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" >
                             <FolderTree className="w-5 h-5 text-white" />
                         </div>
                         Môi trường dữ liệu chung

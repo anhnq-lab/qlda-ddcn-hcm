@@ -35,7 +35,7 @@ class BimErrorBoundary extends React.Component<BimEBProps, BimEBState> {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8">
+                <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-4">
                     <div className="text-red-500 dark:text-red-400 text-lg font-bold">⚠️ BIM Viewer Error</div>
                     <div className="text-gray-600 dark:text-slate-400 text-sm max-w-lg">
                         {this.state.error?.message || 'Unknown error'}
@@ -58,7 +58,7 @@ class BimErrorBoundary extends React.Component<BimEBProps, BimEBState> {
 // ─── Loading Skeleton ───
 const BimViewerSkeleton: React.FC<{ isDark: boolean }> = ({ isDark }) => (
     <div className="flex items-center justify-center h-full">
-        <div className={`text-center p-8 rounded-2xl border shadow-2xl backdrop-blur-xl ${isDark ? 'bg-slate-900/92 border-slate-600/30' : 'bg-white/95 border-gray-200'}`}>
+        <div className={`text-center p-4 rounded-2xl border shadow-sm backdrop-blur-xl ${isDark ? 'bg-slate-900/92 border-slate-600/30' : 'bg-white/95 border-gray-200'}`}>
             <div className="relative w-16 h-16 mx-auto mb-4">
                 <div className={`absolute inset-0 border-4 border-t-transparent rounded-full animate-spin ${isDark ? 'border-blue-500' : 'border-blue-600'}`} />
                 <div className={`absolute inset-2 border-4 border-b-transparent rounded-full animate-[spin_1.5s_linear_infinite_reverse] ${isDark ? 'border-cyan-400' : 'border-cyan-500'}`} />
@@ -338,12 +338,12 @@ const BimPage: React.FC = () => {
 
             {/* ─── Grid view (visible when no viewer is active) ─── */}
             {!isViewerActive && (
-                <div className="h-full flex flex-col p-6 gap-5 overflow-hidden">
+                <div className="h-full flex flex-col p-4 gap-5 overflow-hidden">
                     {/* Header */}
                     <div className="shrink-0">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2.5 rounded-xl shadow-lg ${isDark
+                                <div className={`p-2.5 rounded-xl shadow-sm ${isDark
                                     ? 'bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20'
                                     : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100'}`}>
                                     <Layers className={`w-6 h-6 ${isDark ? 'text-cyan-400' : 'text-blue-600'}`} />

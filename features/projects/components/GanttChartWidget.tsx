@@ -176,7 +176,7 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
                         </button>
                     )}
                 </div>
-                <div className="p-6 text-center">
+                <div className="p-4 text-center">
                     <BarChart3 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                     <p className="text-xs text-slate-500 dark:text-slate-400">Chưa có kế hoạch công việc</p>
                     {onViewAll && (

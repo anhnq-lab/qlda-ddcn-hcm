@@ -161,8 +161,8 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
 
   // ─── Render ────────────────────────────────────────────
 
-  if (instanceId && isLoading) return <div className="p-8">Loading...</div>;
-  if (!details?.node) return <div className="p-8">Không tìm thấy thông tin bước</div>;
+  if (instanceId && isLoading) return <div className="p-4">Loading...</div>;
+  if (!details?.node) return <div className="p-4">Không tìm thấy thông tin bước</div>;
 
   const { node, task, instance } = details;
   const isApprovalNode = node.type === 'approval';
@@ -170,9 +170,9 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
 
   return (
     <div className="flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800">
-      <div className="p-6 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-800 bg-[#FCF9F2] dark:bg-slate-900 sticky top-0 z-10">
         <div className="flex items-start gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
             isApprovalNode ? 'bg-violet-600' : 'bg-primary-600'
           }`}>
             <Layers className="w-6 h-6 text-white" />
@@ -203,7 +203,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-fade-in">
             <Section title="Mô tả công việc" icon={FileText}>
@@ -224,7 +224,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
         )}
 
         {activeTab === 'actions' && (
-          <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-100">
+          <div className="p-4 text-center bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100">
              <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
              <h3 className="font-bold mb-2">Thông tin Nghiệp vụ</h3>
              <p className="text-sm text-slate-500">Mục thực hiện này chỉ khả dụng khi quy trình được khởi chạy trong dự án cụ thể.</p>
@@ -250,7 +250,7 @@ const Section: React.FC<{ title: string; icon: React.ElementType; children: Reac
         <div className={`p-1.5 rounded-lg ${colorMap[color]}`}><Icon size={14} /></div>
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</h3>
       </div>
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">{children}</div>
+      <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">{children}</div>
     </div>
   );
 };

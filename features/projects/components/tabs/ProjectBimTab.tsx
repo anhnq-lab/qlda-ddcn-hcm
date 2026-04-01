@@ -550,7 +550,7 @@ const ProjectBimTabContent: React.FC = () => {
                     <div className={`
                         absolute top-3 left-1/2 -translate-x-1/2 z-30 px-4 py-1.5 rounded-full
                         flex items-center gap-2 text-xs font-medium
-                        backdrop-blur-xl shadow-xl border
+                        backdrop-blur-xl shadow-sm border
                         animate-[fadeSlideIn_0.25s_cubic-bezier(0.16,1,0.3,1)]
                         ${isDark ? 'bg-slate-900/85 text-blue-300 border-slate-600/40' : 'bg-white/92 text-blue-700 border-blue-200/60'}
                     `}>
@@ -570,7 +570,7 @@ const ProjectBimTabContent: React.FC = () => {
                 {upload.status !== 'idle' && !activeToolLabel && (
                     <div className={`
                         absolute top-3 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl flex items-center gap-2.5
-                        shadow-xl backdrop-blur-xl text-xs font-medium
+                        shadow-sm backdrop-blur-xl text-xs font-medium
                         animate-[fadeSlideIn_0.25s_cubic-bezier(0.16,1,0.3,1)]
                         ${isDark ? 'bg-slate-900/90 text-slate-300 border border-slate-600/40' : 'bg-white/95 text-gray-700 border border-gray-200/80'}
                     `}>
@@ -635,7 +635,7 @@ const ProjectBimTabContent: React.FC = () => {
                 {upload.isIsolated && (
                     <button
                         onClick={() => upload.restoreAllModels()}
-                        className="absolute top-3 left-3 z-30 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg transition-all hover:scale-105 active:scale-95"
+                        className="absolute top-3 left-3 z-30 flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm transition-all hover:scale-105 active:scale-95"
                         style={{
                             background: isDark ? 'rgba(6,182,212,0.9)' : 'rgba(59,130,246,0.9)',
                             backdropFilter: 'blur(8px)',
@@ -655,7 +655,7 @@ const ProjectBimTabContent: React.FC = () => {
                         onClick={toggleFullscreen}
                         title={isFullscreen ? 'Thoát toàn màn hình (F11)' : 'Toàn màn hình (F11)'}
                         className={`
-                            absolute top-3 right-3 z-30 p-2 rounded-lg backdrop-blur-xl shadow-lg border
+                            absolute top-3 right-3 z-30 p-2 rounded-lg backdrop-blur-xl shadow-sm border
                             hidden md:flex items-center justify-center transition-colors cursor-pointer
                             ${isFullscreen
                                 ? 'bg-blue-500/20 text-blue-400 border-blue-500/40 hover:bg-blue-500/30'
@@ -716,7 +716,7 @@ const ProjectBimTabContent: React.FC = () => {
                             text-center p-10 rounded-2xl pointer-events-auto max-w-sm
                             ${isDark ? 'bg-slate-900/95' : 'bg-white/95'} backdrop-blur-xl
                             border ${isDark ? 'border-slate-700/40' : 'border-gray-200'}
-                            shadow-2xl
+                            shadow-sm
                         `}>
                             <div className={`w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center
                                 animate-[float_3s_ease-in-out_infinite]
@@ -754,7 +754,7 @@ const ProjectBimTabContent: React.FC = () => {
                 {/* Loading skeleton */}
                 {!engine.viewerReady && !engine.initError && (
                     <div className="absolute inset-0 flex items-center justify-center z-40 bg-black/20 backdrop-blur-sm">
-                        <div className={`text-center p-8 rounded-2xl border shadow-2xl backdrop-blur-xl ${isDark ? 'bg-slate-900/92 border-slate-600/30' : 'bg-white/95 border-gray-200'}`}>
+                        <div className={`text-center p-4 rounded-2xl border shadow-sm backdrop-blur-xl ${isDark ? 'bg-slate-900/92 border-slate-600/30' : 'bg-white/95 border-gray-200'}`}>
                             <div className="relative w-16 h-16 mx-auto mb-4">
                                 <div className={`absolute inset-0 border-4 border-t-transparent rounded-full animate-spin ${isDark ? 'border-blue-500' : 'border-blue-600'}`}></div>
                                 <div className={`absolute inset-2 border-4 border-b-transparent rounded-full animate-[spin_1.5s_linear_infinite_reverse] ${isDark ? 'border-cyan-400' : 'border-cyan-500'}`}></div>
@@ -774,7 +774,7 @@ const ProjectBimTabContent: React.FC = () => {
                 {/* Init error */}
                 {engine.initError && (
                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                        <div className={`text-center p-8 rounded-2xl ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
+                        <div className={`text-center p-4 rounded-2xl ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
                             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
                             <p className={`text-sm ${isDark ? 'text-red-300' : 'text-red-600'}`}>{engine.initError}</p>
                         </div>
@@ -851,7 +851,7 @@ const ProjectBimTabContent: React.FC = () => {
             {contextMenu.visible && (
                 <div
                     ref={contextMenuRef}
-                    className={`fixed z-[99999] w-48 py-1.5 rounded-xl shadow-2xl border backdrop-blur-xl
+                    className={`fixed z-[99999] w-48 py-1.5 rounded-xl shadow-sm border backdrop-blur-xl
                         animate-[fadeSlideIn_0.15s_cubic-bezier(0.16,1,0.3,1)]
                         ${isDark ? 'bg-slate-900/96 border-slate-600/40 text-slate-200' : 'bg-white/98 border-gray-200/80 text-gray-800'}
                     `}
@@ -915,7 +915,7 @@ const ProjectBimTabContent: React.FC = () => {
 
             {/* ─── SHORTCUT TOAST ─── */}
             {keyboard.lastShortcutLabel && (
-                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-xs font-semibold shadow-xl animate-[fadeSlideIn_0.15s_ease-out] backdrop-blur-lg
+                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-xs font-semibold shadow-sm animate-[fadeSlideIn_0.15s_ease-out] backdrop-blur-lg
                     ${isDark ? 'bg-slate-800/90 text-slate-200 border border-slate-700/50' : 'bg-white/95 text-gray-700 border border-gray-200'}
                 `}>
                     <span className="font-mono">{keyboard.lastShortcutLabel}</span>
@@ -924,7 +924,7 @@ const ProjectBimTabContent: React.FC = () => {
 
             {/* ─── VALIDATION ERROR TOAST ─── */}
             {upload.validationError && (
-                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium shadow-xl animate-[fadeSlideIn_0.2s_ease-out] backdrop-blur-lg
+                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium shadow-sm animate-[fadeSlideIn_0.2s_ease-out] backdrop-blur-lg
                     ${isDark ? 'bg-red-500/20 text-red-300 border border-red-500/30' : 'bg-red-50 text-red-600 border border-red-200'}
                 `}>
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -937,7 +937,7 @@ const ProjectBimTabContent: React.FC = () => {
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center" onClick={keyboard.toggleShortcutsHelp}>
                     <div className={`absolute inset-0 ${isDark ? 'bg-black/60' : 'bg-black/30'} backdrop-blur-sm`} />
                     <div
-                        className={`relative w-96 max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl p-6 animate-[fadeSlideIn_0.2s_cubic-bezier(0.16,1,0.3,1)]
+                        className={`relative w-96 max-h-[80vh] overflow-y-auto rounded-2xl shadow-sm p-4 animate-[fadeSlideIn_0.2s_cubic-bezier(0.16,1,0.3,1)]
                             ${isDark ? 'bg-slate-900 border border-slate-700/50' : 'bg-[#FCF9F2] border border-gray-200'}
                         `}
                         onClick={(e) => e.stopPropagation()}

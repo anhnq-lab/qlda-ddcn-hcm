@@ -250,7 +250,7 @@ export const XeokitViewer: React.FC<XeokitViewerProps> = ({ projectId }) => {
             onClick={onClick}
             title={title}
             className={`p-2 rounded-lg transition-all ${active
-                    ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/30'
+                    ? 'bg-cyan-500 text-white shadow-sm shadow-cyan-500/30'
                     : 'text-slate-400 hover:bg-white/10 hover:text-white'
                 }`}
         >
@@ -259,7 +259,7 @@ export const XeokitViewer: React.FC<XeokitViewerProps> = ({ projectId }) => {
     );
 
     return (
-        <div className="rounded-2xl overflow-hidden flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl"
+        <div className="rounded-2xl overflow-hidden flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-sm"
             style={{ height: 'calc(100vh - 260px)', minHeight: '550px', maxHeight: '850px' }}>
 
             {/* HEADER */}
@@ -297,7 +297,7 @@ export const XeokitViewer: React.FC<XeokitViewerProps> = ({ projectId }) => {
                     </div>
 
                     {/* Upload button */}
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all shadow-lg shadow-cyan-500/20">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all shadow-sm shadow-cyan-500/20">
                         <Upload className="w-3.5 h-3.5" /> Upload IFC
                         <input type="file" accept=".ifc" className="hidden" onChange={handleFileUpload} />
                     </label>
@@ -383,7 +383,7 @@ export const XeokitViewer: React.FC<XeokitViewerProps> = ({ projectId }) => {
 
                     {/* Model loaded badge */}
                     {modelLoaded && !isLoading && (
-                        <div className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-lg shadow-emerald-500/30">
+                        <div className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-sm shadow-emerald-500/30">
                             <div className="w-1.5 h-1.5 rounded-full bg-[#FCF9F2] animate-pulse" /> Model Loaded
                         </div>
                     )}

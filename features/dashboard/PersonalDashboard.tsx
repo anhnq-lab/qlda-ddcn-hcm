@@ -12,7 +12,7 @@ import { useTasks } from '../../hooks/useTasks';
 import { useContracts } from '../../hooks/useContracts';
 import { formatShortCurrency as formatCurrency } from '../../utils/format';
 import { ProjectStatus, TaskStatus, TaskPriority } from '../../types';
-import { StatCard } from '../../components/ui';
+import { StatCard, EmptyState } from '../../components/ui';
 import { supabase } from '../../lib/supabase';
 
 const PersonalDashboard: React.FC = () => {
@@ -130,13 +130,13 @@ const PersonalDashboard: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Welcome Header */}
-            <div className="rounded-2xl p-6 sm:p-8 relative overflow-hidden bg-gradient-to-r from-primary-500 to-primary-600 dark:from-slate-800 dark:to-slate-900 border border-transparent dark:border-slate-800 shadow-lg">
+            <div className="rounded-2xl p-4 sm:p-8 relative overflow-hidden bg-gradient-to-r from-primary-500 to-primary-600 dark:from-slate-800 dark:to-slate-900 border border-transparent dark:border-slate-800 shadow-sm">
                 <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl pointer-events-none"></div>
                 <div className="absolute right-20 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 blur-xl pointer-events-none"></div>
 
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur shadow-lg ring-1 ring-white/30">
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur shadow-sm ring-1 ring-white/30">
                             {currentUser?.AvatarUrl ? (
                                 <img src={currentUser.AvatarUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
                             ) : (
@@ -196,16 +196,13 @@ const PersonalDashboard: React.FC = () => {
 
                     <div className="divide-y divide-gray-50 dark:divide-slate-700">
                         {myProjects.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 dark:text-slate-500">
-                                <Building2 className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-slate-600" />
-                                <p>Bạn chưa được phân công dự án nào</p>
-                            </div>
+                            <EmptyState icon={<Building2 className="w-10 h-10" />} title="Bạn chưa được phân công dự án nào" className="py-6" />
                         ) : (
                             myProjects.slice(0, 4).map(project => (
                                 <div
                                     key={project.ProjectID}
                                     onClick={() => navigate(`/projects/${project.ProjectID}`)}
-                                    className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-4"
+                                    className="p-4 hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-4"
                                 >
                                     <div className={`w-2 h-12 rounded-full ${project.Status === ProjectStatus.Preparation ? 'bg-blue-500' :
                                         project.Status === ProjectStatus.Execution ? 'bg-orange-500' :
@@ -256,16 +253,13 @@ const PersonalDashboard: React.FC = () => {
 
                     <div className="divide-y divide-gray-50 dark:divide-slate-700">
                         {upcomingDeadlines.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 dark:text-slate-500">
-                                <CheckSquare className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-slate-600" />
-                                <p>Không có deadline trong 7 ngày tới</p>
-                            </div>
+                            <EmptyState icon={<CheckSquare className="w-10 h-10" />} title="Không có deadline trong 7 ngày tới" className="py-6" />
                         ) : (
                             upcomingDeadlines.map(task => (
                                 <div
                                     key={task.TaskID}
                                     onClick={() => navigate(`/tasks/${task.TaskID}`)}
-                                    className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                                    className="p-4 hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 cursor-pointer transition-colors"
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
@@ -305,7 +299,7 @@ const PersonalDashboard: React.FC = () => {
                             <div
                                 key={task.TaskID}
                                 onClick={() => navigate(`/tasks/${task.TaskID}`)}
-                                className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-3"
+                                className="p-4 hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-3"
                             >
                                 <div className={`w-2 h-2 rounded-full ${task.Priority === TaskPriority.Urgent ? 'bg-rose-500' :
                                     task.Priority === TaskPriority.High ? 'bg-primary-500' :
@@ -322,10 +316,7 @@ const PersonalDashboard: React.FC = () => {
                         ))}
 
                         {myTasks.filter(t => t.Status === TaskStatus.InProgress).length === 0 && (
-                            <div className="p-8 text-center text-gray-400 dark:text-slate-500">
-                                <Target className="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
-                                <p className="text-sm">Không có công việc đang thực hiện</p>
-                            </div>
+                            <EmptyState icon={<Target className="w-10 h-10" />} title="Không có công việc đang thực hiện" className="py-6" />
                         )}
                     </div>
                 </div>
@@ -347,15 +338,12 @@ const PersonalDashboard: React.FC = () => {
 
                     <div className="divide-y divide-gray-50 dark:divide-slate-700 max-h-[300px] overflow-y-auto">
                         {myDocuments.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 dark:text-slate-500">
-                                <FileText className="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
-                                <p className="text-sm">Chưa có tài liệu nào</p>
-                            </div>
+                            <EmptyState icon={<FileText className="w-10 h-10" />} title="Chưa có tài liệu nào" className="py-6" />
                         ) : (
                             myDocuments.map((doc: any) => (
                                 <div
                                     key={doc.doc_id}
-                                    className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-3"
+                                    className="p-4 hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-3"
                                     onClick={() => navigate('/documents')}
                                 >
                                     <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0">
@@ -402,7 +390,7 @@ const PersonalDashboard: React.FC = () => {
                             <div
                                 key={contract.ContractID}
                                 onClick={() => navigate(`/contracts/${contract.ContractID}`)}
-                                className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-4"
+                                className="p-4 hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700 cursor-pointer transition-colors flex items-center gap-4"
                             >
                                 <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0">
                                     <Briefcase className="w-5 h-5 text-slate-600 dark:text-slate-400" />
@@ -423,7 +411,7 @@ const PersonalDashboard: React.FC = () => {
             )}
 
             {/* Summary Footer */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-[#ece7de] dark:border-slate-700 p-6">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-[#ece7de] dark:border-slate-700 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                     <div className="flex items-center gap-8">
                         <div>
@@ -440,7 +428,7 @@ const PersonalDashboard: React.FC = () => {
                     </div>
                     <button
                         onClick={() => navigate('/tasks')}
-                        className="btn btn-primary btn-md shadow-lg flex items-center gap-2"
+                        className="btn btn-primary btn-md shadow-sm flex items-center gap-2"
                     >
                         <TrendingUp className="w-4 h-4" />
                         Xem báo cáo chi tiết

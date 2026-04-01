@@ -18,7 +18,7 @@ const CDEBatchActions: React.FC<CDEBatchActionsProps> = ({
 
     return (
         <div className="sticky top-0 z-20 animate-in slide-in-from-top-2 duration-300">
-            <div className="bg-primary-600 text-white rounded-xl shadow-xl shadow-primary-200 dark:shadow-primary-900/30 px-4 py-2.5 flex items-center gap-3">
+            <div className="bg-primary-600 text-white rounded-xl shadow-sm shadow-primary-200 dark:shadow-primary-900/30 px-4 py-2.5 flex items-center gap-3">
                 {/* Count */}
                 <div className="flex items-center gap-2 pr-3 border-r border-white/20">
                     <span className="bg-white/20 text-white text-xs font-black w-7 h-7 rounded-lg flex items-center justify-center">
@@ -31,13 +31,13 @@ const CDEBatchActions: React.FC<CDEBatchActionsProps> = ({
                 <div className="flex items-center gap-1.5">
                     <button
                         onClick={() => onApprove(selectedIds)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-xs font-bold transition-all shadow-lg"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-xs font-bold transition-all shadow-sm"
                     >
                         <CheckSquare className="w-3.5 h-3.5" /> Duyệt
                     </button>
                     <button
                         onClick={() => onReject(selectedIds)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs font-bold transition-all shadow-lg"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs font-bold transition-all shadow-sm"
                     >
                         <XSquare className="w-3.5 h-3.5" /> Từ chối
                     </button>

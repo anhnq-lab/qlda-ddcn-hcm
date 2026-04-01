@@ -1,20 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Wallet, Activity, AlertCircle, CheckCircle2, Clock, AlertTriangle, Building2, Map as MapIcon, Filter, ChevronDown, FileBox, TrendingUp, ArrowRight, Brain, X } from 'lucide-react';
 import { formatShortCurrency } from '../../utils/format';
-import InteractiveMap from '../../components/common/InteractiveMap';
 import { DashboardService } from '../../services/DashboardService';
 import { ProjectService } from '../../services/ProjectService';
 import { useTheme } from '../../context/ThemeContext';
 import { ProjectStatus, MANAGEMENT_BOARDS, PROJECT_PHASE_COLORS } from '../../types';
-import { AISummaryWidget } from '../../components/ai/AISummaryWidget';
-import { AIRiskDashboard } from '../../components/ai/AIRiskDashboard';
-import { AIAnomalyDetector } from '../../components/ai/AIAnomalyDetector';
-import { AIContractorScoring } from '../../components/ai/AIContractorScoring';
-import { AIResourceOptimizer } from '../../components/ai/AIResourceOptimizer';
-import { StatCard, ErrorBoundary } from '../../components/ui';
+import { StatCard, ErrorBoundary, EmptyState, SkeletonTable } from '../../components/ui';
+
+// Lazy load heavy components
+const CapitalDisbursementChart = lazy(() => import('./components/CapitalDisbursementChart'));
+const InteractiveMap = lazy(() => import('../../components/common/InteractiveMap'));
+const AISummaryWidget = lazy(() => import('../../components/ai/AISummaryWidget').then(m => ({ default: m.AISummaryWidget })));
+const AIRiskDashboard = lazy(() => import('../../components/ai/AIRiskDashboard').then(m => ({ default: m.AIRiskDashboard })));
+const AIAnomalyDetector = lazy(() => import('../../components/ai/AIAnomalyDetector').then(m => ({ default: m.AIAnomalyDetector })));
+const AIContractorScoring = lazy(() => import('../../components/ai/AIContractorScoring').then(m => ({ default: m.AIContractorScoring })));
+const AIResourceOptimizer = lazy(() => import('../../components/ai/AIResourceOptimizer').then(m => ({ default: m.AIResourceOptimizer })));
 
 
 // ── Phase Badge ──────────────────────────────────────────
@@ -44,15 +46,7 @@ const ProgressBar: React.FC<{ value: number; color?: string }> = ({ value, color
     </div>
 );
 
-// ── Empty State ──────────────────────────────────────────
-const EmptyState: React.FC<{ icon: React.ElementType; message: string }> = ({ icon: Icon, message }) => (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-full mb-3">
-            <Icon className="w-6 h-6 text-gray-300 dark:text-slate-500" />
-        </div>
-        <p className="text-xs font-medium text-gray-400 dark:text-slate-500">{message}</p>
-    </div>
-);
+
 
 // ═══════════════════════════════════════════════════════════
 // MAIN DASHBOARD
@@ -293,8 +287,8 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {loadingProjects ? (
-                    <div className="p-6 space-y-3">
-                        {[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-50 dark:bg-slate-700 rounded-lg animate-pulse" />)}
+                    <div className="p-4">
+                        <SkeletonTable columns={6} rows={3} />
                     </div>
                 ) : filteredRows.length > 0 ? (
                     <div className="overflow-x-auto">
@@ -360,7 +354,7 @@ const Dashboard: React.FC = () => {
                         </table>
                     </div>
                 ) : (
-                    <EmptyState icon={Building2} message="Không có dự án nào" />
+                    <EmptyState icon={<Building2 className="w-12 h-12" />} title="Không có dự án nào" className="py-12" />
                 )}
             </div>
 
@@ -368,56 +362,13 @@ const Dashboard: React.FC = () => {
                 3. GIẢI NGÂN THEO BAN (full width)
             ═══════════════════════════════════════════════════ */}
             {capitalVsDisbursement && (
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-5 rounded-2xl shadow-lg border border-[#ece7de] dark:border-slate-700">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="section-header text-sm">
-                            <div className="section-icon"><Wallet className="w-5 h-5" /></div>
-                            Kế hoạch vốn và Thực giải ngân
-                        </h3>
-                        <div className="flex gap-3">
-                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 dark:text-slate-400">
-                                <div className="w-2.5 h-2.5 rounded" style={{ background: theme === 'dark' ? '#475569' : '#E5E7EB' }} /> Kế hoạch
-                            </span>
-                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 dark:text-slate-400">
-                                <div className="w-2.5 h-2.5 rounded" style={{ background: '#f97316' }} /> Thực giải ngân
-                            </span>
-                        </div>
+                <Suspense fallback={
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-[#ece7de] dark:border-slate-700 h-64 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
                     </div>
-                    <div className="h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={capitalVsDisbursement} margin={{ top: 5, right: 10, left: -10, bottom: 0 }} barGap={4}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#E5E7EB'} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} dy={6} tick={(props: any) => {
-                                    const { x, y, payload } = props;
-                                    const item = capitalVsDisbursement?.find((d: any) => d.name === payload.value);
-                                    return (
-                                        <text x={x} y={y} textAnchor="middle" fontSize={11} fontWeight={700} fill={item?.color || (theme === 'dark' ? '#94A3B8' : '#6B7280')} dy={6}>
-                                            {payload.value}
-                                        </text>
-                                    );
-                                }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#94A3B8' : '#6B7280', fontSize: 10, fontWeight: 600 }} unit=" Tỷ" />
-                                <RechartsTooltip
-                                    content={({ active, payload, label }: any) => {
-                                        if (!active || !payload?.[0]) return null;
-                                        const d = payload[0].payload;
-                                        return (
-                                            <div className="bg-[#FCF9F2] dark:bg-slate-800 px-3 py-2 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600">
-                                                <p className="text-[10px] font-black text-gray-700 dark:text-slate-200 mb-0.5">{label}</p>
-                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Kế hoạch: <strong>{d.planned} Tỷ</strong></p>
-                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Thực giải ngân: <strong>{d.actual} Tỷ</strong></p>
-                                                <p className="text-[9px] text-gray-600 dark:text-slate-300">Tỷ lệ: <strong>{d.rate}%</strong></p>
-                                            </div>
-                                        );
-                                    }}
-                                    cursor={{ fill: theme === 'dark' ? '#1E293B' : '#F3F4F6' }}
-                                />
-                                <Bar dataKey="planned" fill={theme === 'dark' ? '#475569' : '#E5E7EB'} radius={[4, 4, 0, 0]} maxBarSize={40} />
-                                <Bar dataKey="actual" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                }>
+                    <CapitalDisbursementChart data={capitalVsDisbursement} />
+                </Suspense>
             )}
 
             {/* ═══════════════════════════════════════════════════
@@ -428,14 +379,16 @@ const Dashboard: React.FC = () => {
                     <div className="section-icon"><Brain className="w-5 h-5" /></div>
                     Trợ lý AI
                 </h3>
-                <ErrorBoundary>
-                    <AISummaryWidget />
-                </ErrorBoundary>
+                <Suspense fallback={<div className="h-32 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />}>
+                    <ErrorBoundary>
+                        <AISummaryWidget />
+                    </ErrorBoundary>
+                </Suspense>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <ErrorBoundary><AIRiskDashboard /></ErrorBoundary>
-                    <ErrorBoundary><AIAnomalyDetector /></ErrorBoundary>
-                    <ErrorBoundary><AIContractorScoring /></ErrorBoundary>
-                    <ErrorBoundary><AIResourceOptimizer /></ErrorBoundary>
+                    <Suspense fallback={<div className="h-48 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />}><ErrorBoundary><AIRiskDashboard /></ErrorBoundary></Suspense>
+                    <Suspense fallback={<div className="h-48 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />}><ErrorBoundary><AIAnomalyDetector /></ErrorBoundary></Suspense>
+                    <Suspense fallback={<div className="h-48 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />}><ErrorBoundary><AIContractorScoring /></ErrorBoundary></Suspense>
+                    <Suspense fallback={<div className="h-48 bg-gray-50 dark:bg-slate-800 rounded-xl animate-pulse" />}><ErrorBoundary><AIResourceOptimizer /></ErrorBoundary></Suspense>
                 </div>
             </div>
 
@@ -444,7 +397,7 @@ const Dashboard: React.FC = () => {
             ═══════════════════════════════════════════════════ */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[300px] xl:h-[500px]">
                 {/* Map (2/3) */}
-                <div className="xl:col-span-2 bg-[#FCF9F2] dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-[#ece7de] dark:border-slate-700 relative overflow-hidden h-full flex flex-col">
+                <div className="xl:col-span-2 bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-[#ece7de] dark:border-slate-700 relative overflow-hidden h-full flex flex-col">
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="section-header">
                             <div className="section-icon"><MapIcon className="w-5 h-5" /></div>
@@ -457,15 +410,21 @@ const Dashboard: React.FC = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
                             </div>
                         ) : (
-                            <InteractiveMap projects={filteredProjects} />
+                            <Suspense fallback={
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+                                </div>
+                            }>
+                                <InteractiveMap projects={filteredProjects} />
+                            </Suspense>
                         )}
                         {/* Legend */}
-                        <div className="absolute top-4 right-4 bg-[#FCF9F2]/90 dark:bg-slate-800 backdrop-blur-sm p-3 rounded-xl border border-[#ece7de] dark:border-slate-600 shadow-xl z-[1000]">
+                        <div className="absolute top-4 right-4 bg-[#FCF9F2]/90 dark:bg-slate-800 backdrop-blur-sm p-3 rounded-xl border border-[#ece7de] dark:border-slate-600 shadow-sm z-[1000]">
                             <h4 className="text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Chú thích</h4>
                             <div className="space-y-2">
                                 {Object.entries(PROJECT_PHASE_COLORS).map(([key, phase]) => (
                                     <div key={key} className="flex items-center gap-2">
-                                        <span className="w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-lg" style={{ backgroundColor: phase.hex }} />
+                                        <span className="w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-sm" style={{ backgroundColor: phase.hex }} />
                                         <span className="text-[10px] font-bold text-gray-600 dark:text-slate-300">{phase.label}</span>
                                     </div>
                                 ))}
@@ -475,7 +434,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Alerts (1/3) */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-red-100 dark:border-red-900/50 relative overflow-hidden h-full flex flex-col">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/50 relative overflow-hidden h-full flex flex-col">
                     <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none"><AlertTriangle className="w-32 h-32 text-red-500" /></div>
                     <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10 shrink-0" style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #EF4444' }}>
                         <AlertTriangle className="w-4 h-4" /> Cảnh báo quan trọng
@@ -489,7 +448,7 @@ const Dashboard: React.FC = () => {
                         ) : risks && risks.length > 0 ? (
                             risks.map(r => (
                                 <div key={r.id} className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-xl flex items-start gap-3 transition-transform hover:scale-[1.02]">
-                                    <div className="p-1.5 bg-[#FCF9F2] dark:bg-slate-700 rounded-lg text-red-500 shadow-lg shrink-0">
+                                    <div className="p-1.5 bg-[#FCF9F2] dark:bg-slate-700 rounded-lg text-red-500 shadow-sm shrink-0">
                                         <AlertCircle className="w-4 h-4" />
                                     </div>
                                     <div>
@@ -499,12 +458,12 @@ const Dashboard: React.FC = () => {
                                 </div>
                             ))
                         ) : (
-                            <EmptyState icon={CheckCircle2} message="Không có cảnh báo nào" />
+                            <EmptyState icon={<CheckCircle2 className="w-12 h-12 text-emerald-500" />} title="Không có cảnh báo nào" className="py-12" />
                         )}
                     </div>
                     <button
                         onClick={() => navigate('/reports')}
-                        className="w-full mt-4 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0 shadow-lg hover:shadow"
+                        className="w-full mt-4 py-2 bg-[#FCF9F2] dark:bg-slate-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0 shadow-sm hover:shadow"
                     >
                         Xem chi tiết báo cáo rủi ro
                     </button>

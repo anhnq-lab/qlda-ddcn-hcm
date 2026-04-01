@@ -165,13 +165,13 @@ function getNodeVisualConfig(
         ? 'rounded-full w-20 h-20'
         : 'rounded-xl w-56';
 
-    if (node.type === 'start') return { icon: typeIcon, shape, bg: 'bg-emerald-500 text-white', border: 'border-emerald-600', glow: 'shadow-lg shadow-emerald-500/30' };
+    if (node.type === 'start') return { icon: typeIcon, shape, bg: 'bg-emerald-500 text-white', border: 'border-emerald-600', glow: 'shadow-sm shadow-emerald-500/30' };
     if (node.type === 'end') return { icon: typeIcon, shape, bg: isCompleted ? 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400', border: 'border-slate-400 dark:border-slate-600', glow: '' };
     if (isRejected) return { icon: <XCircle size={20} />, shape, bg: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400', border: 'border-red-400 dark:border-red-700', glow: 'shadow-red-500/20' };
     if (isCompleted) return { icon: <CheckCircle2 size={20} />, shape, bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', border: 'border-emerald-400 dark:border-emerald-700', glow: 'shadow-emerald-500/10' };
-    if (isActive) return { icon: <Clock size={20} className="animate-spin-slow" />, shape, bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', border: 'border-amber-400 dark:border-amber-600 ring-4 ring-amber-400/30', glow: 'shadow-amber-500/40 shadow-xl scale-105' };
+    if (isActive) return { icon: <Clock size={20} className="animate-spin-slow" />, shape, bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', border: 'border-amber-400 dark:border-amber-600 ring-4 ring-amber-400/30', glow: 'shadow-amber-500/40 shadow-sm scale-105' };
 
-    return { icon: <CircleDashed size={20} />, shape, bg: 'bg-white text-slate-600 dark:bg-slate-800 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700', glow: '' };
+    return { icon: <CircleDashed size={20} />, shape, bg: 'bg-[#FCF9F2] text-slate-600 dark:bg-slate-800 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700', glow: '' };
 }
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
                     className="bg-slate-50 dark:bg-slate-900/20"
                 >
                     <Background color="#cbd5e1" gap={16} size={1.5} />
-                    <Controls className="!mb-6 !mr-6 shadow-xl border-none" showInteractive={false} />
+                    <Controls className="!mb-6 !mr-6 shadow-sm border-none" showInteractive={false} />
                 </ReactFlow>
             </div>
         </div>

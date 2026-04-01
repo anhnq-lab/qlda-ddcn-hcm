@@ -55,7 +55,7 @@ const CDEFilterBar: React.FC<CDEFilterBarProps> = ({ filters, onChange, onClear,
                 </button>
 
                 {isOpen && (
-                    <div className="absolute top-full mt-1 left-0 w-56 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl z-30 p-2 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full mt-1 left-0 w-56 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm z-30 p-2 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
                         {options.map(opt => {
                             const isSelected = (filters as any)[filterKey]?.includes(opt.value);
                             return (

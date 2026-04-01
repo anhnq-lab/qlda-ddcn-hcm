@@ -1,12 +1,12 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, ChevronRight, Palette, Bell, Shield, User, Users, ShieldCheck, LogOut } from 'lucide-react';
+import { Sun, Moon, ChevronRight, Palette, Bell, Shield, User, Users, ShieldCheck, LogOut, Grid, AlignJustify, ArrowDownFromLine, TableProperties } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import UserImpersonator from './UserImpersonator';
 
 const Settings: React.FC = () => {
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, density, setDensity, stickyHeader, setStickyHeader } = useTheme();
     const { currentUser, logout } = useAuth();
 
     // Only admin can impersonate
@@ -37,7 +37,7 @@ const Settings: React.FC = () => {
                 sidebar: 'bg-slate-800',
                 header: 'bg-slate-800',
                 card: 'bg-slate-700',
-                text: 'bg-[#F5EFE6]0',
+                text: 'bg-slate-200', /* Fixed typo from original bg-[#F5EFE6]0 */
                 accent: 'bg-blue-500',
             }
         },
@@ -58,7 +58,6 @@ const Settings: React.FC = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Cột trái: Giao diện, Thông báo, Bảo mật, Quản trị */}
                 <div className="space-y-6 flex-1 w-full">
                     {/* Appearance Section */}
                     <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -131,6 +130,73 @@ const Settings: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Data Display Settings */}
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center gap-3">
+                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
+                                <TableProperties className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Hiển thị dữ liệu</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Cách hiển thị bảng và danh sách</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 space-y-6">
+                            {/* Data Density */}
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2">Mật độ dòng (Data Density)</h4>
+                                <div className="flex bg-[#F5EFE6] dark:bg-slate-900 rounded-xl max-w-sm p-1 border border-gray-200 dark:border-slate-700">
+                                    <button
+                                        onClick={() => setDensity('comfortable')}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${density === 'comfortable'
+                                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
+                                                : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
+                                            }`}
+                                    >
+                                        <AlignJustify className="w-4 h-4" />
+                                        Tiêu chuẩn
+                                    </button>
+                                    <button
+                                        onClick={() => setDensity('compact')}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${density === 'compact'
+                                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
+                                                : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
+                                            }`}
+                                    >
+                                        <Grid className="w-4 h-4" />
+                                        Nén
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+                                    {density === 'compact' ? 'Hiển thị nhiều dữ liệu hơn trên màn hình (để xem lướt).' : 'Khoảng cách thoáng hơn, dễ đọc các nội dung dài.'}
+                                </p>
+                            </div>
+
+                            {/* Sticky Header */}
+                            <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-700 pt-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 bg-gray-100 dark:bg-slate-700 rounded-lg">
+                                        <ArrowDownFromLine className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100">Ghim tiêu đề bảng</h4>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">Luôn hiển thị Header khi cuộn xuống</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={stickyHeader}
+                                        onChange={(e) => setStickyHeader(e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Other Settings (Placeholder) */}
                     <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                         <div className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -180,14 +246,14 @@ const Settings: React.FC = () => {
                         onClick={logout}
                         className="w-full bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden px-4 py-3 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-colors group"
                     >
-                        <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded-xl group-hover:bg-red-100 dark:group-hover:bg-red-900/40 transition-colors">
+                        <div className="p-2 bg-[#F5EFE6] dark:bg-slate-700 rounded-xl group-hover:bg-red-100 dark:group-hover:bg-red-900/40 transition-colors">
                             <LogOut className="w-5 h-5 text-gray-500 dark:text-slate-400 group-hover:text-red-500 transition-colors" />
                         </div>
                         <p className="text-sm font-bold text-gray-800 dark:text-slate-100 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Đăng xuất</p>
                     </button>
                 </div>
 
-                {/* Cột phải: User Impersonator (Chỉ hiện khi là Admin) */}
+                {/* Right Column: User Impersonator (Admin Only) */}
                 {isAdmin && (
                     <div className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[700px] flex-shrink-0 relative">
                         <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm sticky top-6">
@@ -212,3 +278,4 @@ const Settings: React.FC = () => {
 };
 
 export default Settings;
+

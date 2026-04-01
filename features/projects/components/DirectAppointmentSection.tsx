@@ -190,7 +190,7 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center p-8 text-gray-400">
+            <div className="flex items-center justify-center p-4 text-gray-400">
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
                 Đang tải...
             </div>
@@ -259,7 +259,7 @@ export const DirectAppointmentSection: React.FC<DirectAppointmentSectionProps> =
                                     />
                                 </div>
                                 {showContractorList && (
-                                    <div className="absolute z-10 w-full mt-1 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-72 overflow-y-auto">
+                                    <div className="absolute z-10 w-full mt-1 bg-[#FCF9F2] dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-sm max-h-72 overflow-y-auto">
                                         {filteredContractors.length > 0 ? filteredContractors.map((c: Contractor) => (
                                             <button
                                                 key={c.ContractorID}

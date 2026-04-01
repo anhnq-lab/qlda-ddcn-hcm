@@ -220,7 +220,7 @@ export const AcceptanceSection: React.FC<AcceptanceSectionProps> = ({ contractId
 
             {/* Records list */}
             {isLoading ? (
-                <div className="flex items-center justify-center p-6 text-gray-400 dark:text-slate-500">
+                <div className="flex items-center justify-center p-4 text-gray-400 dark:text-slate-500">
                     <Loader2 className="w-5 h-5 animate-spin mr-2" /> Đang tải...
                 </div>
             ) : records.length > 0 ? (

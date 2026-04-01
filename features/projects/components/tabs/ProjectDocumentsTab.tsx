@@ -10,7 +10,7 @@ import {
     ProjectStage, InvestmentPolicyDecision, FeasibilityStudy,
     Document, DocCategory, ISO19650Status
 } from '@/types';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateFromImage } from '@/services/ai/geminiProxy';
 import { supabase } from '@/lib/supabase';
 import { FilePreviewModal } from '../FilePreviewModal';
 import { getFileIcon } from '@/utils/fileIcons';
@@ -129,23 +129,15 @@ export const ProjectDocumentsTab: React.FC<ProjectDocumentsTabProps> = ({
         );
     };
 
-    /** Extract document metadata using Gemini AI */
+    /** Extract document metadata using Gemini AI via Edge Function */
     const extractDocMetadata = async (file: File): Promise<Record<string, string>> => {
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-            || (typeof process !== 'undefined' && (process.env as any)?.GEMINI_API_KEY)
-            || 'AIzaSyD0gKHf3JCjPRRnlv7HddHxrhfAJe2pOQY';
-        if (!apiKey) return {};
         try {
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
             const buffer = await file.arrayBuffer();
             const base64 = btoa(
                 new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
             );
-            const result = await model.generateContent([
-                { inlineData: { mimeType: file.type || 'application/pdf', data: base64 } },
-                {
-                    text: `Bạn là chuyên gia pháp lý xây dựng Việt Nam. Đọc văn bản đính kèm và trích xuất thông tin.
+
+            const prompt = `Bạn là chuyên gia pháp lý xây dựng Việt Nam. Đọc văn bản đính kèm và trích xuất thông tin.
 
 Trả về JSON object với đúng các key:
 {
@@ -155,10 +147,10 @@ Trả về JSON object với đúng các key:
   "notes": "Tóm tắt ngắn gọn nội dung chính (1-2 câu)"
 }
 
-Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KHÔNG markdown.` },
-            ]);
-            const text = result.response.text().trim();
-            const jsonStr = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KHÔNG markdown.`;
+
+            const text = await generateFromImage(base64, file.type || 'application/pdf', prompt);
+            const jsonStr = text.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
             return JSON.parse(jsonStr);
         } catch (err) {
             console.error('Gemini extract error:', err);
@@ -291,7 +283,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
             />
 
             {/* Header with View Toggle */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 mb-6 overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 mb-6 overflow-hidden">
                 <div className="px-5 py-3 flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
                     <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-primary-600" />
@@ -313,7 +305,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
                         </div>
                         <button
                             onClick={() => handleUpload()}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-primary-200"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-bold rounded-lg transition-colors shadow-sm shadow-primary-200"
                         >
                             <Upload className="w-4 h-4" /> Tải lên
                         </button>
@@ -337,7 +329,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
                     </div>
 
                     {/* Table */}
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-[#F5EFE6] dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
@@ -568,7 +560,7 @@ Nếu không tìm thấy, để giá trị rỗng "". CHỈ TRẢ VỀ JSON, KH�
 
                     {/* Recently uploaded docs */}
                     {uploadedDocs.length > 0 && (
-                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                             <div className="px-5 py-3 bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800 border-b border-emerald-100 dark:border-emerald-800 flex items-center gap-2">
                                 <Upload className="w-4 h-4 text-emerald-600" />
                                 <span className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Mới tải lên ({uploadedDocs.length})</span>

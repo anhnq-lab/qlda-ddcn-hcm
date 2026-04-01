@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSlidePanel } from '../../context/SlidePanelContext';
 import { useToast } from '../../components/ui/Toast';
 import DataTable, { Column } from '../../components/ui/DataTable';
-import { ViewToggle, SectionHeader } from '../../components/ui';
+import { ViewToggle, SectionHeader, EmptyState } from '../../components/ui';
 import EmployeeSlideContent from './EmployeeSlideContent';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -240,7 +240,7 @@ const EmployeeList: React.FC = () => {
             render: (_: any, emp: Employee) => (
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white shadow-lg object-cover" />
+                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white shadow-sm object-cover" />
                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${emp.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                     </div>
                     <div className="min-w-0">
@@ -336,7 +336,7 @@ const EmployeeList: React.FC = () => {
         <div className="space-y-6 animate-in fade-in duration-500">
 
             {/* ══════════ TAB NAVIGATION ══════════ */}
-            <div className="flex items-center gap-1 bg-[#FCF9F2] dark:bg-slate-800 p-1.5 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 w-fit">
+            <div className="flex items-center gap-1 bg-[#FCF9F2] dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 w-fit">
                 <button
                     onClick={() => setActiveTab('list')}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'list'
@@ -460,7 +460,7 @@ const EmployeeList: React.FC = () => {
                     <div className="flex-1 space-y-4">
 
                         {/* ══════════ TOOLBAR ══════════ */}
-                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <div className="p-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                                 {/* Left: Search + Filters */}
                                 <div className="flex items-center gap-3 flex-wrap flex-1 w-full lg:w-auto">
@@ -581,7 +581,7 @@ const EmployeeList: React.FC = () => {
                                                             <td className="px-4 py-3.5">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="relative">
-                                                                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-lg object-cover" />
+                                                                        <img src={emp.AvatarUrl} alt={emp.FullName} className="w-10 h-10 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-sm object-cover" />
                                                                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 ${emp.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                                                                     </div>
                                                                     <div className="min-w-0">
@@ -684,7 +684,7 @@ const EmployeeList: React.FC = () => {
                                                             <img
                                                                 src={emp.AvatarUrl}
                                                                 alt={emp.FullName}
-                                                                className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg"
+                                                                className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-sm"
                                                             />
                                                             <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${emp.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                                                         </div>
@@ -730,13 +730,12 @@ const EmployeeList: React.FC = () => {
 
                                 {/* Empty State */}
                                 {filteredEmployees.length === 0 && (
-                                    <div className="text-center py-16 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                                        <div className="w-14 h-14 bg-[#F5EFE6] dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Sparkles className="w-6 h-6 text-slate-300 dark:text-slate-500" />
-                                        </div>
-                                        <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy nhân sự nào.</p>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
-                                    </div>
+                                    <EmptyState
+                                        icon={<Sparkles className="w-12 h-12 text-slate-300 dark:text-slate-500" />}
+                                        title="Không tìm thấy nhân sự nào."
+                                        description="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm."
+                                        className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700"
+                                    />
                                 )}
                             </>
                         )}
@@ -746,7 +745,7 @@ const EmployeeList: React.FC = () => {
                     {
                         isModalOpen && (
                             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-slate-700">
+                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-slate-700">
 
 
                                     {/* Header */}
@@ -765,7 +764,7 @@ const EmployeeList: React.FC = () => {
                                     </div>
 
                                     {/* Form */}
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-5">
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="p-4 space-y-5">
 
                                         {/* Section: Thông tin cơ bản */}
                                         <div>
@@ -945,7 +944,7 @@ const EmployeeList: React.FC = () => {
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-primary-700 rounded-xl shadow-lg shadow-primary-600/25 transition-all active:scale-[0.98] flex items-center gap-2"
+                                                className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-primary-700 rounded-xl shadow-sm shadow-primary-600/25 transition-all active:scale-[0.98] flex items-center gap-2"
                                             >
                                                 <Save className="w-4 h-4" />
                                                 {editMode === 'create' ? 'Tạo nhân sự' : 'Lưu thay đổi'}

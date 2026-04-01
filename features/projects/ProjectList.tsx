@@ -1,11 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useVirtualList } from '../../hooks/useVirtualList';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { ProjectCard } from './ProjectCard';
 import PermissionGate from '../../components/PermissionGate';
 import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { CreateProjectModal, SelectedMember } from './components/CreateProjectModal';
 import ProjectService from '../../services/ProjectService';
 import { Project } from '../../types';
@@ -35,6 +37,20 @@ const ProjectList: React.FC = () => {
 
     // Create Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Responsive setup for virtualization
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const { containerRef, virtualItems, totalHeight } = useVirtualList({
+        items: sortedProjects,
+        itemHeight: isMobile ? 290 : 144, // 144px for desktop list, ~290 for mobile column
+        overscan: 5,
+    });
 
     const handleCreateProject = () => {
         setIsModalOpen(true);
@@ -80,7 +96,7 @@ const ProjectList: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-4 items-start">
                 {/* 2. SIDEBAR FILTER (Premium Style) */}
                 <div className={`shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-full lg:w-72' : 'w-0 lg:w-10'}`}>
-                    <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-6 ${!isSidebarOpen ? 'hidden lg:flex lg:items-center lg:justify-center lg:py-4' : ''}`}>
+                    <div className={`bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-6 ${!isSidebarOpen ? 'hidden lg:flex lg:items-center lg:justify-center lg:py-4' : ''}`}>
                         {/* Collapsed state */}
                         {!isSidebarOpen && (
                             <button
@@ -133,7 +149,7 @@ const ProjectList: React.FC = () => {
                                                         onChange={() => setSelectedStatus(opt.val)}
                                                         className="sr-only"
                                                     />
-                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-lg" style={{ backgroundColor: opt.hex }}></span>
+                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-sm" style={{ backgroundColor: opt.hex }}></span>
                                                     <span className={`text-sm flex-1 ${selectedStatus === opt.val ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300 font-medium'}`}>{opt.label}</span>
                                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedStatus === opt.val
                                                         ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
@@ -156,7 +172,7 @@ const ProjectList: React.FC = () => {
                                                 <button
                                                     key={g}
                                                     onClick={() => setSelectedGroup(g)}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedGroup === g ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedGroup === g ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                                         }`}
                                                 >
                                                     <span>{g === 'all' ? 'Tất cả nhóm' : `Nhóm ${g}`}</span>
@@ -179,7 +195,7 @@ const ProjectList: React.FC = () => {
                                         <div className="space-y-1">
                                             <button
                                                 onClick={() => setSelectedBoard('all')}
-                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                                             >
                                                 <span>Tất cả ban</span>
                                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedBoard === 'all'
@@ -193,7 +209,7 @@ const ProjectList: React.FC = () => {
                                                 <button
                                                     key={board.value}
                                                     onClick={() => setSelectedBoard(board.value.toString())}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedBoard === board.value.toString() ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedBoard === board.value.toString() ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                                                 >
                                                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: board.hex }}></span>
                                                     <span className="flex-1">{board.label}</span>
@@ -216,7 +232,7 @@ const ProjectList: React.FC = () => {
                 {/* 3. MAIN LIST AREA */}
                 <div className="flex-1 w-full space-y-4">
                     {/* Toolbar */}
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 p-2 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 p-2 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="relative w-full md:flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 w-4 h-4" />
                             <input
@@ -298,10 +314,9 @@ const ProjectList: React.FC = () => {
                                 ))}
                             </div>
                         ) : sortedProjects.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed">
-                                {/* Inline SVG illustration */}
-                                <div className="mb-6">
-                                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <EmptyState
+                                icon={
+                                    <svg width="60" height="60" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <circle cx="60" cy="60" r="56" fill="currentColor" className="text-gray-50 dark:text-slate-700/50" />
                                         <rect x="30" y="35" width="60" height="45" rx="6" stroke="currentColor" strokeWidth="2" className="text-gray-300 dark:text-slate-600" fill="none" />
                                         <path d="M30 47h60" stroke="currentColor" strokeWidth="2" className="text-gray-300 dark:text-slate-600" />
@@ -310,19 +325,17 @@ const ProjectList: React.FC = () => {
                                         <circle cx="52" cy="41" r="2" fill="currentColor" className="text-gray-300 dark:text-slate-600" />
                                         <path d="M50 62l6 6 14-14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 dark:text-slate-600" />
                                     </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                                    {hasActiveFilters ? 'Không tìm thấy dự án phù hợp' : 'Chưa có dự án nào'}
-                                </h3>
-                                <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm text-center text-sm">
-                                    {hasActiveFilters
-                                        ? 'Không có dự án nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi từ khóa hoặc bộ lọc.'
-                                        : 'Hãy bắt đầu bằng việc tạo dự án đầu tiên.'}
-                                </p>
+                                }
+                                title={hasActiveFilters ? 'Không tìm thấy dự án phù hợp' : 'Chưa có dự án nào'}
+                                description={hasActiveFilters
+                                    ? 'Không có dự án nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi từ khóa hoặc bộ lọc.'
+                                    : 'Hãy bắt đầu bằng việc tạo dự án đầu tiên.'}
+                                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-dashed"
+                            >
                                 {hasActiveFilters ? (
                                     <button
                                         onClick={clearFilters}
-                                        className="mt-6 text-primary-600 dark:text-primary-400 font-bold hover:underline text-sm"
+                                        className="text-primary-600 dark:text-primary-400 font-bold hover:underline text-sm"
                                     >
                                         Xóa tất cả bộ lọc
                                     </button>
@@ -330,22 +343,36 @@ const ProjectList: React.FC = () => {
                                     <PermissionGate resource="projects" action="create">
                                         <button
                                             onClick={handleCreateProject}
-                                            className="h-full rounded-2xl flex flex-col justify-end p-5 relative overflow-hidden group bg-gradient-to-br from-primary-500 to-primary-600"
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-400 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-md active:scale-95"
                                         >
                                             <Plus className="w-4 h-4" />
                                             Tạo dự án mới
                                         </button>
                                     </PermissionGate>
                                 )}
+                            </EmptyState>
+                        ) : viewMode === 'list' ? (
+                            <div ref={containerRef} className="h-[calc(100vh-220px)] overflow-y-auto pr-2 custom-scrollbar relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-2 lg:p-4">
+                                <div style={{ height: totalHeight, position: 'relative' }}>
+                                    {virtualItems.map(({ item: project, index, style }) => (
+                                        <div key={project.ProjectID} style={style} className="pb-3 w-full">
+                                            <ProjectCard
+                                                project={project}
+                                                onClick={() => handleOpenProject(project)}
+                                                layout="list"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ) : (
-                            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'flex flex-col gap-3'}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {sortedProjects.map(project => (
                                     <ProjectCard
                                         key={project.ProjectID}
                                         project={project}
                                         onClick={() => handleOpenProject(project)}
-                                        layout={viewMode}
+                                        layout="grid"
                                     />
                                 ))}
                             </div>

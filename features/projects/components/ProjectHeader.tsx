@@ -46,7 +46,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
     // ── Compact mode: single-line header for BIM tab ──
     if (compact) {
         return (
-            <div className="bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
                 <div className="px-4 py-2 flex items-center gap-3">
                 {!hideBackButton && (
                     <button
@@ -88,7 +88,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
                     {onEdit && (
                         <button
                             onClick={onEdit}
-                            className="flex items-center gap-1.5 px-3 py-1.5 gradient-btn text-white rounded-lg text-[11px] font-bold shadow-lg transition-all shrink-0"
+                            className="flex items-center gap-1.5 px-3 py-1.5 gradient-btn text-white rounded-lg text-[11px] font-bold shadow-sm transition-all shrink-0"
                             title="Chỉnh sửa thông tin dự án"
                         >
                             <Pencil className="w-3 h-3" />
@@ -110,7 +110,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
     }
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
             {/* Top section - Header */}
             <div className="px-6 py-6 border-b border-gray-50 dark:border-slate-800/50">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -118,7 +118,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
                         {!hideBackButton && (
                             <button
                                 onClick={() => navigate(-1)}
-                                className="p-2 hover:bg-[#FCF9F2] dark:hover:bg-slate-700 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-600 bg-[#FCF9F2] dark:bg-slate-800 shadow-lg"
+                                className="p-2 hover:bg-[#FCF9F2] dark:hover:bg-slate-700 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-600 bg-[#FCF9F2] dark:bg-slate-800 shadow-sm"
                             >
                                 <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                             </button>
@@ -189,7 +189,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, onSync, i
                         {onEdit && (
                             <button
                                 onClick={onEdit}
-                                className="flex items-center gap-2 px-4 py-2 gradient-btn text-white rounded-xl text-xs font-bold shadow-lg shadow-primary-900/20 dark:shadow-primary-900/30 transition-all hover:-translate-y-0.5"
+                                className="flex items-center gap-2 px-4 py-2 gradient-btn text-white rounded-xl text-xs font-bold shadow-sm shadow-primary-900/20 dark:shadow-primary-900/30 transition-all hover:-translate-y-0.5"
                                 title="Chỉnh sửa thông tin dự án"
                             >
                                 <Pencil className="w-3.5 h-3.5" />

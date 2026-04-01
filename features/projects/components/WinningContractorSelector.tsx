@@ -389,7 +389,7 @@ export const WinningContractorSelector: React.FC<WinningContractorSelectorProps>
 
                 {/* Dropdown results */}
                 {isDropdownOpen && (
-                    <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                    <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm max-h-48 overflow-y-auto">
                         {filteredContractors.length > 0 ? (
                             filteredContractors.map(c => (
                                 <button

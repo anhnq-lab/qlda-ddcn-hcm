@@ -1,5 +1,6 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, ChevronsUpDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface Column<T> {
     key: keyof T | string;
@@ -72,10 +73,16 @@ function DataTable<T extends Record<string, any>>({
     onSelectionChange,
     onRowClick,
     rowClassName,
-    compact = false,
-    stickyHeader = false,
+    compact,
+    stickyHeader,
     className = '',
 }: DataTableProps<T>) {
+    const { density, stickyHeader: globalStickyHeader } = useTheme();
+    
+    // Resolve props with global settings
+    const isCompact = compact !== undefined ? compact : density === 'compact';
+    const isSticky = stickyHeader !== undefined ? stickyHeader : globalStickyHeader;
+
     const [sortConfig, setSortConfig] = useState<SortConfig>(defaultSort || { key: '', direction: null });
 
     const handleSort = (key: string) => {
@@ -141,15 +148,15 @@ function DataTable<T extends Record<string, any>>({
         return <ChevronsUpDown size={14} className="text-slate-400" />;
     };
 
-    const cellPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
-    const headerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
+    const cellPadding = isCompact ? 'px-3 py-2' : 'px-4 py-3';
+    const headerPadding = isCompact ? 'px-3 py-2' : 'px-4 py-3';
 
     return (
         <div className={`overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800/60 bg-[#FCF9F2] dark:bg-slate-900 ${className}`}>
             <div className="overflow-x-auto">
                 <table className="w-full">
                     {/* Header */}
-                    <thead className={`bg-[#F5EFE6] dark:bg-slate-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                    <thead className={`bg-[#F5EFE6] dark:bg-slate-800 ${isSticky ? 'sticky top-0 z-10' : ''}`}>
                         <tr>
                             {selectable && (
                                 <th className={`${headerPadding} w-12`}>

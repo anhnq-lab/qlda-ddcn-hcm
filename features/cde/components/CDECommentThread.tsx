@@ -150,7 +150,7 @@ const CDECommentThread: React.FC<CDECommentThreadProps> = ({ docId, docName }) =
                 <button
                     onClick={handleSubmit}
                     disabled={!newComment.trim() || isLoading}
-                    className="p-2.5 bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg"
+                    className="p-2.5 bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-sm"
                 >
                     <Send className="w-3.5 h-3.5" />
                 </button>

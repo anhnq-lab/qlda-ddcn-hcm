@@ -55,7 +55,7 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
 
     if (loadingContractor) {
         return (
-            <div className="p-6 space-y-4 animate-pulse">
+            <div className="p-4 space-y-4 animate-pulse">
                 <div className="h-16 bg-gray-200 dark:bg-slate-700 rounded-lg w-full mb-6" />
                 <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded-lg w-2/3" />
                 <div className="space-y-3 mt-6">
@@ -69,7 +69,7 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
 
     if (!contractor) {
         return (
-            <div className="p-6 text-center">
+            <div className="p-4 text-center">
                 <p className="text-gray-500 dark:text-slate-400">Không tìm thấy thông tin nhà thầu</p>
             </div>
         );
@@ -89,7 +89,7 @@ export const ContractorDetailPanel: React.FC<ContractorDetailPanelProps> = ({ co
             <div className="sticky top-0 z-10 bg-[#FCF9F2] dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
                 <div className="p-5 pb-4">
                     <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/20">
                             <Building2 className="w-7 h-7 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -192,7 +192,7 @@ const OverviewTab: React.FC<{ contractor: ContractorData, contractorId: string, 
             </div>
 
             {/* General Information */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-lg shadow-gray-200/50 dark:shadow-none">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
                 <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Thông tin tổ chức</h3>
                 </div>
@@ -206,7 +206,7 @@ const OverviewTab: React.FC<{ contractor: ContractorData, contractorId: string, 
             </div>
 
             {/* Legal Information */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-lg shadow-gray-200/50 dark:shadow-none">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-gray-200/50 dark:shadow-none">
                 <div className="px-4 py-3 bg-[#F5EFE6] dark:bg-slate-750 border-b border-gray-200 dark:border-slate-700">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Hồ sơ năng lực & pháp lý</h3>
                 </div>
@@ -493,7 +493,7 @@ const EmptyRow: React.FC<{ icon: React.ElementType; label: string }> = ({ icon: 
 );
 
 const EmptyState = ({ icon: Icon, title, message }: { icon: React.ElementType, title: string, message: string }) => (
-    <div className="p-8 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-[#F5EFE6] dark:bg-slate-800 h-64">
+    <div className="p-4 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-[#F5EFE6] dark:bg-slate-800 h-64">
         <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
             <Icon className="w-8 h-8 text-gray-400 dark:text-slate-500" />
         </div>

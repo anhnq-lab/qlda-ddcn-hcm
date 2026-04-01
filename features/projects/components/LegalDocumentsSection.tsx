@@ -43,7 +43,7 @@ export const LegalDocumentsSection: React.FC<LegalDocumentsSectionProps> = ({
 
             {/* Investment Policy Decision */}
             {investmentPolicy && (
-                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-lg">
+                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                     <button
                         onClick={() => toggleCard('policy')}
                         className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F5EFE6] transition-colors"
@@ -86,7 +86,7 @@ export const LegalDocumentsSection: React.FC<LegalDocumentsSectionProps> = ({
 
             {/* Feasibility Study */}
             {feasibilityStudy && (
-                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-lg">
+                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                     <button
                         onClick={() => toggleCard('feasibility')}
                         className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F5EFE6] transition-colors"
@@ -129,7 +129,7 @@ export const LegalDocumentsSection: React.FC<LegalDocumentsSectionProps> = ({
 
             {/* Approval Decision */}
             {approvalDecision && (
-                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-lg">
+                <div className="bg-[#FCF9F2] rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                     <button
                         onClick={() => toggleCard('approval')}
                         className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F5EFE6] transition-colors"

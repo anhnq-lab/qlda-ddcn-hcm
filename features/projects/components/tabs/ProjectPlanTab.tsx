@@ -671,7 +671,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     </button>
                     <button
                         onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg text-gray-600 bg-[#FCF9F2] hover:bg-[#F5EFE6] border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm text-gray-600 bg-[#FCF9F2] hover:bg-[#F5EFE6] border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
                         title="Tải lại dữ liệu từ máy chủ (Xóa Cache)"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -687,7 +687,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             'Hệ thống sẽ tự động phân bổ công việc cho tất cả giai đoạn theo tỷ lệ thời gian'
                         )}
                         disabled={bulkCreatingAll}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg ${bulkCreatingAll
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${bulkCreatingAll
                             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700 cursor-wait'
                             : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border-emerald-200 dark:border-emerald-700 hover:shadow'
                             }`}
@@ -709,7 +709,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                         <button
                             onClick={handleDeleteAllTasks}
                             disabled={isDeletingAll}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg ${isDeletingAll
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${isDeletingAll
                                     ? 'text-gray-400 bg-[#F5EFE6] border-gray-200 cursor-wait'
                                     : deleteConfirmStep === 1
                                         ? 'text-white bg-red-600 border-red-700 animate-pulse hover:bg-red-700'
@@ -737,7 +737,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     )}
                     <button
                         onClick={() => navigate(`/tasks`, { state: { filterProject: projectID } })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-[#FCF9F2] dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-lg"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-[#FCF9F2] dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-sm"
                     >
                         <ExternalLink className="w-3 h-3" />
                         Xem tất cả công việc
@@ -1154,7 +1154,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 const inProgress = tasks.filter(t => t.Status === TaskStatus.InProgress || t.Status === TaskStatus.Review).length;
                 const pct = total > 0 ? Math.round((done / total) * 100) : 0;
                 return (
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-lg">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wide">Tiến độ tổng thể</span>
                             <span className="text-sm font-black text-gray-800 dark:text-white">{pct}%</span>
@@ -1190,7 +1190,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     {currentView === 'wbs' && renderWBSView()}
 
                     {currentView === 'gantt' && (
-                        <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                             <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-700 flex justify-between items-center">
                                 <h4 className="font-bold text-gray-700 dark:text-slate-200 text-xs uppercase flex items-center gap-2">
                                     <Layers className="w-4 h-4" /> Tiến độ tổng thể (Gantt)
@@ -1268,7 +1268,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             const info = getScoreInfo(score);
 
                             return (
-                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-lg">
+                                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 shadow-sm">
                                     <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                                         Sức khỏe dự án
                                     </h4>
@@ -1328,7 +1328,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
 
             {/* Toast Notifications */}
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${
+                <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-xl shadow-sm text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${
                     toast.type === 'success' ? 'bg-emerald-600 text-white' :
                     toast.type === 'error' ? 'bg-red-600 text-white' :
                     'bg-gray-800 text-white'

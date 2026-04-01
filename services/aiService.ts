@@ -1,18 +1,10 @@
 // AI Service — Entry point cho tất cả tính năng AI
 // Re-exports + backward compatibility
+// API Key: giữ an toàn trong Supabase Edge Function Secrets (gemini-proxy)
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { sendContextAwareMessage, generateAIAnalysis } from './ai/aiOrchestrator';
+import { isGeminiProxyAvailable } from './ai/geminiProxy';
 import { RISK_ANALYSIS_PROMPT, DOCUMENT_DRAFT_PROMPT, SUMMARY_PROMPT, COMPLIANCE_PROMPT, FORECAST_PROMPT, MONTHLY_REPORT_PROMPT } from './ai/prompts';
-
-// ── Shared helpers ──────────────────────────────────────────────────
-const getGenAI = () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error('Missing VITE_GEMINI_API_KEY environment variable');
-    }
-    return new GoogleGenerativeAI(apiKey);
-};
 
 // ── Types ───────────────────────────────────────────────────────────
 export interface ChatMessage {
@@ -147,12 +139,7 @@ export const forecastProgress = async (projectData: unknown): Promise<ForecastRe
 
 // ── Check if AI is available ────────────────────────────────────────
 export const isAIAvailable = (): boolean => {
-    try {
-        getGenAI();
-        return true;
-    } catch {
-        return false;
-    }
+    return isGeminiProxyAvailable();
 };
 
 // ── 7. Monthly Report Generation (AI) ──────────────────────────────

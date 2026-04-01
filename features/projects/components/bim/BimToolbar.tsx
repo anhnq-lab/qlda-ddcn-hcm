@@ -75,7 +75,7 @@ const ToolBtn: React.FC<{
                         absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg
                         whitespace-nowrap text-[11px] font-medium pointer-events-none z-50
                         animate-[tooltipFadeIn_0.2s_cubic-bezier(0.16,1,0.3,1)]
-                        shadow-xl border backdrop-blur-xl
+                        shadow-sm border backdrop-blur-xl
                         ${isDark
                             ? 'bg-slate-800/95 text-slate-200 border-slate-600/40'
                             : 'bg-gray-800/95 text-white border-gray-600/30'
@@ -165,7 +165,7 @@ const ToolDropdown: React.FC<{
             </div>
             {open && (
                 <div className={`
-                    absolute bottom-full left-1/2 -translate-x-1/2 mb-2 min-w-[210px] rounded-xl border shadow-2xl z-50
+                    absolute bottom-full left-1/2 -translate-x-1/2 mb-2 min-w-[210px] rounded-xl border shadow-sm z-50
                     py-1.5 overflow-hidden backdrop-blur-2xl
                     animate-[dropdownIn_0.2s_cubic-bezier(0.16,1,0.3,1)]
                     ${isDark ? 'bg-slate-800/95 border-slate-600/40' : 'bg-white/98 border-gray-200'}
@@ -318,7 +318,7 @@ export const BimToolbar: React.FC<BimToolbarProps> = ({
         return (
             <div className={`
                 absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 rounded-2xl z-30
-                backdrop-blur-xl shadow-2xl border
+                backdrop-blur-xl shadow-sm border
                 ${isDarkMode ? 'bg-slate-800/95 border-slate-700/50' : 'bg-white/95 border-gray-200'}
             `}>
                 <ToolBtn isDark={isDarkMode} active={activeTool === 'select'} onClick={() => tools.activateTool('select')} title="Select">
@@ -361,7 +361,7 @@ export const BimToolbar: React.FC<BimToolbarProps> = ({
                 className={`
                     absolute bottom-12 left-1/2 -translate-x-1/2 z-30
                     flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                    backdrop-blur-xl shadow-lg border cursor-pointer
+                    backdrop-blur-xl shadow-sm border cursor-pointer
                     transition-all hover:scale-105
                     ${isDarkMode ? 'bg-slate-800/90 border-slate-700/50 text-slate-400 hover:text-white' : 'bg-white/90 border-gray-200 text-gray-500 hover:text-gray-800'}
                 `}

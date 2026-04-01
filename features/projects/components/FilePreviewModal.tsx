@@ -32,7 +32,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#F1F5F9] w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-white/20">
+            <div className="bg-[#F1F5F9] w-full max-w-6xl h-[90vh] rounded-3xl shadow-sm overflow-hidden flex flex-col border border-white/20">
                 {/* Header */}
                 <div className="bg-[#FCF9F2] px-6 py-4 flex items-center justify-between border-b border-gray-200">
                     <div className="flex items-center gap-4">
@@ -55,7 +55,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-auto p-8 flex justify-center bg-[#525659]">
+                <div className="flex-1 overflow-auto p-4 flex justify-center bg-[#525659]">
                     {(() => {
                         // Determine the viewable URL
                         const viewUrl = blobUrl || f.storage_path || f.StoragePath || f.url || null;
@@ -64,7 +64,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
                         if (canViewPDF) {
                             return (
-                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-2xl overflow-hidden flex flex-col relative">
+                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-sm overflow-hidden flex flex-col relative">
                                     <iframe
                                         src={`${viewUrl}#toolbar=0`}
                                         className="w-full h-full border-0"
@@ -76,17 +76,17 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
                         if (canViewImage) {
                             return (
-                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-2xl overflow-hidden flex items-center justify-center p-4 bg-gray-100">
-                                    <img src={viewUrl} className="max-w-full max-h-full object-contain shadow-lg" alt="Preview" />
+                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-sm overflow-hidden flex items-center justify-center p-4 bg-gray-100">
+                                    <img src={viewUrl} className="max-w-full max-h-full object-contain shadow-sm" alt="Preview" />
                                 </div>
                             );
                         }
 
                         if (isExcel) {
                             return (
-                                <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-2xl rounded-sm overflow-hidden flex flex-col h-fit">
+                                <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-sm rounded-sm overflow-hidden flex flex-col h-fit">
                                     <div className="bg-[#217346] text-white px-4 py-1 text-xs font-medium uppercase tracking-tighter">Microsoft Excel Viewer</div>
-                                    <div className="overflow-x-auto p-6">
+                                    <div className="overflow-x-auto p-4">
                                         <p className="text-gray-500 text-sm mb-4">
                                             Để xem nội dung file Excel, vui lòng tải xuống.
                                         </p>
@@ -103,7 +103,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                         // Fallback — try to embed if we have a URL
                         if (viewUrl) {
                             return (
-                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-2xl overflow-hidden flex flex-col relative">
+                                <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-sm overflow-hidden flex flex-col relative">
                                     <iframe
                                         src={viewUrl}
                                         className="w-full h-full border-0"
@@ -115,7 +115,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
                         // No URL available — show placeholder
                         return (
-                            <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-2xl p-[60px] text-gray-800 font-serif leading-relaxed">
+                            <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-sm p-[60px] text-gray-800 font-serif leading-relaxed">
                                 <div className="flex justify-between mb-12 italic text-sm">
                                     <div>BAN QLDA ĐẦU TƯ CÔNG<br /><b>SỐ: {f.code || f.number || '00/BQL'}</b></div>
                                     <div className="text-right">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br />Độc lập - Tự do - Hạnh phúc</div>

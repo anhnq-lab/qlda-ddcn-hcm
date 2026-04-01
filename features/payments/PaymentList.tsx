@@ -149,7 +149,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                     {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}
                 </div>
                 <Skeleton className="h-14 rounded-2xl" />
-                <Card className="p-6"><div className="space-y-4">{[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div></Card>
+                <Card className="p-4"><div className="space-y-4">{[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div></Card>
             </div>
         );
     }
@@ -224,7 +224,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                 </div>
 
                 {/* === Toolbar === */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg p-4">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm p-4">
                     <div className="flex flex-col md:flex-row items-center gap-3">
                         <div className="relative w-full md:w-80">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -251,7 +251,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     key={opt.value}
                                     onClick={() => setFilterStatus(opt.value)}
                                     className={`px-3 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${filterStatus === opt.value
-                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-slate-700 dark:text-slate-200 shadow-lg'
+                                        ? 'bg-[#FCF9F2] dark:bg-slate-600 text-slate-700 dark:text-slate-200 shadow-sm'
                                         : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                                         }`}
                                 >
@@ -275,7 +275,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                                     key={opt.value}
                                     onClick={() => setFilterType(opt.value)}
                                     className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all ${filterType === opt.value
-                                        ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-200 shadow-lg'
+                                        ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-200 shadow-sm'
                                         : 'text-gray-500 hover:bg-gray-100'
                                         }`}
                                 >
@@ -294,7 +294,7 @@ const PaymentList: React.FC<{ projectFilter?: string }> = ({ projectFilter = 'al
                 </div>
 
                 {/* === Table === */}
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-360px)]">
                         <table className="w-full text-left text-sm">
                             <thead>

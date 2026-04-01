@@ -37,7 +37,7 @@ const FilePreviewModal: React.FC<{ file: any, onClose: () => void }> = ({ file, 
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#F1F5F9] dark:bg-slate-800 w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-white/20 dark:border-slate-700">
+            <div className="bg-[#F1F5F9] dark:bg-slate-800 w-full max-w-6xl h-[90vh] rounded-3xl shadow-sm overflow-hidden flex flex-col border border-white/20 dark:border-slate-700">
                 <div className="bg-[#FCF9F2] dark:bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-slate-700">
                     <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-xl ${isIFC ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -58,10 +58,10 @@ const FilePreviewModal: React.FC<{ file: any, onClose: () => void }> = ({ file, 
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-auto p-8 flex justify-center bg-[#525659]">
+                <div className="flex-1 overflow-auto p-4 flex justify-center bg-[#525659]">
                     {f.isLocal && (isPDF || isImage) ? (
                         /* REAL CONTENT VIEW FOR LOCAL PDF/IMAGES */
-                        <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-2xl overflow-hidden flex flex-col relative">
+                        <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-sm overflow-hidden flex flex-col relative">
                             {isPDF ? (
                                 <iframe
                                     src={`${blobUrl}#toolbar=0`}
@@ -70,7 +70,7 @@ const FilePreviewModal: React.FC<{ file: any, onClose: () => void }> = ({ file, 
                                 />
                             ) : (
                                 <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center p-4">
-                                    <img src={blobUrl!} className="max-w-full max-h-full object-contain shadow-lg" alt="Preview" />
+                                    <img src={blobUrl!} className="max-w-full max-h-full object-contain shadow-sm" alt="Preview" />
                                 </div>
                             )}
                         </div>
@@ -83,7 +83,7 @@ const FilePreviewModal: React.FC<{ file: any, onClose: () => void }> = ({ file, 
                             </div>
                         </div>
                     ) : isExcel ? (
-                        <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-2xl rounded-sm overflow-hidden flex flex-col h-fit">
+                        <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-sm rounded-sm overflow-hidden flex flex-col h-fit">
                             <div className="bg-[#217346] text-white px-4 py-1 text-xs font-medium uppercase tracking-tighter">Microsoft Excel Online Preview</div>
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse text-[12px]">
@@ -110,8 +110,8 @@ const FilePreviewModal: React.FC<{ file: any, onClose: () => void }> = ({ file, 
                         </div>
                     ) : (
                         /* MOCK TEMPLATE VIEW FOR NON-PDF/IMG OR REMOTE DOCS */
-                        <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-2xl p-[80px] text-gray-800 font-serif relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 pointer-events-none select-none">
+                        <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-sm p-[80px] text-gray-800 font-serif relative">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12 pointer-events-none select-none">
                                 <h1 className="text-9xl font-black">CONFIDENTIAL</h1>
                             </div>
                             <div className="text-center mb-16 underline decoration-double underline-offset-8">
@@ -150,8 +150,8 @@ const VersionHistoryModal: React.FC<{ file: any, onClose: () => void }> = ({ fil
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in zoom-in-95">
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
-                <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-[#F5EFE6] dark:bg-slate-800">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-[#F5EFE6] dark:bg-slate-800">
                     <div>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200">Lịch sử phiên bản</h3>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 truncate max-w-md">{file.DocName}</p>
@@ -187,7 +187,7 @@ const VersionHistoryModal: React.FC<{ file: any, onClose: () => void }> = ({ fil
                         </tbody>
                     </table>
                     {history.length === 1 && (
-                        <div className="p-8 text-center text-gray-400 italic text-sm">
+                        <div className="p-4 text-center text-gray-400 italic text-sm">
                             Tài liệu này chưa có bản cập nhật nào.
                         </div>
                     )}
@@ -435,7 +435,7 @@ const DocumentManager: React.FC = () => {
                 {/* MIDDLE ROW: Project Context & Search */}
                 <div className="flex items-stretch gap-4">
                     {/* Project Selector Card */}
-                    <div className="w-[450px] bg-[#FCF9F2] dark:bg-slate-800 p-1 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col">
+                    <div className="w-[450px] bg-[#FCF9F2] dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col">
                         <div className="flex items-center gap-3 px-4 py-3 h-full">
                             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
                                 <Box className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -457,7 +457,7 @@ const DocumentManager: React.FC = () => {
                     </div>
 
                     {/* Smart Search Bar */}
-                    <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900/40 focus-within:border-blue-400">
+                    <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900/40 focus-within:border-blue-400">
                         <Search className="w-5 h-5 text-gray-400 dark:text-slate-500 mr-3" />
                         <input
                             type="text"
@@ -486,14 +486,14 @@ const DocumentManager: React.FC = () => {
             </div>
 
             <div className="flex flex-1 gap-6 overflow-hidden">
-                <div className="w-80 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 p-5 flex flex-col overflow-y-auto">
+                <div className="w-80 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 p-5 flex flex-col overflow-y-auto">
                     <h3 className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 px-2">Cấu trúc thư mục</h3>
                     <div className="space-y-2">
                         {folders.map(folder => (
                             <div
                                 key={folder.id}
                                 onClick={() => setSelectedFolder(folder.id)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-all ${selectedFolder === folder.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-100 dark:shadow-primary-900/30' : 'text-gray-500 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700'
+                                className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-all ${selectedFolder === folder.id ? 'bg-primary-600 text-white shadow-sm shadow-primary-100 dark:shadow-primary-900/30' : 'text-gray-500 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700'
                                     }`}
                             >
                                 <Folder className={`w-4 h-4 ${selectedFolder === folder.id ? 'fill-white/30' : ''}`} />
@@ -506,7 +506,7 @@ const DocumentManager: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
+                <div className="flex-1 bg-[#FCF9F2] dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
                     <div className="p-5 border-b border-gray-50 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 flex justify-between items-center">
                         <h3 className="font-black text-gray-800 dark:text-slate-200 text-sm flex items-center gap-2 uppercase tracking-widest">
                             <Folder className="w-4 h-4 text-blue-500 dark:text-blue-400" /> {folders.find(f => f.id === selectedFolder)?.name}
@@ -516,7 +516,7 @@ const DocumentManager: React.FC = () => {
 
                     <div className="flex-1 overflow-y-auto relative">
                         {allDocs.length === 0 ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-300">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-300">
                                 <div className="w-24 h-24 bg-[#F5EFE6] rounded-full flex items-center justify-center mb-6">
                                     <Folder className="w-10 h-10 text-gray-300" />
                                 </div>
@@ -531,7 +531,7 @@ const DocumentManager: React.FC = () => {
                             </div>
                         ) : (
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-[#FCF9F2] dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-20 border-b border-slate-200 dark:border-slate-700 tracking-[0.1em] shadow-lg">
+                                <thead className="bg-[#FCF9F2] dark:bg-slate-800 text-[10px] uppercase font-black text-gray-400 dark:text-slate-500 sticky top-0 z-20 border-b border-slate-200 dark:border-slate-700 tracking-[0.1em] shadow-sm">
                                     <tr>
                                         <th className="px-6 py-5">Tên tài liệu</th>
                                         <th className="px-6 py-5 w-32 text-center">Phiên bản</th>
@@ -544,7 +544,7 @@ const DocumentManager: React.FC = () => {
                                         <tr key={idx} className="hover:bg-blue-50/40 dark:hover:bg-slate-700 transition-all group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`p-3 rounded-2xl shadow-lg ${doc.DocName.toLowerCase().endsWith('.ifc') ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'} ${doc.isLocal ? 'ring-2 ring-emerald-400/30' : ''}`}>
+                                                    <div className={`p-3 rounded-2xl shadow-sm ${doc.DocName.toLowerCase().endsWith('.ifc') ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'} ${doc.isLocal ? 'ring-2 ring-emerald-400/30' : ''}`}>
                                                         {doc.DocName.toLowerCase().endsWith('.ifc') ? <Box className="w-6 h-6" /> : (doc.DocName.toLowerCase().endsWith('.png') || doc.DocName.toLowerCase().endsWith('.jpg')) ? <ImageIcon className="w-6 h-6" /> : <FileIcon className="w-6 h-6" />}
                                                     </div>
                                                     <div>
@@ -561,7 +561,7 @@ const DocumentManager: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className="text-[11px] font-black text-gray-600 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded-full border border-gray-200 dark:border-slate-600 font-mono inline-block shadow-lg">
+                                                <span className="text-[11px] font-black text-gray-600 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded-full border border-gray-200 dark:border-slate-600 font-mono inline-block shadow-sm">
                                                     {doc.Version || 'v1.0'}
                                                 </span>
                                             </td>
@@ -570,14 +570,14 @@ const DocumentManager: React.FC = () => {
                                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                                                     <button
                                                         onClick={() => setPreviewFile(doc)}
-                                                        className="p-2.5 bg-[#FCF9F2] text-blue-600 rounded-xl hover:bg-primary-600 hover:text-white shadow-lg border border-gray-200 transition-all"
+                                                        className="p-2.5 bg-[#FCF9F2] text-blue-600 rounded-xl hover:bg-primary-600 hover:text-white shadow-sm border border-gray-200 transition-all"
                                                         title="Xem nội dung"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleSignClick(doc)} className="p-2.5 bg-[#FCF9F2] text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white shadow-lg border border-gray-200 transition-all" title="Ký số"><PenTool className="w-4 h-4" /></button>
-                                                    <button onClick={() => setHistoryFile(doc)} className="p-2.5 bg-[#FCF9F2] text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white shadow-lg border border-gray-200 transition-all" title="Lịch sử"><History className="w-4 h-4" /></button>
-                                                    <button className="p-2.5 bg-[#FCF9F2] text-gray-400 rounded-xl hover:bg-gray-600 hover:text-white shadow-lg border border-gray-200 transition-all"><Download className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleSignClick(doc)} className="p-2.5 bg-[#FCF9F2] text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white shadow-sm border border-gray-200 transition-all" title="Ký số"><PenTool className="w-4 h-4" /></button>
+                                                    <button onClick={() => setHistoryFile(doc)} className="p-2.5 bg-[#FCF9F2] text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white shadow-sm border border-gray-200 transition-all" title="Lịch sử"><History className="w-4 h-4" /></button>
+                                                    <button className="p-2.5 bg-[#FCF9F2] text-gray-400 rounded-xl hover:bg-gray-600 hover:text-white shadow-sm border border-gray-200 transition-all"><Download className="w-4 h-4" /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -594,7 +594,7 @@ const DocumentManager: React.FC = () => {
 
             {isSignModalOpen && (
                 <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden p-8 animate-in zoom-in-95">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-md rounded-[32px] shadow-sm overflow-hidden p-4 animate-in zoom-in-95">
                         <div className="flex justify-between items-center mb-8">
                             <h3 className="text-xl font-black text-gray-800 dark:text-slate-200 flex items-center gap-3 tracking-tight">
                                 <ShieldCheck className="w-6 h-6 text-emerald-600" /> Ký số văn bản (CA)
@@ -611,9 +611,9 @@ const DocumentManager: React.FC = () => {
                             </div>
                             {signStep === 0 && (
                                 <div className="text-center py-4">
-                                    <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg"><HardDrive className="w-10 h-10 text-blue-600" /></div>
+                                    <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm"><HardDrive className="w-10 h-10 text-blue-600" /></div>
                                     <p className="text-gray-600 font-bold text-sm mb-8 px-4 leading-relaxed">Vui lòng kiểm tra USB Token của bạn để tiến hành xác thực chữ ký số.</p>
-                                    <button onClick={handleSimulateSign} className="w-full py-4 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-500 shadow-xl shadow-primary-100 uppercase tracking-widest text-xs transition-all">Đã cắm USB Token</button>
+                                    <button onClick={handleSimulateSign} className="w-full py-4 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-500 shadow-sm shadow-primary-100 uppercase tracking-widest text-xs transition-all">Đã cắm USB Token</button>
                                 </div>
                             )}
                             {signStep === 1 && (
@@ -634,7 +634,7 @@ const DocumentManager: React.FC = () => {
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Mã PIN</label>
                                         <input type="password" autoFocus className="w-full px-4 py-3 bg-[#FCF9F2] border border-gray-200 rounded-xl text-center text-lg font-black tracking-[1em] outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="******" />
                                     </div>
-                                    <button type="submit" className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-100 uppercase tracking-widest text-xs transition-all">Xác nhận Ký số</button>
+                                    <button type="submit" className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 shadow-sm shadow-emerald-100 uppercase tracking-widest text-xs transition-all">Xác nhận Ký số</button>
                                 </form>
                             )}
                         </div>

@@ -50,7 +50,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: 'Tổng quan', path: '/', icon: LayoutDashboard, resource: 'dashboard' },
   { name: 'Dashboard cá nhân', path: '/my-dashboard', icon: User },
-  { name: 'Dự án đầu tư', path: '/projects', icon: Briefcase, resource: 'projects' },
+  { name: 'Quản lý dự án', path: '/projects', icon: Briefcase, resource: 'projects' },
   { name: 'Công việc', path: '/tasks', icon: CheckSquare, badge: 5, resource: 'tasks' },
   { name: 'Nhân sự', path: '/employees', icon: UserCircle, resource: 'employees' },
   { name: 'Nhà thầu', path: '/contractors', icon: Users, resource: 'contractors' },

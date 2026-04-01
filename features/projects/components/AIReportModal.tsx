@@ -139,12 +139,12 @@ export const AIReportModal: React.FC<AIReportModalProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
+            <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
 
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-primary-900/20 dark:to-yellow-900/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-200/50 dark:shadow-primary-900/30">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm shadow-primary-200/50 dark:shadow-primary-900/30">
                             <Sparkles className="w-4.5 h-4.5 text-white" />
                         </div>
                         <div>
@@ -172,7 +172,7 @@ export const AIReportModal: React.FC<AIReportModalProps> = ({
                     {isLoading && <LoadingState />}
                     {error && !isLoading && <ErrorState error={error} onRetry={onRegenerate} />}
                     {reportContent && !isLoading && (
-                        <div className="p-8 max-w-3xl mx-auto">
+                        <div className="p-4 max-w-3xl mx-auto">
                             <div
                                 ref={contentRef}
                                 className="report-rendered"
@@ -199,7 +199,7 @@ const ActionBtn: React.FC<{
         disabled={loading}
         className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
             highlight ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' :
-            accent ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-lg' :
+            accent ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-sm' :
             amber ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200' :
             'bg-[#FCF9F2] dark:bg-slate-700 hover:bg-[#F5EFE6] dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600'
         }`}
@@ -213,7 +213,7 @@ const ActionBtn: React.FC<{
 const LoadingState = () => (
     <div className="flex flex-col items-center justify-center py-20 gap-5">
         <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-xl animate-pulse">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm animate-pulse">
                 <Sparkles className="w-8 h-8 text-white" />
             </div>
             <Loader2 className="absolute -bottom-1 -right-1 w-6 h-6 text-primary-500 animate-spin" />
@@ -238,7 +238,7 @@ const ErrorState: React.FC<{ error: string; onRetry: () => void }> = ({ error, o
         </div>
         <p className="text-sm font-bold text-red-600 dark:text-red-400">Không thể tạo báo cáo</p>
         <p className="text-[11px] text-gray-400 dark:text-slate-500 max-w-sm text-center leading-relaxed">{error}</p>
-        <button onClick={onRetry} className="flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-lg shadow-primary-200/50">
+        <button onClick={onRetry} className="flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-sm shadow-primary-200/50">
             <RefreshCw className="w-3.5 h-3.5" /> Thử lại
         </button>
     </div>

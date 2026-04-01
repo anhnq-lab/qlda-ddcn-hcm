@@ -403,7 +403,7 @@ export const BimPropertiesPanel: React.FC<BimPropertiesPanelProps> = ({
 
                                 {/* Empty filter state */}
                                 {searchQuery && filteredPsets.length === 0 && (
-                                    <div className="p-8 text-center">
+                                    <div className="p-4 text-center">
                                         <Search className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-slate-600' : 'text-gray-300'}`} />
                                         <p className={`text-sm ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>No matching properties</p>
                                     </div>
@@ -471,7 +471,7 @@ export const BimPropertiesPanel: React.FC<BimPropertiesPanelProps> = ({
                 </>
             ) : (
                 /* Empty state */
-                <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${isDarkMode ? 'bg-slate-700/50' : 'bg-gray-100'}`}>
                         <Crosshair className={`w-8 h-8 ${isDarkMode ? 'text-slate-600' : 'text-gray-300'}`} />
                     </div>
@@ -482,7 +482,7 @@ export const BimPropertiesPanel: React.FC<BimPropertiesPanelProps> = ({
 
             {/* Copy toast */}
             {copyToast && (
-                <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-all animate-[fadeSlideIn_0.2s_ease-out] ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition-all animate-[fadeSlideIn_0.2s_ease-out] ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                     <Check className="w-3 h-3" />
                     Copied!
                 </div>

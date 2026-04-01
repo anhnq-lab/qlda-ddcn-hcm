@@ -257,7 +257,7 @@ const CDEPage: React.FC = () => {
     const selectedProject = projects.find(p => p.ProjectID === selectedProjectId);
 
     return (
-        <div className="h-full flex flex-col p-6 gap-4 overflow-hidden">
+        <div className="h-full flex flex-col p-4 gap-4 overflow-hidden">
             <CDEHeader
                 projects={projectOptions}
                 selectedProjectId={selectedProjectId}
@@ -278,7 +278,7 @@ const CDEPage: React.FC = () => {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
-                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 shadow-lg'
+                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-gray-800 dark:text-slate-100 shadow-sm'
                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
                                 }`}
                         >
@@ -445,7 +445,7 @@ const CDEPage: React.FC = () => {
 
             {/* Toast Notification */}
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-300 ${
+                <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-sm text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-300 ${
                     toast.type === 'success'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-red-600 text-white'

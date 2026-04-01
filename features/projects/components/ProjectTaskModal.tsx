@@ -53,15 +53,33 @@ const DateInputVN: React.FC<{
         const parts = localValue.split(/[\/\-]/);
         if (parts.length === 3) {
             let [d, m, y] = parts;
-            // Handle 2-digit years
             if (y.length === 2) y = '20' + y;
-            const parsedDate = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T00:00:00`);
-            if (!isNaN(parsedDate.getTime())) {
-                onChange(parsedDate.toISOString());
-                return;
+            if (y.length === 4) {
+                const parsedDate = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T00:00:00`);
+                if (!isNaN(parsedDate.getTime())) {
+                    onChange(parsedDate.toISOString());
+                    return;
+                }
             }
         }
         if (!localValue.trim()) {
+            onChange('');
+        }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setLocalValue(val);
+        
+        // Auto-parse inline if a complete valid date string is typed
+        const parts = val.split(/[\/\-]/);
+        if (parts.length === 3 && parts[2].length === 4) {
+            const [d, m, y] = parts;
+            const parsedDate = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T00:00:00`);
+            if (!isNaN(parsedDate.getTime())) {
+                onChange(parsedDate.toISOString());
+            }
+        } else if (!val.trim()) {
             onChange('');
         }
     };
@@ -78,7 +96,7 @@ const DateInputVN: React.FC<{
                 placeholder="DD/MM/YYYY"
                 className="w-full flex-1 bg-transparent py-2.5 pl-10 pr-10 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0"
                 value={localValue}
-                onChange={e => setLocalValue(e.target.value)}
+                onChange={handleInputChange}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
             />
@@ -316,7 +334,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
             {/* Main Container */}
             <div className={asSlidePanel
                 ? 'flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900 relative'
-                : 'fixed inset-y-0 right-0 z-50 w-full max-w-4xl flex flex-col bg-[#FCF9F2] dark:bg-slate-900 shadow-2xl border-l border-gray-200 dark:border-slate-700 animate-in slide-in-from-right duration-300'
+                : 'fixed inset-y-0 right-0 z-50 w-full max-w-4xl flex flex-col bg-[#FCF9F2] dark:bg-slate-900 shadow-sm border-l border-gray-200 dark:border-slate-700 animate-in slide-in-from-right duration-300'
             }>
 
                 {/* ══════════ HEADER ══════════ */}
@@ -393,7 +411,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                                 const updates: Partial<Task> = { ...formData, Status: TaskStatus.InProgress, ProgressPercent: 25, ActualStartDate: todayISO() };
                                                 setFormData(updates);
                                                 onSubmit({ ...updates, TimelineStep: stepCode || updates.TimelineStep });
-                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-lg shadow-primary-500/25 transition-all active:scale-[0.97]">
+                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm shadow-primary-500/25 transition-all active:scale-[0.97]">
                                                 Bắt đầu thực hiện →
                                             </button>
                                         );
@@ -404,7 +422,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                                 const updates: Partial<Task> = { ...formData, Status: TaskStatus.Review, ProgressPercent: 100 };
                                                 setFormData(updates);
                                                 onSubmit({ ...updates, TimelineStep: stepCode || updates.TimelineStep });
-                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-lg shadow-amber-500/25 transition-all active:scale-[0.97] animate-pulse">
+                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm shadow-amber-500/25 transition-all active:scale-[0.97] animate-pulse">
                                                 📋 Báo cáo hoàn thành →
                                             </button>
                                         );
@@ -416,7 +434,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                                 if (!formData.ActualStartDate) updates.ActualStartDate = todayISO();
                                                 setFormData(updates);
                                                 onSubmit({ ...updates, TimelineStep: stepCode || updates.TimelineStep });
-                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.97]">
+                                            }} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg shadow-sm shadow-emerald-500/25 transition-all active:scale-[0.97]">
                                                 ✅ Duyệt hoàn thành
                                             </button>
                                         );
@@ -488,7 +506,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
 
                 {/* ══════════ SCROLLABLE BODY ══════════ */}
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-                    <div className="p-6 space-y-5">
+                    <div className="p-4 space-y-5">
 
                         {/* ── BASIC ── */}
                         {activeSection === 'basic' && (
@@ -666,7 +684,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                         <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl group/sub border border-transparent hover:border-gray-200 dark:hover:border-slate-600 hover:bg-[#FCF9F2] dark:hover:bg-slate-700 transition-all">
                                             <div
                                                 onClick={() => toggleSubTaskDone(idx)}
-                                                className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'Done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'border-gray-300 bg-[#FCF9F2] hover:border-primary-400'}`}
+                                                className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'Done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' : 'border-gray-300 bg-[#FCF9F2] hover:border-primary-400'}`}
                                             >
                                                 {sub.Status === 'Done' && <CheckCircle2 className="w-3 h-3" />}
                                             </div>
@@ -721,7 +739,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                                         </div>
                                                         {tpl.templatePath && getTemplateConfig(tpl.templatePath) && (
                                                             <button type="button" onClick={() => setActiveExportTemplate(tpl)}
-                                                                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-amber-500 text-white text-[10px] font-bold shadow-lg hover:shadow-md transition-all active:scale-95">
+                                                                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-amber-500 text-white text-[10px] font-bold shadow-sm hover:shadow-md transition-all active:scale-95">
                                                                 <Download className="w-3 h-3" /> Xuất DOCX
                                                             </button>
                                                         )}
@@ -741,7 +759,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                         <div className="space-y-1.5">
                                             {(formData.Attachments || []).map(att => (
                                                 <div key={att.id} className="flex items-center gap-3 p-3 bg-emerald-50/40 dark:bg-emerald-900/10 rounded-xl ring-1 ring-emerald-100 dark:ring-emerald-900/30 group/att">
-                                                    <div className="p-2 bg-[#FCF9F2] dark:bg-slate-700 rounded-xl shadow-lg ring-1 ring-emerald-100 shrink-0">
+                                                    <div className="p-2 bg-[#FCF9F2] dark:bg-slate-700 rounded-xl shadow-sm ring-1 ring-emerald-100 shrink-0">
                                                         <FileText className="w-4 h-4 text-emerald-500" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -836,7 +854,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                             <button type="button" onClick={onClose} className="px-5 py-2.5 text-gray-600 dark:text-slate-300 font-medium hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
                                 {isEditMode ? 'Đóng' : 'Hủy bỏ'}
                             </button>
-                            <button type="submit" className={`px-6 py-2.5 font-bold rounded-lg shadow-lg transition-all active:scale-[0.98] ${saveSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/25' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-primary-500/25 hover:from-primary-600 hover:to-primary-700'}`}>
+                            <button type="submit" className={`px-6 py-2.5 font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] ${saveSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/25' : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-primary-500/25 hover:from-primary-600 hover:to-primary-700'}`}>
                                 {isEditMode ? (saveSuccess ? '✅ Đã lưu' : 'Lưu thay đổi') : 'Tạo công việc'}
                             </button>
                         </div>
@@ -847,7 +865,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
             {/* ══════════ SUBTASK INLINE MODAL ══════════ */}
             {isSubTaskModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden ring-1 ring-black/5">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-md overflow-hidden ring-1 ring-black/5">
                         <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
                             <h3 className="text-base font-bold text-gray-800 dark:text-slate-200">{editingSubTask ? 'Sửa công việc con' : 'Thêm công việc con'}</h3>
                             <button type="button" onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl text-gray-400">✕</button>
@@ -856,7 +874,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                             e.preventDefault();
                             const fd = new FormData(e.currentTarget);
                             handleSubTaskSave(fd.get('title') as string, fd.get('assignee') as string, fd.get('dueDate') as string);
-                        }} className="p-6 space-y-4">
+                        }} className="p-4 space-y-4">
                             {formData.DueDate && (
                                 <div className={`flex items-center gap-3 p-3 rounded-xl border ${new Date(formData.DueDate) < new Date() ? 'bg-red-50 border-red-200' : 'bg-primary-50 border-primary-200'}`}>
                                     <AlertTriangle className={`w-4 h-4 ${new Date(formData.DueDate) < new Date() ? 'text-red-500' : 'text-primary-500'}`} />
@@ -887,7 +905,7 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                             </div>
                             <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-700">
                                 <button type="button" onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl">Hủy</button>
-                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg active:scale-[0.98]">
+                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-sm active:scale-[0.98]">
                                     {editingSubTask ? 'Lưu' : 'Thêm mới'}
                                 </button>
                             </div>

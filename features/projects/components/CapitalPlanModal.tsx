@@ -87,7 +87,7 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95"
+                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-lg mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -109,7 +109,7 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         {/* Giai đoạn / Năm */}
                         {isMidTermUI ? (
@@ -264,7 +264,7 @@ export const CapitalPlanModal: React.FC<CapitalPlanModalProps> = ({
                         <button
                             type="submit"
                             disabled={isSaving || !amount || ((Number(amount) || 0) > maxAllowable) || (isMidTermUI && totalInvestment > 0 && (Number(amount) || 0) > totalInvestment)}
-                            className="px-5 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
+                            className="px-5 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm"
                         >
                             <Save className="w-4 h-4" />
                             {isSaving ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Bổ sung'}

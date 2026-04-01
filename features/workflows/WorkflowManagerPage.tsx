@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { supabase } from '../../lib/supabase';
 import { GitBranch, Plus, AlertCircle, FileText, DownloadCloud, ArrowLeft, LayoutGrid, List as ListIcon, Search, Trash2 } from 'lucide-react';
 import { getStandardWorkflowTemplates } from './data/seedWorkflows';
-import { getInternalWorkflowTemplates } from './data/seedInternalWorkflows';
+
 import type { Workflow, WorkflowNode, WorkflowEdge } from '../../types/workflow.types';
 import { useToast } from '../../components/ui/Toast';
 import { useSlidePanel } from '../../context/SlidePanelContext';
@@ -59,11 +59,10 @@ const WorkflowManagerPage: React.FC = () => {
     const hasAutoSeeded = useRef(false);
 
     useEffect(() => {
-        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B/QT-GSĐG → tự động seed
+        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B → tự động seed
         if (!isLoading && !isSeeding && !hasAutoSeeded.current) {
             const hasStandard = workflows.some(w => w.code === 'QT-TK1B');
-            const hasInternal = workflows.some(w => w.code === 'QT-GSĐG');
-            if (!hasStandard || !hasInternal) {
+            if (!hasStandard) {
                 hasAutoSeeded.current = true;
                 handleSeedWorkflows(true);
             }
@@ -205,7 +204,7 @@ const WorkflowManagerPage: React.FC = () => {
     const handleSeedWorkflows = async (forceQuiet = true) => {
         setIsSeeding(true);
         try {
-            const allTemplates = [...getStandardWorkflowTemplates(), ...getInternalWorkflowTemplates()];
+            const allTemplates = [...getStandardWorkflowTemplates()];
 
             // Dùng cơ chế UPSERT để tránh hoàn toàn lỗi duplicate key do race condition
             for (const wfInput of allTemplates) {
@@ -294,7 +293,7 @@ const WorkflowManagerPage: React.FC = () => {
     return (
         <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in relative z-10 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-[#FCF9F2] dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100 dark:bg-primary-900/10 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3"></div>
                 
                 <div className="relative z-10 space-y-2">
@@ -326,7 +325,7 @@ const WorkflowManagerPage: React.FC = () => {
                     </div>
                     
                     {isLoadingDetails ? (
-                        <div className="flex justify-center items-center h-[600px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex justify-center items-center h-[600px] bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl border border-slate-200 shadow-sm">
                             <div className="h-10 w-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin"></div>
                         </div>
                     ) : (
@@ -342,12 +341,12 @@ const WorkflowManagerPage: React.FC = () => {
             ) : (
                 <div className="animate-fade-in space-y-6">
                     {/* Toolbar: Tabs & View Toggles */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#FCF9F2] dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
                         <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-full sm:w-auto">
-                            <button onClick={() => setActiveTab('project')} className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'project' ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>
+                            <button onClick={() => setActiveTab('project')} className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'project' ? 'bg-[#FCF9F2] dark:bg-slate-800 dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>
                                 Quy Trình Dự Án
                             </button>
-                            <button onClick={() => setActiveTab('internal')} className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'internal' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>
+                            <button onClick={() => setActiveTab('internal')} className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'internal' ? 'bg-[#FCF9F2] dark:bg-slate-800 dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}>
                                 Quy Trình Nội Bộ
                             </button>
                         </div>
@@ -364,10 +363,10 @@ const WorkflowManagerPage: React.FC = () => {
                                 />
                             </div>
                             <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                                <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[#FCF9F2] dark:bg-slate-800 dark:bg-slate-700 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                                     <LayoutGrid size={18} />
                                 </button>
-                                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-[#FCF9F2] dark:bg-slate-800 dark:bg-slate-700 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                                     <ListIcon size={18} />
                                 </button>
                             </div>
@@ -375,7 +374,7 @@ const WorkflowManagerPage: React.FC = () => {
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3">
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-3">
                             <AlertCircle size={40} className="text-red-500" />
                             <h3 className="text-lg font-bold text-red-700 dark:text-red-400">Database chưa sẵn sàng</h3>
                             <p className="text-red-600 dark:text-red-300 max-w-lg text-sm">{error}</p>
@@ -401,7 +400,7 @@ const WorkflowManagerPage: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredWorkflows.map(wf => (
                                 <div key={wf.id} onClick={() => handleViewWorkflowOverview(wf)}
-                                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-primary-500 dark:hover:border-primary-500 transition-all cursor-pointer group flex flex-col h-full relative">
+                                    className="bg-[#FCF9F2] dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-primary-500 dark:hover:border-primary-500 transition-all cursor-pointer group flex flex-col h-full relative">
                                     
                                     {/* Delete button */}
                                     <button
@@ -436,7 +435,7 @@ const WorkflowManagerPage: React.FC = () => {
                     
                     {/* List View */}
                     {!error && !isLoading && filteredWorkflows.length > 0 && viewMode === 'list' && (
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
                             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                                     <tr>
@@ -448,7 +447,7 @@ const WorkflowManagerPage: React.FC = () => {
                                         <th scope="col" className="px-6 py-4 text-center w-20"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium">
+                                <tbody className="bg-[#FCF9F2] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium">
                                     {filteredWorkflows.map(wf => (
                                         <tr key={wf.id} onClick={() => handleViewWorkflowOverview(wf)} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
                                             <td className="px-6 py-4 whitespace-nowrap text-slate-500 font-mono text-xs">{wf.code}</td>

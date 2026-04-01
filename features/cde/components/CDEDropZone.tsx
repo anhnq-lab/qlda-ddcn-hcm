@@ -78,16 +78,16 @@ const CDEDropZone: React.FC<CDEDropZoneProps> = ({
                 onDragOver={handleDragOver}
                 onDragLeave={() => setIsDragging(false)}
                 onClick={() => !disabled && inputRef.current?.click()}
-                className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${disabled
+                className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-200 ${disabled
                     ? 'border-gray-200 bg-[#F5EFE6] cursor-not-allowed opacity-60'
                     : isDragging
-                        ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 scale-[1.01] shadow-lg shadow-primary-100 dark:shadow-primary-900/20'
+                        ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 scale-[1.01] shadow-sm shadow-primary-100 dark:shadow-primary-900/20'
                         : 'border-gray-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/30 dark:hover:border-blue-500 dark:hover:bg-blue-900/10'
                     }`}
             >
                 {isDragging && (
                     <div className="absolute inset-0 bg-blue-500/5 rounded-xl flex items-center justify-center z-10">
-                        <div className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg animate-bounce">
+                        <div className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm animate-bounce">
                             Thả file tại đây
                         </div>
                     </div>

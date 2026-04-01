@@ -81,7 +81,7 @@ export const CdeExplorer: React.FC<CdeExplorerProps> = ({
                             <div
                                 onClick={() => setActiveFolderId((folder as any).id)}
                                 className={`flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer transition-all text-sm group ${isActive
-                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold shadow-lg'
+                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
                                     : 'text-gray-600 dark:text-slate-400 hover:bg-[#F5EFE6] dark:hover:bg-slate-700'
                                     }`}
                             >
@@ -102,7 +102,7 @@ export const CdeExplorer: React.FC<CdeExplorerProps> = ({
     };
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[600px]">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden flex h-[600px]">
             {/* Folder Tree Sidebar */}
             <div className="w-[280px] border-r border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-900 flex flex-col">
                 <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-[#FCF9F2] dark:bg-slate-800">
@@ -193,7 +193,7 @@ export const CdeExplorer: React.FC<CdeExplorerProps> = ({
                             )}
                         </div>
                     ) : (
-                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">
                                     <tr>

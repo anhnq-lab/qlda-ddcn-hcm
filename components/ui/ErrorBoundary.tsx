@@ -28,11 +28,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
         console.error('ErrorBoundary caught an error:', error, errorInfo);
+        
+        // Report to centralized service
+        import('../../lib/errorReporting').then(({ reportError }) => {
+            reportError(error, {
+                componentStack: errorInfo.componentStack
+            });
+        });
+
         this.props.onError?.(error, errorInfo);
     }
 
     handleRetry = (): void => {
         this.setState({ hasError: false, error: null });
+        window.location.reload(); // Hard reload to clear dirty state
     };
 
     render(): ReactNode {

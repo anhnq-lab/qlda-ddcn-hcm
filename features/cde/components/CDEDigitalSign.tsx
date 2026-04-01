@@ -42,7 +42,7 @@ const CDEDigitalSign: React.FC<CDEDigitalSignProps> = ({ file, isOpen, onClose, 
 
     return (
         <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden p-8 animate-in zoom-in-95">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-md rounded-[32px] shadow-sm overflow-hidden p-4 animate-in zoom-in-95">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <h3 className="text-xl font-black text-gray-800 dark:text-slate-200 flex items-center gap-3 tracking-tight">
@@ -64,13 +64,13 @@ const CDEDigitalSign: React.FC<CDEDigitalSignProps> = ({ file, isOpen, onClose, 
                     {/* Step 0: Detect USB Token */}
                     {step === 0 && (
                         <div className="text-center py-4">
-                            <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                                 <HardDrive className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                             </div>
                             <p className="text-gray-600 dark:text-slate-300 font-bold text-sm mb-8 px-4 leading-relaxed">
                                 Vui lòng kiểm tra USB Token của bạn để tiến hành xác thực chữ ký số.
                             </p>
-                            <button onClick={handleDetectToken} className="w-full py-4 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-500 shadow-xl shadow-primary-100 dark:shadow-primary-900/30 uppercase tracking-widest text-xs transition-all">
+                            <button onClick={handleDetectToken} className="w-full py-4 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-500 shadow-sm shadow-primary-100 dark:shadow-primary-900/30 uppercase tracking-widest text-xs transition-all">
                                 Đã cắm USB Token
                             </button>
                         </div>
@@ -101,7 +101,7 @@ const CDEDigitalSign: React.FC<CDEDigitalSignProps> = ({ file, isOpen, onClose, 
                                     placeholder="******"
                                 />
                             </div>
-                            <button type="submit" className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-100 dark:shadow-emerald-900/30 uppercase tracking-widest text-xs transition-all">
+                            <button type="submit" className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 shadow-sm shadow-emerald-100 dark:shadow-emerald-900/30 uppercase tracking-widest text-xs transition-all">
                                 Xác nhận Ký số
                             </button>
                         </form>

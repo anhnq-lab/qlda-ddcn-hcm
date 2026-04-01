@@ -374,7 +374,7 @@ const PermissionManager: React.FC = () => {
                             {/* Permission matrix table */}
                             <div className="flex-1 overflow-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="sticky top-0 bg-[#F5EFE6] dark:bg-slate-800 z-10 shadow-lg border-b border-slate-200 dark:border-slate-700">
+                                    <thead className="sticky top-0 bg-[#F5EFE6] dark:bg-slate-800 z-10 shadow-sm border-b border-slate-200 dark:border-slate-700">
                                         <tr>
                                             <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest w-56 border-b border-slate-200 dark:border-slate-700">Chức năng</th>
                                             {ALL_ACTIONS.map(action => (
@@ -405,7 +405,7 @@ const PermissionManager: React.FC = () => {
                                                                     onClick={() => toggleAction(resource, action)}
                                                                     className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                                                                         isChecked
-                                                                            ? 'bg-blue-500 border-blue-500 text-white shadow-lg'
+                                                                            ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                                                             : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                                                                     }`}
                                                                 >

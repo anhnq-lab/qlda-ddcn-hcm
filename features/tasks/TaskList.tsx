@@ -10,7 +10,7 @@ import { getTimelineStepLabel, getPhaseColor } from '../../utils/timelineStepUti
 import { getStatusInfo, getPriorityInfo } from './TaskCreateEditModal';
 import { ProjectTaskModal } from '../projects/components/ProjectTaskModal';
 import { useSlidePanel } from '../../context/SlidePanelContext';
-import { StatCard } from '../../components/ui';
+import { StatCard, EmptyState } from '../../components/ui';
 import {
     Search, Plus, Calendar, User, CheckCircle2, Clock, AlertCircle,
     Trash2, Edit, Briefcase, Layers, ExternalLink, BarChart3, ChevronDown, ChevronUp,
@@ -677,13 +677,14 @@ const TaskList: React.FC = () => {
                             </table>
                         </div>
                     ) : (
-                        <div className="text-center py-16 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                            <div className="w-14 h-14 bg-[#F5EFE6] dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Sparkles className="w-6 h-6 text-slate-300 dark:text-slate-500" />
-                            </div>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy công việc nào.</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Thử thay đổi bộ lọc hoặc tạo công việc mới.</p>
-                        </div>
+                        <EmptyState
+                            icon={<Sparkles className="w-12 h-12 text-slate-300 dark:text-slate-500" />}
+                            title="Không tìm thấy công việc nào."
+                            description="Thử thay đổi bộ lọc hoặc tạo công việc mới."
+                            actionLabel="Tạo công việc"
+                            onAction={openCreateModal}
+                            className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700"
+                        />
                     )}
                 </div>
 

@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useVariationOrders } from '../../../hooks/useVariationOrders';
 import { VariationOrder } from '../../../types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { VariationOrderService } from '../../../services/VariationOrderService';
 import { formatCurrency } from '../../../utils/format';
 import { Plus, Edit3, Trash2, Save, X, FileText, Calendar, Hash, Loader2 } from 'lucide-react';
+import { EmptyState } from '../../../components/ui/EmptyState';
 
 interface Props {
     contractId: string;
@@ -78,7 +79,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
     const inputClass = "w-full px-3 py-2 text-sm bg-[#FCF9F2] dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-gray-800 dark:text-slate-200";
     const labelClass = "block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1";
 
-    if (isLoading) return <div className="p-8 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
+    if (isLoading) return <div className="p-4 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
 
     return (
         <div className="space-y-6">
@@ -89,7 +90,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                 {!isEditing && (
                     <button 
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-xl text-sm transition-colors shadow-lg"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-xl text-sm transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4" /> Thêm phụ lục
                     </button>
@@ -161,7 +162,7 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
             )}
 
             {variationOrders.length > 0 ? (
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-[#F5EFE6] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs border-b border-slate-200 dark:border-slate-700">
                             <tr>
@@ -215,10 +216,11 @@ export const VariationOrderTab: React.FC<Props> = ({ contractId }) => {
                     </table>
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-xl border border-dashed border-gray-300 dark:border-slate-600">
-                    <FileText className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
-                    <p className="text-gray-500 dark:text-slate-400 font-medium text-sm">Chưa có phụ lục hợp đồng nào</p>
-                </div>
+                <EmptyState
+                    icon={<FileText className="w-12 h-12 text-gray-300 dark:text-slate-600" />}
+                    title="Chưa có phụ lục hợp đồng nào"
+                    className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-600"
+                />
             )}
         </div>
     );

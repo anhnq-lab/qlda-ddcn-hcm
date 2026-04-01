@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEmployee } from '../../hooks/useEmployees';
 import { useTasks } from '../../hooks/useTasks';
@@ -12,6 +12,7 @@ import {
     FileText, ExternalLink, TrendingUp, Target, User, Hash,
     AlertTriangle, Sparkles
 } from 'lucide-react';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 // ═══════════════════════════════════════════════════
 // Helpers
@@ -127,10 +128,14 @@ const EmployeeDetail: React.FC = () => {
 
     if (!employee) {
         return (
-            <div className="text-center py-20">
-                <Sparkles className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy nhân sự.</p>
-                <button onClick={() => navigate('/employees')} className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline">← Quay lại</button>
+            <div className="py-20">
+                <EmptyState
+                    icon={<Sparkles className="w-12 h-12 text-slate-300 dark:text-slate-600" />}
+                    title="Không tìm thấy nhân sự."
+                    className="border-0 shadow-none bg-transparent"
+                >
+                    <button onClick={() => navigate('/employees')} className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline">← Quay lại</button>
+                </EmptyState>
             </div>
         );
     }
@@ -162,7 +167,7 @@ const EmployeeDetail: React.FC = () => {
                             <img
                                 src={employee.AvatarUrl}
                                 alt={employee.FullName}
-                                className="w-24 h-24 rounded-2xl object-cover border-4 border-white/20 shadow-2xl"
+                                className="w-24 h-24 rounded-2xl object-cover border-4 border-white/20 shadow-sm"
                             />
                             <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-3 border-white ${employee.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                         </div>
@@ -329,7 +334,7 @@ const EmployeeDetail: React.FC = () => {
             </div>
 
             {/* ══════════ TABS ══════════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
                 {/* Tab Navigation */}
                 <div className="border-b border-slate-100 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800 px-5">
                     <div className="flex gap-1">
@@ -440,10 +445,11 @@ const EmployeeDetail: React.FC = () => {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="text-center py-12">
-                                    <Sparkles className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                                    <p className="text-sm text-slate-400">Chưa có công việc nào được giao.</p>
-                                </div>
+                                <EmptyState
+                                    icon={<ClipboardList className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                    title="Chưa có công việc nào được giao."
+                                    className="py-12 border-0 bg-transparent shadow-none"
+                                />
                             )}
                         </div>
                     )}
@@ -504,10 +510,11 @@ const EmployeeDetail: React.FC = () => {
                                     })}
                                 </div>
                             ) : (
-                                <div className="text-center py-12">
-                                    <Sparkles className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                                    <p className="text-sm text-slate-400">Chưa tham gia dự án nào.</p>
-                                </div>
+                                <EmptyState
+                                    icon={<FolderOpen className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                    title="Chưa tham gia dự án nào."
+                                    className="py-12 border-0 bg-transparent shadow-none"
+                                />
                             )}
                         </div>
                     )}
@@ -557,10 +564,11 @@ const EmployeeDetail: React.FC = () => {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="text-center py-12">
-                                    <Sparkles className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                                    <p className="text-sm text-slate-400">Không có hợp đồng liên quan.</p>
-                                </div>
+                                <EmptyState
+                                    icon={<FileText className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                    title="Không có hợp đồng liên quan."
+                                    className="py-12 border-0 bg-transparent shadow-none"
+                                />
                             )}
                         </div>
                     )}

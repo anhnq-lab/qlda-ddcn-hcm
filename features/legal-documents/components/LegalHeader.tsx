@@ -44,7 +44,7 @@ export const LegalHeader: React.FC<LegalHeaderProps> = ({
             {/* Search + Filters */}
             <div className="flex items-center gap-4">
                 <div className="relative flex-1">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 flex items-center px-4 h-12 transition-all focus-within:ring-2 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/40 focus-within:border-indigo-400">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center px-4 h-12 transition-all focus-within:ring-2 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/40 focus-within:border-indigo-400">
                         <Search className="w-5 h-5 text-gray-400 dark:text-slate-500 mr-3" />
                         <input
                             type="text"
@@ -62,7 +62,7 @@ export const LegalHeader: React.FC<LegalHeaderProps> = ({
                     </div>
                     {/* Deep Search Dropdown */}
                     {showDeepSearch && deepSearchResults.length > 0 && (
-                        <div className="absolute top-14 left-0 right-0 z-50 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto p-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                        <div className="absolute top-14 left-0 right-0 z-50 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto p-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
                             <div className="flex items-center justify-between px-2 pb-2 border-b border-gray-200 dark:border-slate-700">
                                 <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
                                     <Search className="w-3.5 h-3.5 inline" /> Tìm thấy {deepSearchResults.length} điều khoản

@@ -115,7 +115,7 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
         <div
             id={`article-${article.id}`}
             className={`p-5 rounded-2xl border transition-all duration-300 ${isActive
-                ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 shadow-lg ring-1 ring-indigo-500/20'
+                ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 shadow-sm ring-1 ring-indigo-500/20'
                 : 'bg-[#FCF9F2] dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-lg'
                 } ${isEditing ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}
         >
@@ -194,7 +194,7 @@ const LegalArticleCard: React.FC<LegalArticleCardProps> = ({
                     </p>
                     <div className="text-gray-800 dark:text-slate-200 leading-loose space-y-2 font-normal relative">
                         {isEditing && (
-                            <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 p-2 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-xl mb-4 text-gray-700 dark:text-gray-300 shadow-lg">
+                            <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 p-2 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-700 rounded-xl mb-4 text-gray-700 dark:text-gray-300 shadow-sm">
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('bold', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="In đậm"><Bold className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('italic', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="In nghiêng"><Italic className="w-4 h-4" /></button>
                                 <button onMouseDown={(e) => { e.preventDefault(); document.execCommand('underline', false); }} className="p-1.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded-lg transition-colors" title="Gạch chân"><Underline className="w-4 h-4" /></button>

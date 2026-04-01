@@ -1,6 +1,5 @@
-﻿import React from 'react';
-
-// ========================================
+import React from 'react';
+import { useTheme } from '../../context/ThemeContext';// ========================================
 // TABLE COMPONENT - Design System v2
 // ========================================
 
@@ -39,10 +38,15 @@ export function Table<T extends Record<string, any>>({
     rowClassName,
     striped = false,
     hoverable = true,
-    compact = false,
-    stickyHeader = false,
+    compact,
+    stickyHeader,
     className = '',
 }: TableProps<T>) {
+    const { density, stickyHeader: globalStickyHeader } = useTheme();
+    
+    // Resolve props with global settings
+    const isCompact = compact !== undefined ? compact : density === 'compact';
+    const isSticky = stickyHeader !== undefined ? stickyHeader : globalStickyHeader;
     const getCellValue = (row: T, key: keyof T | string): any => {
         if (typeof key === 'string' && key.includes('.')) {
             return key.split('.').reduce((obj, k) => obj?.[k], row as any);
@@ -56,13 +60,13 @@ export function Table<T extends Record<string, any>>({
         right: 'text-right',
     };
 
-    const cellPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
+    const cellPadding = isCompact ? 'px-3 py-2' : 'px-4 py-3';
 
     return (
         <div className={`overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-[#FCF9F2] dark:bg-slate-900 shadow-lg ${className}`}>
             <table className="w-full text-sm">
                 {/* Header */}
-                <thead className={`bg-slate-50 dark:bg-slate-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                <thead className={`bg-slate-50 dark:bg-slate-800 ${isSticky ? 'sticky top-0 z-10' : ''}`}>
                     <tr>
                         {columns.map((column, idx) => (
                             <th

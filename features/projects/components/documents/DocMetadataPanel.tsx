@@ -125,7 +125,7 @@ export const DocMetadataPanel: React.FC<DocMetadataPanelProps> = ({
                     <button
                         onClick={(e) => { e.stopPropagation(); onSave(); }}
                         disabled={savingMeta}
-                        className="px-4 py-1.5 text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-all shadow-lg disabled:opacity-50 flex items-center gap-1.5"
+                        className="px-4 py-1.5 text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5"
                     >
                         <FileCheck className="w-3.5 h-3.5" />
                         {savingMeta ? 'Đang lưu...' : 'Lưu thông tin'}

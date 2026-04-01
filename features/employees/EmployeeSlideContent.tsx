@@ -12,6 +12,7 @@ import {
     FileText, ExternalLink, TrendingUp, Target, User, Hash,
     AlertTriangle, Sparkles, Edit, Trash2
 } from 'lucide-react';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 // ═══════════════════════════════════════════════════
 // Helpers
@@ -131,9 +132,12 @@ const EmployeeSlideContent: React.FC<EmployeeSlideContentProps> = ({ employeeId,
 
     if (!employee) {
         return (
-            <div className="text-center py-20">
-                <Sparkles className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy nhân sự.</p>
+            <div className="py-20">
+                <EmptyState
+                    icon={<Sparkles className="w-12 h-12 text-slate-300 dark:text-slate-600" />}
+                    title="Không tìm thấy nhân sự."
+                    className="border-0 shadow-none bg-transparent"
+                />
             </div>
         );
     }
@@ -156,7 +160,7 @@ const EmployeeSlideContent: React.FC<EmployeeSlideContentProps> = ({ employeeId,
                             <img
                                 src={employee.AvatarUrl}
                                 alt={employee.FullName}
-                                className="w-16 h-16 rounded-xl object-cover border-3 border-white/20 shadow-2xl"
+                                className="w-16 h-16 rounded-xl object-cover border-3 border-white/20 shadow-sm"
                             />
                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${employee.Status === EmployeeStatus.Active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                         </div>
@@ -368,10 +372,11 @@ const EmployeeSlideContent: React.FC<EmployeeSlideContentProps> = ({ employeeId,
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10">
-                                        <Sparkles className="w-7 h-7 text-slate-200 mx-auto mb-2" />
-                                        <p className="text-xs text-slate-400">Chưa có công việc nào được giao.</p>
-                                    </div>
+                                    <EmptyState
+                                        icon={<ClipboardList className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                        title="Chưa có công việc nào được giao."
+                                        className="py-10 border-0 bg-transparent shadow-none"
+                                    />
                                 )}
                             </div>
                         )}
@@ -414,10 +419,11 @@ const EmployeeSlideContent: React.FC<EmployeeSlideContentProps> = ({ employeeId,
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10">
-                                        <Sparkles className="w-7 h-7 text-slate-200 mx-auto mb-2" />
-                                        <p className="text-xs text-slate-400">Chưa tham gia dự án nào.</p>
-                                    </div>
+                                    <EmptyState
+                                        icon={<FolderOpen className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                        title="Chưa tham gia dự án nào."
+                                        className="py-10 border-0 bg-transparent shadow-none"
+                                    />
                                 )}
                             </div>
                         )}
@@ -453,10 +459,11 @@ const EmployeeSlideContent: React.FC<EmployeeSlideContentProps> = ({ employeeId,
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10">
-                                        <Sparkles className="w-7 h-7 text-slate-200 mx-auto mb-2" />
-                                        <p className="text-xs text-slate-400">Không có hợp đồng liên quan.</p>
-                                    </div>
+                                    <EmptyState
+                                        icon={<FileText className="w-10 h-10 text-slate-300 dark:text-slate-500" />}
+                                        title="Không có hợp đồng liên quan."
+                                        className="py-10 border-0 bg-transparent shadow-none"
+                                    />
                                 )}
                             </div>
                         )}

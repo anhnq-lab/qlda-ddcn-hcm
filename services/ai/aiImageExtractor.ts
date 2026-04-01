@@ -1,7 +1,7 @@
 // AI Image Extractor — Trích xuất thông tin dự án từ ảnh chụp màn hình
-// Sử dụng Gemini 2.0 Flash Vision API
+// Sử dụng Gemini 2.0 Flash Vision API qua Edge Function proxy
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateFromImage } from './geminiProxy';
 
 /** Kết quả trích xuất từ ảnh */
 export interface ExtractedProjectData {
@@ -62,25 +62,10 @@ export const extractProjectFromImage = async (
     imageBase64: string,
     mimeType: string = 'image/png'
 ): Promise<ExtractedProjectData> => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) throw new Error('Thiếu VITE_GEMINI_API_KEY');
+    const text = await generateFromImage(imageBase64, mimeType, EXTRACTION_PROMPT);
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    const result = await model.generateContent([
-        {
-            inlineData: {
-                mimeType,
-                data: imageBase64,
-            },
-        },
-        { text: EXTRACTION_PROMPT },
-    ]);
-
-    const text = result.response.text().trim();
     // Strip markdown code fences if present
-    const jsonStr = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+    const jsonStr = text.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
 
     try {
         const parsed = JSON.parse(jsonStr);

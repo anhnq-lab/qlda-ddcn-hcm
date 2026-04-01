@@ -248,7 +248,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                 {nextStatus && (
                                     <button
                                         onClick={() => handleStatusChange(nextStatus)}
-                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg active:scale-[0.98] flex items-center gap-2 ${nextStatus === TaskStatus.Done ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-600/25'
+                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm active:scale-[0.98] flex items-center gap-2 ${nextStatus === TaskStatus.Done ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-600/25'
                                             : nextStatus === TaskStatus.Review ? 'bg-gradient-to-r from-violet-500 to-violet-600 shadow-violet-600/25'
                                                 : 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-600/25'
                                             }`}
@@ -450,7 +450,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                                 updatedSubTasks[idx].Status = updatedSubTasks[idx].Status === 'Done' ? 'Todo' : 'Done';
                                                 updateTaskMutation.mutate({ ...task, SubTasks: updatedSubTasks });
                                             }}
-                                            className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'Done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200' : 'border-slate-300 bg-[#FCF9F2] hover:border-blue-400'
+                                            className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'Done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200' : 'border-slate-300 bg-[#FCF9F2] hover:border-blue-400'
                                                 }`}
                                         >
                                             {sub.Status === 'Done' && <CheckCircle2 className="w-3 h-3" />}
@@ -510,7 +510,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                                 const FileIcon = tpl.fileType === 'xlsx' ? FileSpreadsheet : tpl.fileType === 'pdf' ? File : FileText;
                                                 return (
                                                     <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50/80 dark:bg-slate-700 rounded-xl hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all ring-1 ring-slate-100 dark:ring-slate-700 group/tpl">
-                                                        <div className={`p-2 rounded-xl shadow-lg ring-1 ring-slate-100 dark:ring-slate-600 shrink-0 ${ftc.bg}`}>
+                                                        <div className={`p-2 rounded-xl shadow-sm ring-1 ring-slate-100 dark:ring-slate-600 shrink-0 ${ftc.bg}`}>
                                                             <FileIcon className={`w-4 h-4 ${ftc.text}`} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -529,7 +529,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                                         {tpl.templatePath && getTemplateConfig(tpl.templatePath) && (
                                                             <button
                                                                 onClick={() => setActiveExportTemplate(tpl)}
-                                                                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 mt-1 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold shadow-lg hover:shadow-md hover:from-indigo-600 hover:to-purple-600 transition-all transform active:scale-95"
+                                                                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 mt-1 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold shadow-sm hover:shadow-md hover:from-indigo-600 hover:to-purple-600 transition-all transform active:scale-95"
                                                                 title="Xuất văn bản DOCX tự động điền dữ liệu dự án"
                                                             >
                                                                 <Download className="w-3 h-3" />
@@ -559,7 +559,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                         <div className="space-y-1.5">
                                             {(task.Attachments || []).map((att) => (
                                                 <div key={att.id} className="flex items-center gap-3 p-3 bg-emerald-50/40 dark:bg-emerald-900/10 rounded-xl ring-1 ring-emerald-100 dark:ring-emerald-900/30 hover:ring-emerald-200 dark:hover:ring-emerald-800 transition-all group/att">
-                                                    <div className="p-2 bg-[#FCF9F2] dark:bg-slate-700 rounded-xl shadow-lg ring-1 ring-emerald-100 dark:ring-slate-600 shrink-0">
+                                                    <div className="p-2 bg-[#FCF9F2] dark:bg-slate-700 rounded-xl shadow-sm ring-1 ring-emerald-100 dark:ring-slate-600 shrink-0">
                                                         <FileText className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -617,7 +617,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
             {/* ══════════ SUBTASK MODAL ══════════ */}
             {isSubTaskModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 ring-1 ring-black/5 dark:ring-slate-700">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 ring-1 ring-black/5 dark:ring-slate-700">
                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
                             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{editingSubTask ? 'Cập nhật công việc con' : 'Thêm công việc con'}</h3>
                             <button onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">✕</button>
@@ -638,7 +638,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                             updateTaskMutation.mutate({ ...task, SubTasks: subs });
                             setIsSubTaskModalOpen(false);
                             setEditingSubTask(null);
-                        }} className="p-6 space-y-4">
+                        }} className="p-4 space-y-4">
 
                             {/* ── Parent task deadline banner ── */}
                             {task.DueDate && (
@@ -716,7 +716,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                             </div>
                             <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                                 <button type="button" onClick={() => { setIsSubTaskModalOpen(false); setEditingSubTask(null); }} className="px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">Hủy</button>
-                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all" >
+                                <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm shadow-primary-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all" >
                                     {editingSubTask ? 'Lưu' : 'Thêm mới'}
                                 </button>
                             </div>

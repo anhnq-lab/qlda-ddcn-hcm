@@ -243,7 +243,7 @@ export const BimModelTree: React.FC = () => {
                     <p className={`text-xs mb-4 ${isDarkMode ? 'text-slate-600' : 'text-gray-400'}`}>Upload IFC files to begin</p>
                     <label className={`
                         inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer text-sm font-semibold transition-all
-                        bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-lg shadow-primary-500/20
+                        bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-sm shadow-primary-500/20
                     `}>
                         <Upload className="w-4 h-4" />
                         Upload IFC

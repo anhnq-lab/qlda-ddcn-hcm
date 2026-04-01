@@ -11,6 +11,7 @@ import { usePayments } from '../../hooks/usePayments';
 import { useProjects } from '../../hooks/useProjects';
 import { ContractService } from '../../services/ContractService';
 import { ContractModal } from './components/ContractModal';
+import { EmptyState } from '../../components/ui/EmptyState';
 import {
     ArrowLeft, FileText, Calendar, DollarSign,
     Building2, Printer, Download, Edit3, Trash2,
@@ -138,7 +139,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     {!asSlidePanel && (
-                        <button onClick={() => navigate('/bidding?tab=contracts')} className="p-2 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors shadow-lg">
+                        <button onClick={() => navigate('/bidding?tab=contracts')} className="p-2 bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors shadow-sm">
                             <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                         </button>
                     )}
@@ -160,7 +161,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                     </button>
                     <button 
                         onClick={() => setIsEditModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-500 text-sm shadow-lg shadow-primary-200 dark:shadow-primary-900/30 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-500 text-sm shadow-sm shadow-primary-200 dark:shadow-primary-900/30 transition-colors"
                     >
                         <Edit3 className="w-4 h-4" /> Điều chỉnh
                     </button>
@@ -180,7 +181,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                 <div className="stat-card stat-card-slate cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><DollarSign className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <FileDigit className="w-6 h-6 text-white" />
                         </div>
                         <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Giá trị hợp đồng (Gốc + Phụ lục)</p>
@@ -190,7 +191,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                 <div className="stat-card stat-card-emerald cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><TrendingUp className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <CheckCircle2 className="w-6 h-6 text-white" />
                         </div>
                         <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Đã thanh toán ({paymentPercent.toFixed(1)}%)</p>
@@ -200,7 +201,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                 <div className="stat-card stat-card-amber cursor-default">
                     <div className="absolute -right-3 -top-3 opacity-[0.12]"><Clock className="w-24 h-24" strokeWidth={1.2} /></div>
                     <div className="relative z-10 text-center">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm">
                             <AlertTriangle className="w-6 h-6 text-white" />
                         </div>
                         <p className="text-[10px] font-extrabold text-white/90 uppercase tracking-[0.15em] mb-1">Giá trị còn lại</p>
@@ -233,7 +234,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                     ))}
                 </div>
 
-                <div className="p-8">
+                <div className="p-4">
                     {/* TAB 1: GENERAL INFO */}
                     {activeTab === 'general' && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -289,7 +290,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                         <div className="section-icon"><Building2 className="w-3.5 h-3.5" /></div>
                                         Bên giao thầu (Bên A)
                                     </h3>
-                                    <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600">
+                                    <div className="mt-4 p-4 bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600">
                                         <p className="font-bold text-gray-800 dark:text-slate-200 text-sm">{project?.InvestorName}</p>
                                         <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Đại diện: Giám đốc Ban QLDA</p>
                                     </div>
@@ -352,7 +353,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                                 </tr>
                                             ))}
                                         </tbody>
-                                        <tfoot className="bg-gray-50 dark:bg-slate-700 font-bold text-gray-900 dark:text-slate-100 border-t border-gray-200 dark:border-slate-700">
+                                        <tfoot className="bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 font-bold text-gray-900 dark:text-slate-100 border-t border-gray-200 dark:border-slate-700">
                                             <tr>
                                                 <td colSpan={5} className="px-6 py-4 text-right uppercase text-xs tracking-wider">Tổng giá trị hợp đồng gốc</td>
                                                 <td className="px-6 py-4 text-right text-blue-600 dark:text-blue-400">{formatFullCurrency(contract.Value)}</td>
@@ -361,11 +362,12 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                     </table>
                                 </div>
                             ) : (
-                                <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-300 dark:border-slate-600">
-                                    <Layers className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
-                                    <p className="text-gray-600 dark:text-slate-400 font-bold text-sm">Chưa có phụ lục khối lượng</p>
-                                    <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">Dữ liệu BOQ sẽ được cập nhật khi quản lý khối lượng thi công</p>
-                                </div>
+                                <EmptyState
+                                    icon={<Layers className="w-12 h-12 text-gray-300 dark:text-slate-600" />}
+                                    title="Chưa có phụ lục khối lượng"
+                                    description="Dữ liệu BOQ sẽ được cập nhật khi quản lý khối lượng thi công"
+                                    className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-600"
+                                />
                             )}
                         </div>
                     )}
@@ -396,9 +398,11 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                             </div>
                                         </div>
                                     )) : (
-                                        <div className="text-center py-10 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500">
-                                            Chưa có đợt thanh toán nào.
-                                        </div>
+                                        <EmptyState
+                                            icon={<DollarSign className="w-12 h-12 text-gray-300 dark:text-slate-600" />}
+                                            title="Chưa có đợt thanh toán nào."
+                                            className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-600"
+                                        />
                                     )}
                                 </div>
                             </div>
@@ -406,7 +410,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                             {/* Payment Chart */}
                             <div>
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-6">Biểu đồ dòng tiền</h3>
-                                <div className="bg-gray-50 dark:bg-slate-700 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 h-80">
+                                <div className="bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 h-80">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={financialData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -461,7 +465,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-slate-700 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 h-80">
+                                <div className="bg-[#F0ECE1] dark:bg-slate-900 dark:bg-slate-700 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 h-80">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart
                                             data={[
@@ -561,7 +565,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                                     {milestones.map((ms, idx) => (
                                         <div key={ms.id} className="relative pl-10 group">
                                             {/* Status Dot */}
-                                            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-lg transition-transform group-hover:scale-125 ${ms.status === 'Done' ? 'bg-emerald-500' :
+                                            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-sm transition-transform group-hover:scale-125 ${ms.status === 'Done' ? 'bg-emerald-500' :
                                                 ms.status === 'In Progress' ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'
                                                 }`}></div>
 

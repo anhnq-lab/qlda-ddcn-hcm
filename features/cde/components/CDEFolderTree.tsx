@@ -49,7 +49,7 @@ const CDEFolderTree: React.FC<CDEFolderTreeProps> = ({ folders, activeFolderId, 
                     return (
                         <div key={folder.id} onClick={() => onSelectFolder(folder.id)}
                             className={`flex items-center gap-2.5 py-2 px-3 rounded-xl cursor-pointer transition-all text-sm ${isActive
-                                ? `${colors.lightBg} ${colors.text} font-bold shadow-lg ${colors.border} border`
+                                ? `${colors.lightBg} ${colors.text} font-bold shadow-sm ${colors.border} border`
                                 : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
                             <FolderOpen className={`w-4 h-4 shrink-0 ${isActive ? colors.text : 'text-gray-400 dark:text-slate-500'}`} />
                             <span className="truncate flex-1 text-[12px]">{folder.name}</span>
@@ -99,7 +99,7 @@ const CDEFolderTree: React.FC<CDEFolderTreeProps> = ({ folders, activeFolderId, 
     };
 
     return (
-        <div className="w-[280px] bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden shrink-0">
+        <div className="w-[280px] bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden shrink-0">
             {/* Phase tabs */}
             <div className="px-3 py-2.5 border-b border-gray-200 dark:border-slate-700 bg-[#F5EFE6] dark:bg-slate-800">
                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 flex items-center gap-1.5">
@@ -111,7 +111,7 @@ const CDEFolderTree: React.FC<CDEFolderTreeProps> = ({ folders, activeFolderId, 
                         const isActive = activePhase === phase.id;
                         return (
                             <button key={phase.id} onClick={() => onChangePhase?.(phase.id)}
-                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${isActive ? phaseColors[phase.id] + ' shadow-lg' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${isActive ? phaseColors[phase.id] + ' shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
                                 title={phase.description}>
                                 <PhaseIcon className="w-3 h-3" />
                                 <span className="truncate">{phase.label.replace(/^\d+\.\s*/, '')}</span>

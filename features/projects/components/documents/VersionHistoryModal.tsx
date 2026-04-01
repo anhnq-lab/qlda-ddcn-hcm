@@ -20,7 +20,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({ doc, o
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-sm overflow-hidden">
                 <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white dark:from-slate-700 dark:to-slate-800">
                     <div className="min-w-0">
                         <h3 className="text-base font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
@@ -59,7 +59,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({ doc, o
                         </tbody>
                     </table>
                     {history.length <= 1 && (
-                        <div className="p-8 text-center text-gray-400 dark:text-slate-500 text-sm">
+                        <div className="p-4 text-center text-gray-400 dark:text-slate-500 text-sm">
                             Tài liệu này chưa có bản cập nhật nào.
                         </div>
                     )}

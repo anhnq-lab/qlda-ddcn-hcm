@@ -159,7 +159,7 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
                 onClick={onClose}>
-                <div className="bg-[#FCF9F2] dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col border border-gray-200 dark:border-slate-700"
+                <div className="bg-[#FCF9F2] dark:bg-slate-900 rounded-xl shadow-sm w-full max-w-2xl mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col border border-gray-200 dark:border-slate-700"
                     onClick={e => e.stopPropagation()}>
 
                     {/* Header */}
@@ -186,13 +186,13 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                             <div className="flex bg-gray-100 dark:bg-slate-700 rounded-lg p-0.5">
                                 <button
                                     onClick={() => setMode('view')}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${mode === 'view' ? 'bg-[#FCF9F2] dark:bg-slate-900 text-gray-900 dark:text-slate-50 shadow-lg' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${mode === 'view' ? 'bg-[#FCF9F2] dark:bg-slate-900 text-gray-900 dark:text-slate-50 shadow-sm' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
                                 >
                                     Xem
                                 </button>
                                 <button
                                     onClick={() => setMode('create')}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${mode === 'create' ? 'bg-[#FCF9F2] dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-lg' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${mode === 'create' ? 'bg-[#FCF9F2] dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
                                 >
                                     Tạo việc
                                 </button>
@@ -204,7 +204,7 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                     </div>
 
                     {/* Body */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
                         {/* === VIEW MODE === */}
                         {mode === 'view' && (
@@ -297,7 +297,7 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                                         {hasExportConfig && (
                                             <button
                                                 onClick={() => setShowExport(true)}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 dark:from-primary-500/10 to-amber-50 dark:to-amber-500/10 border border-primary-200 dark:border-primary-500/20 hover:from-primary-100 dark:hover:from-primary-500/20 hover:to-amber-100 dark:hover:to-amber-500/20 transition-all group shadow-lg"
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 dark:from-primary-500/10 to-amber-50 dark:to-amber-500/10 border border-primary-200 dark:border-primary-500/20 hover:from-primary-100 dark:hover:from-primary-500/20 hover:to-amber-100 dark:hover:to-amber-500/20 transition-all group shadow-sm"
                                             >
                                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center shadow">
                                                     <Download size={14} className="text-white" />
@@ -320,7 +320,7 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                                 <div className="pt-2">
                                     <button
                                         onClick={() => setMode('create')}
-                                        className="w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+                                        className="w-full py-3 text-white font-bold rounded-xl shadow-sm transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
                                         
                                     >
                                         <Zap size={18} />

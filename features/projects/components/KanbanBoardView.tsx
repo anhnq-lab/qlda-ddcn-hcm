@@ -170,7 +170,7 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
                             {onAddTask && (
                                 <button
                                     onClick={() => onAddTask(column.id)}
-                                    className={`p-1 rounded-md gradient-btn text-white transition-all shadow-lg`}
+                                    className={`p-1 rounded-md gradient-btn text-white transition-all shadow-sm`}
                                     title={`Thêm công việc vào ${column.title}`}
                                 >
                                     <Plus className="w-4 h-4" />

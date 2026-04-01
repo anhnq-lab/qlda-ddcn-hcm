@@ -55,7 +55,7 @@ export const BimShortcutsModal: React.FC<BimShortcutsModalProps> = ({ isOpen, on
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
             <div
                 className={`
-                    relative z-10 w-[400px] max-h-[80%] overflow-auto rounded-2xl border shadow-2xl
+                    relative z-10 w-[400px] max-h-[80%] overflow-auto rounded-2xl border shadow-sm
                     ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-[#FCF9F2] border-gray-200'}
                 `}
                 onClick={e => e.stopPropagation()}

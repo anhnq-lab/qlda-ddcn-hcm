@@ -160,7 +160,7 @@ const UserImpersonator: React.FC = () => {
                 <div className="bg-gradient-to-r from-primary-50 to-orange-50 dark:from-primary-900/30 dark:to-orange-900/30 border border-primary-400 rounded-lg p-5">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center gap-4">
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg ${
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-sm ${
                                 impersonatedUser.Role === 'contractor'
                                     ? 'bg-gradient-to-br from-primary-500 to-primary-600'
                                     : 'bg-gradient-to-br from-primary-400 to-orange-500'
@@ -246,7 +246,7 @@ const UserImpersonator: React.FC = () => {
 
                 {/* Dropdown Content */}
                 {isDropdownOpen && !loading && (
-                    <div className="absolute z-50 w-full mt-2 left-0 right-0 bg-[#FCF9F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl dark:shadow-black/40 overflow-hidden">
+                    <div className="absolute z-50 w-full mt-2 left-0 right-0 bg-[#FCF9F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm dark:shadow-black/40 overflow-hidden">
                         {/* Tab Switcher */}
                         <div className="flex border-b border-slate-100 dark:border-slate-700">
                             <button

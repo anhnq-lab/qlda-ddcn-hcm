@@ -47,8 +47,8 @@ export const DocSidebarItem: React.FC<{
         <button
             onClick={onClick}
             className={`w-full text-left p-3.5 rounded-2xl transition-all group border ${isSelected
-                ? `${typeColor.bg} ${typeColor.border} ${typeColor.darkBg} ${typeColor.darkBorder} shadow-lg`
-                : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700'}`}
+                ? `${typeColor.bg} ${typeColor.border} ${typeColor.darkBg} ${typeColor.darkBorder} shadow-sm`
+                : 'border-transparent hover:bg-[#F0ECE1] dark:bg-slate-900 dark:hover:bg-slate-700'}`}
         >
             <div className="flex items-start gap-3">
                 <div className={`mt-0.5 p-2 rounded-xl shrink-0 transition-colors ${isSelected

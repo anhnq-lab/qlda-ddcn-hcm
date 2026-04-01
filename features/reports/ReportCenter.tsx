@@ -114,7 +114,7 @@ const ReportCenter: React.FC = () => {
                             onClick={handleSync}
                             disabled={isSyncing || syncStatus === 'success'}
                             className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all w-full sm:w-auto ${syncStatus === 'success'
-                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-default shadow-lg'
+                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-default shadow-sm'
                                 : 'bg-primary-600 hover:bg-primary-500 dark:bg-blue-500 dark:hover:bg-primary-600 text-white shadow-md shadow-primary-500/20 hover:shadow-lg hover:-translate-y-0.5'
                                 } `}
                         >

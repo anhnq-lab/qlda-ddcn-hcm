@@ -257,7 +257,7 @@ const ContractorList: React.FC = () => {
 
                         <button
                             onClick={() => exportContractorsToExcel(filteredContractors)}
-                            className="btn btn-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg"
+                            className="btn btn-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
                             title="Xuất danh sách nhà thầu ra file Excel"
                         >
                             <Download className="w-4 h-4" /> Export Excel
@@ -405,7 +405,7 @@ const ContractorList: React.FC = () => {
                                             onClick={() => setPage(p)}
                                             className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                                                 p === page
-                                                    ? 'bg-primary-600 text-white shadow-lg'
+                                                    ? 'bg-primary-600 text-white shadow-sm'
                                                     : 'hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400'
                                             }`}
                                         >
@@ -428,8 +428,8 @@ const ContractorList: React.FC = () => {
             {/* Add/Edit Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-lg border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">
                                 {isEditing ? 'Cập nhật thông tin' : 'Thêm nhà thầu mới'}
                             </h3>
@@ -437,7 +437,7 @@ const ContractorList: React.FC = () => {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleSave} className="p-6 space-y-4">
+                        <form onSubmit={handleSave} className="p-4 space-y-4">
                             {/* Row: Tên nhà thầu */}
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Tên nhà thầu <span className="text-red-500">*</span></label>
@@ -606,7 +606,7 @@ const ContractorList: React.FC = () => {
             {/* Delete Confirmation Modal */}
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-slate-700 p-6 animate-in zoom-in-95 duration-200">
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-sm border border-gray-200 dark:border-slate-700 p-4 animate-in zoom-in-95 duration-200">
                         <div className="text-center">
                             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />

@@ -85,7 +85,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
     };
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 p-4 space-y-4">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 space-y-4">
             {/* Top Row: Search + Add Button */}
             <div className="flex items-center gap-4">
                 {/* Search */}
@@ -113,7 +113,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
                 {/* Add Task Button */}
                 <button
                     onClick={onAddTask}
-                    className="flex items-center gap-2 px-4 py-2 gradient-btn text-white text-sm font-bold rounded-lg transition-colors shadow-lg shrink-0"
+                    className="flex items-center gap-2 px-4 py-2 gradient-btn text-white text-sm font-bold rounded-lg transition-colors shadow-sm shrink-0"
                 >
                     <Plus className="w-4 h-4" />
                     Thêm công việc
@@ -163,7 +163,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
                                 key={view.id}
                                 onClick={() => onViewChange(view.id)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${isActive
-                                    ? 'bg-[#FCF9F2] dark:bg-slate-600 text-primary-700 dark:text-primary-400 shadow-lg'
+                                    ? 'bg-[#FCF9F2] dark:bg-slate-600 text-primary-700 dark:text-primary-400 shadow-sm'
                                     : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                                     }`}
                                 title={view.label}

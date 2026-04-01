@@ -71,7 +71,7 @@ const OrgChartPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Page Header */}
             <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-sm">
                     <Network className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -81,12 +81,12 @@ const OrgChartPage: React.FC = () => {
             </div>
 
             {/* ══════ VISUAL ORG CHART ══════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg p-8 overflow-x-auto">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 overflow-x-auto">
                 <div className="flex flex-col items-center min-w-[900px]">
 
                     {/* Level 0: UBND TP.HCM */}
                     <div className="relative z-10 mb-4 group">
-                        <div className="bg-red-700 text-white px-10 py-2.5 rounded-xl shadow-lg border-2 border-white ring-1 ring-red-200 text-center cursor-default hover:scale-105 transition-transform">
+                        <div className="bg-red-700 text-white px-10 py-2.5 rounded-xl shadow-sm border-2 border-white ring-1 ring-red-200 text-center cursor-default hover:scale-105 transition-transform">
                             <div className="flex items-center gap-2 justify-center">
                                 <Landmark className="w-4 h-4" />
                                 <h4 className="font-black text-[11px] uppercase tracking-tight">Ủy ban Nhân dân TP. Hồ Chí Minh</h4>
@@ -97,7 +97,7 @@ const OrgChartPage: React.FC = () => {
 
                     {/* Level 1: Giám đốc Ban */}
                     <div className="relative z-10 mb-4 group">
-                        <div className="px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-primary-200 text-center relative cursor-default hover:scale-105 transition-transform text-white bg-gradient-to-br from-primary-500 to-primary-600">
+                        <div className="px-10 py-3 rounded-xl shadow-sm border-2 border-white ring-1 ring-primary-200 text-center relative cursor-default hover:scale-105 transition-transform text-white bg-gradient-to-br from-primary-500 to-primary-600">
                             <div className="flex items-center gap-2 justify-center">
                                 <Crown className="w-4 h-4" />
                                 <h4 className="font-black text-sm uppercase tracking-tight">Giám đốc Ban</h4>
@@ -113,14 +113,14 @@ const OrgChartPage: React.FC = () => {
                     {/* Level 2: Phó GĐ + Kế toán trưởng */}
                     <div className="relative z-10 mb-6 w-full flex justify-center gap-6">
                         {leadership.pgds.map((pgd, idx) => (
-                            <div key={idx} className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-lg text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
+                            <div key={idx} className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
                                 onClick={() => navigate(`/employees/${pgd.EmployeeID}`)}>
                                 <h4 className="font-bold text-xs uppercase" style={{ color: '#ea580c' }}>Phó Giám đốc Ban</h4>
                                 <p className="text-[10px] text-gray-500">{pgd.FullName}</p>
                             </div>
                         ))}
                         {leadership.kt && (
-                            <div className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-lg text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
+                            <div className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
                                 onClick={() => navigate(`/employees/${leadership.kt!.EmployeeID}`)}>
                                 <h4 className="font-bold text-xs uppercase text-blue-700">Kế toán trưởng</h4>
                                 <p className="text-[10px] text-gray-500">{leadership.kt.FullName}</p>
@@ -240,7 +240,7 @@ const OrgChartPage: React.FC = () => {
                                             <img
                                                 src={emp.AvatarUrl}
                                                 alt={emp.FullName}
-                                                className="w-8 h-8 rounded-full ring-2 ring-white shadow-lg object-cover"
+                                                className="w-8 h-8 rounded-full ring-2 ring-white shadow-sm object-cover"
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 transition-colors">

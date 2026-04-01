@@ -92,7 +92,7 @@ export const DisbursementModal: React.FC<DisbursementModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto"
+                className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-2xl mx-4 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -114,7 +114,7 @@ export const DisbursementModal: React.FC<DisbursementModalProps> = ({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     {/* Row 1: Ngày + Loại */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -254,7 +254,7 @@ export const DisbursementModal: React.FC<DisbursementModalProps> = ({
                         <button
                             type="submit"
                             disabled={isSaving || !amount || !date}
-                            className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
+                            className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm"
                         >
                             <Save className="w-4 h-4" />
                             {isSaving ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Tạo mới'}

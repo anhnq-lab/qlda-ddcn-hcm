@@ -142,7 +142,7 @@ export const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
     };
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-lg">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
             <h4 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Các mốc quan trọng
@@ -160,7 +160,7 @@ export const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                             <div key={milestone.id} className="relative flex gap-4">
                                 {/* Timeline Line & Dot */}
                                 <div className="flex flex-col items-center">
-                                    <div className={`w-8 h-8 rounded-full ${config.iconBg} flex items-center justify-center shadow-lg z-10`}>
+                                    <div className={`w-8 h-8 rounded-full ${config.iconBg} flex items-center justify-center shadow-sm z-10`}>
                                         <Icon className={`w-4 h-4 ${config.iconColor}`} />
                                     </div>
                                     {!isLast && (

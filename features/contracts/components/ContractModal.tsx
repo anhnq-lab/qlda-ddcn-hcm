@@ -209,7 +209,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 dark:bg-slate-900 backdrop-blur-sm overflow-hidden p-4">
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-sm flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 shrink-0">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
@@ -222,7 +222,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-4">
                     <form id="contract-form" onSubmit={handleSubmit} className="space-y-6">
                         {/* Association Fields (Project, Package, Contractor) */}
                         <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
@@ -459,7 +459,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
                         type="submit"
                         form="contract-form"
                         disabled={saveMutation.isPending}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-primary-600 shadow-lg hover:bg-primary-500 focus:ring-4 focus:ring-blue-500/20 rounded-lg disabled:opacity-50 transition-all"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-primary-600 shadow-sm hover:bg-primary-500 focus:ring-4 focus:ring-blue-500/20 rounded-lg disabled:opacity-50 transition-all"
                     >
                         {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         {isEditing ? 'Lưu thay đổi' : 'Tạo hợp đồng'}

@@ -48,7 +48,7 @@ export const TemplateViewer: React.FC<TemplateViewerProps> = ({
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={onClose}>
-            <div className="bg-[#0f172a] rounded-2xl shadow-2xl w-[90vw] max-w-4xl max-h-[85vh] flex flex-col border border-[#334155]"
+            <div className="bg-[#0f172a] rounded-2xl shadow-sm w-[90vw] max-w-4xl max-h-[85vh] flex flex-col border border-[#334155]"
                 onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[#334155]">
@@ -77,7 +77,7 @@ export const TemplateViewer: React.FC<TemplateViewerProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-auto p-6">
+                <div className="flex-1 overflow-auto p-4">
                     {loading ? (
                         <div className="flex items-center justify-center h-40">
                             <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />

@@ -127,7 +127,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
-            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-5xl max-h-[90vh] overflow-hidden animate-scale-in">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
@@ -174,7 +174,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+                <div className="overflow-y-auto p-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
 
                     {/* Step 1: Upload */}
                     {step === 'upload' && (
@@ -420,7 +420,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
                                 <button
                                     onClick={handleImport}
                                     disabled={selectedRows.size === 0 || insertMutation.isPending}
-                                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
+                                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                                 >
                                     {insertMutation.isPending ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />

@@ -52,7 +52,7 @@ const CDEFilePreview: React.FC<CDEFilePreviewProps> = ({ file, onClose, onDownlo
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#F1F5F9] dark:bg-slate-800 w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-white/20 dark:border-slate-700">
+            <div className="bg-[#F1F5F9] dark:bg-slate-800 w-full max-w-6xl h-[90vh] rounded-3xl shadow-sm overflow-hidden flex flex-col border border-white/20 dark:border-slate-700">
                 {/* Header */}
                 <div className="bg-[#FCF9F2] dark:bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-slate-700">
                     <div className="flex items-center gap-4">
@@ -77,14 +77,14 @@ const CDEFilePreview: React.FC<CDEFilePreviewProps> = ({ file, onClose, onDownlo
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-auto p-8 flex justify-center bg-[#525659]">
+                <div className="flex-1 overflow-auto p-4 flex justify-center bg-[#525659]">
                     {(isPDF || isImage) && viewUrl ? (
-                        <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-2xl overflow-hidden flex flex-col">
+                        <div className="bg-[#FCF9F2] w-full h-full rounded-sm shadow-sm overflow-hidden flex flex-col">
                             {isPDF ? (
                                 <iframe src={`${viewUrl}#toolbar=0`} className="w-full h-full border-0" title="PDF Viewer" />
                             ) : (
                                 <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center p-4">
-                                    <img src={viewUrl} className="max-w-full max-h-full object-contain shadow-lg" alt="Preview" />
+                                    <img src={viewUrl} className="max-w-full max-h-full object-contain shadow-sm" alt="Preview" />
                                 </div>
                             )}
                         </div>
@@ -97,7 +97,7 @@ const CDEFilePreview: React.FC<CDEFilePreviewProps> = ({ file, onClose, onDownlo
                             </div>
                         </div>
                     ) : isExcel ? (
-                        <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-2xl rounded-sm overflow-hidden flex flex-col h-fit">
+                        <div className="bg-[#FCF9F2] w-full max-w-5xl shadow-sm rounded-sm overflow-hidden flex flex-col h-fit">
                             <div className="bg-[#217346] text-white px-4 py-1 text-xs font-medium uppercase tracking-tighter">Microsoft Excel Online Preview</div>
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse text-[12px]">
@@ -123,8 +123,8 @@ const CDEFilePreview: React.FC<CDEFilePreviewProps> = ({ file, onClose, onDownlo
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-2xl p-[80px] text-gray-800 font-serif relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 pointer-events-none select-none">
+                        <div className="bg-[#FCF9F2] w-full max-w-[800px] min-h-[1100px] shadow-sm p-[80px] text-gray-800 font-serif relative">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12 pointer-events-none select-none">
                                 <h1 className="text-9xl font-black">CONFIDENTIAL</h1>
                             </div>
                             <div className="text-center mb-16 underline decoration-double underline-offset-8">

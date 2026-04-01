@@ -61,7 +61,7 @@ const CDEAuditLog: React.FC<CDEAuditLogProps> = ({ projectId }) => {
     };
 
     return (
-        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
             {/* Header */}
             <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -95,7 +95,7 @@ const CDEAuditLog: React.FC<CDEAuditLogProps> = ({ projectId }) => {
             {/* Audit Entries */}
             <div className="max-h-[500px] overflow-y-auto">
                 {isLoading ? (
-                    <div className="p-8 text-center text-gray-400 text-sm">Đang tải...</div>
+                    <div className="p-4 text-center text-gray-400 text-sm">Đang tải...</div>
                 ) : filtered.length === 0 ? (
                     <div className="p-12 text-center">
                         <ScrollText className="w-10 h-10 mx-auto text-gray-200 dark:text-slate-600 mb-3" />

@@ -110,7 +110,7 @@ const StatusActionDropdown: React.FC<{
             {open && (
                 <div
                     ref={dropRef}
-                    className="fixed bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 py-1 min-w-[200px]"
+                    className="fixed bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 py-1 min-w-[200px]"
                     style={{ top: pos.top, right: pos.right, zIndex: 9999 }}
                     onClick={e => e.stopPropagation()}
                 >
@@ -281,7 +281,7 @@ const InspectionFormModal: React.FC<{
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 sticky top-0 bg-[#FCF9F2] dark:bg-slate-800 z-10">
                     <h3 className="text-base font-black text-gray-800 dark:text-slate-100 flex items-center gap-2">
                         <Shield className="w-5 h-5 text-red-600" />
@@ -292,7 +292,7 @@ const InspectionFormModal: React.FC<{
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className={labelCls}>Loại *</label>
@@ -383,7 +383,7 @@ const InspectionFormModal: React.FC<{
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
                             Hủy
                         </button>
-                        <button type="submit" disabled={saving || !form.InspectionName?.trim()} className="px-6 py-2 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-lg flex items-center gap-2">
+                        <button type="submit" disabled={saving || !form.InspectionName?.trim()} className="px-6 py-2 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
                             {saving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Shield className="w-4 h-4" />}
                             {editData ? 'Cập nhật' : 'Thêm mới'}
                         </button>
@@ -496,7 +496,7 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                 </div>
                 <button
                     onClick={() => { setEditingItem(null); setShowModal(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-md dark:bg-blue-500 dark:hover:bg-primary-600"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl transition-all shadow-sm hover:shadow-md dark:bg-blue-500 dark:hover:bg-primary-600"
                 >
                     <Plus className="w-4 h-4" /> Thêm đợt thanh tra
                 </button>
@@ -516,7 +516,7 @@ export const ProjectInspectionTab: React.FC<ProjectInspectionTabProps> = ({ proj
                     {filteredInspections.map(item => {
                         const isExpanded = expandedId === item.InspectionID;
                         return (
-                            <div key={item.InspectionID} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg overflow-hidden transition-shadow hover:shadow-md">
+                            <div key={item.InspectionID} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
                                 {/* Header Row */}
                                 <div
                                     className="px-5 py-4 flex items-center justify-between cursor-pointer"

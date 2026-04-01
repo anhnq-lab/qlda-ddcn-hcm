@@ -65,7 +65,7 @@ const AdminUserManagement: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 pt-5 pb-0">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/20">
+                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-sm shadow-primary-500/20">
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
                         Quản trị Hệ thống
@@ -117,7 +117,7 @@ const AdminUserManagement: React.FC = () => {
                     }
                 >
                     {activeTab === 'accounts' && (
-                        <div className="p-6">
+                        <div className="p-4">
                             <UserAccountManager />
                         </div>
                     )}
@@ -125,7 +125,7 @@ const AdminUserManagement: React.FC = () => {
                         <PermissionManager />
                     )}
                     {activeTab === 'contractors' && (
-                        <div className="p-6">
+                        <div className="p-4">
                             <ContractorAccountManager />
                         </div>
                     )}

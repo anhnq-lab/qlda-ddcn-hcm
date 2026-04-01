@@ -357,7 +357,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
             />
 
             {/* Modal */}
-            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-4xl max-h-[90vh] overflow-hidden animate-scale-in">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
                     <div>
@@ -398,7 +398,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
 
                 {/* Form */}
                 <form onSubmit={handleSubmit}>
-                    <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                    <div className="p-4 overflow-y-auto max-h-[calc(90vh-200px)]">
                         {/* Tab: Basic Info */}
                         {activeTab === 'basic' && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -889,7 +889,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         {activeTab === 'result' && (
                             <div className="space-y-4">
                                 {formData.Status !== PackageStatus.Awarded && formData.Status !== 'Awarded' ? (
-                                    <div className="p-8 text-center bg-gray-50 dark:bg-slate-700 rounded-xl">
+                                    <div className="p-4 text-center bg-gray-50 dark:bg-slate-700 rounded-xl">
                                         <AlertCircle className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-3" />
                                         <p className="text-gray-600 dark:text-slate-300">
                                             Chỉ nhập kết quả khi gói thầu có trạng thái <strong>"Đã có kết quả"</strong>
@@ -966,7 +966,7 @@ export const BiddingPackageModal: React.FC<BiddingPackageModalProps> = ({
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-lg"
+                            className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
                         >
                             {isSubmitting ? (
                                 <>

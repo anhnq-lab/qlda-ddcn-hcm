@@ -297,7 +297,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
             />
 
             {/* Modal */}
-            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+            <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-md border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 rounded-t-2xl">
                     <div className="flex items-center gap-3">
@@ -326,7 +326,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         <button
                             onClick={() => setMode('range')}
                             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'range'
-                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-lg border border-emerald-200 dark:border-emerald-700'
+                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm border border-emerald-200 dark:border-emerald-700'
                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                             }`}
                         >
@@ -336,7 +336,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         <button
                             onClick={() => setMode('duration')}
                             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'duration'
-                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-lg border border-blue-200 dark:border-blue-700'
+                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                             }`}
                         >
@@ -449,7 +449,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                     <button
                         onClick={handleConfirm}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-all shadow-lg disabled:opacity-60 disabled:cursor-wait"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-all shadow-sm disabled:opacity-60 disabled:cursor-wait"
                     >
                         {isLoading ? (
                             <>

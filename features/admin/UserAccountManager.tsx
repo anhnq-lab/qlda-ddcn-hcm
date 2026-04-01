@@ -122,7 +122,7 @@ const UserAccountManager: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/20">
+                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-sm shadow-primary-500/20">
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
                         Quản lý tài khoản
@@ -133,7 +133,7 @@ const UserAccountManager: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium shadow-lg shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium shadow-sm shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
                     <UserPlus className="w-5 h-5" />
                     Tạo tài khoản
@@ -142,7 +142,7 @@ const UserAccountManager: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="relative overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 border-t-[3px] border-slate-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 border-t-[3px] border-slate-500 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <Users className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -154,7 +154,7 @@ const UserAccountManager: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border-t-[3px] border-primary-500 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 border-t-[3px] border-primary-500 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <ToggleRight className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -166,7 +166,7 @@ const UserAccountManager: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="relative overflow-hidden bg-gradient-to-br from-slate-500 to-slate-600 border-t-[3px] border-slate-400 rounded-2xl p-5 shadow-xl ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
+                <div className="relative overflow-hidden bg-gradient-to-br from-slate-500 to-slate-600 border-t-[3px] border-slate-400 rounded-2xl p-5 shadow-sm ring-1 ring-white/10 hover:scale-[1.02] hover:shadow-2xl transition-all duration-200">
                     <ToggleLeft className="absolute -right-3 -top-3 w-20 h-20 text-white opacity-[0.12]" />
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -204,12 +204,12 @@ const UserAccountManager: React.FC = () => {
             {/* Table */}
             <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-400">
+                    <div className="p-4 text-center text-gray-400">
                         <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-3" />
                         Đang tải...
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400 dark:text-slate-500">
+                    <div className="p-4 text-center text-gray-400 dark:text-slate-500">
                         <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         {search ? 'Không tìm thấy kết quả' : 'Chưa có tài khoản nào'}
                     </div>
@@ -324,7 +324,7 @@ const UserAccountManager: React.FC = () => {
             {/* Reset Password Modal */}
             {resetTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setResetTarget(null)}>
-                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-md p-4 shadow-sm" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-1">Reset mật khẩu</h3>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
                             Đặt mật khẩu mới cho <strong>{resetTarget.full_name}</strong> ({resetTarget.username})
@@ -379,7 +379,7 @@ const UserAccountManager: React.FC = () => {
                             <button
                                 onClick={handleResetPassword}
                                 disabled={!newPassword}
-                                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-lg shadow-indigo-500/25"
+                                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-sm shadow-indigo-500/25"
                             >
                                 Xác nhận
                             </button>
@@ -466,7 +466,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl w-full max-w-lg p-4 shadow-sm" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">
                         <UserPlus className="w-5 h-5 text-white" />
@@ -589,7 +589,7 @@ const CreateAccountModal: React.FC<CreateModalProps> = ({ onClose, onCreated, cr
                         <button
                             type="submit"
                             disabled={submitting || !selectedEmployee || !username || !password}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-lg shadow-primary-500/25"
+                            className="flex-1 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 shadow-sm shadow-primary-500/25"
                         >
                             {submitting ? 'Đang tạo...' : 'Tạo tài khoản'}
                         </button>

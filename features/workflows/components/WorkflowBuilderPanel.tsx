@@ -299,7 +299,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     };
 
     if (isLoading) return (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-900 p-8 pt-16">
+        <div className="flex flex-col h-full bg-[#FCF9F2] dark:bg-slate-900 p-4 pt-16">
             <div className="animate-pulse space-y-4">
                 {[...Array(4)].map((_, i) => <div key={i} className="h-8 bg-slate-200 dark:bg-slate-800 rounded" />)}
             </div>
@@ -364,7 +364,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     };
 
     const CATEGORY_OPTIONS: { value: WorkflowCategory; label: string }[] = [
-        { value: 'project', label: 'Dự án Đầu tư' },
+        { value: 'project', label: 'Quản lý dự án' },
         { value: 'implementation', label: 'Thực hiện Dự án' },
         { value: 'investment', label: 'Đầu tư công' },
         { value: 'procurement', label: 'Đấu thầu' },
@@ -377,7 +377,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
 
     return (
         <div className="flex flex-col h-full bg-[#FAFAF8] dark:bg-slate-900 relative">
-            <div className="p-6 pb-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-4 pb-0 bg-[#FCF9F2] dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
@@ -419,10 +419,10 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                 )}
             </div>
 
-            <div className="flex-1 overflow-hidden p-6 pb-20 flex flex-col">
+            <div className="flex-1 overflow-hidden p-4 pb-20 flex flex-col">
                 {!isCreateMode && activeTab === 'overview' && (
                     <div className="flex flex-col gap-3 animate-fade-in h-full">
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
                             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                                 {workflow?.description || 'Chưa có mô tả quy trình.'}
                             </p>
@@ -449,7 +449,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                     </button>
                                 )}
                             </div>
-                            <div className="overflow-y-auto flex-1 min-h-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm custom-scrollbar">
+                            <div className="overflow-y-auto flex-1 min-h-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-[#FCF9F2] dark:bg-slate-800 shadow-sm custom-scrollbar">
                                 <table className="w-full text-left text-[13px] border-collapse table-fixed">
                                     <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[5]">
                                         <tr className="font-bold text-slate-700 dark:text-slate-300">
@@ -598,7 +598,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                                                                 const stSla = stSlaStr ? parseSla(stSlaStr) : null;
                                                                                 return (
                                                                                 <tr key={st.id || stIdx}
-                                                                                    className="bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                                                                    className="bg-[#FCF9F2] dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                                                                                     onClick={() => openPanel({
                                                                                         id: 'subtask-' + (st.id || `${node.id}-${stIdx}`),
                                                                                         title: `Công việc con: ${st.name?.substring(0, 50)}`,
@@ -741,7 +741,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                             </div>
                         )}
 
-                        <div className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+                        <div className="bg-[#FCF9F2] dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
                                     <FileText size={14} className="text-primary-500" /> Tên quy trình <span className="text-rose-500">*</span>

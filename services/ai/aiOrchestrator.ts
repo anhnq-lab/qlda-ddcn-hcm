@@ -1,7 +1,8 @@
 // AI Orchestrator — Xử lý vòng lặp Gemini Function Calling
-// Flow: User message → Gemini (+ tools) → Function Call? → Execute → Loop → Final response
+// Flow: User message → Edge Function (gemini-proxy) → Gemini → Function Call? → Execute → Loop → Final response
+// API key được giữ an toàn trong Supabase Edge Function Secrets
 
-import { GoogleGenerativeAI, FunctionCallingMode, Content } from '@google/generative-ai';
+import { sendChatMessage, generateContent, GeminiContent, GeminiPart } from './geminiProxy';
 import { AI_TOOLS } from './aiTools';
 import { SYSTEM_PROMPT_QLDA } from './prompts';
 import { ProjectService } from '../ProjectService';
@@ -11,15 +12,7 @@ import { DashboardService } from '../DashboardService';
 import { CapitalService } from '../CapitalService';
 import type { ChatMessage } from '../aiService';
 
-const getGenAI = () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error('Missing VITE_GEMINI_API_KEY environment variable');
-    }
-    return new GoogleGenerativeAI(apiKey);
-};
-
-// Model name — Gemini 1.5 Flash for speed + function calling support
+// Model name
 const MODEL_NAME = 'gemini-2.0-flash';
 
 /**
@@ -37,7 +30,6 @@ async function executeFunctionCall(
                 if (args.search) params.search = args.search as string;
                 if (args.status) params.filters = { status: Number(args.status) };
                 const projects = await ProjectService.getAll(params);
-                // Return summary to avoid token overflow
                 return projects.map(p => ({
                     ProjectID: p.ProjectID,
                     ProjectName: p.ProjectName,
@@ -102,7 +94,6 @@ async function executeFunctionCall(
             }
 
             case 'get_upcoming_deadlines': {
-                // Deadlines removed from DashboardService — return empty
                 return [];
             }
 
@@ -130,58 +121,50 @@ export async function sendContextAwareMessage(
     history: ChatMessage[],
     newMessage: string
 ): Promise<string> {
-    const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({
-        model: MODEL_NAME,
-        systemInstruction: SYSTEM_PROMPT_QLDA,
-        tools: [{ functionDeclarations: AI_TOOLS }],
-        toolConfig: {
-            functionCallingConfig: { mode: FunctionCallingMode.AUTO },
-        },
-    });
-
     // Convert chat history to Gemini format
     const validHistory = history.filter(msg => !msg.isError);
     const firstUserIndex = validHistory.findIndex(msg => msg.sender === 'user');
-    const apiHistory: Content[] =
+    const apiHistory: GeminiContent[] =
         firstUserIndex !== -1
             ? validHistory.slice(firstUserIndex).map(msg => ({
-                role: msg.sender === 'user' ? 'user' : 'model',
+                role: (msg.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
                 parts: [{ text: msg.text }],
             }))
             : [];
 
-    const chat = model.startChat({
-        history: apiHistory,
-        generationConfig: {
-            maxOutputTokens: 2048,
-            temperature: 0.3, // Lower temp for more factual responses
-        },
-    });
+    // Add new message
+    const contents: GeminiContent[] = [
+        ...apiHistory,
+        { role: 'user', parts: [{ text: newMessage }] },
+    ];
 
-    // Send message and handle function calling loop
-    let response = await chat.sendMessage(newMessage);
-    let result = response.response;
+    // Send with function calling
+    let response = await sendChatMessage(contents, {
+        model: MODEL_NAME,
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT_QLDA }] },
+        tools: [{ functionDeclarations: AI_TOOLS }],
+        toolConfig: { functionCallingConfig: { mode: 'AUTO' } },
+        generationConfig: { maxOutputTokens: 2048, temperature: 0.3 },
+    });
 
     // Loop for up to 5 function calls (safety limit)
     let iterations = 0;
     const MAX_ITERATIONS = 5;
 
     while (iterations < MAX_ITERATIONS) {
-        const candidate = result.candidates?.[0];
+        const candidate = response.candidates?.[0];
         if (!candidate?.content?.parts) break;
 
         // Check for function calls
         const functionCalls = candidate.content.parts.filter(
-            (part) => 'functionCall' in part
+            (part): part is Extract<GeminiPart, { functionCall: unknown }> => 'functionCall' in part
         );
 
         if (functionCalls.length === 0) break;
 
         // Execute all function calls
-        const functionResponses = [];
+        const functionResponses: GeminiPart[] = [];
         for (const part of functionCalls) {
-            if (!('functionCall' in part) || !part.functionCall) continue;
             const { name, args } = part.functionCall;
             console.log(`[AI] Calling function: ${name}`, args);
 
@@ -194,13 +177,31 @@ export async function sendContextAwareMessage(
             });
         }
 
-        // Send function results back to Gemini
-        response = await chat.sendMessage(functionResponses);
-        result = response.response;
+        // Add model response + function results to conversation
+        contents.push(
+            { role: 'model', parts: candidate.content.parts },
+            { role: 'user', parts: functionResponses },
+        );
+
+        // Send function results back
+        response = await sendChatMessage(contents, {
+            model: MODEL_NAME,
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT_QLDA }] },
+            tools: [{ functionDeclarations: AI_TOOLS }],
+            toolConfig: { functionCallingConfig: { mode: 'AUTO' } },
+            generationConfig: { maxOutputTokens: 2048, temperature: 0.3 },
+        });
         iterations++;
     }
 
-    return result.text();
+    // Extract text from final response
+    const finalParts = response.candidates?.[0]?.content?.parts || [];
+    const text = finalParts
+        .filter((p): p is { text: string } => 'text' in p)
+        .map(p => p.text)
+        .join('');
+
+    return text;
 }
 
 /**
@@ -211,16 +212,9 @@ export async function generateAIAnalysis(
     prompt: string,
     data: unknown
 ): Promise<string> {
-    const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({
-        model: MODEL_NAME,
-        generationConfig: {
-            maxOutputTokens: 4096,
-            temperature: 0.2, // Very low temp for structured output
-        },
-    });
-
     const fullPrompt = `${prompt}\n\nDữ liệu:\n${JSON.stringify(data, null, 2)}`;
-    const result = await model.generateContent(fullPrompt);
-    return result.response.text();
+    return generateContent(fullPrompt, {
+        model: MODEL_NAME,
+        generationConfig: { maxOutputTokens: 4096, temperature: 0.2 },
+    });
 }

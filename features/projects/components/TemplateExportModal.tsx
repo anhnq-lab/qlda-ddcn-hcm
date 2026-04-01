@@ -179,13 +179,13 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={onClose}>
-            <div className="bg-[#0f172a] rounded-2xl shadow-2xl w-[95vw] max-w-5xl max-h-[92vh] flex flex-col border border-[#334155] animate-scale-in"
+            <div className="bg-[#0f172a] rounded-2xl shadow-sm w-[95vw] max-w-5xl max-h-[92vh] flex flex-col border border-[#334155] animate-scale-in"
                 onClick={e => e.stopPropagation()}>
 
                 {/* ═══════════ HEADER ═══════════ */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-[#334155]">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${categoryGradient} flex items-center justify-center shadow-lg`}>
+                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${categoryGradient} flex items-center justify-center shadow-sm`}>
                             <FileText size={20} className="text-white" />
                         </div>
                         <div className="min-w-0">
@@ -221,7 +221,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={() => setActiveTab('edit')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'edit'
-                                ? 'bg-blue-500/10 text-blue-400 shadow-lg'
+                                ? 'bg-blue-500/10 text-blue-400 shadow-sm'
                                 : 'text-[#94a3b8] hover:text-[#cbd5e1] hover:bg-[#334155]'
                                 }`}
                         >
@@ -236,7 +236,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={() => setActiveTab('preview')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
-                                ? 'bg-blue-500/10 text-blue-400 shadow-lg'
+                                ? 'bg-blue-500/10 text-blue-400 shadow-sm'
                                 : 'text-[#94a3b8] hover:text-[#cbd5e1] hover:bg-[#334155]'
                                 }`}
                         >
@@ -265,7 +265,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                 {/* ═══════════ CONTENT ═══════════ */}
                 <div className="flex-1 overflow-y-auto">
                     {activeTab === 'edit' ? (
-                        <div className="h-full overflow-y-auto p-6">
+                        <div className="h-full overflow-y-auto p-4">
                             {/* Auto-fill indicator */}
                             {project && (
                                 <div className="mb-5 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-3">
@@ -349,13 +349,13 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         </div>
                     ) : (
                         /* PREVIEW TAB */
-                        <div className="h-full overflow-y-auto p-6">
+                        <div className="h-full overflow-y-auto p-4">
                             {loading ? (
                                 <div className="flex items-center justify-center h-60">
                                     <Loader2 size={32} className="text-blue-400 animate-spin" />
                                 </div>
                             ) : (
-                                <div className="bg-[#FCF9F2] rounded-xl p-8 shadow-lg max-w-3xl mx-auto min-h-[400px]">
+                                <div className="bg-[#FCF9F2] rounded-xl p-4 shadow-sm max-w-3xl mx-auto min-h-[400px]">
                                     <pre className="whitespace-pre-wrap text-sm text-gray-800 font-serif leading-relaxed"
                                         style={{ fontFamily: "'Times New Roman', 'Noto Serif', serif" }}>
                                         {previewContent || '(Chưa có nội dung)'}
@@ -396,7 +396,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
                         <button
                             onClick={handleExport}
                             disabled={exporting}
-                            className={`flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${categoryGradient} text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-primary-500/20 text-sm`}
+                            className={`flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${categoryGradient} text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm shadow-primary-500/20 text-sm`}
                         >
                             {exporting ? (
                                 <Loader2 size={16} className="animate-spin" />

@@ -36,8 +36,8 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ isOpen
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#FCF9F2] w-full max-w-4xl h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-[#F5EFE6]">
+            <div className="bg-[#FCF9F2] w-full max-w-4xl h-[80vh] rounded-3xl shadow-sm flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-[#F5EFE6]">
                     <h3 className="text-lg font-black text-gray-800 flex items-center gap-3">
                         <Users className="w-5 h-5 text-blue-600" /> Quản lý nhân sự dự án
                     </h3>
@@ -97,7 +97,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ isOpen
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-2">
                             {availableEmployees.map((emp) => (
-                                <div key={emp.EmployeeID} className="flex items-center gap-3 p-3 bg-[#FCF9F2] rounded-xl border border-gray-200 hover:border-blue-300 transition-all shadow-lg">
+                                <div key={emp.EmployeeID} className="flex items-center gap-3 p-3 bg-[#FCF9F2] rounded-xl border border-gray-200 hover:border-blue-300 transition-all shadow-sm">
                                     <img src={emp.AvatarUrl} alt="" className="w-8 h-8 rounded-full bg-gray-100" />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-bold text-gray-800 truncate">{emp.FullName}</p>

@@ -1,7 +1,24 @@
 // AI Tools — Gemini Function Calling declarations
 // Cho phép AI tự quyết định khi nào cần query dữ liệu từ Supabase
 
-import { FunctionDeclaration, SchemaType } from '@google/generative-ai';
+// Inline types (no longer depends on @google/generative-ai package)
+interface FunctionDeclaration {
+    name: string;
+    description: string;
+    parameters: {
+        type: string;
+        properties: Record<string, { type: string; description?: string }>;
+        required?: string[];
+    };
+}
+
+const SchemaType = {
+    OBJECT: 'OBJECT' as const,
+    STRING: 'STRING' as const,
+    NUMBER: 'NUMBER' as const,
+    BOOLEAN: 'BOOLEAN' as const,
+    ARRAY: 'ARRAY' as const,
+};
 
 /**
  * Tool definitions cho Gemini Function Calling
