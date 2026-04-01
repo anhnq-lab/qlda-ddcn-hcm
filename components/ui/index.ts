@@ -23,7 +23,7 @@ export {
     Skeleton,
     SkeletonText,
     SkeletonCard,
-    SkeletonTable,
+    TableSkeleton,
     SkeletonStatCard,
     SkeletonAvatarGroup
 } from './Skeleton';

@@ -140,13 +140,13 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({
 // SKELETON TABLE - Table rows
 // ========================================
 
-interface SkeletonTableProps {
+interface TableSkeletonProps {
     columns?: number;
     rows?: number;
     className?: string;
 }
 
-export const SkeletonTable: React.FC<SkeletonTableProps> = ({
+export const TableSkeleton: React.FC<TableSkeletonProps> = ({
     columns = 4,
     rows = 5,
     className = '',

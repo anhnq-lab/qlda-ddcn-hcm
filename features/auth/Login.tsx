@@ -45,7 +45,7 @@ const Login: React.FC = () => {
             <button
                 type="button"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="absolute top-6 right-6 lg:right-10 z-50 p-2.5 rounded-full bg-slate-100 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-amber-500 hover:bg-white dark:hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-sm group"
+                className="absolute top-6 right-6 lg:right-10 z-50 p-2.5 rounded-full bg-slate-100 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-amber-500 hover:bg-[#FCF9F2] dark:bg-slate-900 dark:hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-sm group"
                 title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}
             >
                 {theme === 'dark' ? <Sun className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 group-hover:-rotate-12 transition-transform duration-500" />}

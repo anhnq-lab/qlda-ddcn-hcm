@@ -7,7 +7,7 @@ import { DashboardService } from '../../services/DashboardService';
 import { ProjectService } from '../../services/ProjectService';
 import { useTheme } from '../../context/ThemeContext';
 import { ProjectStatus, MANAGEMENT_BOARDS, PROJECT_PHASE_COLORS } from '../../types';
-import { StatCard, ErrorBoundary, EmptyState, SkeletonTable } from '../../components/ui';
+import { StatCard, ErrorBoundary, EmptyState, TableSkeleton } from '../../components/ui';
 
 // Lazy load heavy components
 const CapitalDisbursementChart = lazy(() => import('./components/CapitalDisbursementChart'));
@@ -288,7 +288,7 @@ const Dashboard: React.FC = () => {
 
                 {loadingProjects ? (
                     <div className="p-4">
-                        <SkeletonTable columns={6} rows={3} />
+                        <TableSkeleton columns={6} rows={3} />
                     </div>
                 ) : filteredRows.length > 0 ? (
                     <div className="overflow-x-auto">

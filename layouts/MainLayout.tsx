@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import { Header } from '../components/common/Header';
 import { AIChatbot } from '../components/common/AIChatbot';
@@ -67,54 +68,66 @@ const MainLayout: React.FC = () => {
                 />
             )}
 
-            {/* Sidebar - Desktop */}
-            <aside className={`
-                hidden lg:block shrink-0 sticky top-0 h-screen z-10 overflow-hidden
-                transition-all duration-300 ease-out
-                ${isSidebarCollapsed ? 'w-20' : 'w-64'}
-            `}>
-                <Sidebar
-                    isCollapsed={isSidebarCollapsed}
-                    onToggleCollapse={handleToggleCollapse}
-                />
-            </aside>
+            {/* Main Flex layout */}
+            <div className="flex-1 flex w-full h-full">
 
-            {/* Sidebar - Mobile */}
-            <aside className={`
-                fixed inset-y-0 left-0 w-64 z-50 lg:hidden
-                transform transition-transform duration-300 ease-out
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-                <Sidebar onClose={() => setIsSidebarOpen(false)} />
-            </aside>
+                {/* Sidebar - Desktop */}
+                <aside className="hidden lg:block shrink-0 z-10 h-screen sticky top-0 transition-all duration-300 ease-out shadow-xl">
+                    <Sidebar
+                        isCollapsed={isSidebarCollapsed}
+                        onToggleCollapse={handleToggleCollapse}
+                    />
+                </aside>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0">
-                {/* Header */}
-                <Header
-                    onOpenSearch={() => setIsSearchOpen(true)}
-                    onMenuClick={() => setIsSidebarOpen(true)}
-                />
+                {/* Sidebar - Mobile */}
+                <aside className={`
+                    fixed inset-y-0 left-0 w-64 z-50 lg:hidden
+                    transform transition-transform duration-300 ease-out
+                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                `}>
+                    <Sidebar onClose={() => setIsSidebarOpen(false)} />
+                </aside>
 
-                {/* Page Content */}
-                <main className="flex-1 overflow-y-auto overflow-x-hidden">
-                    {/* Breadcrumb */}
-                    <div className="px-3 sm:px-4 lg:px-6 pt-4 sm:pt-6 pb-2">
-                        <Breadcrumb />
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col min-w-0 bg-[#F0ECE1] dark:bg-slate-950">
+                    <div className="flex-1 flex flex-col min-w-0">
+                        {/* Header */}
+                        <Header
+                            onOpenSearch={() => setIsSearchOpen(true)}
+                            onMenuClick={() => setIsSidebarOpen(true)}
+                        />
+
+                        {/* Page Content */}
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+                            {/* Breadcrumb */}
+                            <div className="px-3 sm:px-4 lg:px-6 pt-4 sm:pt-6 pb-2">
+                                <Breadcrumb />
+                            </div>
+
+                            {/* Content */}
+                            <div className={`px-3 sm:px-4 lg:px-6 ${isImpersonating ? 'pb-20' : 'pb-6 sm:pb-8'}`}>
+                                <ErrorBoundary>
+                                    <Suspense fallback={<PageLoadingSkeleton />}>
+                                        <AnimatePresence mode="wait">
+                                            <motion.div
+                                                key={location.pathname}
+                                                initial={{ opacity: 0, y: 15 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -15 }}
+                                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                            >
+                                                <Outlet />
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </Suspense>
+                                </ErrorBoundary>
+                            </div>
+                        </main>
+
+                        {/* AI Chatbot */}
+                        <AIChatbot />
                     </div>
-
-                    {/* Content */}
-                    <div className={`px-3 sm:px-4 lg:px-6 ${isImpersonating ? 'pb-20' : 'pb-6 sm:pb-8'}`}>
-                        <ErrorBoundary>
-                            <Suspense fallback={<PageLoadingSkeleton />}>
-                                <Outlet />
-                            </Suspense>
-                        </ErrorBoundary>
-                    </div>
-                </main>
-
-                {/* AI Chatbot */}
-                <AIChatbot />
+                </div>
             </div>
 
             {/* Floating Impersonation Bar */}

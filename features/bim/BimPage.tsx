@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { getAllBimModels, BimModel } from '../../lib/bimStorage';
-import { StatCard } from '../../components/ui';
+import { StatCard, SkeletonCard } from '@/components/ui';
 
 const ProjectBimTab = React.lazy(() =>
     import('../projects/components/tabs/ProjectBimTab').then(m => ({ default: m.ProjectBimTab }))
@@ -443,11 +443,7 @@ const BimPage: React.FC = () => {
                         {loading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className={`rounded-2xl border p-4 animate-pulse ${isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-[#FCF9F2] border-gray-200'}`}>
-                                        <div className={`h-24 rounded-xl mb-3 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
-                                        <div className={`h-4 rounded w-3/4 mb-2 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
-                                        <div className={`h-3 rounded w-1/2 ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`} />
-                                    </div>
+                                    <SkeletonCard key={i} />
                                 ))}
                             </div>
                         ) : filteredSummaries.length === 0 ? (

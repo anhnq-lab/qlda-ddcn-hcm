@@ -31,6 +31,7 @@ import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
 import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { TableSkeleton } from '@/components/ui';
 import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2, GitBranch } from 'lucide-react';
 import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
 import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
@@ -88,15 +89,9 @@ const ProjectDetailSkeleton: React.FC = () => (
             </div>
         </div>
         {/* Content skeleton */}
-        <div className="flex-1 px-4 py-6 space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-                {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl p-4 h-28 border border-gray-200 dark:border-slate-700" />
-                ))}
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl p-4 h-64 border border-gray-200 dark:border-slate-700" />
-                <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl p-4 h-64 border border-gray-200 dark:border-slate-700" />
+        <div className="flex-1 p-4 mt-2">
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 h-[calc(100vh-220px)] overflow-hidden p-4">
+                <TableSkeleton columns={5} rows={10} />
             </div>
         </div>
     </div>

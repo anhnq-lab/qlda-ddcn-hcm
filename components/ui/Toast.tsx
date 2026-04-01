@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -50,32 +51,55 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         <ToastContext.Provider value={{ showToast, addToast }}>
             {children}
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+                <AnimatePresence>
                 {toasts.map((toast) => (
-                    <div
+                    <motion.div
                         key={toast.id}
+                        layout
+                        initial={{ opacity: 0, x: 50, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         className={`
-                            pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right-full duration-300
-                            ${toast.type === 'success' ? 'bg-[#FCF9F2] border-emerald-100 text-emerald-800' : ''}
-                            ${toast.type === 'error' ? 'bg-[#FCF9F2] border-red-100 text-red-800' : ''}
-                            ${toast.type === 'info' ? 'bg-[#FCF9F2] border-blue-100 text-blue-800' : ''}
-                            ${toast.type === 'warning' ? 'bg-[#FCF9F2] border-orange-100 text-orange-800' : ''}
+                            pointer-events-auto relative overflow-hidden flex flex-col px-4 py-3 rounded-xl shadow-xl border
+                            ${toast.type === 'success' ? 'bg-[#FCF9F2] border-emerald-200/50 text-emerald-800' : ''}
+                            ${toast.type === 'error' ? 'bg-[#FCF9F2] border-red-200/50 text-red-800' : ''}
+                            ${toast.type === 'info' ? 'bg-[#FCF9F2] border-blue-200/50 text-blue-800' : ''}
+                            ${toast.type === 'warning' ? 'bg-[#FCF9F2] border-orange-200/50 text-orange-800' : ''}
                         `}
                     >
-                        {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
-                        {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-red-500" />}
-                        {toast.type === 'info' && <Info className="w-5 h-5 text-blue-500" />}
-                        {toast.type === 'warning' && <AlertTriangle className="w-5 h-5 text-orange-500" />}
+                        <div className="flex items-center gap-3 w-full">
+                            {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
+                            {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-red-500" />}
+                            {toast.type === 'info' && <Info className="w-5 h-5 text-blue-500" />}
+                            {toast.type === 'warning' && <AlertTriangle className="w-5 h-5 text-orange-500" />}
 
-                        <p className="text-sm font-medium">{toast.message}</p>
+                            <p className="text-sm font-medium flex-1">{toast.message}</p>
 
-                        <button
-                            onClick={() => removeToast(toast.id)}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors ml-2"
-                        >
-                            <X className="w-3 h-3 text-gray-400" />
-                        </button>
-                    </div>
+                            <button
+                                onClick={() => removeToast(toast.id)}
+                                className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors ml-2 shrink-0"
+                            >
+                                <X className="w-3 h-3 opacity-60 hover:opacity-100" />
+                            </button>
+                        </div>
+                        
+                        {/* Progress bar countdown */}
+                        <motion.div
+                            initial={{ scaleX: 1 }}
+                            animate={{ scaleX: 0 }}
+                            transition={{ duration: 3, ease: 'linear' }}
+                            style={{ originX: 0 }}
+                            className={`absolute bottom-0 left-0 right-0 h-1
+                                ${toast.type === 'success' ? 'bg-emerald-500/30' : ''}
+                                ${toast.type === 'error' ? 'bg-red-500/30' : ''}
+                                ${toast.type === 'info' ? 'bg-blue-500/30' : ''}
+                                ${toast.type === 'warning' ? 'bg-orange-500/30' : ''}
+                            `}
+                        />
+                    </motion.div>
                 ))}
+                </AnimatePresence>
             </div>
         </ToastContext.Provider>
     );

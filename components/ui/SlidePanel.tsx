@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { X, FileText, Layers, GripVertical, Maximize2, Minimize2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSlidePanel, PanelEntry } from '../../context/SlidePanelContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -158,20 +159,25 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
             style={{ zIndex: 60 + index }}
         >
             {/* Backdrop */}
-            <div
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isExiting ? 0 : 1 }}
+                transition={{ duration: 0.2 }}
                 className={`absolute inset-0 transition-colors duration-200 ${isTopPanel
                     ? 'bg-slate-900/40 dark:bg-slate-950/60 cursor-pointer'
                     : 'bg-transparent pointer-events-none'
-                    } ${isExiting ? 'slide-panel-backdrop-exit' : 'slide-panel-backdrop-enter'}`}
+                    }`}
                 onClick={isTopPanel ? onClose : undefined}
                 aria-hidden="true"
             />
 
             {/* Panel Body */}
-            <div
+            <motion.div
+                initial={{ x: '100%', opacity: 0.5 }}
+                animate={{ x: isExiting ? '100%' : '0%', opacity: isExiting ? 0 : 1 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                 className={`relative h-full bg-[#FCF9F2] dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 
           flex flex-col overflow-hidden slide-panel-stacked
-          ${isExiting ? 'slide-panel-exit' : 'slide-panel-enter'}
           ${isResizing ? 'slide-panel-resizing' : ''}`}
                 style={{
                     ...widthStyle,
@@ -206,7 +212,7 @@ const SlidePanelItem: React.FC<SlidePanelItemProps> = ({
                 <div className="flex-1 overflow-y-auto overflow-x-hidden">
                     {panel.component}
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
@@ -455,8 +461,11 @@ export const SlidePanelContainer: React.FC<SlidePanelContainerProps> = ({ isSide
     return (
         <div className="fixed inset-0 z-[60]">
             {/* Full-screen backdrop */}
-            <div
-                className={`absolute inset-0 bg-slate-900/25 dark:bg-slate-950/50 backdrop-blur-[2px] transition-colors duration-200 ${isAllExiting ? 'slide-panel-backdrop-exit' : 'slide-panel-backdrop-enter'}`}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isAllExiting ? 0 : 1 }}
+                transition={{ duration: 0.2 }}
+                className={`absolute inset-0 bg-slate-900/25 dark:bg-slate-950/50 backdrop-blur-[2px] transition-colors duration-200`}
                 onClick={() => guardedClose()}
                 aria-hidden="true"
             />

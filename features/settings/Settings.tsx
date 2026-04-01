@@ -150,7 +150,7 @@ const Settings: React.FC = () => {
                                     <button
                                         onClick={() => setDensity('comfortable')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${density === 'comfortable'
-                                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
+                                                ? 'bg-[#FCF9F2] dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
                                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                                             }`}
                                     >
@@ -160,7 +160,7 @@ const Settings: React.FC = () => {
                                     <button
                                         onClick={() => setDensity('compact')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${density === 'compact'
-                                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
+                                                ? 'bg-[#FCF9F2] dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-200 dark:border-slate-600'
                                                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                                             }`}
                                     >
@@ -191,7 +191,7 @@ const Settings: React.FC = () => {
                                         checked={stickyHeader}
                                         onChange={(e) => setStickyHeader(e.target.checked)}
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#FCF9F2] dark:bg-slate-900 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                                 </label>
                             </div>
                         </div>

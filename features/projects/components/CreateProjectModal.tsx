@@ -493,10 +493,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     const aiHighlight = (field: string) => aiFilledFields.has(field) ? ' ring-2 ring-emerald-400 dark:ring-emerald-500 border-emerald-400 dark:border-emerald-500 animate-pulse' : '';
 
     // Reusable class strings for dark mode
-    const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
-    const inputWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
-    const selectClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
-    const selectWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
+    const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
+    const inputWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
+    const selectClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
+    const selectWithIconClass = "w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-[#FCF9F2] dark:bg-slate-700 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 outline-none appearance-none transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)]";
     const labelClass = "block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2";
     const iconClass = "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500";
 
@@ -775,7 +775,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                         className={`py-2 px-3 rounded-xl text-sm font-semibold transition-all border-2 whitespace-nowrap flex items-center justify-center ${
                                             formData.ManagementBoard === board.value
                                                 ? `${board.color} text-white border-transparent shadow-md scale-[1.02]`
-                                                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-gray-50 dark:hover:bg-slate-700'
+                                                : 'bg-[#FCF9F2] dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-gray-50 dark:hover:bg-slate-700'
                                         }`}
                                     >
                                         Ban {board.value}

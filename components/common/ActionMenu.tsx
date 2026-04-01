@@ -1,10 +1,12 @@
 // Reusable Action Dropdown Menu — 3-dot dropdown for document/entity actions
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import * as Dropdown from '@radix-ui/react-dropdown-menu';
 import { MoreVertical, Eye, Download, History, Trash2, Edit2, Copy } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 export interface ActionMenuItem {
     label: string;
-    icon: React.ElementType;
+    icon?: React.ElementType; // Allow undefined icon
     onClick: () => void;
     variant?: 'default' | 'danger';
     dividerBefore?: boolean;
@@ -13,54 +15,61 @@ export interface ActionMenuItem {
 interface ActionMenuProps {
     items: ActionMenuItem[];
     className?: string;
+    trigger?: React.ReactNode;
 }
 
 /**
  * Reusable 3-dot action menu dropdown.
  * Used in document lists, task lists, contract lists, etc.
+ * Powered by Radix UI DropdownMenu.
  */
-export const ActionMenu: React.FC<ActionMenuProps> = ({ items, className = '' }) => {
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        };
-        if (open) document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
-
+export const ActionMenu: React.FC<ActionMenuProps> = ({ items, className = '', trigger }) => {
     return (
-        <div className={`relative ${className}`} ref={ref}>
-            <button
-                onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-            >
-                <MoreVertical className="w-4 h-4" />
-            </button>
-            {open && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-[#FCF9F2] dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <Dropdown.Root>
+            <Dropdown.Trigger asChild>
+                {trigger || (
+                    <button
+                        className={cn(
+                            "p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                            className
+                        )}
+                        aria-label="More options"
+                    >
+                        <MoreVertical className="w-4 h-4" />
+                    </button>
+                )}
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+                <Dropdown.Content
+                    sideOffset={5}
+                    align="end"
+                    className={cn(
+                        "z-[60] min-w-[12rem] bg-[#FCF9F2] dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1",
+                        "animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200"
+                    )}
+                >
                     {items.map((item, idx) => (
                         <React.Fragment key={idx}>
                             {item.dividerBefore && (
-                                <div className="border-t border-gray-200 dark:border-slate-700 my-1" />
+                                <Dropdown.Separator className="h-px bg-slate-200 dark:bg-slate-800 my-1" />
                             )}
-                            <button
-                                onClick={() => { item.onClick(); setOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${item.variant === 'danger'
-                                        ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-                                        : 'text-gray-700 dark:text-slate-300 hover:bg-[#F5EFE6] dark:hover:bg-slate-700'
-                                    }`}
+                            <Dropdown.Item
+                                onClick={item.onClick}
+                                className={cn(
+                                    "relative flex cursor-pointer select-none items-center gap-3 px-4 py-2.5 text-sm outline-none transition-colors",
+                                    item.variant === 'danger'
+                                        ? "text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-950/50"
+                                        : "text-slate-700 dark:text-slate-300 focus:bg-[#F5EFE6] dark:focus:bg-slate-800"
+                                )}
                             >
-                                <item.icon className="w-4 h-4" />
-                                {item.label}
-                            </button>
+                                {item.icon && <item.icon className="w-4 h-4" />}
+                                <span className="flex-1 font-medium">{item.label}</span>
+                            </Dropdown.Item>
                         </React.Fragment>
                     ))}
-                </div>
-            )}
-        </div>
+                </Dropdown.Content>
+            </Dropdown.Portal>
+        </Dropdown.Root>
     );
 };
 

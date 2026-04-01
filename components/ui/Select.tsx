@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { ChevronDown, Check, Search, X } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 // ========================================
-// SELECT COMPONENT - Design System v2
+// SELECT / COMBOBOX COMPONENT - Design System v2 (Radix UI Powered)
 // ========================================
 
 export interface SelectOption {
@@ -53,27 +55,16 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const hasError = !!error;
-
-    // Close on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-                setSearchQuery('');
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     // Focus search input when opened
     useEffect(() => {
         if (isOpen && searchable && inputRef.current) {
             inputRef.current.focus();
+        } else if (!isOpen) {
+            setSearchQuery('');
         }
     }, [isOpen, searchable]);
 
@@ -99,23 +90,12 @@ export const Select: React.FC<SelectProps> = ({
         } else {
             onChange?.(option.value);
             setIsOpen(false);
-            setSearchQuery('');
         }
     }, [multiple, value, onChange]);
 
     const handleClear = (e: React.MouseEvent) => {
         e.stopPropagation();
         onChange?.(multiple ? [] : '');
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            setIsOpen(false);
-            setSearchQuery('');
-        }
-        if (e.key === 'Enter' && !isOpen) {
-            setIsOpen(true);
-        }
     };
 
     const displayValue = () => {
@@ -133,124 +113,136 @@ export const Select: React.FC<SelectProps> = ({
         : value !== undefined && value !== '';
 
     return (
-        <div ref={containerRef} className={`relative ${fullWidth ? 'w-full' : ''} ${className}`}>
+        <div className={cn("relative", fullWidth && "w-full", className)}>
             {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     {label}
                 </label>
             )}
 
-            {/* Trigger Button */}
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={() => setIsOpen(!isOpen)}
-                onKeyDown={handleKeyDown}
-                className={`
-                    w-full flex items-center justify-between gap-2
-                    bg-[#FCF9F2] border rounded-xl
-                    text-left transition-all duration-200
-                    focus:outline-none focus:ring-2
-                    disabled:bg-[#F5EFE6] disabled:text-gray-500 disabled:cursor-not-allowed
-                    ${sizeStyles[size]}
-                    ${isOpen ? 'ring-2 ring-primary-100 border-primary-500' : ''}
-                    ${hasError
-                        ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-100'
-                        : 'border-gray-200 focus:border-primary-500 focus:ring-primary-100'
-                    }
-                `}
-            >
-                <span className={hasValue ? 'text-gray-900' : 'text-gray-400'}>
-                    {displayValue()}
-                </span>
-                <div className="flex items-center gap-1">
-                    {clearable && hasValue && (
-                        <span
-                            onClick={handleClear}
-                            className="p-0.5 hover:bg-gray-100 rounded transition-colors"
-                        >
-                            <X className="w-3.5 h-3.5 text-gray-400" />
-                        </span>
-                    )}
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
-            </button>
-
-            {/* Dropdown */}
-            {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-[#FCF9F2] border border-gray-200 rounded-xl shadow-dropdown overflow-hidden animate-fade-in-down">
-                    {/* Search Input */}
-                    {searchable && (
-                        <div className="p-2 border-b border-gray-200">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Tìm kiếm..."
-                                    className="w-full pl-9 pr-3 py-2 bg-[#F5EFE6] border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Options List */}
-                    <div className="max-h-60 overflow-y-auto scrollbar-thin">
-                        {filteredOptions.length === 0 ? (
-                            <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                Không tìm thấy kết quả
-                            </div>
-                        ) : (
-                            filteredOptions.map((option) => {
-                                const isSelected = multiple
-                                    ? Array.isArray(value) && value.includes(option.value)
-                                    : value === option.value;
-
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        disabled={option.disabled}
-                                        onClick={() => handleSelect(option)}
-                                        className={`
-                                            w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left
-                                            transition-colors
-                                            ${option.disabled
-                                                ? 'text-gray-400 cursor-not-allowed'
-                                                : 'hover:bg-[#F5EFE6]'
-                                            }
-                                            ${isSelected ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}
-                                        `}
-                                    >
-                                        {multiple && (
-                                            <div className={`
-                                                w-4 h-4 border rounded flex items-center justify-center
-                                                ${isSelected
-                                                    ? 'bg-primary-500 border-primary-500'
-                                                    : 'border-gray-300'
-                                                }
-                                            `}>
-                                                {isSelected && <Check className="w-3 h-3 text-white" />}
-                                            </div>
-                                        )}
-                                        {option.icon && <span className="shrink-0">{option.icon}</span>}
-                                        <span className="flex-1">{option.label}</span>
-                                        {!multiple && isSelected && (
-                                            <Check className="w-4 h-4 text-primary-500" />
-                                        )}
-                                    </button>
-                                );
-                            })
+            <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+                <Popover.Trigger asChild>
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        className={cn(
+                            "w-full flex items-center justify-between gap-2",
+                            "bg-[#FCF9F2] dark:bg-slate-900 border rounded-xl",
+                            "text-left transition-all duration-200",
+                            "focus:outline-none focus:ring-2",
+                            "disabled:bg-[#F5EFE6] dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed",
+                            sizeStyles[size],
+                            isOpen ? "ring-2 ring-primary-100 dark:ring-primary-900 border-primary-500" : "",
+                            hasError
+                                ? "border-red-300 focus:border-red-500 focus:ring-red-100 dark:border-red-800 dark:focus:ring-red-900"
+                                : "border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-primary-100 dark:focus:ring-primary-900"
                         )}
-                    </div>
-                </div>
-            )}
+                    >
+                        <span className={cn("truncate", hasValue ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500")}>
+                            {displayValue()}
+                        </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                            {clearable && hasValue && (
+                                <span
+                                    onClick={handleClear}
+                                    className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
+                                >
+                                    <X className="w-3.5 h-3.5 text-slate-400" />
+                                </span>
+                            )}
+                            <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isOpen && "rotate-180")} />
+                        </div>
+                    </button>
+                </Popover.Trigger>
+
+                <Popover.Portal>
+                    <Popover.Content
+                        sideOffset={4}
+                        align="start"
+                        style={{ width: 'var(--radix-popover-trigger-width)' }}
+                        onOpenAutoFocus={(e) => {
+                            if (searchable) {
+                                e.preventDefault();
+                                inputRef.current?.focus();
+                            }
+                        }}
+                        className={cn(
+                            "z-[70] bg-[#FCF9F2] dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-dropdown overflow-hidden",
+                            "animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200"
+                        )}
+                    >
+                        {/* Search Input */}
+                        {searchable && (
+                            <div className="p-2 border-b border-slate-200 dark:border-slate-800">
+                                <div className="relative flex items-center">
+                                    <Search className="absolute left-3 w-4 h-4 text-slate-400" />
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Tìm kiếm..."
+                                        className="w-full pl-9 pr-3 py-2 bg-[#F5EFE6] dark:bg-slate-800 border-0 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Options List */}
+                        <div className="max-h-60 overflow-y-auto scrollbar-thin">
+                            {filteredOptions.length === 0 ? (
+                                <div className="px-4 py-3 text-sm text-slate-500 text-center">
+                                    Không tìm thấy kết quả
+                                </div>
+                            ) : (
+                                filteredOptions.map((option) => {
+                                    const isSelected = multiple
+                                        ? Array.isArray(value) && value.includes(option.value)
+                                        : value === option.value;
+
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            disabled={option.disabled}
+                                            onClick={() => handleSelect(option)}
+                                            className={cn(
+                                                "w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left transition-colors outline-none",
+                                                option.disabled
+                                                    ? "text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                                                    : "hover:bg-[#F5EFE6] dark:hover:bg-slate-800 focus:bg-[#F5EFE6] dark:focus:bg-slate-800",
+                                                isSelected
+                                                    ? "bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-400 font-medium"
+                                                    : "text-slate-700 dark:text-slate-300"
+                                            )}
+                                        >
+                                            {multiple && (
+                                                <div className={cn(
+                                                    "w-4 h-4 border rounded flex flex-shrink-0 items-center justify-center transition-colors",
+                                                    isSelected
+                                                        ? "bg-primary-500 border-primary-500 text-white"
+                                                        : "border-slate-300 dark:border-slate-600"
+                                                )}>
+                                                    {isSelected && <Check className="w-3 h-3" />}
+                                                </div>
+                                            )}
+                                            {option.icon && <span className="shrink-0">{option.icon}</span>}
+                                            <span className="flex-1 truncate">{option.label}</span>
+                                            {!multiple && isSelected && (
+                                                <Check className="w-4 h-4 text-primary-500 shrink-0" />
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </Popover.Content>
+                </Popover.Portal>
+            </Popover.Root>
 
             {/* Helper/Error Text */}
             {(error || helperText) && (
-                <p className={`mt-1.5 text-xs ${hasError ? 'text-danger-500' : 'text-gray-500'}`}>
+                <p className={cn("mt-1.5 text-xs", hasError ? "text-red-500 dark:text-red-400" : "text-slate-500 dark:text-slate-400")}>
                     {error || helperText}
                 </p>
             )}

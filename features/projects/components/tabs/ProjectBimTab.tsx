@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import * as OBC from '@thatopen/components';
+import { Group, Panel, Separator } from 'react-resizable-panels';
 import { Upload, Loader2, Building2, AlertCircle, CheckCircle, Maximize2, Minimize2, Info, LocateFixed, EyeOff, Focus, FileUp, Box, Keyboard, X as XIcon, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../../../../context/ThemeContext';
 
@@ -71,55 +72,7 @@ const ProjectBimTabContent: React.FC = () => {
         containerRef: containerRef as React.RefObject<HTMLDivElement | null>,
     });
 
-    // ── Resizable panels ──────────────────────
-    const LEFT_DEFAULT = 280, LEFT_MIN = 200, LEFT_MAX = 500;
-    const BOTTOM_DEFAULT = 240, BOTTOM_MIN = 100, BOTTOM_MAX = 500;
-    const [leftWidth, setLeftWidth] = useState(() => {
-        try { return parseInt(localStorage.getItem('bim-left-width') || '') || LEFT_DEFAULT; } catch { return LEFT_DEFAULT; }
-    });
-    const [bottomHeight, setBottomHeight] = useState(() => {
-        try { return parseInt(localStorage.getItem('bim-bottom-height') || '') || BOTTOM_DEFAULT; } catch { return BOTTOM_DEFAULT; }
-    });
-    const resizeDrag = useRef<{ type: 'left' | 'bottom'; startPos: number; startSize: number } | null>(null);
-
-    // Persist panel sizes
-    useEffect(() => { try { localStorage.setItem('bim-left-width', String(leftWidth)); } catch { } }, [leftWidth]);
-    useEffect(() => { try { localStorage.setItem('bim-bottom-height', String(bottomHeight)); } catch { } }, [bottomHeight]);
-
-    // Global mouse move/up for resize
-    useEffect(() => {
-        const onMouseMove = (e: MouseEvent) => {
-            const d = resizeDrag.current;
-            if (!d) return;
-            e.preventDefault();
-            if (d.type === 'left') {
-                const newW = Math.max(LEFT_MIN, Math.min(LEFT_MAX, d.startSize + (e.clientX - d.startPos)));
-                setLeftWidth(newW);
-            } else {
-                const newH = Math.max(BOTTOM_MIN, Math.min(BOTTOM_MAX, d.startSize - (e.clientY - d.startPos)));
-                setBottomHeight(newH);
-            }
-        };
-        const onMouseUp = () => { resizeDrag.current = null; document.body.style.cursor = ''; document.body.style.userSelect = ''; };
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp);
-        return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
-    }, []);
-
-    const startResizeLeft = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        resizeDrag.current = { type: 'left', startPos: e.clientX, startSize: leftWidth };
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-    }, [leftWidth]);
-
-    const startResizeBottom = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        resizeDrag.current = { type: 'bottom', startPos: e.clientY, startSize: bottomHeight };
-        document.body.style.cursor = 'row-resize';
-        document.body.style.userSelect = 'none';
-    }, [bottomHeight]);
-
+    // ── Resizable panels are now managed by react-resizable-panels ──
     const wrapperRef = useRef<HTMLDivElement>(null);
     const contextMenuRef = useRef<HTMLDivElement>(null);
     const originalMaterialsRef = useRef(new WeakMap<THREE.Material, THREE.Material>());
@@ -498,19 +451,18 @@ const ProjectBimTabContent: React.FC = () => {
             className={`w-full overflow-hidden ${isFullscreen ? '' : 'h-full'} ${isDark ? 'bg-slate-950' : 'bg-[#F5EFE6]'}`}
             style={{
                 ...(isFullscreen ? { width: '100vw', height: '100vh', position: 'fixed' as const, top: 0, left: 0, zIndex: 9999 } : {}),
-                display: 'grid',
-                gridTemplateColumns: showLeftPanel ? `${leftWidth}px 6px 1fr` : '1fr',
-                gridTemplateRows: showBottomPanel ? `1fr 6px ${bottomHeight}px` : '1fr',
             }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
+            <Group direction="horizontal" className="w-full h-full" id="bim-main-group" autoSaveId="bim-main-group-layout">
             {/* ─── LEFT SIDEBAR ─── */}
             {showLeftPanel && (
+                <>
+                <Panel defaultSize={20} minSize={15} maxSize={40} className="flex flex-col overflow-hidden">
                 <div
-                    className={`flex flex-col border-r overflow-hidden ${isDark ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-[#FCF9F2]'}`}
-                    style={{ gridRow: '1 / -1' }}
+                    className={`flex flex-col h-full border-r ${isDark ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-[#FCF9F2]'}`}
                 >
                     {/* Top: Model Tree */}
                     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
@@ -523,28 +475,27 @@ const ProjectBimTabContent: React.FC = () => {
                         <BimPropertiesPanel isBottomPanel={false} />
                     </div>
                 </div>
-            )}
+                </Panel>
 
             {/* ─── LEFT RESIZE HANDLE ─── */}
-            {showLeftPanel && (
-                <div
-                    className={`group relative cursor-col-resize flex items-center justify-center select-none
+                <Separator className={`group relative w-1 cursor-col-resize flex items-center justify-center select-none
                         ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}
-                        transition-colors
+                        transition-colors z-20
                     `}
-                    style={{ gridRow: '1 / -1' }}
-                    onMouseDown={startResizeLeft}
-                    onDoubleClick={() => setLeftWidth(LEFT_DEFAULT)}
-                    title="Kéo để resize (double-click reset)"
+                    title="Kéo để resize"
                 >
                     <div className={`w-0.5 h-8 rounded-full transition-all
                         ${isDark ? 'bg-slate-700 group-hover:bg-blue-400' : 'bg-gray-300 group-hover:bg-blue-500'}
                     `} />
-                </div>
+                </Separator>
+                </>
             )}
 
-            {/* ─── MAIN 3D CANVAS ─── */}
-            <div className={`relative flex flex-col min-h-0 min-w-0 ${cursorClass}`}>
+            {/* ─── MAIN RIGHT REGION (3D Canvas & Bottom Panel) ─── */}
+            <Panel className="flex flex-col">
+                <Group direction="vertical" id="bim-right-group" autoSaveId="bim-right-group-layout">
+                    {/* ─── MAIN 3D CANVAS ─── */}
+                    <Panel className={`relative min-h-[100px] flex flex-col flex-1 ${cursorClass}`}>
                 {/* Active tool indicator */}
                 {activeToolLabel && (
                     <div className={`
@@ -780,33 +731,27 @@ const ProjectBimTabContent: React.FC = () => {
                         </div>
                     </div>
                 )}
-            </div>
+                </Panel>
 
             {/* ─── BOTTOM RESIZE HANDLE ─── */}
             {showBottomPanel && (
-                <div
-                    className={`group relative cursor-row-resize flex items-center justify-center select-none
+                <>
+                <Separator
+                    className={`group relative h-1 cursor-row-resize flex items-center justify-center select-none z-20
                         ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}
                         transition-colors
                     `}
-                    style={{ gridColumn: showLeftPanel ? '3' : '1' }}
-                    onMouseDown={startResizeBottom}
-                    onDoubleClick={() => setBottomHeight(BOTTOM_DEFAULT)}
-                    title="Kéo để resize (double-click reset)"
+                    title="Kéo để resize"
                 >
                     <div className={`h-0.5 w-12 rounded-full transition-all
                         ${isDark ? 'bg-slate-700 group-hover:bg-blue-400' : 'bg-gray-300 group-hover:bg-blue-500'}
                     `} />
-                </div>
-            )}
+                </Separator>
 
             {/* ─── BOTTOM PANEL: Operations Management ─── */}
-            {showBottomPanel && (
-                <div
-                    className={`flex flex-col overflow-hidden border-t z-20
+                <Panel defaultSize={25} minSize={15} maxSize={60} className={`flex flex-col overflow-hidden border-t z-20
                         ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-[#FCF9F2] border-gray-200'}
                     `}
-                    style={{ gridColumn: showLeftPanel ? '3' : '1' }}
                 >
                     {/* Panel header */}
                     <div className={`
@@ -832,8 +777,12 @@ const ProjectBimTabContent: React.FC = () => {
                     <div className="flex-1 overflow-auto">
                         <FacilityManagementPanel />
                     </div>
-                </div>
+                </Panel>
+                </>
             )}
+            </Group>
+            </Panel>
+            </Group>
 
             {/* Footer when no models */}
             {(!engine.viewerReady || !hasModels) && (

@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 // ========================================
-// MODAL COMPONENT - Design System v2
+// MODAL COMPONENT - Design System v2 (Radix UI Powered)
 // ========================================
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -42,107 +44,83 @@ export const Modal: React.FC<ModalProps> = ({
     footer,
     className = '',
 }) => {
-    const modalRef = useRef<HTMLDivElement>(null);
-    const previousFocusRef = useRef<HTMLElement | null>(null);
-
-    // Handle escape key
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (e.key === 'Escape' && closeOnEscape) {
-            onClose();
-        }
-    }, [closeOnEscape, onClose]);
-
-    // Focus trap and keyboard handling
-    useEffect(() => {
-        if (isOpen) {
-            previousFocusRef.current = document.activeElement as HTMLElement;
-            document.addEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = 'hidden';
-
-            // Focus first focusable element
-            setTimeout(() => {
-                const focusable = modalRef.current?.querySelectorAll(
-                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-                );
-                (focusable?.[0] as HTMLElement)?.focus();
-            }, 0);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = '';
-            previousFocusRef.current?.focus();
-        };
-    }, [isOpen, handleKeyDown]);
-
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-                onClick={closeOnOverlay ? onClose : undefined}
-                aria-hidden="true"
-            />
-
-            {/* Modal Content */}
-            <div
-                ref={modalRef}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={title ? 'modal-title' : undefined}
-                aria-describedby={description ? 'modal-description' : undefined}
-                className={`
-                    relative w-full ${sizeStyles[size]}
-                    bg-[#FCF9F2] rounded-2xl shadow-modal
-                    animate-scale-in
-                    max-h-[90vh] overflow-hidden flex flex-col
-                    ${className}
-                `}
-            >
-                {/* Header */}
-                {(title || showCloseButton) && (
-                    <div className="flex items-start justify-between p-6 pb-0">
-                        <div>
-                            {title && (
-                                <h2 id="modal-title" className="text-lg font-bold text-gray-900">
-                                    {title}
-                                </h2>
-                            )}
-                            {description && (
-                                <p id="modal-description" className="text-sm text-gray-500 mt-1">
-                                    {description}
-                                </p>
-                            )}
-                        </div>
-                        {showCloseButton && (
-                            <button
-                                onClick={onClose}
-                                className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-                                aria-label="Đóng"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+        <Dialog.Root open={isOpen} onOpenChange={(open) => {
+            // Only fire onClose if going from open -> closed
+            // and we didn't block it (Radix handles ESC/Overlay internally)
+            if (!open) onClose();
+        }}>
+            <Dialog.Portal>
+                <Dialog.Overlay 
+                    className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-fade-in data-[state=closed]:animate-fade-out" 
+                    onClick={(e) => {
+                        // Prevent overlay close if disabled
+                        if (!closeOnOverlay) {
+                            e.preventDefault();
+                        }
+                    }}
+                />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                    <Dialog.Content
+                        onPointerDownOutside={(e) => {
+                            if (!closeOnOverlay) e.preventDefault();
+                        }}
+                        onEscapeKeyDown={(e) => {
+                            if (!closeOnEscape) e.preventDefault();
+                        }}
+                        className={cn(
+                            "pointer-events-auto relative w-full bg-[#FCF9F2] dark:bg-slate-900 rounded-2xl shadow-modal flex flex-col max-h-[90vh] overflow-hidden",
+                            "animate-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 duration-200",
+                            sizeStyles[size],
+                            className
                         )}
-                    </div>
-                )}
+                        aria-describedby={description ? 'modal-description' : undefined}
+                    >
+                        {/* Header */}
+                        {(title || showCloseButton) && (
+                            <div className="flex items-start justify-between p-6 pb-0">
+                                <div>
+                                    {title && (
+                                        <Dialog.Title id="modal-title" className="text-lg font-bold text-slate-900 dark:text-white">
+                                            {title}
+                                        </Dialog.Title>
+                                    )}
+                                    {description && (
+                                        <Dialog.Description id="modal-description" className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                            {description}
+                                        </Dialog.Description>
+                                    )}
+                                </div>
+                                {showCloseButton && (
+                                    <Dialog.Close asChild>
+                                        <button
+                                            className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                                            aria-label="Đóng"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </Dialog.Close>
+                                )}
+                            </div>
+                        )}
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6">
-                    {children}
-                </div>
-
-                {/* Footer */}
-                {footer && (
-                    <div className="p-6 pt-0 border-t border-gray-200 mt-4">
-                        <div className="flex items-center justify-end gap-3 pt-4">
-                            {footer}
+                        {/* Body */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {children}
                         </div>
-                    </div>
-                )}
-            </div>
-        </div>
+
+                        {/* Footer */}
+                        {footer && (
+                            <div className="p-6 pt-0 border-t border-slate-200 dark:border-slate-800 mt-4">
+                                <div className="flex items-center justify-end gap-3 pt-4">
+                                    {footer}
+                                </div>
+                            </div>
+                        )}
+                    </Dialog.Content>
+                </div>
+            </Dialog.Portal>
+        </Dialog.Root>
     );
 };
 
@@ -174,15 +152,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     loading = false,
 }) => {
     const variantStyles = {
-        danger: 'bg-danger-500 hover:bg-danger-600 focus-visible:ring-danger-500',
-        warning: 'bg-warning-500 hover:bg-warning-600 focus-visible:ring-warning-500',
+        danger: 'bg-red-500 hover:bg-red-600 focus-visible:ring-red-500',
+        warning: 'bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-500',
         info: 'bg-primary-500 hover:bg-primary-600 focus-visible:ring-primary-500',
     };
 
     const iconStyles = {
-        danger: 'bg-danger-100 text-danger-600',
-        warning: 'bg-warning-100 text-warning-600',
-        info: 'bg-primary-100 text-primary-600',
+        danger: 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400',
+        warning: 'bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400',
+        info: 'bg-primary-100 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400',
     };
 
     return (
@@ -193,7 +171,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             showCloseButton={false}
         >
             <div className="text-center">
-                <div className={`w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center ${iconStyles[variant]}`}>
+                <div className={cn("w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center", iconStyles[variant])}>
                     {variant === 'danger' && (
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -210,22 +188,22 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                         </svg>
                     )}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500">{message}</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{message}</p>
             </div>
 
             <div className="flex gap-3 mt-6">
                 <button
                     onClick={onClose}
                     disabled={loading}
-                    className="flex-1 px-4 py-2.5 bg-[#FCF9F2] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-[#F5EFE6] transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 bg-[#FCF9F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-[#F5EFE6] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                 >
                     {cancelText}
                 </button>
                 <button
                     onClick={onConfirm}
                     disabled={loading}
-                    className={`flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-colors disabled:opacity-50 ${variantStyles[variant]}`}
+                    className={cn("flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-colors disabled:opacity-50", variantStyles[variant])}
                 >
                     {loading ? (
                         <span className="flex items-center justify-center gap-2">
