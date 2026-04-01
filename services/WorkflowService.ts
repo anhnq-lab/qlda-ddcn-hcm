@@ -216,24 +216,26 @@ export const WorkflowService = {
     return instance as any;
   },
 
-  /** Khởi tạo một Instance Kế hoạch dự án (Tạo sẵn toàn bộ công việc theo cấu trúc Gantt) */
+  /** Khởi tạo một Instance Kế hoạch dự án (Tạo sẵn toàn bộ công việc theo cấu trúc 4 cấp) */
   createProjectPlanInstance: async (
     projectId: string, 
     workflowId: string, 
     planStartDate: string, 
     planEndDate: string, 
-    createdBy: string
+    _createdBy?: string
   ): Promise<WorkflowInstance> => {
+    // 0. Lấy auth user UUID (FK created_by → auth.users)
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const authUserId = authUser?.id || null;
+
     // 1. Tìm start node
-    const { data: startNode, error: nodeErr } = await supabase
+    const { data: startNode } = await supabase
       .from('workflow_nodes')
       .select('id')
       .eq('workflow_id', workflowId)
       .eq('type', 'start')
       .limit(1)
-      .single();
-
-    if (nodeErr) throw new Error('Không tìm thấy điểm bắt đầu của quy trình');
+      .maybeSingle();
 
     // 2. Tạo Instance
     const { data: instance, error: instErr } = await supabase
@@ -243,25 +245,26 @@ export const WorkflowService = {
         reference_type: 'project',
         workflow_id: workflowId,
         status: 'in_progress',
-        current_node_id: startNode.id,
-        created_by: createdBy
+        current_node_id: startNode?.id || null,
+        ...(authUserId ? { created_by: authUserId } : {}),
       })
       .select()
       .single();
 
     if (instErr) throw instErr;
 
-    // 3. Lấy toàn bộ Nodes
+    // 3. Lấy toàn bộ Nodes (order by created_at để giữ đúng thứ tự seed)
     const { data: allNodes } = await supabase
        .from('workflow_nodes')
        .select('*')
        .eq('workflow_id', workflowId)
        .eq('is_deleted', false)
-       .order('name', { ascending: true }); // Assumes step naming like "Bước 1..."
+       .order('created_at', { ascending: true });
 
     if (allNodes && allNodes.length > 0) {
+        // Tính tổng SLA để phân bổ thời gian
+        const workNodes = allNodes.filter(n => ['approval', 'input', 'automated', 'start'].includes(n.type));
         let totalSla = 0;
-        const workNodes = allNodes.filter(n => ['approval', 'input', 'automated'].includes(n.type));
 
         workNodes.forEach(n => {
             if (n.sla_formula) {
@@ -278,9 +281,11 @@ export const WorkflowService = {
         const planTotalMs = endTimestamp - startTimestamp;
 
         let currentMs = startTimestamp;
+        const tasksToInsert: any[] = [];
 
-        // Sinh hàng loạt Tasks
-        const tasksToInsert = workNodes.map(targetNode => {
+        // Sinh tasks theo đúng cấu trúc 4 cấp:
+        // Phase → Sub-process → Step (node) → Sub-tasks (metadata.sub_tasks[])
+        for (const targetNode of workNodes) {
             let nodeSla = 1;
             if (targetNode.sla_formula) {
                 const match = targetNode.sla_formula.match(/^(\d+)d$/);
@@ -289,30 +294,79 @@ export const WorkflowService = {
             
             const proportion = nodeSla / totalSla;
             const allocatedMs = planTotalMs * proportion;
-            const endNodeMs = currentMs + allocatedMs;
+            const nodeEndMs = currentMs + allocatedMs;
             
-            const task = {
-               instance_id: instance.id,
-               node_id: targetNode.id,
-               name: targetNode.name,
-               task_type: 'workflow',
-               status: 'pending',
-               start_date: new Date(currentMs).toISOString(),
-               due_date: new Date(endNodeMs).toISOString(),
-               progress: 0,
-               metadata: targetNode.metadata || {}
-            };
+            const nodeMetadata = (targetNode.metadata || {}) as any;
+            const subTasks = nodeMetadata.sub_tasks || [];
             
-            currentMs = endNodeMs;
-            return task;
-        });
+            if (subTasks.length > 0) {
+                // Có sub-tasks → sinh task cho TỪNG sub-task (phân bổ thời gian đều)
+                const subTaskDuration = allocatedMs / subTasks.length;
+                let subCurrentMs = currentMs;
+                
+                subTasks.forEach((st: any, idx: number) => {
+                    const subEndMs = subCurrentMs + subTaskDuration;
+                    // Extract step number from node name (e.g., "2. Thẩm định..." → "2")
+                    const stepMatch = targetNode.name.match(/^(\d+)\./);
+                    const stepNum = stepMatch ? stepMatch[1] : '?';
+                    
+                    tasksToInsert.push({
+                        instance_id: instance.id,
+                        node_id: targetNode.id,
+                        name: st.name || st.title || `Công việc ${idx + 1}`,
+                        task_type: 'sub_task',
+                        status: 'pending',
+                        start_date: new Date(subCurrentMs).toISOString(),
+                        due_date: new Date(subEndMs).toISOString(),
+                        progress: 0,
+                        metadata: {
+                            phase: nodeMetadata.phase || 'preparation',
+                            sub_process: nodeMetadata.sub_process || '',
+                            parent_step: targetNode.name,
+                            parent_node_id: targetNode.id,
+                            step_number: stepNum,
+                            sub_task_index: idx + 1,
+                            sub_task_code: `${stepNum}.${idx + 1}`,
+                            assignee_role: st.assignee_role || '',
+                            output: st.output || '',
+                            legal_basis: st.legal_basis || '',
+                            template_forms: st.template_forms || '',
+                            sla_formula: targetNode.sla_formula,
+                        }
+                    });
+                    
+                    subCurrentMs = subEndMs;
+                });
+            } else {
+                // Không có sub-tasks → sinh 1 task cho node
+                tasksToInsert.push({
+                    instance_id: instance.id,
+                    node_id: targetNode.id,
+                    name: targetNode.name,
+                    task_type: 'workflow',
+                    status: 'pending',
+                    start_date: new Date(currentMs).toISOString(),
+                    due_date: new Date(nodeEndMs).toISOString(),
+                    progress: 0,
+                    metadata: {
+                        phase: nodeMetadata.phase || 'preparation',
+                        sub_process: nodeMetadata.sub_process || '',
+                        sla_formula: targetNode.sla_formula,
+                    }
+                });
+            }
+            
+            currentMs = nodeEndMs;
+        }
 
-        if (!tasksToInsert.length) return instance as any;
-        await supabase.from('workflow_tasks').insert(tasksToInsert as any[]);
+        if (tasksToInsert.length > 0) {
+            const { error: insertErr } = await supabase.from('workflow_tasks').insert(tasksToInsert);
+            if (insertErr) {
+                console.error('Failed to insert plan tasks:', insertErr);
+                throw new Error(`Tạo công việc thất bại: ${insertErr.message}`);
+            }
+        }
     }
-
-    // 4. Kích hoạt engine chạy từ StartNode
-    await WorkflowService.transitionToNextNodes(instance.id, startNode.id, createdBy);
 
     return instance as any;
   },

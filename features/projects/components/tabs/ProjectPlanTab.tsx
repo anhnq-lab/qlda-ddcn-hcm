@@ -724,10 +724,35 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getStepSubTasks(item.code).length, 0)}
                         />
 
-                        {/* Expanded Items */}
+                        {/* Expanded Items — 4-tier: Phase → Sub-process → Step → Tasks */}
                         {expandedPhases[phase.id] && (
-                            <div className="mt-2 ml-4 border-l-2 border-gray-200 dark:border-slate-700 pl-4 space-y-2">
-                                {phase.items.map((item) => {
+                            <div className="mt-2 ml-4 border-l-2 border-gray-200 dark:border-slate-700 pl-4 space-y-3">
+                                {(phase.subProcesses || [{ id: '0', title: '', fullTitle: '', items: phase.items }]).map((sp) => (
+                                    <div key={sp.id}>
+                                        {/* Sub-process Header */}
+                                        {sp.fullTitle && (
+                                            <button
+                                                onClick={() => setExpandedPhases(prev => ({ ...prev, [`sp_${sp.id}`]: !prev[`sp_${sp.id}`] }))}
+                                                className="w-full flex items-center gap-2 px-3 py-2 mb-1 rounded-lg bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 transition-colors group/sp"
+                                            >
+                                                {expandedPhases[`sp_${sp.id}`] === false
+                                                    ? <ChevronRight className="w-4 h-4 text-amber-500 shrink-0" />
+                                                    : <ChevronDown className="w-4 h-4 text-amber-500 shrink-0" />
+                                                }
+                                                <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                                <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                                    {sp.fullTitle}
+                                                </span>
+                                                <span className="text-[10px] text-amber-500 dark:text-amber-400 ml-auto shrink-0">
+                                                    {sp.items.length} bước
+                                                </span>
+                                            </button>
+                                        )}
+
+                                        {/* Steps inside sub-process (default expanded) */}
+                                        {expandedPhases[`sp_${sp.id}`] !== false && (
+                                        <div className={`space-y-2 ${sp.fullTitle ? 'ml-3 border-l border-amber-200/40 dark:border-amber-700/30 pl-3' : ''}`}>
+                                {sp.items.map((item) => {
                                     const linkedTasks = filteredTasks
                                         .filter(t => t.TimelineStep === item.code)
                                         .sort((a, b) => {
@@ -1155,6 +1180,10 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                         </div>
                                     );
                                 })}
+                                </div>
+                                )}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

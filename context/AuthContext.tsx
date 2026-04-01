@@ -183,51 +183,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         let mounted = true;
 
-        // Safety timeout: reduced from 8s to 5s for faster UX
+        // Safety timeout
         const timeout = setTimeout(() => {
             if (mounted && isLoading) {
-                console.warn('[Auth] Session check timed out after 5s');
+                console.warn('[Auth] Session check timed out after 6s');
                 setIsLoading(false);
             }
-        }, 5000);
+        }, 6000);
 
         const initAuth = async () => {
             try {
-                // Wrap getSession in a 2-second timeout to avoid Web Lock API deadlocks from Vite HMR
-                const sessionPromise = supabase.auth.getSession();
-                const timeoutPromise = new Promise<{data: {session: null}, error: Error}>((_, reject) => {
-                    setTimeout(() => reject(new Error('Supabase getSession timeout (Vite HMR Deadlock)')), 2000);
-                });
-
                 let existingSession: Session | null = null;
                 try {
-                    const result = await Promise.race([sessionPromise, timeoutPromise]);
-                    if (result.error) throw result.error;
-                    existingSession = result.data.session;
+                    const { data, error } = await supabase.auth.getSession();
+                    if (!error) existingSession = data.session;
                 } catch (e: any) {
-                    console.warn('[Auth] getSession failed or timed out:', e.message);
-                    // Provide a hint to the user for HMR deadlocks
-                    if (e.message.includes('Deadlock')) {
-                        console.error('🚨 HMR DEADLOCK DETECTED! PLEASE HARD REFRESH THE BROWSER (F5 or CMD+R) TO RELEASE SUPABASE AUTH LOCKS 🚨');
-                    }
+                    console.warn('[Auth] getSession failed:', e.message);
                 }
                 
                 // --- DEV AUTO-LOGIN ---
-                // Dành cho local development: Không cần đăng nhập, tự động có full quyền
                 if (import.meta.env.DEV && !existingSession) {
-                    // Check if user explicitly logged out in this tab
                     const explicitlyLoggedOut = localStorage.getItem('explicitlyLoggedOut') === 'true';
                     
                     if (!explicitlyLoggedOut && !autoLoginAttempted) {
-                        autoLoginAttempted = true; // Prevent concurrent calls in React.StrictMode
+                        autoLoginAttempted = true;
                         console.log('[Auth] 🔧 Local Dev: Auto-logging in as Admin...');
                         const demoLogin = await supabase.auth.signInWithPassword({
                             email: 'admin@bqlddcn.gov.vn',
                             password: '123456',
                         });
-                        
-                        // Give it a tiny delay to let lock release from Supabase JS internals
-                        await new Promise(r => setTimeout(r, 100));
                         
                         if (demoLogin.data?.session) {
                             if (!mounted) return;
@@ -235,7 +219,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             await handleAuthUser(demoLogin.data.user);
                             setIsLoading(false);
                             clearTimeout(timeout);
-                            return; // Dừng ở đây vì login thành công
+                            return;
                         } else if (demoLogin.error) {
                             console.error('[Auth] Local Dev Auto-login failed:', demoLogin.error.message);
                         }
@@ -281,23 +265,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (identifier: string, pass: string): Promise<boolean> => {
         console.log('[Auth] Login attempt for:', identifier);
 
-        // Clear any stale session that might block Supabase queries
-        try {
-            await Promise.race([
-                supabase.auth.signOut({ scope: 'local' }),
-                new Promise((res) => setTimeout(res, 500))
-            ]);
-        } catch (e) {
-            // Ignore signOut errors
+        // Resolve username/phone to email for Supabase Auth
+        // Do NOT call signOut() before this — it causes lock conflicts
+        let email = await resolveEmail(identifier);
+        console.log('[Auth] Resolved email:', email);
+
+        // DEV fallback: if RPC fails but user typed "admin", use hardcoded email
+        if (!email && import.meta.env.DEV && identifier.toLowerCase() === 'admin') {
+            console.warn('[Auth] ⚠️ DEV fallback: using hardcoded admin email');
+            email = 'admin@bqlddcn.gov.vn';
         }
 
-        // Resolve username/phone to email for Supabase Auth
-        const email = await resolveEmail(identifier);
-        console.log('[Auth] Resolved email:', email);
         if (!email) {
             console.error('[Auth] Could not resolve email for:', identifier);
             return false;
         }
+
+        // Sign out existing session before new login (local scope only)
+        try {
+            await supabase.auth.signOut({ scope: 'local' });
+        } catch (_) { /* ignore */ }
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -305,21 +292,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         if (error || !data.user) {
-            console.error('[Auth] Login failed via Supabase Auth:', error?.message);
-            // If we are in Dev and they typed "admin", maybe the network failed, but we still allow real login attempt
-            if (import.meta.env.DEV && identifier.toLowerCase() === 'admin' && pass === '123456') {
-                console.warn('[Auth] ⚠️ Network issue? DEV Admin fallback triggered.');
-                const demoLogin = await supabase.auth.signInWithPassword({
-                    email: 'admin@bqlddcn.gov.vn',
-                    password: '123456',
-                });
-                if (demoLogin.data?.session) {
-                    localStorage.removeItem('explicitlyLoggedOut');
-                    setSession(demoLogin.data.session);
-                    setSupabaseUser(demoLogin.data.user);
-                    return true;
-                }
-            }
+            console.error('[Auth] Login failed:', error?.message);
             return false;
         }
 

@@ -10,7 +10,20 @@ if (!supabaseUrl || !supabaseKey) {
 
 export const supabase: SupabaseClient<Database> = createClient<Database>(
     supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseKey || 'placeholder-key'
+    supabaseKey || 'placeholder-key',
+    {
+        auth: {
+            storageKey: 'qlda-ddcn-auth',
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: false,
+            // Disable Navigator Lock API to prevent Vite HMR deadlocks
+            // The lock mechanism causes "NavigatorLockAcquireTimeoutError" during rapid auth state changes
+            lock: async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
+                return await fn();
+            },
+        },
+    }
 );
 
 /** Check if Supabase is properly configured */
