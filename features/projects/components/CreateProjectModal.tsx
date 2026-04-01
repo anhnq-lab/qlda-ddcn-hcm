@@ -186,7 +186,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         StartDate: new Date().toISOString().split('T')[0],
         // Section 2 - Thông tin đầu tư
         TotalInvestment: 0,
-        CapitalSource: 'Ngân sách Tỉnh',
+        CapitalSource: 'Ngân sách Địa phương',
         ProvinceCode: '79', // TP. Hồ Chí Minh default
         LocationCode: '',
         ConstructionType: '',
@@ -194,7 +194,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         CompetentAuthority: 'UBND TP.HCM',
         InvestorName: 'Ban QLDA ĐTXD CN',
         Duration: '',
-        ManagementBoard: 0,
+        ManagementBoard: 1,
         ApprovalDate: '',
         DecisionNumber: '',
         // Section 3 - Nhà thầu & Tiêu chuẩn
@@ -202,6 +202,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         FeasibilityContractor: '',
         SurveyContractor: '',
         ReviewContractor: '',
+        // Mục tiêu & Quy mô đầu tư
+        Objective: '',
+        InvestmentScale: '',
         // Section 2.5 - Quy mô công trình
         TotalEstimate: 0,
         SiteArea: 0,
@@ -224,7 +227,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 InvestmentType: editProject.InvestmentType || InvestmentType.Public,
                 StartDate: editProject.StartDate ? new Date(editProject.StartDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                 TotalInvestment: editProject.TotalInvestment || 0,
-                CapitalSource: editProject.CapitalSource || 'Ngân sách Tỉnh',
+                CapitalSource: editProject.CapitalSource || 'Ngân sách Địa phương',
                 ProvinceCode: editProject.ProvinceCode || '79',
                 LocationCode: editProject.LocationCode || '',
                 ConstructionType: editProject.ConstructionType || '',
@@ -232,13 +235,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 CompetentAuthority: editProject.CompetentAuthority || 'UBND TP.HCM',
                 InvestorName: editProject.InvestorName || 'Ban QLDA ĐTXD CN',
                 Duration: editProject.Duration || '',
-                ManagementBoard: editProject.ManagementBoard || 0,
+                ManagementBoard: editProject.ManagementBoard || 1,
                 ApprovalDate: editProject.ApprovalDate ? new Date(editProject.ApprovalDate).toISOString().split('T')[0] : '',
                 DecisionNumber: editProject.DecisionNumber || '',
                 ApplicableStandards: editProject.ApplicableStandards || '',
                 FeasibilityContractor: editProject.FeasibilityContractor || '',
                 SurveyContractor: editProject.SurveyContractor || '',
                 ReviewContractor: editProject.ReviewContractor || '',
+                Objective: editProject.Objective || '',
+                InvestmentScale: editProject.InvestmentScale || '',
                 TotalEstimate: editProject.TotalEstimate || 0,
                 SiteArea: editProject.SiteArea || 0,
                 ConstructionArea: editProject.ConstructionArea || 0,
@@ -496,8 +501,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     const iconClass = "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden border border-gray-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+        }}>
+            <div className="bg-[#FCF9F2] dark:bg-slate-800 shadow-2xl w-full max-w-6xl h-full overflow-hidden flex flex-col animate-in slide-in-from-right duration-300">
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800">
@@ -730,6 +737,32 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             </div>
                         </div>
 
+                        {/* Mục tiêu đầu tư */}
+                        <div className="mt-4">
+                            <label className={labelClass}>Mục tiêu đầu tư</label>
+                            <textarea
+                                placeholder="VD: Đáp ứng yêu cầu tổ chức các giải đấu quốc tế, góp phần tạo cơ sở vật chất hoàn chỉnh..."
+                                className={inputClass + ' min-h-[72px] resize-none' + aiHighlight('Objective')}
+                                value={formData.Objective}
+                                onChange={e => updateField('Objective', e.target.value)}
+                                rows={2}
+                                onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                            />
+                        </div>
+
+                        {/* Tóm tắt quy mô đầu tư */}
+                        <div className="mt-4">
+                            <label className={labelClass}>Tóm tắt quy mô đầu tư</label>
+                            <textarea
+                                placeholder="VD: Cải tạo, sửa chữa hiện trạng công trình gồm: trệt + mái tôn; dài khoảng 135,65m..."
+                                className={inputClass + ' min-h-[72px] resize-none' + aiHighlight('InvestmentScale')}
+                                value={formData.InvestmentScale}
+                                onChange={e => updateField('InvestmentScale', e.target.value)}
+                                rows={2}
+                                onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                            />
+                        </div>
+
                         {/* Ban QLDA */}
                         <div className="mt-4">
                             <label className={labelClass}>Ban Quản Lý Dự Án</label>
@@ -926,7 +959,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowCapitalDropdown(false)} />
                                         <div className="absolute z-20 mt-1 w-full bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden py-1">
-                                            {['Ngân sách Trung ương', 'Ngân sách Tỉnh', 'Ngân sách Huyện', 'Ngân sách Xã', 'Vốn ODA', 'Vốn tư nhân', 'Khác'].map(source => {
+                                            {['Ngân sách Trung ương', 'Ngân sách Địa phương', 'Vốn ODA', 'Vốn tư nhân', 'Khác'].map(source => {
                                                 const currentSources = formData.CapitalSource ? formData.CapitalSource.split(',').map(s => s.trim()).filter(Boolean) : [];
                                                 const isSelected = currentSources.includes(source);
                                                 return (

@@ -28,3 +28,5 @@ export { dbToPayment, paymentToDb } from './mappers/paymentMappers';
 
 // Task
 export { dbToTask, taskToDb } from './mappers/taskMappers';
+// Workflow Task
+export { workflowTaskToTask } from './mappers/workflowTaskMappers';

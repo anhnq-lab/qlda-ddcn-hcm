@@ -4,7 +4,7 @@ import {
     Users, Briefcase, Calendar, User, Flag, CheckSquare,
     AlignLeft, BarChart3, Save, Zap, Download
 } from 'lucide-react';
-import { SubTaskDef } from '../hooks/useWorkflowPhases';
+import { SubTaskDef } from '@/utils/stepSubtasksRegistry';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
 import { Task, TaskStatus, TaskPriority, Employee, Project } from '@/types';
 import { useEmployees } from '@/hooks/useEmployees';

@@ -115,7 +115,9 @@ export class ContractService {
         totalValue: number;
         byStatus: Record<ContractStatus, number>;
     }> {
-        const contracts = await this.getAll();
+        // Fetch only required fields to minimize network payload
+        const { data, error } = await supabase.from('contracts').select('status, value');
+        if (error) throw new Error(`Failed to fetch contract statistics: ${error.message}`);
 
         const byStatus = {
             [ContractStatus.Executing]: 0,
@@ -125,13 +127,18 @@ export class ContractService {
 
         let totalValue = 0;
 
-        contracts.forEach(c => {
-            byStatus[c.Status]++;
-            totalValue += c.Value;
+        (data || []).forEach(c => {
+            // Ensure status maps correctly, default to Executing if unknown
+            const st = [ContractStatus.Executing, ContractStatus.Paused, ContractStatus.Liquidated].includes(c.status)
+                ? (c.status as ContractStatus)
+                : ContractStatus.Executing;
+            
+            byStatus[st]++;
+            totalValue += Number(c.value) || 0;
         });
 
         return {
-            total: contracts.length,
+            total: (data || []).length,
             totalValue,
             byStatus,
         };

@@ -14,7 +14,7 @@ import { AIRiskDashboard } from '../../components/ai/AIRiskDashboard';
 import { AIAnomalyDetector } from '../../components/ai/AIAnomalyDetector';
 import { AIContractorScoring } from '../../components/ai/AIContractorScoring';
 import { AIResourceOptimizer } from '../../components/ai/AIResourceOptimizer';
-import { StatCard } from '../../components/ui';
+import { StatCard, ErrorBoundary } from '../../components/ui';
 
 
 // ── Phase Badge ──────────────────────────────────────────
@@ -80,12 +80,6 @@ const Dashboard: React.FC = () => {
         staleTime: STALE_5M,
     });
 
-    const { data: projects } = useQuery({
-        queryKey: ['projects', 'all'],
-        queryFn: () => ProjectService.getAll(),
-        staleTime: STALE_5M,
-    });
-
     const { data: capitalVsDisbursement } = useQuery({
         queryKey: ['dashboard', 'capitalVsDisbursement', selectedYear],
         queryFn: () => DashboardService.getCapitalVsDisbursement(selectedYear || undefined),
@@ -128,13 +122,14 @@ const Dashboard: React.FC = () => {
     }, [projectRows, selectedBoard, selectedYear]);
 
     const filteredProjects = useMemo(() => {
-        if (!projects) return [];
-        let list = [...projects];
-        if (selectedBoard !== 'all') {
-            list = list.filter(p => p.ManagementBoard?.toString() === selectedBoard);
-        }
-        return list;
-    }, [projects, selectedBoard]);
+        return filteredRows.map(r => ({
+            ProjectID: r.projectId,
+            ProjectName: r.projectName,
+            Status: r.status,
+            TotalInvestment: r.totalInvestment,
+            LocationCode: r.locationCode
+        }));
+    }, [filteredRows]);
 
     const statusSummary = useMemo(() => {
         const prep = filteredRows.filter(r => r.status === ProjectStatus.Preparation).length;
@@ -433,12 +428,14 @@ const Dashboard: React.FC = () => {
                     <div className="section-icon"><Brain className="w-5 h-5" /></div>
                     Trợ lý AI
                 </h3>
-                <AISummaryWidget />
+                <ErrorBoundary>
+                    <AISummaryWidget />
+                </ErrorBoundary>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <AIRiskDashboard />
-                    <AIAnomalyDetector />
-                    <AIContractorScoring />
-                    <AIResourceOptimizer />
+                    <ErrorBoundary><AIRiskDashboard /></ErrorBoundary>
+                    <ErrorBoundary><AIAnomalyDetector /></ErrorBoundary>
+                    <ErrorBoundary><AIContractorScoring /></ErrorBoundary>
+                    <ErrorBoundary><AIResourceOptimizer /></ErrorBoundary>
                 </div>
             </div>
 

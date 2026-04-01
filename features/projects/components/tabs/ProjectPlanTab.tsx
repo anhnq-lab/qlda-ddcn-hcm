@@ -15,8 +15,6 @@ import { TaskFilterBar, TaskFilter, TaskViewMode } from '../TaskFilterBar';
 import { KanbanBoardView } from '../KanbanBoardView';
 import { ResourceAllocationView } from '../ResourceAllocationView';
 import { ProgressBadge } from '../ProgressSlider';
-import { SubTaskDetailModal } from '../SubTaskDetailModal';
-import { SubTaskDef } from '../../hooks/useWorkflowPhases';
 import { TaskService } from '@/services/TaskService';
 import { WorkflowService } from '@/services/WorkflowService';
 import { WorkflowTask } from '@/types/workflow.types';
@@ -64,7 +62,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     // Dynamic phases from DB workflow templates
-    const { phases: DECREE_175_PHASES, getStepSubTasks, hasStepSubTasks, getGroupLabel, isLoading: isLoadingPhases } = useWorkflowPhases(groupCode, project);
+    const { phases: DECREE_175_PHASES, getGroupLabel, isLoading: isLoadingPhases } = useWorkflowPhases(groupCode, project);
 
     // Employee name lookup map
     const employeeNameMap = useMemo(() => {
@@ -83,6 +81,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             // Note: If overdue state exists in your legacy Tasks, map it here, otherwise keep as Todo or InProgress.
             else if (wt.status === 'overdue') mappedStatus = TaskStatus.InProgress;
             
+            // Restore exact UI status if saved in metadata
+            if (wt.metadata?.ui_status) {
+                mappedStatus = wt.metadata.ui_status;
+            }
+            
             return {
                 TaskID: wt.id,
                 ProjectID: projectID || '',
@@ -92,12 +95,20 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 Priority: TaskPriority.Medium,
                 StartDate: wt.start_date || wt.created_at,
                 DueDate: wt.due_date || undefined,
-                AssigneeID: wt.assignee_id || '',
+                AssigneeID: wt.assignee_id || wt.metadata?.assignee_role || '',
                 TimelineStep: wt.node_id || '',
                 StepCode: wt.node_id || '',
                 LegalBasis: wt.workflow_nodes?.metadata?.legalBasis || '',
                 DurationDays: wt.metadata?.estimatedDays || 10,
+                ActualStartDate: wt.metadata?.actualStartDate || wt.started_at,
+                ActualEndDate: wt.metadata?.actualEndDate || wt.completed_at,
+                ProgressPercent: wt.progress || 0,
                 Phase: phase,
+                SubTasks: wt.metadata?.sub_tasks || [],
+                Attachments: wt.metadata?.attachments || [],
+                Dependencies: wt.metadata?.dependencies || [],
+                EstimatedCost: wt.metadata?.estimated_cost,
+                ActualCost: wt.metadata?.actual_cost,
             } as Task;
         });
     }, [workflowTasks, projectID]);
@@ -159,9 +170,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [selectedStep, setSelectedStep] = useState<{ name: string; code: string } | null>(null);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
-    // Sub-task registry state
-    const [expandedSubTasks, setExpandedSubTasks] = useState<Record<string, boolean>>({});
-    const [selectedSubTask, setSelectedSubTask] = useState<{ def: SubTaskDef; stepTitle: string; stepCode: string } | null>(null);
     const [bulkCreatingAll, setBulkCreatingAll] = useState(false);
     const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
     const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
@@ -422,21 +430,39 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         const progress = taskData.ProgressPercent ?? (taskData as any).Progress ?? 0;
         
         // ── Map back to WorkflowTask schema ──
+        let mappedDbStatus = 'pending';
+        switch (taskData.Status) {
+            case TaskStatus.Todo: mappedDbStatus = 'pending'; break;
+            case TaskStatus.InProgress: mappedDbStatus = 'in_progress'; break;
+            case TaskStatus.Review: mappedDbStatus = 'in_progress'; break; 
+            case TaskStatus.Done: mappedDbStatus = 'completed'; break;
+            default: mappedDbStatus = 'pending';
+        }
+
         const workflowTaskData: any = {
             id: taskData.TaskID && !taskData.TaskID.startsWith('NEW_') ? taskData.TaskID : undefined,
             name: taskData.Title,
-            status: taskData.Status?.toLowerCase() || 'pending',
+            status: mappedDbStatus,
             progress: progress,
             start_date: taskData.StartDate,
             due_date: taskData.DueDate,
             started_at: taskData.ActualStartDate,
             completed_at: taskData.ActualEndDate,
-            assignee_id: taskData.AssigneeID || currentUserId,
+            assignee_id: (taskData.AssigneeID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskData.AssigneeID)) ? taskData.AssigneeID : currentUserId,
             project_id: projectID, // Dùng để auto-find instance_id trong service
             metadata: {
                 priority: taskData.Priority || 'Medium',
                 step_code: taskData.TimelineStep || taskData.StepCode || selectedStep?.code,
                 predecessor_id: taskData.PredecessorTaskID,
+                assignee_role: taskData.AssigneeID && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskData.AssigneeID) ? taskData.AssigneeID : undefined,
+                ui_status: taskData.Status,
+                description: taskData.Description,
+                sub_tasks: taskData.SubTasks,
+                attachments: taskData.Attachments,
+                dependencies: taskData.Dependencies,
+                estimated_cost: (taskData as any).EstimatedCost,
+                actual_cost: (taskData as any).ActualCost,
+                estimatedDays: taskData.DurationDays,
             }
         };
 
@@ -461,6 +487,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             }
 
             queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             
             const isNew = !taskData.TaskID || taskData.TaskID.startsWith('NEW_');
             showToast(isNew ? `✅ Tạo công việc "${savedTask.name}" thành công` : `💾 Đã lưu thay đổi "${savedTask.name}"`, 'success');
@@ -488,6 +516,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             showToast(`✅ Đã thiết lập kế hoạch dựa trên quy trình mẫu`, 'success');
             // We fetch tasks directly from workflow_tasks based on this new instance
             queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             queryClient.invalidateQueries({ queryKey: ['workflow_instances'] });
         } catch (error) {
             console.error('Failed to bulk create framework tasks:', error);
@@ -532,6 +562,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         try {
             await WorkflowService.deleteWorkflowTask(taskId);
             queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             showToast(`🗑️ Đã xóa "${taskTitle}"`, 'info');
         } catch (err) {
             console.error('Failed to delete task:', err);
@@ -580,6 +612,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             console.log(`✅ Đã xoá toàn bộ kế hoạch cho dự án ${projectID}`);
             setTasks([]); // Xóa local state
             queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] }); // Cập nhật React Query cache
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
+            queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             queryClient.invalidateQueries({ queryKey: ['workflow_instances'] }); 
         } catch (err: any) {
             console.error('Failed to delete all tasks:', err);
@@ -627,6 +661,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate('/quy-trinh')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 dark:border-cyan-700 dark:hover:bg-cyan-900/50"
+                        title="Xem chi tiết các quy trình mẫu"
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Xem quy trình gốc
+                    </button>
                     <button
                         onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-lg text-gray-600 bg-[#FCF9F2] hover:bg-[#F5EFE6] border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
@@ -721,11 +763,23 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             tasks={filteredTasks}
                             isExpanded={expandedPhases[phase.id]}
                             onToggle={() => togglePhase(phase.id)}
-                            phaseTotalSubTasks={phase.items.reduce((sum, item) => sum + getStepSubTasks(item.code).length, 0)}
                         />
 
                         {/* Expanded Items — 4-tier: Phase → Sub-process → Step → Tasks */}
-                        {expandedPhases[phase.id] && (
+                        {expandedPhases[phase.id] && tasks.length === 0 && (
+                            <div className="mt-2 ml-4 p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-900 rounded-xl border border-indigo-100/50 dark:border-slate-700/50 text-center shadow-sm">
+                                <div className="w-12 h-12 bg-indigo-100 dark:bg-slate-700 text-indigo-500 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                                    <Layers className="w-6 h-6" />
+                                </div>
+                                <h4 className="text-indigo-900 dark:text-slate-200 font-semibold mb-1">
+                                    Kế hoạch chưa được khởi tạo
+                                </h4>
+                                <p className="text-xs text-indigo-600/70 dark:text-slate-400 max-w-sm mx-auto">
+                                    Bấm vào "Tạo kế hoạch tổng thể" ở tiêu đề để tự động phân bổ tài nguyên, quy trình và các đầu việc cần thiết.
+                                </p>
+                            </div>
+                        )}
+                        {expandedPhases[phase.id] && tasks.length > 0 && (
                             <div className="mt-2 ml-4 border-l-2 border-gray-200 dark:border-slate-700 pl-4 space-y-3">
                                 {(phase.subProcesses || [{ id: '0', title: '', fullTitle: '', items: phase.items }]).map((sp) => (
                                     <div key={sp.id}>
@@ -822,21 +876,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                 </span>
 
                                                 {/* Add Task Button */}
-                                                {/* Sub-task expand toggle */}
-                                                {hasStepSubTasks(item.code) && (
-                                                    <button
-                                                        onClick={() => setExpandedSubTasks(prev => ({ ...prev, [item.code]: !prev[item.code] }))}
-                                                        className={`px-2 py-1 text-xs font-medium rounded border flex items-center gap-1 shrink-0 transition-colors ${expandedSubTasks[item.code]
-                                                            ? 'text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700'
-                                                            : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-200 dark:border-amber-700'
-                                                            }`}
-                                                        title="Xem quy trình chi tiết (NĐ 175, Luật 135, NĐ 140, NĐ 144)"
-                                                    >
-                                                        <Zap className="w-3 h-3" />
-                                                        {expandedSubTasks[item.code] ? 'Ẩn QT' : 'Quy trình'}
-                                                    </button>
-                                                )}
-
                                                 <button
                                                     onClick={() => handleAddTask(item.title, item.code)}
                                                     className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 flex items-center gap-1 shrink-0"
@@ -856,7 +895,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                 <th className="px-2 py-2 text-left">Công việc</th>
                                                                 <th className="px-2 py-2 text-center w-16">Tiến độ</th>
                                                                 <th className="px-2 py-2 text-left w-32 hidden sm:table-cell">Phụ trách</th>
-                                                                <th className="px-2 py-2 text-left w-24 hidden sm:table-cell">Hạn</th>
+                                                                <th className="px-2 py-2 text-left w-24 hidden sm:table-cell">Hạn / Bắt đầu</th>
                                                                 <th className="px-2 py-2 text-center w-16">Ưu tiên</th>
                                                                 <th className="px-2 py-2 text-center w-16">Tài liệu</th>
                                                                 <th className="px-2 py-2 text-center w-8"></th>
@@ -917,23 +956,28 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                                                     </td>
 
                                                                     {/* Due Date + Smart Relative Time */}
-                                                                    <td className={`px-2 py-2 hidden sm:table-cell ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-400 dark:text-slate-500'}`}>
+                                                                    <td className={`px-2 py-2 hidden sm:table-cell ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-500 dark:text-slate-400'}`}>
                                                                         {t.Status === TaskStatus.Done && t.ActualEndDate ? (
                                                                             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium" title={`Hoàn thành: ${new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}`}>
                                                                                 <CheckCircle2 className="w-3 h-3" />
                                                                                 {new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}
                                                                             </span>
                                                                         ) : t.DueDate ? (
-                                                                            <span className="flex flex-col" title={new Date(t.DueDate).toLocaleDateString('vi-VN')}>
-                                                                                <span>{new Date(t.DueDate).toLocaleDateString('vi-VN')}</span>
+                                                                            <span className="flex flex-col gap-0.5 text-[11px]" title={`${t.StartDate ? new Date(t.StartDate).toLocaleDateString('vi-VN') : ''} - ${new Date(t.DueDate).toLocaleDateString('vi-VN')}`}>
+                                                                                <span className="flex items-center gap-1">
+                                                                                   <Calendar className="w-3 h-3 shrink-0"/>
+                                                                                   <span className="whitespace-nowrap">
+                                                                                      {t.StartDate ? new Date(t.StartDate).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' }) : '---'} → <strong className="text-gray-700 dark:text-slate-200">{new Date(t.DueDate).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</strong>
+                                                                                   </span>
+                                                                                </span>
                                                                                 {(() => {
                                                                                     const now = new Date(); now.setHours(0,0,0,0);
                                                                                     const due = new Date(t.DueDate); due.setHours(0,0,0,0);
                                                                                     const diff = Math.round((due.getTime() - now.getTime()) / 86400000);
                                                                                     if (diff < 0) return <span className="text-[9px] text-red-500 font-bold">Quá hạn {Math.abs(diff)} ngày</span>;
-                                                                                    if (diff === 0) return <span className="text-[9px] text-primary-500 font-bold">Hôm nay!</span>;
-                                                                                    if (diff <= 3) return <span className="text-[9px] text-primary-500">Còn {diff} ngày</span>;
-                                                                                    if (diff <= 7) return <span className="text-[9px] text-blue-400">Còn {diff} ngày</span>;
+                                                                                    if (diff === 0) return <span className="text-[9px] text-orange-500 font-bold">Hôm nay!</span>;
+                                                                                    if (diff <= 3) return <span className="text-[9px] text-orange-500">Còn {diff} ngày</span>;
+                                                                                    if (diff <= 7) return <span className="text-[9px] text-blue-500">Còn {diff} ngày</span>;
                                                                                     return null;
                                                                                 })()}
                                                                             </span>
@@ -1013,170 +1057,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                                             )}
 
                                             {/* Empty state */}
-                                            {linkedTasks.length === 0 && !expandedSubTasks[item.code] && (
+                                            {linkedTasks.length === 0 && (
                                                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-2 italic">
-                                                    Chưa có công việc nào được tạo. Click "Quy trình" để xem các bước cần thực hiện.
+                                                    Chưa có công việc. Bấm 'Tạo KH tổng thể' hoặc 'Thêm' để tạo công việc mới.
                                                 </p>
                                             )}
-
-                                            {/* Sub-tasks from Registry */}
-                                            {expandedSubTasks[item.code] && (() => {
-                                                const subTasks = getStepSubTasks(item.code);
-
-                                                // ── Auto-fill Start/End dates ──
-                                                // Lấy ngày bắt đầu: từ project.StartDate / ApprovalDate hoặc today
-                                                const getBaseDate = (): Date => {
-                                                    if (project?.StartDate) return new Date(project.StartDate);
-                                                    if (project?.ApprovalDate) return new Date(project.ApprovalDate);
-                                                    return new Date();
-                                                };
-
-                                                // Tính tổng ngày từ các bước TRƯỚC item hiện tại
-                                                const allPhaseItems = DECREE_175_PHASES.flatMap(p => p.items);
-                                                const currentIdx = allPhaseItems.findIndex(i => i.code === item.code);
-                                                let cumulativeDaysBefore = 0;
-                                                for (let i = 0; i < currentIdx; i++) {
-                                                    const prevSubs = getStepSubTasks(allPhaseItems[i].code);
-                                                    cumulativeDaysBefore += prevSubs.reduce((sum, s) => sum + (s.estimatedDays || 10), 0);
-                                                }
-
-                                                // Build date ranges cho từng sub-task
-                                                const baseDate = getBaseDate();
-                                                let runningDays = cumulativeDaysBefore;
-                                                const stepDates = subTasks.map(st => {
-                                                    const days = st.estimatedDays || 10;
-                                                    const start = new Date(baseDate);
-                                                    start.setDate(start.getDate() + runningDays);
-                                                    const end = new Date(start);
-                                                    end.setDate(end.getDate() + days);
-                                                    runningDays += days;
-                                                    return { start, end, days };
-                                                });
-
-                                                // Tổng ngày cho toàn bộ quy trình con này
-                                                const totalStepDays = subTasks.reduce((s, st) => s + (st.estimatedDays || 10), 0);
-
-                                                return (
-                                                    <div className="mt-3 border border-amber-100 dark:border-amber-800 rounded-lg overflow-hidden bg-amber-50/30 dark:bg-amber-900/10">
-                                                        <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-100 dark:border-amber-800 flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <Scale className="w-3.5 h-3.5 text-amber-500" />
-                                                                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                                                                    <LegalReferenceLink text="Quy trình theo NĐ 175, Luật 135, NĐ 140, NĐ 144" />
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                {/* Bulk Create Tasks Button */}
-                                                                {(() => {
-                                                                    const existingCount = tasks.filter(t => t.TimelineStep === item.code).length;
-                                                                    const subCount = subTasks.length;
-                                                                    const allCreated = existingCount >= subCount;
-                                                                    return (
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                openPlanModal(
-                                                                                    { type: 'step', stepCode: item.code, stepTitle: item.title },
-                                                                                    `Tạo công việc: ${item.title}`,
-                                                                                    'Phân bổ thời gian cho các bước trong quy trình này'
-                                                                                );
-                                                                            }}
-                                                                            disabled={allCreated}
-                                                                            className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg flex items-center gap-1 transition-all ${allCreated
-                                                                                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 cursor-default'
-                                                                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:shadow-lg'
-                                                                                }`}
-                                                                            title={allCreated ? 'Đã tạo công việc cho tất cả bước' : 'Tạo công việc tự động cho tất cả bước quy trình'}
-                                                                        >
-                                                                            {allCreated ? (
-                                                                                <>
-                                                                                    <CheckCircle2 className="w-3 h-3" />
-                                                                                    Đã tạo {existingCount} việc
-                                                                                </>
-                                                                            ) : (
-                                                                                <>
-                                                                                    <ListPlus className="w-3 h-3" />
-                                                                                    Tạo {subCount} công việc
-                                                                                </>
-                                                                            )}
-                                                                        </button>
-                                                                    );
-                                                                })()}
-                                                                <span className="text-[10px] text-amber-500 dark:text-amber-400 flex items-center gap-1">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    ~{totalStepDays} ngày
-                                                                </span>
-                                                                <span className="text-[10px] text-amber-500 dark:text-amber-400">
-                                                                    {subTasks.length} bước
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="divide-y divide-amber-100 dark:divide-amber-800/50">
-                                                            {subTasks.map((st, idx) => {
-                                                                const dates = stepDates[idx];
-                                                                const fmtDate = (d: Date) => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                                                                const fmtShort = (d: Date) => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
-
-                                                                return (
-                                                                    <div
-                                                                        key={st.code}
-                                                                        onClick={() => setSelectedSubTask({ def: st, stepTitle: item.title, stepCode: item.code })}
-                                                                        className="px-3 py-2.5 flex items-center gap-3 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors cursor-pointer group/st"
-                                                                    >
-                                                                        <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300 text-[10px] font-bold flex items-center justify-center shrink-0">
-                                                                            {idx + 1}
-                                                                        </span>
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <p className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate">{st.title}</p>
-                                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                                <span className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400">
-                                                                                    <Building2 className="w-2.5 h-2.5" />
-                                                                                    {st.responsible}
-                                                                                </span>
-                                                                                {st.estimatedDays && (
-                                                                                    <span className="flex items-center gap-0.5 text-[10px] text-gray-400 dark:text-slate-500">
-                                                                                        <Clock className="w-2.5 h-2.5" />
-                                                                                        {st.estimatedDays}d
-                                                                                    </span>
-                                                                                )}
-                                                                                {st.templatePath && (
-                                                                                    <span className="flex items-center gap-0.5 text-[10px] text-cyan-600 dark:text-cyan-400">
-                                                                                        <FileText className="w-2.5 h-2.5" />
-                                                                                        Biểu mẫu
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {/* ── AUTO-FILLED DATE RANGE ── */}
-                                                                        <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0 min-w-[140px]">
-                                                                            <div className="flex items-center gap-1.5 text-[10px]">
-                                                                                <Calendar className="w-3 h-3 text-primary-400" />
-                                                                                <span className="text-gray-600 dark:text-slate-400 font-medium">
-                                                                                    {fmtShort(dates.start)}
-                                                                                </span>
-                                                                                <span className="text-gray-300 dark:text-slate-600">→</span>
-                                                                                <span className="text-gray-700 dark:text-slate-300 font-semibold">
-                                                                                    {fmtShort(dates.end)}
-                                                                                </span>
-                                                                            </div>
-                                                                            {/* Mini progress bar */}
-                                                                            <div className="w-full h-1 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                                                <div
-                                                                                    className="h-full bg-gradient-to-r from-primary-400 to-amber-400 rounded-full transition-all"
-                                                                                    style={{ width: `${Math.min(100, (dates.days / totalStepDays) * 100)}%` }}
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <Info className="w-3.5 h-3.5 text-gray-300 group-hover/st:text-amber-400 transition-colors shrink-0" />
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()}
                                         </div>
                                     );
                                 })}
@@ -1423,17 +1308,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 stepName={selectedStep?.name}
                 stepCode={selectedStep?.code}
                 allTasks={tasks}
-            />
-
-            {/* Sub-task Detail Modal */}
-            <SubTaskDetailModal
-                subTask={selectedSubTask?.def ?? null}
-                stepTitle={selectedSubTask?.stepTitle}
-                stepCode={selectedSubTask?.stepCode}
-                isOpen={!!selectedSubTask}
-                onClose={() => setSelectedSubTask(null)}
-                onCreateTask={handleSaveTask}
-                project={project}
             />
 
             {/* Hidden file input for attachments */}

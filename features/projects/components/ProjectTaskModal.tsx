@@ -37,29 +37,65 @@ const toDMY = (iso?: string | null): string => {
     } catch { return ''; }
 };
 
-// ── DateInputVN ──
 const DateInputVN: React.FC<{
     value?: string | null;
     onChange: (iso: string) => void;
     borderClass?: string;
-}> = ({ value, onChange, borderClass = 'border-gray-300' }) => {
-    const ref = React.useRef<HTMLInputElement>(null);
+}> = ({ value, onChange, borderClass = 'border-gray-300 dark:border-slate-700' }) => {
+    // Keep local string state to allow free typing
+    const [localValue, setLocalValue] = useState(toDMY(value));
+
+    useEffect(() => {
+        setLocalValue(toDMY(value));
+    }, [value]);
+
+    const handleBlur = () => {
+        const parts = localValue.split(/[\/\-]/);
+        if (parts.length === 3) {
+            let [d, m, y] = parts;
+            // Handle 2-digit years
+            if (y.length === 2) y = '20' + y;
+            const parsedDate = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T00:00:00`);
+            if (!isNaN(parsedDate.getTime())) {
+                onChange(parsedDate.toISOString());
+                return;
+            }
+        }
+        if (!localValue.trim()) {
+            onChange('');
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleBlur();
+    };
+
     return (
-        <div
-            className={`relative flex items-center w-full rounded-lg border bg-[#FCF9F2] dark:bg-slate-900 cursor-pointer ${borderClass}`}
-            onClick={() => ref.current?.showPicker?.()}
-        >
-            <Calendar className="w-4 h-4 text-gray-400 dark:text-slate-500 ml-3 shrink-0 pointer-events-none" />
-            <span className={`flex-1 pl-2 py-2.5 text-sm select-none ${value ? 'text-gray-800 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>
-                {value ? toDMY(value) : 'dd/mm/yyyy'}
-            </span>
+        <div className={`relative flex items-center w-full rounded-xl border bg-[#FCF9F2] dark:bg-slate-900 group transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500/30 ${borderClass}`}>
+            <Calendar className="absolute left-3.5 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none group-focus-within:text-primary-500 transition-colors" />
             <input
-                ref={ref}
-                type="date"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                value={toYMD(value)}
-                onChange={e => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                type="text"
+                placeholder="DD/MM/YYYY"
+                className="w-full flex-1 bg-transparent py-2.5 pl-10 pr-10 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0"
+                value={localValue}
+                onChange={e => setLocalValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
             />
+            {/* Native date picker overlay on the right for convenience */}
+            <div className="absolute right-2 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity overflow-hidden w-8 h-8 flex items-center justify-center cursor-pointer">
+                <input
+                    type="date"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    value={toYMD(value)}
+                    onChange={e => {
+                        if (e.target.value) {
+                            onChange(new Date(e.target.value).toISOString());
+                        }
+                    }}
+                />
+                <Calendar className="w-4 h-4 text-gray-400 hover:text-primary-500 pointer-events-none" />
+            </div>
         </div>
     );
 };
@@ -567,14 +603,12 @@ export const ProjectTaskModal: React.FC<ProjectTaskModalProps> = ({
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-emerald-500" /> Bắt đầu thực tế
-                                            {formData.ActualStartDate && <span className="text-[9px] bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Tự động</span>}
                                         </label>
                                         <DateInputVN value={formData.ActualStartDate} onChange={v => setFormData({ ...formData, ActualStartDate: v })} borderClass="border-emerald-300 dark:border-emerald-700" />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
                                             <CheckSquare className="w-4 h-4 text-emerald-500" /> Hoàn thành thực tế
-                                            {formData.ActualEndDate && <span className="text-[9px] bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Tự động</span>}
                                         </label>
                                         <DateInputVN value={formData.ActualEndDate} onChange={v => setFormData({ ...formData, ActualEndDate: v })} borderClass="border-emerald-300 dark:border-emerald-700" />
                                     </div>

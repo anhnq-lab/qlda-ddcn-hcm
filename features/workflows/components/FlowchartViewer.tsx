@@ -1,9 +1,24 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { 
-  Network, CheckCircle2, CircleDashed, Clock, ChevronRight, AlertCircle,
+  Network, CheckCircle2, CircleDashed, Clock, ChevronRight,
   Shield, FileInput, Zap, XCircle
 } from 'lucide-react';
+import { 
+  ReactFlow, 
+  Background, 
+  Controls, 
+  MiniMap,
+  MarkerType,
+  Handle,
+  Position,
+  type Node,
+  type Edge,
+  type ReactFlowInstance
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
 
+// ─── INTERFACES ─────────────────────────────────────────────────────────
 interface ActivityNode {
     id: string;
     name: string;
@@ -28,133 +43,219 @@ interface FlowchartViewerProps {
     onNodeClick?: (node: ActivityNode) => void;
 }
 
-/**
- * FlowchartViewer: Sơ đồ quy trình  chuyên nghiệp
- * - Phân biệt rõ node types (Start=tròn, Approval=hình thoi, Input=chữ nhật, End=tròn đôi)
- * - Hiển thị SLA, trạng thái (completed/active/rejected/pending)
- * - Hỗ trợ branching (multiple nodes per level)
- */
+// ─── CUSTOM NODE COMPONENT ─────────────────────────────────────────────
+const CustomFlowNode = ({ data }: { data: Record<string, any> }) => {
+    const isTerminal = data.rawType === 'start' || data.rawType === 'end';
+    
+    return (
+        <div 
+            onClick={data.onClick}
+            className={`
+                ${data.shape} ${data.bg} ${data.glow}
+                border-2 ${data.border}
+                flex flex-col items-center justify-center text-center relative
+                transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5
+                ${!isTerminal && data.onClick ? 'cursor-pointer' : ''}
+                ${!isTerminal ? 'p-4 min-h-[80px]' : ''}
+            `}
+        >
+            <Handle type="target" position={Position.Top} className="w-2 h-2 !bg-transparent !border-none" />
+            
+            {isTerminal ? (
+                <div className="flex items-center justify-center flex-col gap-1">
+                    {data.icon}
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">
+                        {data.rawType === 'start' ? 'BẮT ĐẦU' : 'KẾT THÚC'}
+                    </span>
+                </div>
+            ) : (
+                <>
+                    <div className="flex items-center gap-2 mb-1">
+                        {data.icon}
+                        {data.rawType === 'approval' && (
+                            <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Phê duyệt</span>
+                        )}
+                    </div>
+                    <div className="font-bold text-sm leading-tight" title={data.name}>
+                        {data.name}
+                    </div>
+                    {data.assignee_role && (
+                        <div className="text-[10px] font-semibold opacity-60 mt-1.5 px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10">
+                            {data.assignee_role}
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* SLA Badge */}
+            {data.slaText && !isTerminal && (
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold rounded-full border border-blue-200 dark:border-blue-800 whitespace-nowrap shadow-md z-10">
+                    <Clock size={10} className="inline mr-0.5 -mt-[1px]" /> {data.slaText}
+                </div>
+            )}
+
+            <Handle type="source" position={Position.Bottom} className="w-2 h-2 !bg-transparent !border-none" />
+        </div>
+    );
+};
+
+// CRITICAL: nodeTypes must be defined OUTSIDE the component to prevent ReactFlow warnings & re-renders
+const nodeTypes = { custom: CustomFlowNode };
+
+// ─── DAGRE AUTO-LAYOUT ─────────────────────────────────────────────────
+function computeDagreLayout(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
+    const g = new dagre.graphlib.Graph();
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 90, edgesep: 30 });
+
+    nodes.forEach((node) => {
+        const isTerminal = (node.data as any).rawType === 'start' || (node.data as any).rawType === 'end';
+        g.setNode(node.id, { width: isTerminal ? 80 : 224, height: isTerminal ? 80 : 120 });
+    });
+
+    edges.forEach((edge) => {
+        g.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(g);
+
+    const layoutedNodes = nodes.map((node) => {
+        const pos = g.node(node.id);
+        const isTerminal = (node.data as any).rawType === 'start' || (node.data as any).rawType === 'end';
+        const w = isTerminal ? 80 : 224;
+        const h = isTerminal ? 80 : 120;
+        return {
+            ...node,
+            targetPosition: Position.Top,
+            sourcePosition: Position.Bottom,
+            position: { x: pos.x - w / 2, y: pos.y - h / 2 },
+        };
+    });
+
+    return { nodes: layoutedNodes, edges };
+}
+
+// ─── HELPERS ────────────────────────────────────────────────────────────
+function parseSla(formula?: string): string | null {
+    if (!formula) return null;
+    const m = formula.match(/^(\d+)d$/);
+    return m ? `${m[1]} ngày` : formula;
+}
+
+function getNodeVisualConfig(
+    node: ActivityNode,
+    activeNodeId?: string,
+    completedNodeIds: string[] = [],
+    rejectedNodeIds: string[] = []
+) {
+    const isCompleted = completedNodeIds.includes(node.id);
+    const isActive = activeNodeId === node.id;
+    const isRejected = rejectedNodeIds.includes(node.id);
+
+    const iconMap: Record<string, React.ReactNode> = {
+        start: <ChevronRight size={24} />,
+        end: <CheckCircle2 size={24} />,
+        approval: <Shield size={20} />,
+        input: <FileInput size={20} />,
+        automated: <Zap size={20} />,
+    };
+    const typeIcon = iconMap[node.type] || <CircleDashed size={20} />;
+
+    const shape = (node.type === 'start' || node.type === 'end')
+        ? 'rounded-full w-20 h-20'
+        : 'rounded-xl w-56';
+
+    if (node.type === 'start') return { icon: typeIcon, shape, bg: 'bg-emerald-500 text-white', border: 'border-emerald-600', glow: 'shadow-lg shadow-emerald-500/30' };
+    if (node.type === 'end') return { icon: typeIcon, shape, bg: isCompleted ? 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400', border: 'border-slate-400 dark:border-slate-600', glow: '' };
+    if (isRejected) return { icon: <XCircle size={20} />, shape, bg: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400', border: 'border-red-400 dark:border-red-700', glow: 'shadow-red-500/20' };
+    if (isCompleted) return { icon: <CheckCircle2 size={20} />, shape, bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', border: 'border-emerald-400 dark:border-emerald-700', glow: 'shadow-emerald-500/10' };
+    if (isActive) return { icon: <Clock size={20} className="animate-spin-slow" />, shape, bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', border: 'border-amber-400 dark:border-amber-600 ring-4 ring-amber-400/30', glow: 'shadow-amber-500/40 shadow-xl scale-105' };
+
+    return { icon: <CircleDashed size={20} />, shape, bg: 'bg-white text-slate-600 dark:bg-slate-800 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700', glow: '' };
+}
+
+// ─── MAIN COMPONENT ────────────────────────────────────────────────────
 const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
     workflowName,
-    nodes,
-    edges,
+    nodes: inputNodes,
+    edges: inputEdges,
     activeNodeId,
     completedNodeIds = [],
     rejectedNodeIds = [],
     onNodeClick
 }) => {
-    // BFS Leveling Algorithm
-    const levelsArray = useMemo(() => {
-        const levels: Record<string, number> = {};
-        const inDegrees: Record<string, number> = {};
-        
-        nodes.forEach(n => { inDegrees[n.id] = 0; });
-        edges.forEach(e => {
-            if (inDegrees[e.target] !== undefined) {
-                inDegrees[e.target] += 1;
-            }
-        });
-
-        const queue: {id: string, level: number}[] = [];
-        nodes.forEach(n => {
-            if (inDegrees[n.id] === 0) {
-                queue.push({ id: n.id, level: 0 });
-                levels[n.id] = 0;
-            }
-        });
-
-        while (queue.length > 0) {
-            const current = queue.shift()!;
-            const outgoing = edges.filter(e => e.source === current.id);
-            outgoing.forEach(e => {
-                const nextLevel = current.level + 1;
-                if (levels[e.target] === undefined || levels[e.target] < nextLevel) {
-                    levels[e.target] = nextLevel;
-                    queue.push({ id: e.target, level: nextLevel });
-                }
-            });
+    // ✅ Pure computation - NO useState, NO useEffect → NO render loops
+    const { layoutedNodes, layoutedEdges } = useMemo(() => {
+        if (!inputNodes || inputNodes.length === 0) {
+            return { layoutedNodes: [] as Node[], layoutedEdges: [] as Edge[] };
         }
 
-        const vals = Object.values(levels) as number[];
-        const maxLevel = vals.length > 0 ? Math.max(0, ...vals) : 0;
-        const arr: ActivityNode[][] = Array.from({ length: maxLevel + 1 }, () => []);
-        nodes.forEach(n => { arr[levels[n.id] || 0].push(n); });
-        return arr;
-    }, [nodes, edges]);
+        // Build ReactFlow nodes
+        const rfNodes: Node[] = inputNodes.map(n => {
+            const config = getNodeVisualConfig(n, activeNodeId, completedNodeIds, rejectedNodeIds);
+            return {
+                id: n.id,
+                type: 'custom',
+                position: { x: 0, y: 0 }, // dagre will override
+                data: {
+                    ...config,
+                    name: n.name,
+                    rawType: n.type,
+                    slaText: parseSla(n.sla_formula),
+                    assignee_role: n.assignee_role,
+                    // onClick is safe here because it doesn't affect layout
+                    onClick: onNodeClick ? () => onNodeClick(n) : undefined,
+                },
+            };
+        });
 
-    // Parse SLA formula → readable text
-    const parseSla = (formula?: string) => {
-        if (!formula) return null;
-        const match = formula.match(/^(\d+)d$/);
-        return match ? `${match[1]} ngày` : formula;
-    };
+        // Build ReactFlow edges
+        const rfEdges: Edge[] = (inputEdges || []).map((e, idx) => {
+            const hasCondition = !!(e.condition && e.condition.length > 0);
 
-    // Get status + styling for each node
-    const getNodeConfig = (node: ActivityNode) => {
-        const isCompleted = completedNodeIds.includes(node.id);
-        const isActive = activeNodeId === node.id;
-        const isRejected = rejectedNodeIds.includes(node.id);
+            return {
+                id: `edge-${idx}-${e.source}-${e.target}`,
+                source: e.source,
+                target: e.target,
+                label: e.condition || undefined,
+                type: hasCondition ? 'smoothstep' : 'default',
+                animated: !hasCondition,
+                style: {
+                    stroke: hasCondition ? '#ef4444' : '#94a3b8',
+                    strokeWidth: 2,
+                    strokeDasharray: hasCondition ? '5 5' : 'none',
+                },
+                labelStyle: {
+                    fill: hasCondition ? '#ef4444' : '#64748b',
+                    fontWeight: 600,
+                    fontSize: 11,
+                    fontFamily: 'Inter, sans-serif',
+                },
+                labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, rx: 4 },
+                labelBgPadding: [8, 4] as [number, number],
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    width: 20,
+                    height: 20,
+                    color: hasCondition ? '#ef4444' : '#94a3b8',
+                },
+            };
+        });
 
-        // Base shape by type
-        const typeIcon = {
-            start: <ChevronRight size={20} />,
-            end: <CheckCircle2 size={20} />,
-            approval: <Shield size={18} />,
-            input: <FileInput size={18} />,
-            automated: <Zap size={18} />,
-        }[node.type];
+        // Compute dagre layout
+        const result = computeDagreLayout(rfNodes, rfEdges);
+        return { layoutedNodes: result.nodes, layoutedEdges: result.edges };
+    }, [inputNodes, inputEdges, activeNodeId, completedNodeIds, rejectedNodeIds, onNodeClick]);
 
-        const shape = node.type === 'start' || node.type === 'end' 
-            ? 'rounded-full w-20 h-20' 
-            : node.type === 'approval'
-            ? 'rounded-xl w-56 rotate-0' // Could use diamond shape with CSS transform
-            : 'rounded-xl w-56';
-
-        // Status coloring
-        if (node.type === 'start') return { 
-            icon: typeIcon, shape, 
-            bg: 'bg-emerald-500 text-white', 
-            border: 'border-emerald-600',
-            glow: 'shadow-emerald-500/30'
-        };
-        if (node.type === 'end') return { 
-            icon: typeIcon, shape, 
-            bg: isCompleted ? 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400', 
-            border: 'border-slate-400 dark:border-slate-600',
-            glow: ''
-        };
-
-        if (isRejected) return {
-            icon: <XCircle size={18} />, shape,
-            bg: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-            border: 'border-red-400 dark:border-red-700',
-            glow: 'shadow-red-500/20'
-        };
-        if (isCompleted) return {
-            icon: <CheckCircle2 size={18} />, shape,
-            bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-            border: 'border-emerald-400 dark:border-emerald-700',
-            glow: 'shadow-emerald-500/10'
-        };
-        if (isActive) return {
-            icon: <Clock size={18} className="animate-spin-slow" />, shape,
-            bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-            border: 'border-amber-400 dark:border-amber-600 ring-2 ring-amber-400/50 ring-offset-2 dark:ring-offset-slate-900',
-            glow: 'shadow-amber-500/30 shadow-lg'
-        };
-
-        return {
-            icon: <CircleDashed size={18} />, shape,
-            bg: 'bg-white text-slate-400 dark:bg-slate-800 dark:text-slate-500',
-            border: 'border-slate-200 dark:border-slate-700',
-            glow: ''
-        };
-    };
+    // fitView only on init – no recurring calls
+    const handleInit = useCallback((instance: ReactFlowInstance) => {
+        setTimeout(() => instance.fitView({ padding: 0.2 }), 50);
+    }, []);
 
     return (
-        <div className="flex flex-col h-full bg-[#FAFAF8] dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
+        <div className="flex flex-col h-full bg-[#FAFAF8] dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden relative">
             {/* Header */}
-            <div className="px-5 py-3 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+            <div className="absolute top-0 left-0 right-0 z-10 px-5 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
                         <Network size={18} className="text-primary-600 dark:text-primary-400" />
@@ -164,12 +265,12 @@ const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
                     </h3>
                 </div>
                 {/* Legend */}
-                <div className="flex items-center gap-5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <div className="flex items-center gap-5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Đã duyệt
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" /> Đang chờ
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse ring-2 ring-amber-300" /> Đang chờ
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500" /> Từ chối
@@ -180,85 +281,23 @@ const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
                 </div>
             </div>
 
-            {/* Flowchart Canvas */}
-            <div className="flex-1 overflow-auto p-8 min-h-[400px]">
-                <div className="flex flex-col items-center gap-3 w-full max-w-3xl mx-auto">
-                    {levelsArray.map((levelNodes, lIdx) => (
-                        <React.Fragment key={`level-${lIdx}`}>
-                            {/* Level Row */}
-                            <div className="flex items-center justify-center gap-8 w-full">
-                                {levelNodes.map(node => {
-                                    const config = getNodeConfig(node);
-                                    const isTerminal = node.type === 'start' || node.type === 'end';
-                                    const slaText = parseSla(node.sla_formula);
-
-                                    return (
-                                        <div 
-                                            key={node.id} 
-                                            className="relative group flex flex-col items-center"
-                                            onClick={onNodeClick && !isTerminal ? () => onNodeClick(node) : undefined}
-                                        >
-                                            {/* Node shape */}
-                                            <div className={`
-                                                ${config.shape} ${config.bg} ${config.glow}
-                                                border-2 ${config.border}
-                                                flex flex-col items-center justify-center text-center
-                                                transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5
-                                                ${!isTerminal && onNodeClick ? 'cursor-pointer' : ''}
-                                                ${!isTerminal ? 'p-4 min-h-[80px]' : ''}
-                                            `}>
-                                                {isTerminal ? (
-                                                    <div className="flex items-center justify-center">
-                                                        {config.icon}
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            {config.icon}
-                                                            {node.type === 'approval' && (
-                                                                <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Phê duyệt</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="font-bold text-sm leading-tight line-clamp-2" title={node.name}>
-                                                            {node.name}
-                                                        </div>
-                                                        {node.assignee_role && (
-                                                            <div className="text-[10px] font-semibold opacity-60 mt-1.5 px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10">
-                                                                {node.assignee_role}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* SLA Badge */}
-                                            {slaText && !isTerminal && (
-                                                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-[9px] font-bold rounded-full border border-blue-200 dark:border-blue-800 whitespace-nowrap shadow-sm">
-                                                    <Clock size={8} className="inline mr-0.5 -mt-[1px]" /> {slaText}
-                                                </div>
-                                            )}
-
-                                            {/* Terminal Label */}
-                                            {isTerminal && (
-                                                <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                                                    {node.type === 'start' ? 'BẮT ĐẦU' : 'KẾT THÚC'}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Arrow connector between levels */}
-                            {lIdx < levelsArray.length - 1 && (
-                                <div className="flex flex-col items-center h-10">
-                                    <div className="w-0.5 flex-1 bg-gray-300 dark:bg-slate-700" />
-                                    <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent border-t-gray-300 dark:border-t-slate-700" />
-                                </div>
-                            )}
-                        </React.Fragment>
-                    ))}
-                </div>
+            {/* Canvas */}
+            <div className="flex-1 w-full h-full pt-14">
+                <ReactFlow
+                    nodes={layoutedNodes}
+                    edges={layoutedEdges}
+                    nodeTypes={nodeTypes}
+                    onInit={handleInit}
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    elementsSelectable={false}
+                    minZoom={0.3}
+                    maxZoom={2}
+                    className="bg-slate-50 dark:bg-slate-900/20"
+                >
+                    <Background color="#cbd5e1" gap={16} size={1.5} />
+                    <Controls className="!mb-6 !mr-6 shadow-xl border-none" showInteractive={false} />
+                </ReactFlow>
             </div>
         </div>
     );

@@ -7,11 +7,18 @@ export interface WorkflowTemplate {
     category: string;
     description: string;
     steps: Array<{
+        id?: string;
         name: string;
         type: string;
         role: string;
         sla: string;
         metadata?: any;
+    }>;
+    edges?: Array<{
+        source: string;
+        target: string;
+        label?: string;
+        condition?: string;
     }>;
 }
 

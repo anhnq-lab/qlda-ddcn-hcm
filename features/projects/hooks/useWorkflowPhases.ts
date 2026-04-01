@@ -30,18 +30,6 @@ export interface ProjectPhase {
     subProcesses: SubProcessGroup[]; // Grouped by sub_process
 }
 
-// Compatible with old SubTaskDef — used by PlanTab bulk create
-export interface SubTaskDef {
-    code: string;
-    title: string;
-    description?: string;
-    responsible: string;
-    legalBasis?: string;
-    estimatedDays?: number;
-    templatePath?: string;
-    templateLabel?: string;
-}
-
 const PHASE_TITLES: Record<string, string> = {
     preparation: 'GIAI ĐOẠN CHUẨN BỊ DỰ ÁN',
     execution: 'GIAI ĐOẠN THỰC HIỆN DỰ ÁN',
@@ -108,54 +96,68 @@ export function useWorkflowPhases(groupCode: string = 'C', project?: any) {
 
     // Fetch workflow + nodes directly from DB
     const { data: nodesData, isLoading } = useQuery({
-        queryKey: ['workflow-phases', workflowCode],
+        queryKey: ['workflow-phases', workflowCode, project?.ProjectID],
         queryFn: async () => {
-            // 1. Find the workflow template
-            const { data: workflow, error: wfErr } = await supabase
-                .from('workflows')
-                .select('id, name, code')
-                .eq('code', workflowCode)
-                .eq('is_active', true)
-                .eq('category', 'project')
-                .single();
+            let targetWorkflowId: string | null = null;
 
-            if (wfErr || !workflow) {
-                console.warn(`Workflow template "${workflowCode}" not found, trying fallback...`);
-                const { data: fallback } = await supabase
-                    .from('workflows')
-                    .select('id, name, code')
-                    .eq('is_active', true)
-                    .eq('category', 'project')
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-                    
-                if (!fallback) return { nodes: [], workflowId: '' };
+            // 1. Try to fetch the currently active workflow instance for this project
+            if (project?.ProjectID) {
+                const { data: insts } = await supabase
+                    .from('workflow_instances')
+                    .select('workflow_id')
+                    .eq('reference_id', project.ProjectID)
+                    .order('started_at', { ascending: false })
+                    .limit(1);
                 
-                const { data: nodes } = await supabase
-                    .from('workflow_nodes')
-                    .select('id, name, type, sla_formula, metadata, created_at')
-                    .eq('workflow_id', fallback.id)
-                    .eq('is_deleted', false)
-                    .order('created_at', { ascending: true });
-                    
-                return { nodes: (nodes || []) as WorkflowNodeRow[], workflowId: fallback.id };
+                if (insts && insts.length > 0) {
+                    targetWorkflowId = insts[0].workflow_id;
+                }
             }
 
-            // 2. Fetch all nodes for this workflow
+            // 2. Fallback to the configured template code if no instance exists
+            if (!targetWorkflowId) {
+                const { data: workflow, error: wfErr } = await supabase
+                    .from('workflows')
+                    .select('id, name, code')
+                    .eq('code', workflowCode)
+                    .eq('is_active', true)
+                    .eq('category', 'project')
+                    .single();
+
+                if (workflow && !wfErr) {
+                    targetWorkflowId = workflow.id;
+                } else {
+                    console.warn(`Workflow template "${workflowCode}" not found, trying fallback...`);
+                    const { data: fallback } = await supabase
+                        .from('workflows')
+                        .select('id, name, code')
+                        .eq('is_active', true)
+                        .eq('category', 'project')
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                    if (fallback) targetWorkflowId = fallback.id;
+                }
+            }
+
+            if (!targetWorkflowId) {
+                return { nodes: [], workflowId: '' };
+            }
+
+            // 3. Fetch nodes for the target workflow
             const { data: nodes, error: nodeErr } = await supabase
                 .from('workflow_nodes')
                 .select('id, name, type, sla_formula, metadata, created_at')
-                .eq('workflow_id', workflow.id)
+                .eq('workflow_id', targetWorkflowId)
                 .eq('is_deleted', false)
                 .order('created_at', { ascending: true });
 
             if (nodeErr) {
                 console.error('Failed to load workflow nodes:', nodeErr);
-                return { nodes: [], workflowId: workflow.id };
+                return { nodes: [], workflowId: targetWorkflowId };
             }
 
-            return { nodes: (nodes || []) as WorkflowNodeRow[], workflowId: workflow.id };
+            return { nodes: (nodes || []) as WorkflowNodeRow[], workflowId: targetWorkflowId };
         },
         staleTime: 10 * 60 * 1000,
     });
@@ -228,37 +230,6 @@ export function useWorkflowPhases(groupCode: string = 'C', project?: any) {
             });
     }, [nodes]);
 
-    // Build node lookup for sub-tasks
-    const nodeMap = useMemo(() => {
-        const map = new Map<string, WorkflowNodeRow>();
-        nodes.forEach(n => map.set(n.id, n));
-        return map;
-    }, [nodes]);
-
-    /**
-     * Get sub-tasks for a node ID
-     */
-    const getStepSubTasks = (nodeId: string): SubTaskDef[] => {
-        const node = nodeMap.get(nodeId);
-        if (!node?.metadata?.sub_tasks || node.metadata.sub_tasks.length === 0) return [];
-        return node.metadata.sub_tasks.map(st => ({
-            code: `${nodeId}_${st.id}`,
-            title: st.name || st.title || '',
-            description: st.description,
-            responsible: st.assignee_role || st.actor || '',
-            legalBasis: st.legal_basis,
-            estimatedDays: st.duration_days ?? undefined,
-        }));
-    };
-
-    /**
-     * Check if a node has sub-tasks
-     */
-    const hasStepSubTasks = (nodeId: string): boolean => {
-        const node = nodeMap.get(nodeId);
-        return !!node?.metadata?.sub_tasks && node.metadata.sub_tasks.length > 0;
-    };
-
     /** Group label */
     const getGroupLabel = (g?: string) => {
         switch (g) {
@@ -273,8 +244,6 @@ export function useWorkflowPhases(groupCode: string = 'C', project?: any) {
     return {
         phases,
         isLoading,
-        getStepSubTasks,
-        hasStepSubTasks,
         getGroupLabel,
     };
 }

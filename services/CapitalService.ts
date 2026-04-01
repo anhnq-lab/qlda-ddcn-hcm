@@ -318,8 +318,10 @@ export class CapitalService {
      * Get Total Planned vs Disbursed
      */
     static async getFinancialStats(projectId: string) {
-        const plans = await this.getCapitalPlans(projectId);
-        const disbursed = await this.getDisbursements(projectId);
+        const [plans, disbursed] = await Promise.all([
+            this.getCapitalPlans(projectId),
+            this.getDisbursements(projectId)
+        ]);
 
         const totalPlanned = plans.reduce((sum, p) => sum + p.Amount, 0);
         const totalDisbursed = disbursed.reduce((sum, d) => sum + d.Amount, 0);
@@ -438,9 +440,15 @@ export class CapitalService {
 
     /** Fetch all capital plans with project names joined and actual disbursements computed */
     static async fetchAllCapitalPlans(): Promise<CapitalPlanRow[]> {
-        const { data: plans } = await supabase.from('capital_plans').select('*').order('year', { ascending: false });
-        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
-        const { data: disbs } = await supabase.from('disbursements').select('*');
+        const [
+            { data: plans },
+            { data: projects },
+            { data: disbs }
+        ] = await Promise.all([
+            supabase.from('capital_plans').select('*').order('year', { ascending: false }),
+            supabase.from('projects').select('project_id, project_name'),
+            supabase.from('disbursements').select('*')
+        ]);
         
         const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
         
@@ -470,16 +478,26 @@ export class CapitalService {
 
     /** Fetch all monthly disbursement plans with project names */
     static async fetchAllDisbursementPlans(): Promise<DisbursementPlanRow[]> {
-        const { data: plans } = await supabase.from('disbursement_plans').select('*').order('year').order('month');
-        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
+        const [
+            { data: plans },
+            { data: projects }
+        ] = await Promise.all([
+            supabase.from('disbursement_plans').select('*').order('year').order('month'),
+            supabase.from('projects').select('project_id, project_name')
+        ]);
         const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
         return (plans || []).map((p: any) => ({ ...p, project_name: pm.get(p.project_id) || p.project_id }));
     }
 
     /** Fetch all actual disbursements with project names */
     static async fetchAllDisbursements(): Promise<DisbursementRow[]> {
-        const { data: disbs } = await supabase.from('disbursements').select('*').order('date', { ascending: true });
-        const { data: projects } = await supabase.from('projects').select('project_id, project_name');
+        const [
+            { data: disbs },
+            { data: projects }
+        ] = await Promise.all([
+            supabase.from('disbursements').select('*').order('date', { ascending: true }),
+            supabase.from('projects').select('project_id, project_name')
+        ]);
         const pm = new Map((projects || []).map((p: any) => [p.project_id, p.project_name]));
         return (disbs || []).map((d: any) => ({ ...d, project_name: pm.get(d.project_id) || d.project_id }));
     }

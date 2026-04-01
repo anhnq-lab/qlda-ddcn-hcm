@@ -310,6 +310,8 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
 
     const displayNodes = nodes;
 
+    const isInternalWorkflow = ['hr', 'finance', 'document', 'asset', 'other'].includes(workflow?.category || 'project');
+
     const PHASE_NAMES: Record<string, string> = {
         preparation: 'Chuẩn bị dự án',
         execution: 'Thực hiện dự án',
@@ -452,12 +454,24 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                     <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-[5]">
                                         <tr className="font-bold text-slate-700 dark:text-slate-300">
                                             <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 text-center w-10 align-middle border-b-2">TT</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-14 align-middle text-center border-b-2">SLA</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[26%] align-middle border-b-2">Công việc chi tiết</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đơn vị thực hiện</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đầu ra</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[10%] align-middle">Biểu mẫu</th>
-                                            <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Cơ sở pháp lý</th>
+                                            {isInternalWorkflow ? (
+                                                <>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[30%] align-middle border-b-2">Nội dung công việc</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[12%] align-middle">Đơn vị thực hiện</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[12%] align-middle">Đơn vị phối hợp</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[20%] align-middle">Thời gian thực hiện</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[12%] align-middle">Ghi chú</th>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-14 align-middle text-center border-b-2">SLA</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[26%] align-middle border-b-2">Công việc chi tiết</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đơn vị thực hiện</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Đầu ra</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[10%] align-middle">Biểu mẫu</th>
+                                                    <th className="p-2.5 border-r border-slate-200 dark:border-slate-700 w-[13%] align-middle">Cơ sở pháp lý</th>
+                                                </>
+                                            )}
                                             <th className="p-2.5 border-slate-200 dark:border-slate-700 text-center w-20 align-middle">Tác vụ</th>
                                         </tr>
                                     </thead>
@@ -466,30 +480,32 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                             const isExpanded = expandedPhases[phaseKey] !== false;
                                             return (
                                                 <React.Fragment key={phaseKey}>
-                                                    <tr 
-                                                        className="bg-slate-200/50 dark:bg-slate-800/80 cursor-pointer hover:bg-slate-300/50 dark:hover:bg-slate-700 transition-colors"
-                                                        onClick={() => togglePhase(phaseKey)}
-                                                    >
-                                                        <td colSpan={8} className="p-3 font-bold text-slate-800 dark:text-white uppercase tracking-wide text-[13px] border-b border-slate-300 dark:border-slate-600">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-slate-500 dark:text-slate-400">
-                                                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                                                                </span>
-                                                                Giai đoạn: {phaseGroup.title} 
-                                                                <span className="text-slate-500 dark:text-slate-400 font-medium text-xs normal-case ml-2">
-                                                                    ({Object.values(phaseGroup.sub_processes).reduce((count: number, nodes: any) => count + nodes.length, 0)} bước)
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                    {!isInternalWorkflow && (
+                                                        <tr 
+                                                            className="bg-slate-200/50 dark:bg-slate-800/80 cursor-pointer hover:bg-slate-300/50 dark:hover:bg-slate-700 transition-colors"
+                                                            onClick={() => togglePhase(phaseKey)}
+                                                        >
+                                                            <td colSpan={8} className="p-3 font-bold text-slate-800 dark:text-white uppercase tracking-wide text-[13px] border-b border-slate-300 dark:border-slate-600">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-slate-500 dark:text-slate-400">
+                                                                        {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                                                    </span>
+                                                                    Giai đoạn: {phaseGroup.title} 
+                                                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-xs normal-case ml-2">
+                                                                        ({Object.values(phaseGroup.sub_processes).reduce((count: number, nodes: any) => count + nodes.length, 0)} bước)
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
 
-                                                    {isExpanded && Object.entries(phaseGroup.sub_processes).map(([subKey, subNodes]: [string, any]) => {
+                                                    {(isExpanded || isInternalWorkflow) && Object.entries(phaseGroup.sub_processes).map(([subKey, subNodes]: [string, any]) => {
                                                         const spToggleKey = `${phaseKey}-${subKey}`;
                                                         const isSpExpanded = expandedSubProcesses[spToggleKey] !== false;
 
                                                         return (
                                                             <React.Fragment key={spToggleKey}>
-                                                                {subKey !== 'Mặc định' && (
+                                                                {!isInternalWorkflow && subKey !== 'Mặc định' && (
                                                                     <tr 
                                                                         className="bg-emerald-50/70 dark:bg-emerald-900/40 cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/60 transition-colors"
                                                                         onClick={() => toggleSubProcess(spToggleKey)}
@@ -507,21 +523,54 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                                                     </tr>
                                                                 )}
 
-                                                                {isSpExpanded && (subNodes as any[]).map((node: any, index: number) => {
+                                                                {(isSpExpanded || isInternalWorkflow) && (subNodes as any[]).map((node: any, index: number) => {
                                                                     const meta = (node.metadata as any) || {};
                                                                     const duration = parseSla(node.sla_formula);
                                                                     const subTasks = meta.sub_tasks || [];
+                                                                    const displayIndex = isInternalWorkflow ? displayNodes.findIndex(n => n.id === node.id) + 1 : index + 1;
 
                                                                     return (
                                                                         <React.Fragment key={node.id}>
                                                                             <tr className="bg-slate-50 dark:bg-slate-800/50 group border-b text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700">
                                                                                 <td className="p-3 border-r border-slate-200 dark:border-slate-700 text-center font-bold text-slate-500">
-                                                                                    {index + 1}
+                                                                                    {displayIndex}
                                                                                 </td>
-                                                                                <td colSpan={6} className="p-3 cursor-pointer" onClick={() => openEditPanel(node)}>
-                                                                                    <div className="font-bold text-sm text-primary-700 dark:text-primary-400">{node.name}</div>
-                                                                                    {meta.description && <div className="text-xs text-slate-500 mt-0.5">{meta.description}</div>}
-                                                                                </td>
+                                                                                {isInternalWorkflow ? (
+                                                                                    <>
+                                                                                        <td className="p-3 border-r border-slate-200 dark:border-slate-700 cursor-pointer" onClick={() => openEditPanel(node)}>
+                                                                                            <div className="font-bold text-sm text-primary-700 dark:text-primary-400 whitespace-pre-wrap">{node.name}</div>
+                                                                                            {meta.description && <div className="text-xs text-slate-500 mt-0.5">{meta.description}</div>}
+                                                                                        </td>
+                                                                                        <td className="p-3 border-r border-slate-200 dark:border-slate-700">
+                                                                                            <div className="whitespace-pre-wrap text-[12.5px]">{node.assignee_role}</div>
+                                                                                        </td>
+                                                                                        <td className="p-3 border-r border-slate-200 dark:border-slate-700">
+                                                                                            <div className="whitespace-pre-wrap text-[12.5px]">{meta.coordinating_role}</div>
+                                                                                        </td>
+                                                                                        <td className="p-3 border-r border-slate-200 dark:border-slate-700 text-[12px]">
+                                                                                            {meta.sla_regulated && (
+                                                                                                <div className="mb-2">
+                                                                                                    <span className="font-semibold text-slate-600 dark:text-slate-400">Theo quy định:</span><br/>
+                                                                                                    <span className="whitespace-pre-wrap block leading-snug">{meta.sla_regulated}</span>
+                                                                                                </div>
+                                                                                            )}
+                                                                                            {node.sla_formula && (
+                                                                                                <div>
+                                                                                                    <span className="font-semibold text-slate-600 dark:text-slate-400">Theo quy trình:</span><br/>
+                                                                                                    <span className="whitespace-pre-wrap block leading-snug">{node.sla_formula}</span>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className="p-3 border-r border-slate-200 dark:border-slate-700">
+                                                                                            <div className="whitespace-pre-wrap text-[12px] leading-snug">{meta.notes}</div>
+                                                                                        </td>
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <td colSpan={6} className="p-3 cursor-pointer" onClick={() => openEditPanel(node)}>
+                                                                                        <div className="font-bold text-sm text-primary-700 dark:text-primary-400">{node.name}</div>
+                                                                                        {meta.description && <div className="text-xs text-slate-500 mt-0.5">{meta.description}</div>}
+                                                                                    </td>
+                                                                                )}
                                                                                 <td className="p-2 text-center align-middle border-slate-200 dark:border-slate-700">
                                                                                     <div className="flex items-center justify-center gap-1 opacity-100">
                                                                                         <button onClick={(e) => { e.stopPropagation(); moveNodeUp(node.id); }}
@@ -565,53 +614,86 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                                                                                     })}
                                                                                 >
                                                                                     <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-center text-xs font-semibold text-slate-400">
-                                                                                        {index + 1}.{stIdx + 1}
+                                                                                        {displayIndex}.{stIdx + 1}
                                                                                     </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10">
-                                                                                        {stSla || ''}
-                                                                                    </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800">
-                                                                                        <div className="font-medium text-slate-700 dark:text-slate-300 text-[12px] whitespace-pre-wrap leading-snug">{st.name}</div>
-                                                                                    </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px]">
-                                                                                        {st.assignee_role}
-                                                                                    </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[12px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
-                                                                                        {st.output}
-                                                                                    </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] align-middle">
-                                                                                        {st.template_url ? (
-                                                                                            <a href={st.template_url} target="_blank" rel="noreferrer" 
-                                                                                               onClick={(e) => e.stopPropagation()}
-                                                                                               className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors group border border-indigo-100 dark:border-indigo-800/50"
-                                                                                               title="Tải biểu mẫu đính kèm">
-                                                                                                <Download size={13} className="shrink-0 group-hover:-translate-y-0.5 transition-transform" />
-                                                                                                <span className="font-semibold italic line-clamp-2">
-                                                                                                    {st.template_forms || "Biểu mẫu đính kèm"}
-                                                                                                </span>
-                                                                                            </a>
-                                                                                        ) : (
-                                                                                            <span className="text-slate-500 dark:text-slate-400 italic break-words line-clamp-2" title={st.template_forms}>
-                                                                                                {st.template_forms || "-"}
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </td>
-                                                                                    <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
-                                                                                        {st.legal_basis ? (
-                                                                                            <button 
-                                                                                                type="button"
-                                                                                                onClick={(e) => {
-                                                                                                    e.preventDefault();
-                                                                                                    e.stopPropagation();
-                                                                                                    handleOpenLegalSearch(st.legal_basis);
-                                                                                                }}
-                                                                                                className="text-left text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition-colors focus:outline-none"
-                                                                                                title="Nhấn để tra cứu nhanh"
-                                                                                            >
-                                                                                                {st.legal_basis}
-                                                                                            </button>
-                                                                                        ) : null}
-                                                                                    </td>
+                                                                                    {isInternalWorkflow ? (
+                                                                                        <>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800">
+                                                                                                <div className="font-medium text-slate-700 dark:text-slate-300 text-[12px] whitespace-pre-wrap leading-snug">{st.name}</div>
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] whitespace-pre-wrap">
+                                                                                                {st.assignee_role}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] whitespace-pre-wrap">
+                                                                                                {st.coordinating_role}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[12px]">
+                                                                                                {st.sla_regulated && (
+                                                                                                    <div className="mb-2">
+                                                                                                        <span className="font-semibold text-slate-600 dark:text-slate-400">Theo quy định:</span><br/>
+                                                                                                        <span className="whitespace-pre-wrap block leading-snug">{st.sla_regulated}</span>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                                {stSla && (
+                                                                                                    <div>
+                                                                                                        <span className="font-semibold text-slate-600 dark:text-slate-400">Theo quy trình:</span><br/>
+                                                                                                        <span className="whitespace-pre-wrap block leading-snug">{stSla}</span>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] whitespace-pre-wrap leading-snug">
+                                                                                                {st.notes}
+                                                                                            </td>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10">
+                                                                                                {stSla || ''}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800">
+                                                                                                <div className="font-medium text-slate-700 dark:text-slate-300 text-[12px] whitespace-pre-wrap leading-snug">{st.name}</div>
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px]">
+                                                                                                {st.assignee_role}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[12px] text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                                                                                {st.output}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] align-middle">
+                                                                                                {st.template_url ? (
+                                                                                                    <a href={st.template_url} target="_blank" rel="noreferrer" 
+                                                                                                       onClick={(e) => e.stopPropagation()}
+                                                                                                       className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors group border border-indigo-100 dark:border-indigo-800/50"
+                                                                                                       title="Tải biểu mẫu đính kèm">
+                                                                                                        <Download size={13} className="shrink-0 group-hover:-translate-y-0.5 transition-transform" />
+                                                                                                        <span className="font-semibold italic line-clamp-2">
+                                                                                                            {st.template_forms || "Biểu mẫu đính kèm"}
+                                                                                                        </span>
+                                                                                                    </a>
+                                                                                                ) : (
+                                                                                                    <span className="text-slate-500 dark:text-slate-400 italic break-words line-clamp-2" title={st.template_forms}>
+                                                                                                        {st.template_forms || "-"}
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="p-2.5 border-r border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                                                                                                {st.legal_basis ? (
+                                                                                                    <button 
+                                                                                                        type="button"
+                                                                                                        onClick={(e) => {
+                                                                                                            e.preventDefault();
+                                                                                                            e.stopPropagation();
+                                                                                                            handleOpenLegalSearch(st.legal_basis);
+                                                                                                        }}
+                                                                                                        className="text-left text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition-colors focus:outline-none"
+                                                                                                        title="Nhấn để tra cứu nhanh"
+                                                                                                    >
+                                                                                                        {st.legal_basis}
+                                                                                                    </button>
+                                                                                                ) : null}
+                                                                                            </td>
+                                                                                        </>
+                                                                                    )}
                                                                                     <td className="p-1.5 border-slate-100 dark:border-slate-800 text-center">
                                                                                         <ChevronRight size={12} className="text-slate-300 mx-auto" />
                                                                                     </td>

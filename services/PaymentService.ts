@@ -263,9 +263,6 @@ export class PaymentService {
         return VALID_TRANSITIONS[status] || [];
     }
 
-    /**
-     * Get payment statistics for a contract
-     */
     static async getContractPaymentStats(contractId: string): Promise<{
         totalPaid: number;
         totalPending: number;
@@ -274,7 +271,13 @@ export class PaymentService {
         advanceAmount: number;
         volumeAmount: number;
     }> {
-        const payments = await this.getByContractId(contractId);
+        // Fetch only the necessary fields
+        const { data: payments, error } = await supabase
+            .from('payments')
+            .select('amount, status, type')
+            .eq('contract_id', contractId);
+            
+        if (error) throw new Error(`Failed to fetch payment stats: ${error.message}`);
 
         let totalPaid = 0;
         let totalPending = 0;
@@ -282,19 +285,23 @@ export class PaymentService {
         let advanceAmount = 0;
         let volumeAmount = 0;
 
-        payments.forEach(p => {
-            if (p.Status === PaymentStatus.Transferred) {
-                totalPaid += p.Amount;
-            } else if (p.Status === PaymentStatus.Approved) {
-                totalApproved += p.Amount;
-            } else if (p.Status === PaymentStatus.Pending || p.Status === PaymentStatus.Draft) {
-                totalPending += p.Amount;
+        (payments || []).forEach(p => {
+            const amt = Number(p.amount) || 0;
+            const status = this.normalizeStatusForStats(p.status);
+            const type = this.normalizeTypeForStats(p.type);
+
+            if (status === PaymentStatus.Transferred) {
+                totalPaid += amt;
+            } else if (status === PaymentStatus.Approved) {
+                totalApproved += amt;
+            } else if (status === PaymentStatus.Pending || status === PaymentStatus.Draft) {
+                totalPending += amt;
             }
 
-            if (p.Type === PaymentType.Advance) {
-                advanceAmount += p.Amount;
+            if (type === PaymentType.Advance) {
+                advanceAmount += amt;
             } else {
-                volumeAmount += p.Amount;
+                volumeAmount += amt;
             }
         });
 
@@ -302,10 +309,40 @@ export class PaymentService {
             totalPaid,
             totalPending,
             totalApproved,
-            paymentCount: payments.length,
+            paymentCount: (payments || []).length,
             advanceAmount,
             volumeAmount,
         };
+    }
+
+    private static normalizeStatusForStats(dbStatus: string | number): PaymentStatus {
+        if (typeof dbStatus === 'number') return dbStatus as unknown as PaymentStatus;
+        if (!dbStatus) return PaymentStatus.Draft;
+        const normalized = dbStatus.toString().toLowerCase();
+        if (normalized.includes('draft') || normalized === 'nháp') return PaymentStatus.Draft;
+        if (normalized.includes('pending') || normalized === 'chờ duyệt') return PaymentStatus.Pending;
+        if (normalized.includes('approve') || normalized === 'đã duyệt') return PaymentStatus.Approved;
+        if (normalized.includes('transfer') || normalized === 'đã chuyển tiền') return PaymentStatus.Transferred;
+        if (normalized.includes('reject') || normalized === 'từ chối') return PaymentStatus.Rejected;
+        
+        switch (dbStatus) {
+            case PaymentStatus.Draft: return PaymentStatus.Draft;
+            case PaymentStatus.Pending: return PaymentStatus.Pending;
+            case PaymentStatus.Approved: return PaymentStatus.Approved;
+            case PaymentStatus.Transferred: return PaymentStatus.Transferred;
+            case PaymentStatus.Rejected: return PaymentStatus.Rejected;
+        }
+        return PaymentStatus.Draft;
+    }
+
+    private static normalizeTypeForStats(dbType: string | number): PaymentType {
+        if (typeof dbType === 'number') return dbType as unknown as PaymentType;
+        if (!dbType) return PaymentType.Volume;
+        const normalized = dbType.toString().toLowerCase();
+        if (normalized.includes('advance') || normalized === 'tạm ứng') return PaymentType.Advance;
+        if (normalized.includes('volume') || normalized === 'thanh toán khối lượng') return PaymentType.Volume;
+
+        return dbType === PaymentType.Advance || dbType === 'TamUng' ? PaymentType.Advance : PaymentType.Volume;
     }
 
     // ============================================================

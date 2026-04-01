@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { GitBranch, Plus, AlertCircle, FileText, DownloadCloud, ArrowLeft, LayoutGrid, List as ListIcon, Search, Trash2 } from 'lucide-react';
 import { getStandardWorkflowTemplates } from './data/seedWorkflows';
+import { getInternalWorkflowTemplates } from './data/seedInternalWorkflows';
 import type { Workflow, WorkflowNode, WorkflowEdge } from '../../types/workflow.types';
 import { useToast } from '../../components/ui/Toast';
 import { useSlidePanel } from '../../context/SlidePanelContext';
@@ -26,6 +27,28 @@ const WorkflowManagerPage: React.FC = () => {
     
     const { addToast } = useToast();
     const { openPanel, closePanel } = useSlidePanel();
+    
+    // Memoized data for FlowchartViewer to prevent infinite loop
+    const processedNodes = useMemo(() => 
+        workflowNodes.map(n => ({ 
+            id: n.id, 
+            name: n.name, 
+            type: n.type as any, 
+            assignee_role: n.assignee_role || undefined, 
+            sla_formula: n.sla_formula || undefined, 
+            metadata: n.metadata 
+        })), 
+        [workflowNodes]
+    );
+
+    const processedEdges = useMemo(() => 
+        workflowEdges.map(e => ({ 
+            source: e.source_node, 
+            target: e.target_node,
+            condition: e.condition_expr || undefined
+        })), 
+        [workflowEdges]
+    );
 
     const isMissingStandardData = workflows.length === 0;
 
@@ -36,10 +59,11 @@ const WorkflowManagerPage: React.FC = () => {
     const hasAutoSeeded = useRef(false);
 
     useEffect(() => {
-        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B → tự động seed
+        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B/QT-GSĐG → tự động seed
         if (!isLoading && !isSeeding && !hasAutoSeeded.current) {
             const hasStandard = workflows.some(w => w.code === 'QT-TK1B');
-            if (!hasStandard) {
+            const hasInternal = workflows.some(w => w.code === 'QT-GSĐG');
+            if (!hasStandard || !hasInternal) {
                 hasAutoSeeded.current = true;
                 handleSeedWorkflows(true);
             }
@@ -181,23 +205,28 @@ const WorkflowManagerPage: React.FC = () => {
     const handleSeedWorkflows = async (forceQuiet = true) => {
         setIsSeeding(true);
         try {
-            // Delete old template workflows
-            await supabase.from('workflows').delete().in('code', ['QT-TK3B', 'QT-TK2B', 'QT-TK1B', 'I.1', 'I.2', 'QT-01']);
+            const allTemplates = [...getStandardWorkflowTemplates(), ...getInternalWorkflowTemplates()];
 
-            const allTemplates = getStandardWorkflowTemplates();
-
-            // INSERT ALL WORKFLOWS
+            // Dùng cơ chế UPSERT để tránh hoàn toàn lỗi duplicate key do race condition
             for (const wfInput of allTemplates) {
-                const { data: wf, error: wfErr } = await supabase.from('workflows').insert({
+                // 1. Upsert workflow theo mã code
+                const { data: wf, error: wfErr } = await supabase.from('workflows').upsert({
                     name: wfInput.name,
                     code: wfInput.code,
                     description: wfInput.description,
                     category: wfInput.category as any,
                     version: 1,
                     is_active: true
-                }).select().single();
+                }, { onConflict: 'code' }).select().single();
+                
                 if (wfErr) throw wfErr;
 
+                // 2. Xóa các node và edge cũ của workflow này để chuẩn bị chèn data mới
+                await supabase.from('workflow_edges').delete().eq('workflow_id', wf.id);
+                await supabase.from('workflow_nodes').delete().eq('workflow_id', wf.id);
+
+                // 3. Insert tuần tự các bước (node) mới
+                const nodeIdMap: Record<string, string> = {}; 
                 let prevId: string | null = null;
                 for (const s of wfInput.steps) {
                     const { data: node, error: nErr } = await supabase.from('workflow_nodes').insert({
@@ -210,7 +239,11 @@ const WorkflowManagerPage: React.FC = () => {
                     }).select().single();
                     if (nErr) throw nErr;
 
-                    if (prevId) {
+                    if (s.id) {
+                        nodeIdMap[s.id] = node.id;
+                    }
+
+                    if (!wfInput.edges && prevId) {
                         await supabase.from('workflow_edges').insert({
                             workflow_id: wf.id,
                             source_node: prevId,
@@ -219,11 +252,24 @@ const WorkflowManagerPage: React.FC = () => {
                     }
                     prevId = node.id;
                 }
+
+                // 4. Insert Edges theo dạng lưới (Nếu có cấu hình edges)
+                if (wfInput.edges) {
+                    for (const edge of wfInput.edges) {
+                        if (!nodeIdMap[edge.source] || !nodeIdMap[edge.target]) continue;
+                        await supabase.from('workflow_edges').insert({
+                            workflow_id: wf.id,
+                            source_node: nodeIdMap[edge.source],
+                            target_node: nodeIdMap[edge.target],
+                            condition_expr: edge.label || null
+                        });
+                    }
+                }
             }
 
             addToast({ 
                 title: 'Khởi tạo thành công', 
-                message: 'Đã nạp 3 quy trình mẫu theo Sổ tay ĐTCHD 2025: TK 3 bước (26 bước), TK 2 bước (23 bước), TK 1 bước (20 bước).', 
+                message: `Đã nạp ${allTemplates.length} quy trình: 5 QT dự án + 9 QT nội bộ Ban DDCN.`, 
                 type: 'success' 
             });
             fetchWorkflows();
@@ -240,7 +286,7 @@ const WorkflowManagerPage: React.FC = () => {
         const map: Record<string, string> = {
             project: 'Dự án', implementation: 'Thực hiện DA', investment: 'Đầu tư', 
             procurement: 'Đấu thầu', finance: 'Tài chính', hr: 'Nhân sự',
-            document: 'Văn bản', asset: 'Tài sản', other: 'Khác'
+            document: 'Văn bản', asset: 'Tài sản', other: 'Nghiệp vụ'
         };
         return map[cat] || cat;
     };
@@ -264,7 +310,6 @@ const WorkflowManagerPage: React.FC = () => {
                 </div>
                 
                 <div className="relative z-10 flex items-center gap-3 w-full md:w-auto">
-
                     <button onClick={handleCreateWorkflow} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-700 transition duration-200 shadow-md shadow-primary-600/20">
                         <Plus size={18} /> Tạo Quy Trình
                     </button>
@@ -288,9 +333,8 @@ const WorkflowManagerPage: React.FC = () => {
                         <div className="block h-[700px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-50 dark:bg-slate-900">
                             <FlowchartViewer
                                 workflowName={selectedWorkflow.name}
-                                nodes={workflowNodes.map(n => ({ id: n.id, name: n.name, type: n.type, assignee_role: n.assignee_role || undefined, sla_formula: n.sla_formula || undefined, metadata: n.metadata }))}
-                                edges={workflowEdges.map(e => ({ source: e.source_node, target: e.target_node }))}
-                                onNodeClick={(node) => openNodeDetails(node.id, node.name, node)}
+                                nodes={processedNodes}
+                                edges={processedEdges}
                             />
                         </div>
                     )}

@@ -149,12 +149,17 @@ export const WorkflowService = {
 
   /** Lấy toàn bộ workflow tasks cho một dự án (thông qua project_id liên kết với instance) */
   getProjectWorkflowTasks: async (projectId: string): Promise<WorkflowTask[]> => {
-    // 1. Get the instances for this project
-    const { data: instances, error: instErr } = await supabase
+    // 1. Get the instances for this project (or all if projectId is empty)
+    let query = supabase
       .from('workflow_instances')
-      .select('id')
-      .eq('reference_id', projectId)
+      .select('id, reference_id')
       .eq('reference_type', 'project');
+    
+    if (projectId) {
+      query = query.eq('reference_id', projectId);
+    }
+      
+    const { data: instances, error: instErr } = await query;
       
     if (instErr) throw instErr;
     if (!instances || instances.length === 0) return [];
@@ -170,10 +175,13 @@ export const WorkflowService = {
           type,
           sla_formula,
           metadata
+        ),
+        instance:instance_id (
+          reference_id
         )
       `)
       .in('instance_id', instanceIds)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (taskErr) throw taskErr;
     return tasks as unknown as WorkflowTask[];
@@ -310,10 +318,12 @@ export const WorkflowService = {
                     const stepMatch = targetNode.name.match(/^(\d+)\./);
                     const stepNum = stepMatch ? stepMatch[1] : '?';
                     
+                    const subTaskName = st.name || st.title || `Công việc ${idx + 1}`;
+                    
                     tasksToInsert.push({
                         instance_id: instance.id,
                         node_id: targetNode.id,
-                        name: st.name || st.title || `Công việc ${idx + 1}`,
+                        name: subTaskName.length > 250 ? subTaskName.substring(0, 247) + '...' : subTaskName,
                         task_type: 'sub_task',
                         status: 'pending',
                         start_date: new Date(subCurrentMs).toISOString(),
@@ -342,7 +352,7 @@ export const WorkflowService = {
                 tasksToInsert.push({
                     instance_id: instance.id,
                     node_id: targetNode.id,
-                    name: targetNode.name,
+                    name: targetNode.name.length > 250 ? targetNode.name.substring(0, 247) + '...' : targetNode.name,
                     task_type: 'workflow',
                     status: 'pending',
                     start_date: new Date(currentMs).toISOString(),
@@ -446,7 +456,7 @@ export const WorkflowService = {
           await supabase.from('workflow_tasks').insert({
             instance_id: instanceId,
             node_id: targetNode.id,
-            name: targetNode.name,
+            name: targetNode.name.length > 250 ? targetNode.name.substring(0, 247) + '...' : targetNode.name,
             task_type: 'workflow',
             status: 'pending',
             due_date: dueDate,
@@ -476,7 +486,7 @@ export const WorkflowService = {
            await supabase.from('workflow_tasks').insert({
              instance_id: instanceId,
              node_id: targetNode.id,
-             name: targetNode.name,
+             name: targetNode.name.length > 250 ? targetNode.name.substring(0, 247) + '...' : targetNode.name,
              task_type: 'workflow',
              status: 'completed',
              action_taken: 'AUTO_COMPLETED',
@@ -624,8 +634,8 @@ export const WorkflowService = {
 
   /** Lưu hoặc cập nhật một Task (Hỗ trợ cả Workflow và Ad-hoc) */
   saveWorkflowTask: async (task: Partial<WorkflowTask> & { id?: string; project_id?: string }): Promise<WorkflowTask> => {
-    // 1. Lấy thông tin instance hiện tại của project nếu task chưa có instance_id
-    if (!task.instance_id && task.project_id) {
+    // 1. Lấy thông tin instance hiện tại của project nếu là task mới và chưa có instance_id
+    if (!task.id && !task.instance_id && task.project_id) {
        const instances = await WorkflowService.getInstancesByProject(task.project_id);
        const activeInstance = instances.find(i => i.status === 'in_progress');
        if (activeInstance) {
@@ -635,8 +645,8 @@ export const WorkflowService = {
        }
     }
 
-    if (!task.instance_id) {
-      throw new Error('Task phải thuộc về một Workflow Instance.');
+    if (!task.id && !task.instance_id) {
+      throw new Error('Task mới phải thuộc về một Workflow Instance.');
     }
 
     // 2. Chuẩn bị dữ liệu để upsert
@@ -645,6 +655,20 @@ export const WorkflowService = {
       ...task,
       updated_at: now
     };
+    
+    // Xóa field project_id vì không có trong schema workflow_tasks
+    delete taskToSave.project_id;
+
+    // ── Sanitize: chuyển empty string → null cho tất cả trường TIMESTAMPTZ ──
+    // PostgreSQL từ chối "" cho timestamp, phải là null hoặc ISO string hợp lệ
+    const timestampFields = ['start_date', 'due_date', 'started_at', 'completed_at', 'created_at', 'updated_at'];
+    for (const field of timestampFields) {
+      if (taskToSave[field] === '' || taskToSave[field] === undefined) {
+        taskToSave[field] = null;
+      }
+    }
+    // Đảm bảo updated_at luôn có giá trị
+    taskToSave.updated_at = now;
 
     // Nếu là task mới
     if (!task.id) {
@@ -654,11 +678,41 @@ export const WorkflowService = {
        if (!taskToSave.progress) taskToSave.progress = 0;
     }
 
-    const { data, error } = await supabase
-      .from('workflow_tasks')
-      .upsert(taskToSave)
-      .select()
-      .single();
+    // ── Bảo vệ nghiêm ngặt: Tuyệt đối không gửi assignee_id lên Supabase nếu không phải UUID hợp lệ ──
+    if (taskToSave.assignee_id) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(taskToSave.assignee_id)) {
+            console.warn(`[WorkflowService] assignee_id is invalid UUID: "${taskToSave.assignee_id}". Overwriting with null to prevent DB insert error.`);
+            taskToSave.assignee_id = null; // Gửi null thay vì string lỗi
+        }
+    }
+
+    let data: any;
+    let error: any;
+
+    if (task.id) {
+      // ── UPDATE: Task đã tồn tại → dùng .update() thay vì .upsert() ──
+      // Upsert sẽ thử INSERT trước, bị lỗi vì instance_id NOT NULL không có trong payload
+      const updatePayload = { ...taskToSave };
+      delete updatePayload.id; // Không cần gửi id trong payload update
+      const result = await supabase
+        .from('workflow_tasks')
+        .update(updatePayload)
+        .eq('id', task.id)
+        .select()
+        .single();
+      data = result.data;
+      error = result.error;
+    } else {
+      // ── INSERT: Task mới → dùng .insert() ──
+      const result = await supabase
+        .from('workflow_tasks')
+        .insert(taskToSave)
+        .select()
+        .single();
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) throw error;
     return data as WorkflowTask;

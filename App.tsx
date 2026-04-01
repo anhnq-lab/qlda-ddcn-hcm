@@ -65,6 +65,9 @@ const queryClient = new QueryClient({
         queries: {
             staleTime: 1000 * 60 * 5, // 5 minutes
             retry: 1,
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff up to 10s
+            gcTime: 1000 * 60 * 15, // 15 minutes cache retention
+            refetchOnWindowFocus: false, // Prevent re-fetching when switching tabs
         },
     },
 });

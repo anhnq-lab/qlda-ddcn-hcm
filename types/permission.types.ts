@@ -226,7 +226,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
     // ── Giám đốc Ban ──
     director: {
         dashboard: ['view', 'export'],
-        projects: ['view'],
+        projects: ['view', 'create', 'update', 'delete'],
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view'],
@@ -248,7 +248,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
     // ── Phó Giám đốc ──
     deputy_director: {
         dashboard: ['view', 'export'],
-        projects: ['view'],
+        projects: ['view', 'create', 'update', 'delete'],
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view'],
@@ -328,7 +328,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<SystemRole, Partial<Record<Permiss
     // ── Chuyên viên / Kỹ sư ──
     specialist: {
         dashboard: ['view'],
-        projects: ['view', 'update'],
+        projects: ['view', 'create', 'update', 'delete'],
         tasks: ['view', 'create', 'update'],
         employees: ['view'],
         contractors: ['view', 'create', 'update'],

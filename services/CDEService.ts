@@ -465,21 +465,37 @@ export class CDEService {
      * Get stats for a project's CDE.
      */
     static async getStats(projectId: string): Promise<CDEStats> {
-        const { data, error } = await supabase
-            .from('documents')
-            .select('cde_status, iso_status')
+        const baseQuery = supabase.from('documents')
+            .select('*', { count: 'exact', head: true })
             .eq('project_id', projectId)
             .not('cde_folder_id', 'is', null);
 
-        if (error) throw new Error(`Failed to fetch stats: ${error.message}`);
+        // Fetch counts in parallel without downloading any rows
+        const [totalRes, wipRes, sharedRes, publishedRes, archivedRes] = await Promise.all([
+            supabase.from('documents').select('*', { count: 'exact', head: true })
+                .eq('project_id', projectId).not('cde_folder_id', 'is', null),
+            supabase.from('documents').select('*', { count: 'exact', head: true })
+                .eq('project_id', projectId).not('cde_folder_id', 'is', null)
+                .or('iso_status.eq.WIP,iso_status.is.null'),
+            supabase.from('documents').select('*', { count: 'exact', head: true })
+                .eq('project_id', projectId).not('cde_folder_id', 'is', null)
+                .eq('iso_status', 'SHARED'),
+            supabase.from('documents').select('*', { count: 'exact', head: true })
+                .eq('project_id', projectId).not('cde_folder_id', 'is', null)
+                .eq('iso_status', 'PUBLISHED'),
+            supabase.from('documents').select('*', { count: 'exact', head: true })
+                .eq('project_id', projectId).not('cde_folder_id', 'is', null)
+                .eq('iso_status', 'ARCHIVED')
+        ]);
 
-        const docs = data || [];
+        if (totalRes.error) throw new Error(`Failed to fetch stats: ${totalRes.error.message}`);
+
         return {
-            total: docs.length,
-            wip: docs.filter(d => d.iso_status === 'WIP' || !d.iso_status).length,
-            shared: docs.filter(d => d.iso_status === 'SHARED').length,
-            published: docs.filter(d => d.iso_status === 'PUBLISHED').length,
-            archived: docs.filter(d => d.iso_status === 'ARCHIVED').length,
+            total: totalRes.count || 0,
+            wip: wipRes.count || 0,
+            shared: sharedRes.count || 0,
+            published: publishedRes.count || 0,
+            archived: archivedRes.count || 0,
         };
     }
 

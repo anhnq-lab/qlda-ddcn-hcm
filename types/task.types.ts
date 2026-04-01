@@ -37,6 +37,7 @@ export interface Task {
     PredecessorTaskID?: string;
     ApproverID?: string;
     EstimatedCost?: number;
+    ActualCost?: number;
     ActualStartDate?: string;
     ActualEndDate?: string;
     SubTasks?: SubTask[];

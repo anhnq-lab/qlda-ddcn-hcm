@@ -23,6 +23,7 @@ export interface DashboardProjectRow {
     paymentProgress: number;
     startDate: string | null;
     expectedEndDate: string | null;
+    locationCode?: string;
 }
 
 export const DashboardService = {
@@ -64,7 +65,7 @@ export const DashboardService = {
     getProjectSummary: async (): Promise<DashboardProjectRow[]> => {
         const { data: projects } = await supabase
             .from('projects')
-            .select('project_id, project_name, management_board, status, progress, total_investment, payment_progress, start_date, expected_end_date')
+            .select('project_id, project_name, management_board, status, progress, total_investment, payment_progress, start_date, expected_end_date, location_code')
             .order('management_board', { ascending: true });
 
         const statusLabels: Record<number, string> = {
@@ -87,6 +88,7 @@ export const DashboardService = {
                 paymentProgress: Number(p.payment_progress) || 0,
                 startDate: p.start_date,
                 expectedEndDate: p.expected_end_date,
+                locationCode: p.location_code,
             };
         });
     },

@@ -31,7 +31,7 @@ Trả về KẾT QUẢ DƯỚI DẠNG JSON object với các key sau:
   "ProjectName": "Tên dự án",
   "GroupCode": "Nhóm dự án: A, B, C hoặc QN (Quan trọng quốc gia)",
   "TotalInvestment": 0,
-  "CapitalSource": "Nguồn vốn (VD: Ngân sách Tỉnh, NSTW...)",
+  "CapitalSource": "Nguồn vốn (VD: Ngân sách Địa phương, NSTW...)",
   "ProvinceName": "Tên tỉnh/thành phố",
   "LocationCode": "Địa điểm xây dựng chi tiết",
   "ConstructionType": "Loại công trình: Dân dụng / Công nghiệp / Giao thông / Nông nghiệp & PTNT / Hạ tầng kỹ thuật / Quốc phòng, an ninh",

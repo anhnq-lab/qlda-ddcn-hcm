@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PermissionGate from '../../components/PermissionGate';
-import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
+import { useAllWorkflowTasks, useUpdateWorkflowTask, useDeleteWorkflowTask } from '../../hooks/useWorkflowTasks';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Task, TaskStatus, TaskPriority } from '../../types';
+import { workflowTaskToTask } from '../../lib/dbMappers';
 import { getTimelineStepLabel, getPhaseColor } from '../../utils/timelineStepUtils';
 import { getStatusInfo, getPriorityInfo } from './TaskCreateEditModal';
 import { ProjectTaskModal } from '../projects/components/ProjectTaskModal';
@@ -72,14 +73,18 @@ const TaskList: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     // Data
-    const { data: tasks = [], isLoading } = useTasks();
+    const { data: rawWorkflowTasks = [], isLoading } = useAllWorkflowTasks();
     const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
     const { data: employees = [] } = useEmployees();
 
+    // Map workflow tasks to UI model
+    const tasks = useMemo(() => 
+        rawWorkflowTasks.map(wt => workflowTaskToTask(wt))
+    , [rawWorkflowTasks]);
+
     // Mutations
-    const createTaskMutation = useCreateTask();
-    const updateTaskMutation = useUpdateTask();
-    const deleteTaskMutation = useDeleteTask();
+    const updateTaskMutation = useUpdateWorkflowTask();
+    const deleteTaskMutation = useDeleteWorkflowTask();
 
     // ── Filter ──
     const filteredTasks = useMemo(() => tasks.filter(task => {
@@ -180,9 +185,19 @@ const TaskList: React.FC = () => {
     };
 
     const handleBatchStatus = async (status: TaskStatus) => {
+        // Map TaskStatus back to WorkflowTaskStatus if needed, 
+        // but the service/modal now handles a lot of this.
+        // For simple status update, we can send the internal workflow status.
+        const internalStatusMap: Record<string, any> = {
+            [TaskStatus.Todo]: 'pending',
+            [TaskStatus.InProgress]: 'in_progress',
+            [TaskStatus.Done]: 'completed',
+            [TaskStatus.Review]: 'rejected'
+        };
+
         const tasksToUpdate = tasks.filter(t => selectedIds.has(t.TaskID));
         await Promise.all(tasksToUpdate.map(t =>
-            updateTaskMutation.mutateAsync({ ...t, Status: status })
+            updateTaskMutation.mutateAsync({ id: t.TaskID, status: internalStatusMap[status] })
         ));
         setSelectedIds(new Set());
     };
@@ -225,9 +240,39 @@ const TaskList: React.FC = () => {
     };
 
     const handleSave = async (taskData: Partial<Task>) => {
-        const taskToSave = { ...taskData, TaskID: taskData.TaskID || `TSK-${Date.now()}` } as Task;
-        if (isEditMode) await updateTaskMutation.mutateAsync(taskToSave);
-        else await createTaskMutation.mutateAsync(taskToSave);
+        // Re-map UI Task structure to Workflow Task payload for the service
+        // The service expects fields like 'name', 'progress', 'metadata' etc.
+        const workflowPayload: any = {
+            id: taskData.TaskID?.startsWith('NEW_') ? undefined : taskData.TaskID,
+            name: taskData.Title,
+            progress: taskData.ProgressPercent,
+            assignee_id: taskData.AssigneeID,
+            due_date: taskData.DueDate,
+            project_id: taskData.ProjectID, // Used by service to find instance_id if new
+            metadata: {
+                 actualStartDate: taskData.ActualStartDate,
+                 actualEndDate: taskData.ActualEndDate,
+                 sub_tasks: taskData.SubTasks,
+                 attachments: taskData.Attachments,
+                 dependencies: taskData.Dependencies,
+                 estimated_cost: taskData.EstimatedCost,
+                 actual_cost: taskData.ActualCost,
+                 estimatedDays: taskData.DurationDays,
+            }
+        };
+
+        // Status mapping (Task UI -> Workflow DB)
+        if (taskData.Status) {
+            const statusMap: Record<string, string> = {
+                [TaskStatus.Todo]: 'pending',
+                [TaskStatus.InProgress]: 'in_progress',
+                [TaskStatus.Done]: 'completed',
+                [TaskStatus.Review]: 'rejected'
+            };
+            workflowPayload.status = statusMap[taskData.Status];
+        }
+
+        await updateTaskMutation.mutateAsync(workflowPayload);
         setIsModalOpen(false);
     };
 

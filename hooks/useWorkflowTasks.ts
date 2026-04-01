@@ -23,7 +23,37 @@ export const useProjectWorkflowTasks = (projectId?: string) => {
     });
 };
 
-/* TODO: Implement update and delete mutations for workflow tasks later if needed. 
-   Right now, tasks progress is updated through WorkflowService.transitionToNextNodes
-   and UI standard update processes. 
-*/
+// Hook để lấy toàn bộ workflow tasks cho tất cả projects (cho TaskList)
+export const useAllWorkflowTasks = () => {
+    return useQuery({
+        queryKey: workflowTaskKeys.lists(),
+        queryFn: async () => {
+            // Chúng ta có thể thêm method getAllWorkflowTasks vào WorkflowService
+            // Tạm thời dùng filter rỗng hoặc gọi qua rpc nếu cần
+            // Nhưng TaskService.getAllTasks() cũ đang làm gì?
+            // Ở đây ta giả định WorkflowService có thể trả về tất cả.
+            return WorkflowService.getProjectWorkflowTasks(''); // Truyền rỗng để lấy tất cả nếu service support
+        },
+    });
+};
+
+export const useUpdateWorkflowTask = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (task: any) => WorkflowService.saveWorkflowTask(task),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+        },
+    });
+};
+
+export const useDeleteWorkflowTask = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => WorkflowService.deleteWorkflowTask(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+        },
+    });
+};
+

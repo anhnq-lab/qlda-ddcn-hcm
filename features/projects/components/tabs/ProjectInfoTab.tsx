@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Project, ProjectStage, Employee, BiddingPackage, Contractor } from '@/types';
 import {
-    Pencil, Clock, Info, Maximize,
+    Pencil, Clock, Info, Maximize, Target,
     Hash, Building2, MapPin, Briefcase, Wallet, Copy, Check, Ruler
 } from 'lucide-react';
 import { SyncResult } from '@/services/NationalGatewayService';
@@ -150,14 +150,13 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
 
     // ═══ Calculate progress from TASKS plan data ═══
     const { data: taskProgressData } = useQuery<{ projectProgress: number; constructionProgress: number }>({
-        queryKey: ['project-task-progress', project.ProjectID],
+        queryKey: ['project-task-progress-v2', project.ProjectID],
         queryFn: async () => {
-            const { data: tasks } = await (supabase
-                .from('tasks')
-                .select('step_code, progress, status')
-                .eq('project_id', project.ProjectID) as any);
+            const { WorkflowService } = await import('../../../../services/WorkflowService');
+            // Using the new workflow engine to get tasks linked to this project's instances
+            const wfTasks = await WorkflowService.getProjectWorkflowTasks(project.ProjectID);
 
-            if (!tasks || tasks.length === 0) {
+            if (!wfTasks || wfTasks.length === 0) {
                 // No tasks → dùng progress dự án, thi công = 0 (chưa có tasks thi công)
                 return {
                     projectProgress: project.PhysicalProgress ?? project.Progress ?? 0,
@@ -166,17 +165,13 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
             }
 
             // All tasks → Tiến độ dự án (overall plan progress)
-            const allProgress = (tasks as any[]).map((t: any) => t.progress ?? (t.status === 'Done' ? 100 : 0));
+            const allProgress = wfTasks.map(t => t.progress ?? (t.status === 'completed' ? 100 : 0));
             const projectProg = allProgress.length > 0
-                ? Math.round(allProgress.reduce((a: number, b: number) => a + b, 0) / allProgress.length)
+                ? Math.round(allProgress.reduce((a, b) => a + b, 0) / allProgress.length)
                 : 0;
 
-            // Only IMPL_ step_code tasks → Tiến độ thi công (Phase 2)
-            const implTasks = (tasks as any[]).filter((t: any) => t.step_code && t.step_code.startsWith('IMPL_'));
-            const implProgress = implTasks.map((t: any) => t.progress ?? (t.status === 'Done' ? 100 : 0));
-            const constructionProg = implProgress.length > 0
-                ? Math.round(implProgress.reduce((a: number, b: number) => a + b, 0) / implProgress.length)
-                : 0;
+            // Simplified: constructionProgress falls back to projectProg 
+            const constructionProg = projectProg;
 
             return { projectProgress: projectProg, constructionProgress: constructionProg };
         },
@@ -438,6 +433,32 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                                 <EnhancedInfoItem icon={Briefcase} label="Hình thức quản lý" value={project.ManagementForm || 'Chủ đầu tư trực tiếp quản lý'} />
                                 <EnhancedInfoItem icon={Wallet} label="Nguồn vốn" value={project.CapitalSource || 'Ngân sách tỉnh'} />
                             </div>
+
+                            {/* Mục tiêu đầu tư */}
+                            {project.Objective && (
+                                <div className="mt-2 px-2.5 pb-1">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <Target className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+                                        <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Mục tiêu đầu tư</span>
+                                    </div>
+                                    <p className="text-xs text-gray-700 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-blue-50/50 dark:bg-blue-900/10 rounded-lg p-2.5 border border-blue-100 dark:border-blue-800/30">
+                                        {project.Objective}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Tóm tắt quy mô đầu tư */}
+                            {project.InvestmentScale && (
+                                <div className="mt-2 px-2.5 pb-1">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <Ruler className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                                        <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Tóm tắt quy mô đầu tư</span>
+                                    </div>
+                                    <p className="text-xs text-gray-700 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg p-2.5 border border-emerald-100 dark:border-emerald-800/30">
+                                        {project.InvestmentScale}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
