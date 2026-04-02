@@ -11,6 +11,19 @@ export interface DashboardOverviewMetrics {
     riskCount: number;
 }
 
+export interface MonthlyBriefingStats {
+    month: number;
+    year: number;
+    disbursedThisMonth: number;
+    disbursedTarget: number;
+    newProjectsStarted: number;
+    projectsCompleted: number;
+    docsApproved: number;
+    keyAchievements: { id: string; content: string }[];
+    roadblocks: { id: string; content: string; severity: 'high' | 'medium' | 'low' }[];
+    upcomingPlans: { id: string; content: string }[];
+}
+
 export interface DashboardProjectRow {
     projectId: string;
     projectName: string;
@@ -195,5 +208,35 @@ export const DashboardService = {
         });
 
         return risks.slice(0, 8);
+    },
+
+    /** Monthly Briefing for Flag Salute Meeting (Mocked for now) */
+    getMonthlyBriefingStats: async (month: number, year: number): Promise<MonthlyBriefingStats> => {
+        // MOCK DATA since this requires complex aggregations
+        return {
+            month,
+            year,
+            disbursedThisMonth: 125000000000, // 125 tỷ
+            disbursedTarget: 150000000000,    // 150 tỷ
+            newProjectsStarted: 2,
+            projectsCompleted: 1,
+            docsApproved: 18,
+            keyAchievements: [
+                { id: '1', content: 'Khởi công Gói thầu số 5 - Dự án Bệnh viện Nhi Đồng.' },
+                { id: '2', content: 'Phê duyệt thiết kế bản vẽ thi công dự án Trường THPT chuyên Lê Hồng Phong.' },
+                { id: '3', content: 'Giải ngân 125 tỷ đồng, đạt 83.3% kế hoạch tháng.' },
+                { id: '4', content: 'Hoàn thành và bàn giao đưa vào sử dụng hạng mục nhà thi đấu Phú Thọ.' },
+            ],
+            roadblocks: [
+                { id: '1', content: 'Dự án chống ngập gặp khó khăn trong công tác GPMB tại Q.Bình Thạnh.', severity: 'high' },
+                { id: '2', content: 'Chậm trễ trong thẩm định hồ sơ mời thầu Gói số 2 (do thiếu nhân sự).', severity: 'medium' },
+                { id: '3', content: 'Một số nhà thầu chậm nộp báo cáo tiến độ tuần theo hợp đồng.', severity: 'low' },
+            ],
+            upcomingPlans: [
+                { id: '1', content: 'Tập trung đẩy mạnh giải ngân vốn đầu tư công, đạt mức 200 tỷ.' },
+                { id: '2', content: 'Tổ chức nghiệm thu khối lượng giai đoạn 2 - Dự án Rạp xiếc Phú Thọ.' },
+                { id: '3', content: 'Họp với hội đồng đền bù GPMB Q.Bình Thạnh để giải quyết vướng mắc.' },
+            ]
+        };
     },
 };

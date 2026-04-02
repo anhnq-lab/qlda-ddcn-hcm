@@ -120,12 +120,12 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
 
     const getPriorityStyle = (priority?: TaskPriority) => {
         switch (priority) {
-            case 'High':
-            case 'Urgent':
+            case 'high':
+            case 'urgent':
                 return 'border-l-red-500';
-            case 'Medium':
+            case 'medium':
                 return 'border-l-amber-500';
-            case 'Low':
+            case 'low':
                 return 'border-l-green-500';
             default:
                 return 'border-l-gray-300';
@@ -221,9 +221,9 @@ export const KanbanBoardView: React.FC<KanbanBoardViewProps> = ({
 
                                         {/* Priority Badge */}
                                         {task.Priority && (
-                                            <span className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border ${task.Priority === 'High' || task.Priority === 'Urgent'
+                                            <span className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border ${task.Priority === 'high' || task.Priority === 'urgent'
                                                 ? 'bg-red-50 text-red-600 border-red-200'
-                                                : task.Priority === 'Medium'
+                                                : task.Priority === 'medium'
                                                     ? 'bg-primary-50 text-primary-600 border-primary-200'
                                                     : 'bg-green-50 text-green-600 border-green-200'
                                                 }`}>

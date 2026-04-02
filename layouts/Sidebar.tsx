@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* ── Navigation ── */}
-        <nav className={`flex-1 overflow-y-auto p-4 ${isCollapsed ? 'md:px-2' : 'px-4'} space-y-1 no-scrollbar`} style={{ maxHeight: 'calc(100vh - 160px)' }}>
+        <nav className={`flex-1 overflow-y-auto min-h-0 p-4 ${isCollapsed ? 'md:px-2' : 'px-4'} space-y-1 no-scrollbar`}>
           {visibleNavItems.map((item) => (
             <NavLink
               key={item.path}

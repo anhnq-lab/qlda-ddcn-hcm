@@ -5,6 +5,7 @@
  * Password hash: SHA-256 (client-side)
  */
 import { supabase } from '../lib/supabase';
+import { toServiceError, ServiceError } from './ServiceError';
 
 // ============================================================
 // Types
@@ -70,7 +71,7 @@ export class UserAccountService {
             `)
             .order('created_at', { ascending: false });
 
-        if (error) throw new Error(`Failed to fetch user accounts: ${error.message}`);
+        if (error) throw toServiceError(error, 'UserAccountService.getAll');
 
         return (data || []).map((row: any) => ({
             id: row.id,
@@ -110,13 +111,13 @@ export class UserAccountService {
         if (error) {
             if (error.code === '23505') {
                 if (error.message.includes('username')) {
-                    throw new Error('Username đã tồn tại');
+                    throw new ServiceError('Username đã tồn tại', 'UserAccountService.create', error);
                 }
                 if (error.message.includes('employee')) {
-                    throw new Error('Nhân viên này đã có tài khoản');
+                    throw new ServiceError('Nhân viên này đã có tài khoản', 'UserAccountService.create', error);
                 }
             }
-            throw new Error(`Failed to create account: ${error.message}`);
+            throw toServiceError(error, 'UserAccountService.create');
         }
 
         return data as any;
@@ -133,7 +134,7 @@ export class UserAccountService {
             .update({ password_hash, updated_at: new Date().toISOString() })
             .eq('id', id);
 
-        if (error) throw new Error(`Failed to reset password: ${error.message}`);
+        if (error) throw toServiceError(error, 'UserAccountService.resetPassword');
     }
 
     /**
@@ -145,7 +146,7 @@ export class UserAccountService {
             .update({ is_active, updated_at: new Date().toISOString() })
             .eq('id', id);
 
-        if (error) throw new Error(`Failed to update account status: ${error.message}`);
+        if (error) throw toServiceError(error, 'UserAccountService.toggleActive');
     }
 
     /**
@@ -158,7 +159,7 @@ export class UserAccountService {
             .delete()
             .eq('id', id);
 
-        if (error) throw new Error(`Failed to delete account: ${error.message}`);
+        if (error) throw toServiceError(error, 'UserAccountService.delete');
     }
 
     /**
@@ -260,7 +261,7 @@ export class UserAccountService {
 
         const { data, error } = await query.order('full_name');
 
-        if (error) throw new Error(`Failed to fetch employees: ${error.message}`);
+        if (error) throw toServiceError(error, 'UserAccountService.getEmployeesWithoutAccount');
         return data || [];
     }
 

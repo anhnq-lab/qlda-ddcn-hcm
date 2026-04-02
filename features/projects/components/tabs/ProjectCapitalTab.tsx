@@ -17,6 +17,7 @@ import { CapitalPlanModal } from '../CapitalPlanModal';
 import { DisbursementPlanModal } from '../DisbursementPlanModal';
 import { DisbursementModal } from '../DisbursementModal';
 import { StatCard } from '../../../../components/ui';
+import { ProjectCapitalKPIDashboard } from './ProjectCapitalKPIDashboard';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import {
     APPROVAL_BADGES, SOURCE_COLORS, SOURCE_LABELS as SOURCE_LABELS_MAP,
@@ -76,7 +77,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
     // Project tasks for "Việc trong tháng" column
     const { data: projectTasks = [] } = useQuery({
         queryKey: ['project-tasks', projectID],
-        queryFn: () => TaskService.getTasksByProject(projectID),
+        queryFn: () => TaskService.getProjectTasks(projectID),
     });
 
     const [disbursementFilter, setDisbursementFilter] = useState<DisbursementFilter>('all');
@@ -360,56 +361,7 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
             {/* ════════════════════════════════════════════
                 SECTION A — KPI Dashboard (6 cards)
                ════════════════════════════════════════════ */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <KPICard
-                    label="Tổng mức đầu tư"
-                    value={formatCurrency(summary.totalInvestment)}
-                    sub={`Đã bố trí: ${summary.totalAllocated > 0 ? Math.round((summary.totalAllocated / summary.totalInvestment) * 100) : 0}%`}
-                    icon={<Coins className="w-5 h-5" />}
-                    iconBg="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                />
-                <KPICard
-                    label="KH vốn lũy kế"
-                    value={formatCurrency(summary.totalAllocated)}
-                    sub={`${allocations.length} đợt bố trí`}
-                    icon={<Landmark className="w-5 h-5" />}
-                    iconBg="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                    valueColor="text-blue-700"
-                />
-                <KPICard
-                    label="KH vốn năm nay"
-                    value={formatCurrency(summary.yearlyTarget)}
-                    sub={`Giải ngân: ${formatCurrency(summary.yearlyDisbursed)}`}
-                    icon={<Calendar className="w-5 h-5" />}
-                    iconBg="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                    valueColor="text-indigo-700"
-                />
-                <KPICard
-                    label="Đã giải ngân"
-                    value={formatCurrency(summary.totalDisbursed)}
-                    icon={<TrendingUp className="w-5 h-5" />}
-                    iconBg="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
-                    valueColor="text-emerald-700"
-                    progress={summary.disbursementRate}
-                    progressColor="bg-emerald-500"
-                />
-                <KPICard
-                    label="Tạm ứng"
-                    value={formatCurrency(summary.totalAdvance)}
-                    sub={`Chưa thu hồi: ${formatCurrency(summary.advanceBalance)}`}
-                    icon={<Receipt className="w-5 h-5" />}
-                    iconBg="bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
-                    valueColor="text-primary-700"
-                />
-                <KPICard
-                    label="TT KLHT"
-                    value={formatCurrency(summary.completionPayment)}
-                    sub="Thanh toán khối lượng HT"
-                    icon={<DollarSign className="w-5 h-5" />}
-                    iconBg="bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400"
-                    valueColor="text-cyan-700"
-                />
-            </div>
+            <ProjectCapitalKPIDashboard summary={summary} allocationsCount={allocations.length} />
 
             {/* ════════════════════════════════════════════
                 SECTION B — Kế hoạch vốn (Tab: Trung hạn / Hàng năm) + Donut
@@ -1212,51 +1164,5 @@ export const ProjectCapitalTab: React.FC<ProjectCapitalTabProps> = ({ projectID 
     );
 };
 
-/* ═══════════════════════════════════
-   Sub-components
-   ═══════════════════════════════════ */
 
-interface KPICardProps {
-    label: string;
-    value: string;
-    sub?: string;
-    icon: React.ReactNode;
-    iconBg?: string;
-    valueColor?: string;
-    progress?: number;
-    progressColor?: string;
-}
-
-const KPI_TIER_STYLES: Record<string, "blue" | "emerald" | "amber" | "violet" | "rose"> = {
-    'bg-slate-100': 'blue',
-    'bg-blue-100': 'emerald',
-    'bg-indigo-100': 'amber',
-    'bg-emerald-100': 'violet',
-    'bg-primary-100': 'rose',
-    'bg-cyan-100': 'blue',
-};
-
-const KPICard: React.FC<KPICardProps> = ({
-    label, value, sub, icon, iconBg = 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300',
-    valueColor = 'text-gray-800', progress, progressColor = 'bg-white/30'
-}) => {
-    // Auto-detect tier style from iconBg
-    const bgClass = Object.keys(KPI_TIER_STYLES).find(k => iconBg?.includes(k)) || '';
-    const color = KPI_TIER_STYLES[bgClass] || 'blue';
-
-    return (
-        <StatCard
-            label={label}
-            value={value}
-            icon={icon}
-            color={color}
-            progressPercentage={progress}
-            footer={
-                sub && !progress ? (
-                    <div className="text-xs text-slate-500 mt-1 font-medium truncate">{sub}</div>
-                ) : undefined
-            }
-        />
-    );
-};
 

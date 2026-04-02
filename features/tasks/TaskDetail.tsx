@@ -447,16 +447,16 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                                         <div
                                             onClick={() => {
                                                 const updatedSubTasks = [...(task.SubTasks || [])];
-                                                updatedSubTasks[idx].Status = updatedSubTasks[idx].Status === 'Done' ? 'Todo' : 'Done';
+                                                updatedSubTasks[idx].Status = updatedSubTasks[idx].Status === 'done' ? 'todo' : 'done';
                                                 updateTaskMutation.mutate({ ...task, SubTasks: updatedSubTasks });
                                             }}
-                                            className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'Done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200' : 'border-slate-300 bg-[#FCF9F2] hover:border-blue-400'
+                                            className={`mt-0.5 w-5 h-5 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all ${sub.Status === 'done' ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200' : 'border-slate-300 bg-[#FCF9F2] hover:border-blue-400'
                                                 }`}
                                         >
-                                            {sub.Status === 'Done' && <CheckCircle2 className="w-3 h-3" />}
+                                            {sub.Status === 'done' && <CheckCircle2 className="w-3 h-3" />}
                                         </div>
                                         <div className="flex-1 min-w-0 cursor-pointer" onClick={() => { setEditingSubTask(sub); setIsSubTaskModalOpen(true); }}>
-                                            <p className={`text-xs font-semibold line-clamp-2 ${sub.Status === 'Done' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-300'}`}>{sub.Title}</p>
+                                            <p className={`text-xs font-semibold line-clamp-2 ${sub.Status === 'done' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-300'}`}>{sub.Title}</p>
                                             <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                 <span className="text-[10px] text-slate-400 bg-[#FCF9F2] px-2 py-0.5 rounded-md ring-1 ring-slate-100 flex items-center gap-1">
                                                     <User className="w-3 h-3" />
@@ -633,7 +633,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ taskId: propTaskId, isPanel, on
                             if (editingSubTask) {
                                 subs = subs.map(s => s.SubTaskID === editingSubTask.SubTaskID ? { ...s, Title: title, AssigneeID: assigneeId, DueDate: dueDate } : s);
                             } else {
-                                subs.push({ SubTaskID: `SUB-${Date.now()}`, Title: title, AssigneeID: assigneeId, DueDate: dueDate, Status: 'Todo' as const });
+                                subs.push({ SubTaskID: `SUB-${Date.now()}`, Title: title, AssigneeID: assigneeId, DueDate: dueDate, Status: 'todo' as const });
                             }
                             updateTaskMutation.mutate({ ...task, SubTasks: subs });
                             setIsSubTaskModalOpen(false);

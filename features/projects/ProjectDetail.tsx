@@ -6,7 +6,7 @@ import { ProjectService } from '@/services/ProjectService';
 import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
 import { Project, Employee, ProjectStage } from '@/types';
 import { useUpdateTask } from '@/hooks/useTasks';
-import { useProjectWorkflowTasks } from '@/hooks/useWorkflowTasks';
+import { useProjectTasks } from '@/hooks/useWorkflowTasks';
 import { useBiddingPackages } from '@/hooks/useBiddingPackages';
 
 /** Props when rendering inside a SlidePanel */
@@ -210,7 +210,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     }, [id]);
 
     // Derived Data
-    const { data: workflowTasks = [] } = useProjectWorkflowTasks(project?.ProjectID);
+    const { data: workflowTasks = [] } = useProjectTasks(project?.ProjectID);
     const { mutate: saveTask } = useUpdateTask();
 
     // Get bidding packages for this project

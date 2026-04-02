@@ -15,9 +15,9 @@ import { TaskFilterBar, TaskFilter, TaskViewMode } from '../TaskFilterBar';
 import { KanbanBoardView } from '../KanbanBoardView';
 import { ResourceAllocationView } from '../ResourceAllocationView';
 import { ProgressBadge } from '../ProgressSlider';
+import { ProjectPlanWBSView } from './ProjectPlanWBSView';
 import { TaskService } from '@/services/TaskService';
-import { WorkflowService } from '@/services/WorkflowService';
-import { WorkflowTask } from '@/types/workflow.types';
+import type { DbTask } from '@/services/TaskService';
 import { useSlidePanel } from '@/context/SlidePanelContext';
 import { supabase } from '@/lib/supabase';
 import { findByStepCode, buildTT24Key } from '@/utils/docStepMapping';
@@ -26,12 +26,12 @@ import { useWorkflowPhases } from '../../hooks/useWorkflowPhases';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { useStepAggregates } from '../../hooks/useStepAggregates';
 import { usePlanPersist } from '../../hooks/usePlanPersist';
-import { workflowTaskKeys } from '@/hooks/useWorkflowTasks';
+import { taskKeys } from '@/hooks/useWorkflowTasks';
 import { PlanDateRangeModal, PlanDateRange } from '../PlanDateRangeModal';
 
 
 interface ProjectPlanTabProps {
-    workflowTasks: WorkflowTask[];
+    workflowTasks: DbTask[] | any[];
     projectID?: string;
     onSaveTask?: (task: Task) => void;
     employees?: Employee[];
@@ -284,10 +284,11 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 return {
                     TaskID: item.code,
                     Title: `${item.id}. ${item.title}`,
+                    TaskType: 'project',
                     StartDate: agg.startDate,
                     DueDate: agg.dueDate,
                     Status: agg.status,
-                    Priority: 'Medium',
+                    Priority: TaskPriority.Medium,
                     Description: 'Tổng hợp từ các công việc con',
                     AssigneeID: '',
                     TimelineStep: item.code,
@@ -429,69 +430,69 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         // ── Auto-derive status from progress ──
         const progress = taskData.ProgressPercent ?? (taskData as any).Progress ?? 0;
         
-        // ── Map back to WorkflowTask schema ──
-        let mappedDbStatus = 'pending';
+        // ── Map back to DbTask schema ──
+        let mappedDbStatus = 'todo';
         switch (taskData.Status) {
-            case TaskStatus.Todo: mappedDbStatus = 'pending'; break;
+            case TaskStatus.Todo: mappedDbStatus = 'todo'; break;
             case TaskStatus.InProgress: mappedDbStatus = 'in_progress'; break;
-            case TaskStatus.Review: mappedDbStatus = 'in_progress'; break; 
-            case TaskStatus.Done: mappedDbStatus = 'completed'; break;
-            default: mappedDbStatus = 'pending';
+            case TaskStatus.Review: mappedDbStatus = 'review'; break; 
+            case TaskStatus.Done: mappedDbStatus = 'done'; break;
+            default: mappedDbStatus = 'todo';
         }
 
-        const workflowTaskData: any = {
+        const dbTaskData: any = {
             id: taskData.TaskID && !taskData.TaskID.startsWith('NEW_') ? taskData.TaskID : undefined,
-            name: taskData.Title,
+            title: taskData.Title,
+            description: taskData.Description,
             status: mappedDbStatus,
             progress: progress,
+            priority: (taskData.Priority || 'medium').toLowerCase(),
             start_date: taskData.StartDate,
             due_date: taskData.DueDate,
-            started_at: taskData.ActualStartDate,
-            completed_at: taskData.ActualEndDate,
+            actual_start_date: taskData.ActualStartDate,
+            actual_end_date: taskData.ActualEndDate,
             assignee_id: (taskData.AssigneeID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskData.AssigneeID)) ? taskData.AssigneeID : currentUserId,
-            project_id: projectID, // Dùng để auto-find instance_id trong service
+            project_id: projectID,
+            task_type: 'project',
+            workflow_node_id: taskData.TimelineStep || taskData.StepCode || selectedStep?.code || null,
+            step_code: taskData.TimelineStep || taskData.StepCode || selectedStep?.code || null,
+            predecessor_task_id: taskData.PredecessorTaskID || null,
+            estimated_cost: (taskData as any).EstimatedCost || null,
+            actual_cost: (taskData as any).ActualCost || null,
+            duration_days: taskData.DurationDays || null,
             metadata: {
-                priority: taskData.Priority || 'Medium',
-                step_code: taskData.TimelineStep || taskData.StepCode || selectedStep?.code,
-                predecessor_id: taskData.PredecessorTaskID,
-                assignee_role: taskData.AssigneeID && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskData.AssigneeID) ? taskData.AssigneeID : undefined,
                 ui_status: taskData.Status,
-                description: taskData.Description,
+                assignee_role: taskData.AssigneeID && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskData.AssigneeID) ? taskData.AssigneeID : undefined,
                 sub_tasks: taskData.SubTasks,
                 attachments: taskData.Attachments,
                 dependencies: taskData.Dependencies,
-                estimated_cost: (taskData as any).EstimatedCost,
-                actual_cost: (taskData as any).ActualCost,
-                estimatedDays: taskData.DurationDays,
             }
         };
 
         // Nếu là task mới được tạo từ nút "Thêm công việc" trong một Step
-        if (!workflowTaskData.id && selectedStep) {
-            workflowTaskData.task_type = 'ad-hoc';
+        if (!dbTaskData.id && selectedStep) {
+            dbTaskData.task_type = 'project';
         }
 
         try {
-            const savedTask = await WorkflowService.saveWorkflowTask(workflowTaskData);
+            const savedTask = await TaskService.saveTask(dbTaskData);
 
-            // ── Auto-propagate ActualEndDate → next task's ActualStartDate (giữ logic cũ) ──
-            if (savedTask.completed_at) {
-                // Logic này có thể chuyển vào service sau, tạm thời giữ ở UI để đảm bảo tính năng
+            // ── Auto-propagate ActualEndDate → next task's ActualStartDate ──
+            if (savedTask.actual_end_date) {
                 const successorTasks = tasks.filter(t => t.PredecessorTaskID === savedTask.id && !t.ActualStartDate);
                 for (const successor of successorTasks) {
-                    await WorkflowService.saveWorkflowTask({
-                        id: successor.TaskID,
-                        started_at: savedTask.completed_at
-                    });
+                    await TaskService.updateTask(successor.TaskID, {
+                        actual_start_date: savedTask.actual_end_date
+                    } as any);
                 }
             }
 
-            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+            queryClient.invalidateQueries({ queryKey: taskKeys.all });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             
             const isNew = !taskData.TaskID || taskData.TaskID.startsWith('NEW_');
-            showToast(isNew ? `✅ Tạo công việc "${savedTask.name}" thành công` : `💾 Đã lưu thay đổi "${savedTask.name}"`, 'success');
+            showToast(isNew ? `✅ Tạo công việc "${savedTask.title}" thành công` : `💾 Đã lưu thay đổi "${savedTask.title}"`, 'success');
         } catch (err: any) {
             console.error('Failed to save task:', err);
             showToast(`❌ Lỗi: ${err.message || 'Không thể lưu công việc'}`, 'error');
@@ -505,20 +506,18 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (!projectID) return;
         setBulkCreatingAll(true);
         try {
-            const newInstance = await WorkflowService.createProjectPlanInstance(
+            await TaskService.createTasksFromWorkflow(
                 projectID,
                 workflowId,
                 dateRange.startDate,
-                dateRange.endDate,
-                currentUserId
+                dateRange.endDate
             );
             
             showToast(`✅ Đã thiết lập kế hoạch dựa trên quy trình mẫu`, 'success');
             // We fetch tasks directly from workflow_tasks based on this new instance
-            queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] });
+            queryClient.invalidateQueries({ queryKey: taskKeys.all });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
-            queryClient.invalidateQueries({ queryKey: ['workflow_instances'] });
         } catch (error) {
             console.error('Failed to bulk create framework tasks:', error);
             showToast('❌ Tạo kế hoạch thất bại', 'error');
@@ -560,8 +559,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         if (!confirm(`Xóa công việc "${taskTitle}"?`)) return;
         setDeletingTaskId(taskId);
         try {
-            await WorkflowService.deleteWorkflowTask(taskId);
-            queryClient.invalidateQueries({ queryKey: workflowTaskKeys.all });
+            await TaskService.deleteTask(taskId);
+            queryClient.invalidateQueries({ queryKey: taskKeys.all });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
             showToast(`🗑️ Đã xóa "${taskTitle}"`, 'info');
@@ -598,23 +597,14 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         setDeleteConfirmStep(0);
         setIsDeletingAll(true);
         try {
-            // Xóa tất cả workflow_instances của dự án này, workflow_tasks sẽ tự động bị cascade delete.
-            const { data, error } = await supabase.from('workflow_instances')
-                .delete()
-                .eq('reference_id', projectID)
-                .eq('reference_type', 'project');
-
-            if (error) {
-                console.error('workflow_instances delete error:', error);
-                throw new Error(error.message);
-            }
+            // Xóa tất cả tasks của dự án này từ bảng tasks thống nhất
+            await TaskService.deleteProjectTasks(projectID);
 
             console.log(`✅ Đã xoá toàn bộ kế hoạch cho dự án ${projectID}`);
             setTasks([]); // Xóa local state
-            queryClient.invalidateQueries({ queryKey: ['workflow_tasks'] }); // Cập nhật React Query cache
+            queryClient.invalidateQueries({ queryKey: taskKeys.all });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2', projectID] });
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
-            queryClient.invalidateQueries({ queryKey: ['workflow_instances'] }); 
         } catch (err: any) {
             console.error('Failed to delete all tasks:', err);
             alert(`Lỗi khi xóa: ${err?.message || 'Không xác định'}. Vui lòng thử lại!`);
@@ -646,436 +636,6 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         return dueDate < today;
     };
 
-    // Render WBS View
-    const renderWBSView = () => (
-        <div className="space-y-4">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary-50 to-yellow-50 dark:from-transparent dark:to-transparent dark:bg-slate-800 border border-primary-200 dark:border-slate-700 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                <div>
-                    <h3 className="text-primary-900 dark:text-slate-100 font-bold flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-primary-600 dark:text-slate-300" />
-                        Kế hoạch thực hiện dự án
-                    </h3>
-                    <p className="text-xs text-primary-700/80 dark:text-slate-400 mt-1">
-                        <LegalReferenceLink text="Căn cứ theo Điều 4, Nghị định 175/NĐ-CP về trình tự đầu tư xây dựng." />
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/quy-trinh')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 dark:border-cyan-700 dark:hover:bg-cyan-900/50"
-                        title="Xem chi tiết các quy trình mẫu"
-                    >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        Xem quy trình gốc
-                    </button>
-                    <button
-                        onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm text-gray-600 bg-[#FCF9F2] hover:bg-[#F5EFE6] border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700"
-                        title="Tải lại dữ liệu từ máy chủ (Xóa Cache)"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Tải lại
-                    </button>
-                    {/* Tạo tất cả công việc Button */}
-                    <button
-                        onClick={() => openPlanModal(
-                            { type: 'all' },
-                            'Tạo kế hoạch tổng thể',
-                            'Hệ thống sẽ tự động phân bổ công việc cho tất cả giai đoạn theo tỷ lệ thời gian'
-                        )}
-                        disabled={bulkCreatingAll}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${bulkCreatingAll
-                            ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700 cursor-wait'
-                            : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border-emerald-200 dark:border-emerald-700 hover:shadow'
-                            }`}
-                    >
-                        {bulkCreatingAll ? (
-                            <>
-                                <div className="w-3 h-3 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
-                                Đang tạo...
-                            </>
-                        ) : (
-                            <>
-                                <ListPlus className="w-3.5 h-3.5" />
-                                Tạo KH tổng thể
-                            </>
-                        )}
-                    </button>
-                    {/* Xóa tất cả công việc Button */}
-                    {tasks.length > 0 && (
-                        <button
-                            onClick={handleDeleteAllTasks}
-                            disabled={isDeletingAll}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shadow-sm ${isDeletingAll
-                                    ? 'text-gray-400 bg-[#F5EFE6] border-gray-200 cursor-wait'
-                                    : deleteConfirmStep === 1
-                                        ? 'text-white bg-red-600 border-red-700 animate-pulse hover:bg-red-700'
-                                        : 'text-red-600 bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300'
-                                }`}
-                            title={deleteConfirmStep === 1 ? 'Bấm lần nữa để xác nhận xóa!' : 'Xóa toàn bộ công việc của dự án này'}
-                        >
-                            {isDeletingAll ? (
-                                <>
-                                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                    Đang xóa...
-                                </>
-                            ) : deleteConfirmStep === 1 ? (
-                                <>
-                                    <AlertCircle className="w-3.5 h-3.5" />
-                                    Xác nhận xoá?
-                                </>
-                            ) : (
-                                <>
-                                    <X className="w-3.5 h-3.5" />
-                                    Xóa tất cả việc
-                                </>
-                            )}
-                        </button>
-                    )}
-                    <button
-                        onClick={() => navigate(`/tasks`, { state: { filterProject: projectID } })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-[#FCF9F2] dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors shadow-sm"
-                    >
-                        <ExternalLink className="w-3 h-3" />
-                        Xem tất cả công việc
-                    </button>
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${groupCode === ProjectGroup.A || groupCode === ProjectGroup.QN
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
-                        : groupCode === ProjectGroup.B
-                            ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
-                        }`}>
-                        {getGroupLabel(groupCode)}
-                    </span>
-                </div>
-            </div>
-
-            {/* Phase Cards with Expandable Items */}
-            <div className="space-y-3">
-                {DECREE_175_PHASES.map((phase) => (
-                    <div key={phase.id}>
-                        {/* Phase Header Card */}
-                        <PhaseProgressCard
-                            phase={phase}
-                            tasks={filteredTasks}
-                            isExpanded={expandedPhases[phase.id]}
-                            onToggle={() => togglePhase(phase.id)}
-                        />
-
-                        {/* Expanded Items — 4-tier: Phase → Sub-process → Step → Tasks */}
-                        {expandedPhases[phase.id] && tasks.length === 0 && (
-                            <div className="mt-2 ml-4 p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-900 rounded-xl border border-indigo-100/50 dark:border-slate-700/50 text-center shadow-sm">
-                                <div className="w-12 h-12 bg-indigo-100 dark:bg-slate-700 text-indigo-500 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                                    <Layers className="w-6 h-6" />
-                                </div>
-                                <h4 className="text-indigo-900 dark:text-slate-200 font-semibold mb-1">
-                                    Kế hoạch chưa được khởi tạo
-                                </h4>
-                                <p className="text-xs text-indigo-600/70 dark:text-slate-400 max-w-sm mx-auto">
-                                    Bấm vào "Tạo kế hoạch tổng thể" ở tiêu đề để tự động phân bổ tài nguyên, quy trình và các đầu việc cần thiết.
-                                </p>
-                            </div>
-                        )}
-                        {expandedPhases[phase.id] && tasks.length > 0 && (
-                            <div className="mt-2 ml-4 border-l-2 border-gray-200 dark:border-slate-700 pl-4 space-y-3">
-                                {(phase.subProcesses || [{ id: '0', title: '', fullTitle: '', items: phase.items }]).map((sp) => (
-                                    <div key={sp.id}>
-                                        {/* Sub-process Header */}
-                                        {sp.fullTitle && (
-                                            <button
-                                                onClick={() => setExpandedPhases(prev => ({ ...prev, [`sp_${sp.id}`]: !prev[`sp_${sp.id}`] }))}
-                                                className="w-full flex items-center gap-2 px-3 py-2 mb-1 rounded-lg bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 transition-colors group/sp"
-                                            >
-                                                {expandedPhases[`sp_${sp.id}`] === false
-                                                    ? <ChevronRight className="w-4 h-4 text-amber-500 shrink-0" />
-                                                    : <ChevronDown className="w-4 h-4 text-amber-500 shrink-0" />
-                                                }
-                                                <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                                                <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                                                    {sp.fullTitle}
-                                                </span>
-                                                <span className="text-[10px] text-amber-500 dark:text-amber-400 ml-auto shrink-0">
-                                                    {sp.items.length} bước
-                                                </span>
-                                            </button>
-                                        )}
-
-                                        {/* Steps inside sub-process (default expanded) */}
-                                        {expandedPhases[`sp_${sp.id}`] !== false && (
-                                        <div className={`space-y-2 ${sp.fullTitle ? 'ml-3 border-l border-amber-200/40 dark:border-amber-700/30 pl-3' : ''}`}>
-                                {sp.items.map((item) => {
-                                    const linkedTasks = filteredTasks
-                                        .filter(t => t.TimelineStep === item.code)
-                                        .sort((a, b) => {
-                                            const dateA = a.StartDate ? new Date(a.StartDate).getTime() : (a.DueDate ? new Date(a.DueDate).getTime() : 0);
-                                            const dateB = b.StartDate ? new Date(b.StartDate).getTime() : (b.DueDate ? new Date(b.DueDate).getTime() : 0);
-                                            return dateA - dateB;
-                                        });
-                                    const agg = stepAggregates.get(item.code);
-                                    const parentStatus = agg?.status || TaskStatus.Todo;
-                                    const isParentDone = parentStatus === TaskStatus.Done;
-                                    const isParentActive = parentStatus === TaskStatus.InProgress || parentStatus === TaskStatus.Review;
-                                    const completedCount = linkedTasks.filter(t => t.Status === TaskStatus.Done).length;
-
-                                    const stepBorderColor = isParentDone
-                                        ? 'border-l-emerald-500'
-                                        : isParentActive
-                                            ? 'border-l-blue-500'
-                                            : 'border-l-gray-200';
-
-                                    return (
-                                        <div key={item.id} className={`bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 hover:border-gray-200 dark:hover:border-slate-600 transition-colors group border-l-4 ${stepBorderColor}`}>
-                                            {/* Step Header Row */}
-                                            <div className="flex items-center gap-3">
-                                                {/* Status Icon */}
-                                                <div className="shrink-0">
-                                                    {isParentDone ? (
-                                                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                                                    ) : parentStatus === TaskStatus.Review ? (
-                                                        <AlertCircle className="w-5 h-5 text-primary-500" />
-                                                    ) : parentStatus === TaskStatus.InProgress ? (
-                                                        <Clock className="w-5 h-5 text-orange-500 animate-pulse" />
-                                                    ) : (
-                                                        <Circle className="w-5 h-5 text-gray-300" />
-                                                    )}
-                                                </div>
-
-                                                {/* Title + Meta */}
-                                                <div className="flex-1 min-w-0">
-                                                    <h5 className={`text-sm font-medium ${isParentDone ? 'text-gray-900 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                                                        {item.id}. {item.title}
-                                                    </h5>
-                                                </div>
-
-                                                {/* Progress Badge */}
-                                                {agg && agg.progress > 0 && (
-                                                    <ProgressBadge value={agg.progress} size="sm" />
-                                                )}
-
-                                                {/* Date Range Badge */}
-                                                {(agg?.startDate || agg?.dueDate) && (
-                                                    <span className="hidden sm:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-[#F5EFE6] dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
-                                                        <Calendar className="w-3 h-3" />
-                                                        {agg.startDate && new Date(agg.startDate).toLocaleDateString('vi-VN')}
-                                                        {agg.startDate && agg.dueDate && ' → '}
-                                                        {agg.dueDate && new Date(agg.dueDate).toLocaleDateString('vi-VN')}
-                                                    </span>
-                                                )}
-
-                                                {/* Task Count Badge */}
-                                                <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded font-medium ${linkedTasks.length === 0
-                                                    ? 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
-                                                    : completedCount === linkedTasks.length
-                                                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'
-                                                        : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'
-                                                    }`}>
-                                                    {completedCount}/{linkedTasks.length} việc
-                                                </span>
-
-                                                {/* Add Task Button */}
-                                                <button
-                                                    onClick={() => handleAddTask(item.title, item.code)}
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 flex items-center gap-1 shrink-0"
-                                                >
-                                                    <Plus className="w-3 h-3" />
-                                                    Thêm
-                                                </button>
-                                            </div>
-
-                                            {/* Task Table (Compact) */}
-                                            {linkedTasks.length > 0 && (
-                                                <div className="mt-3 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                                                    <table className="w-full text-xs">
-                                                        <thead>
-                                                            <tr className="bg-[#F5EFE6] dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="px-2 py-2 text-left w-8"></th>
-                                                                <th className="px-2 py-2 text-left">Công việc</th>
-                                                                <th className="px-2 py-2 text-center w-16">Tiến độ</th>
-                                                                <th className="px-2 py-2 text-left w-32 hidden sm:table-cell">Phụ trách</th>
-                                                                <th className="px-2 py-2 text-left w-24 hidden sm:table-cell">Hạn / Bắt đầu</th>
-                                                                <th className="px-2 py-2 text-center w-16">Ưu tiên</th>
-                                                                <th className="px-2 py-2 text-center w-16">Tài liệu</th>
-                                                                <th className="px-2 py-2 text-center w-8"></th>
-                                                                <th className="px-2 py-2 text-center w-8"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
-                                                            {linkedTasks.map(t => (
-                                                                <tr
-                                                                    key={t.TaskID}
-                                                                    onClick={() => handleEditTask(t)}
-                                                                    className={`cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-700 ${isOverdue(t) ? 'bg-red-50/50 dark:bg-red-900/20' : ''}`}
-                                                                >
-                                                                    {/* Status Dot */}
-                                                                    <td className="px-2 py-2">
-                                                                        <button
-                                                                            onClick={(e) => handleQuickStatusChange(e, t)}
-                                                                            className={`w-4 h-4 rounded-full transition-transform hover:scale-125 focus:outline-none ring-2 ring-offset-1 dark:ring-offset-slate-800 ${t.Status === 'Done' ? 'bg-emerald-500 ring-emerald-200 dark:ring-emerald-700' :
-                                                                                t.Status === 'Review' ? 'bg-primary-500 ring-primary-200 dark:ring-primary-700' :
-                                                                                    t.Status === 'InProgress' ? 'bg-primary-500 ring-primary-200 dark:ring-primary-700' :
-                                                                                        'bg-gray-200 dark:bg-slate-600 ring-gray-100 dark:ring-slate-500 hover:bg-gray-300 dark:hover:bg-[#F5EFE6]0'
-                                                                                }`}
-                                                                            title="Click để chuyển trạng thái"
-                                                                        />
-                                                                    </td>
-
-                                                                    {/* Title */}
-                                                                    <td className={`px-2 py-2 font-medium ${t.Status === 'Done' ? 'text-gray-400 dark:text-slate-500' :
-                                                                        isOverdue(t) ? 'text-red-700 dark:text-red-400' :
-                                                                            t.Status === 'Review' ? 'text-primary-700 dark:text-primary-400' :
-                                                                                t.Status === 'InProgress' ? 'text-orange-700 dark:text-orange-400' :
-                                                                                    'text-gray-700 dark:text-slate-300'
-                                                                        }`}>
-                                                                        {t.Title}
-                                                                        {t.IsCritical && (
-                                                                            <span className="ml-1 px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[8px] rounded font-bold">
-                                                                                CP
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-
-                                                                    {/* Progress */}
-                                                                    <td className="px-2 py-2 text-center">
-                                                                        <ProgressBadge
-                                                                            value={t.ProgressPercent || (t.Status === TaskStatus.Done ? 100 : 0)}
-                                                                            size="sm"
-                                                                        />
-                                                                    </td>
-
-                                                                    {/* Assignee */}
-                                                                    <td className="px-2 py-2 text-gray-500 dark:text-slate-400 hidden sm:table-cell">
-                                                                        {t.AssigneeID && (
-                                                                            <span className="flex items-center gap-1 truncate max-w-[120px]" title={employeeNameMap[t.AssigneeID] || t.AssigneeID}>
-                                                                                <User className="w-3 h-3 shrink-0" />
-                                                                                {employeeNameMap[t.AssigneeID] || t.AssigneeID}
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-
-                                                                    {/* Due Date + Smart Relative Time */}
-                                                                    <td className={`px-2 py-2 hidden sm:table-cell ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-500 dark:text-slate-400'}`}>
-                                                                        {t.Status === TaskStatus.Done && t.ActualEndDate ? (
-                                                                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium" title={`Hoàn thành: ${new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}`}>
-                                                                                <CheckCircle2 className="w-3 h-3" />
-                                                                                {new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}
-                                                                            </span>
-                                                                        ) : t.DueDate ? (
-                                                                            <span className="flex flex-col gap-0.5 text-[11px]" title={`${t.StartDate ? new Date(t.StartDate).toLocaleDateString('vi-VN') : ''} - ${new Date(t.DueDate).toLocaleDateString('vi-VN')}`}>
-                                                                                <span className="flex items-center gap-1">
-                                                                                   <Calendar className="w-3 h-3 shrink-0"/>
-                                                                                   <span className="whitespace-nowrap">
-                                                                                      {t.StartDate ? new Date(t.StartDate).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' }) : '---'} → <strong className="text-gray-700 dark:text-slate-200">{new Date(t.DueDate).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</strong>
-                                                                                   </span>
-                                                                                </span>
-                                                                                {(() => {
-                                                                                    const now = new Date(); now.setHours(0,0,0,0);
-                                                                                    const due = new Date(t.DueDate); due.setHours(0,0,0,0);
-                                                                                    const diff = Math.round((due.getTime() - now.getTime()) / 86400000);
-                                                                                    if (diff < 0) return <span className="text-[9px] text-red-500 font-bold">Quá hạn {Math.abs(diff)} ngày</span>;
-                                                                                    if (diff === 0) return <span className="text-[9px] text-orange-500 font-bold">Hôm nay!</span>;
-                                                                                    if (diff <= 3) return <span className="text-[9px] text-orange-500">Còn {diff} ngày</span>;
-                                                                                    if (diff <= 7) return <span className="text-[9px] text-blue-500">Còn {diff} ngày</span>;
-                                                                                    return null;
-                                                                                })()}
-                                                                            </span>
-                                                                        ) : null}
-                                                                    </td>
-
-                                                                    {/* Priority */}
-                                                                    <td className="px-2 py-2 text-center">
-                                                                        {t.Priority && (
-                                                                            <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border ${getPriorityColor(t.Priority)}`}>
-                                                                                <Flag className="w-2.5 h-2.5" />
-                                                                                {t.Priority}
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-                                                                    {/* Upload Attachment */}
-                                                                    <td className="px-2 py-2 text-center">
-                                                                        <div className="flex items-center justify-center gap-1">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    setPendingUploadTaskId(t.TaskID);
-                                                                                    fileInputRef.current?.click();
-                                                                                }}
-                                                                                disabled={uploadingTaskId === t.TaskID}
-                                                                                className={`p-1 rounded transition-colors ${uploadingTaskId === t.TaskID
-                                                                                    ? 'bg-primary-50 text-primary-500'
-                                                                                    : 'hover:bg-blue-50 text-gray-400 hover:text-blue-600'
-                                                                                    }`}
-                                                                                title="Tải tài liệu hoàn thành"
-                                                                            >
-                                                                                {uploadingTaskId === t.TaskID
-                                                                                    ? <div className="w-3.5 h-3.5 border-2 border-primary-300 border-t-amber-600 rounded-full animate-spin" />
-                                                                                    : <Upload className="w-3.5 h-3.5" />
-                                                                                }
-                                                                            </button>
-                                                                            {(attachmentCounts[t.TaskID] || 0) > 0 && (
-                                                                                <span className="flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-700 font-bold">
-                                                                                    <Paperclip className="w-2.5 h-2.5" />
-                                                                                    {attachmentCounts[t.TaskID]}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
-                                                                    {/* Navigate to Task Detail */}
-                                                                    <td className="px-2 py-2 text-center">
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                navigate(`/tasks/${t.TaskID}`);
-                                                                            }}
-                                                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded text-blue-500"
-                                                                            title="Xem chi tiết công việc"
-                                                                        >
-                                                                            <ExternalLink className="w-3 h-3" />
-                                                                        </button>
-                                                                    </td>
-                                                                    {/* Delete Task */}
-                                                                    <td className="px-2 py-2 text-center">
-                                                                        <button
-                                                                            onClick={(e) => handleDeleteTask(e, t.TaskID, t.Title)}
-                                                                            disabled={deletingTaskId === t.TaskID}
-                                                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-gray-300 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-50"
-                                                                            title="Xóa công việc này"
-                                                                        >
-                                                                            {deletingTaskId === t.TaskID
-                                                                                ? <div className="w-3 h-3 border-2 border-red-300 border-t-red-600 rounded-full animate-spin" />
-                                                                                : <Trash2 className="w-3 h-3" />
-                                                                            }
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-
-                                            {/* Empty state */}
-                                            {linkedTasks.length === 0 && (
-                                                <p className="text-xs text-gray-400 dark:text-slate-500 mt-2 italic">
-                                                    Chưa có công việc. Bấm 'Tạo KH tổng thể' hoặc 'Thêm' để tạo công việc mới.
-                                                </p>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                                </div>
-                                )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 
     return (
         <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-6 py-4">
@@ -1187,7 +747,46 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Left: Main Content (3 cols) */}
                 <div className="lg:col-span-3 space-y-4">
-                    {currentView === 'wbs' && renderWBSView()}
+                    {currentView === 'wbs' && (
+                        <ProjectPlanWBSView
+                            phases={DECREE_175_PHASES}
+                            tasks={tasks}
+                            filteredTasks={filteredTasks}
+                            projectID={projectID}
+                            groupCode={groupCode}
+                            getGroupLabel={getGroupLabel}
+                            expandedPhases={expandedPhases}
+                            stepAggregates={stepAggregates}
+                            bulkCreatingAll={bulkCreatingAll}
+                            isDeletingAll={isDeletingAll}
+                            deleteConfirmStep={deleteConfirmStep}
+                            employeeNameMap={employeeNameMap}
+                            uploadingTaskId={uploadingTaskId}
+                            attachmentCounts={attachmentCounts}
+                            deletingTaskId={deletingTaskId}
+                            onTogglePhase={togglePhase}
+                            onSetExpandedPhases={setExpandedPhases}
+                            onDeleteAllTasks={handleDeleteAllTasks}
+                            onOpenPlanModal={(trigger, title, desc) => {
+                                setPlanTrigger(trigger);
+                                setPlanModalTitle(title);
+                                setPlanModalDesc(desc);
+                                setPlanModalOpen(true);
+                            }}
+                            onAddTask={(stepName, stepCode) => {
+                                setSelectedStep({ name: stepName, code: stepCode });
+                                setEditingTask({} as Task);
+                                setIsTaskModalOpen(true);
+                            }}
+                            onEditTask={handleEditTask}
+                            onQuickStatusChange={handleQuickStatusChange}
+                            onDeleteTask={handleDeleteTask}
+                            onSetPendingUploadTaskId={setPendingUploadTaskId}
+                            fileInputRef={fileInputRef}
+                            navigate={navigate}
+                            queryClient={queryClient}
+                        />
+                    )}
 
                     {currentView === 'gantt' && (
                         <div className="bg-[#FCF9F2] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">

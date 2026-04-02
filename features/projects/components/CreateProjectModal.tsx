@@ -5,7 +5,8 @@ import { generateProjectCode, ConstructionType, PermitType } from '../../../util
 import EmployeeService from '../../../services/EmployeeService';
 import { extractProjectFromImage, fileToBase64, ExtractedProjectData } from '../../../services/ai/aiImageExtractor';
 import { supabase } from '../../../lib/supabase';
-
+import { useToast } from '../../../components/ui/Toast';
+import { ProjectCreateSchema, ProjectUpdateSchema } from '../../../schemas';
 export interface SelectedMember {
     employeeId: string;
     role: string;
@@ -456,8 +457,35 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         return acc;
     }, {} as Record<string, Employee[]>);
 
+    const { addToast } = useToast();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validation using Zod Schema
+        try {
+            const schema = isEditMode ? ProjectUpdateSchema : ProjectCreateSchema;
+            
+            // Map types from state to match what schema expects
+            const dataToValidate = {
+                ...formData,
+                InvestmentType: Number(formData.InvestmentType),
+                TotalInvestment: Number(formData.TotalInvestment),
+            };
+            
+            schema.parse(dataToValidate);
+        } catch (error: any) {
+            console.error('Validation error:', error);
+            // Zod error extracting message from the first issue
+            const message = error?.issues?.[0]?.message || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+            addToast({
+                title: 'Lỗi xác thực',
+                message,
+                type: 'error'
+            });
+            return;
+        }
+
         try {
             setIsLoading(true);
             await onSave({

@@ -39,7 +39,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
     queryKey: ['workflow-task-detail', instanceId, nodeId],
     queryFn: async () => {
       if (!instanceId) return null;
-      const { instance, nodes, tasks } = await WorkflowService.getInstanceDetails(instanceId);
+      const { instance, nodes, tasks } = await (WorkflowService as any).getInstanceDetails(instanceId);
       const node = nodes.find(n => n.id === nodeId);
       const task = tasks.find(t => t.node_id === nodeId);
       return { instance, node, task };
@@ -86,7 +86,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
   // 4. Fetch Audit Timeline
   const { data: timeline } = useQuery({
     queryKey: ['workflow-timeline', instanceId],
-    queryFn: () => instanceId ? WorkflowService.getInstanceTimeline(instanceId) : Promise.resolve([]),
+    queryFn: () => instanceId ? (WorkflowService as any).getInstanceTimeline(instanceId) : Promise.resolve([]),
     enabled: activeTab === 'history' && !!instanceId
   });
 
@@ -97,11 +97,11 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
       if (!details?.node || !details?.instance) return;
       const taskTitle = details.node.name || 'Nhiệm vụ';
       const currentUser = selectedAssignee || user?.id || 'system';
-      const folderId = await WorkflowService.getOrCreateTaskFolder(
+      const folderId = await (WorkflowService as any).getOrCreateTaskFolder(
         instanceId!, nodeId, taskTitle, currentUser
       );
       if (details?.task?.id) {
-        await WorkflowService.startTask(details.task.id, currentUser, folderId);
+        await (WorkflowService as any).startTask(details.task.id, currentUser, folderId);
       }
     },
     onSuccess: () => {
@@ -113,7 +113,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
   const submitTaskMutation = useMutation({
     mutationFn: async () => {
       if (details?.task?.id) {
-        await WorkflowService.submitTask(details.task.id, notes);
+        await (WorkflowService as any).submitTask(details.task.id, notes);
       }
     },
     onSuccess: () => {
@@ -125,7 +125,7 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
   const approvalMutation = useMutation({
     mutationFn: async (action: 'approve' | 'reject') => {
       if (!details?.task?.id) return;
-      await WorkflowService.processApproval(
+      await (WorkflowService as any).processApproval(
         details.task.id, action, approvalComment, user?.id
       );
     },

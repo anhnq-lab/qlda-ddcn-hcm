@@ -18,22 +18,10 @@ import { ViewToggle, SectionHeader, EmptyState } from '../../components/ui';
 import EmployeeSlideContent from './EmployeeSlideContent';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { EmployeeCreateSchema, EmployeeCreateInput } from '../../schemas/employee.schema';
 import * as z from 'zod';
 
-const employeeSchema = z.object({
-    FullName: z.string().min(2, 'Vui lòng nhập họ và tên'),
-    Department: z.string().min(1, 'Vui lòng chọn phòng ban'),
-    Position: z.string().min(2, 'Vui lòng nhập chức danh'),
-    Email: z.string().email('Email không đúng định dạng'),
-    Phone: z.string().optional(),
-    Username: z.string().optional(),
-    Password: z.string().max(50).optional(),
-    Role: z.nativeEnum(Role),
-    Status: z.nativeEnum(EmployeeStatus),
-    JoinDate: z.string().optional().nullable(),
-});
-
-type EmployeeFormData = z.infer<typeof employeeSchema>;
+type EmployeeFormData = EmployeeCreateInput;
 
 const OrgChartPage = lazy(() => import('../organization/OrgChartPage'));
 
@@ -89,7 +77,7 @@ const EmployeeList: React.FC = () => {
     const { openPanel, closePanel } = useSlidePanel();
 
     const form = useForm<EmployeeFormData>({
-        resolver: zodResolver(employeeSchema),
+        resolver: zodResolver(EmployeeCreateSchema) as any,
         defaultValues: {
             FullName: '',
             Department: departments[0] || 'Phòng Hành chính - Tổng hợp',

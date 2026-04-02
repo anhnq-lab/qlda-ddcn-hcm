@@ -374,9 +374,10 @@ export const generateTasksForProject = (projectID: string, group: ProjectGroup, 
         return {
             TaskID: `TSK-${projectID}-${(index + 1).toString().padStart(2, '0')}`,
             ProjectID: projectID,
+            TaskType: 'project',
             Title: tpl.Title,
             Description: tpl.Description,
-            Status: TaskStatus.Todo,
+            Status: 'todo' as TaskStatus,
             Priority: tpl.Priority,
             AssigneeID: randomEmployee?.EmployeeID || "NV1001",
             DueDate: dueDate.toISOString().split('T')[0],
@@ -387,6 +388,6 @@ export const generateTasksForProject = (projectID: string, group: ProjectGroup, 
             EstimatedCost: 0,
             SortOrder: index + 1,
             PredecessorTaskID: index > 0 ? `TSK-${projectID}-${index.toString().padStart(2, '0')}` : undefined
-        };
+        } as Task;
     });
 };

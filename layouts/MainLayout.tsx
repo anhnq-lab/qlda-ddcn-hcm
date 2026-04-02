@@ -89,8 +89,8 @@ const MainLayout: React.FC = () => {
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col min-w-0 bg-[#F0ECE1] dark:bg-slate-950">
-                    <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#F0ECE1] dark:bg-slate-950">
+                    <div className="flex-1 flex flex-col min-w-0 min-h-0">
                         {/* Header */}
                         <Header
                             onOpenSearch={() => setIsSearchOpen(true)}
@@ -98,7 +98,7 @@ const MainLayout: React.FC = () => {
                         />
 
                         {/* Page Content */}
-                        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
                             {/* Breadcrumb */}
                             <div className="px-3 sm:px-4 lg:px-6 pt-4 sm:pt-6 pb-2">
                                 <Breadcrumb />

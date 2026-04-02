@@ -1,5 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
+    FileCheck2,
+    HelpCircle,
+    Link2,
+    Download,
+    Bookmark,
     Search,
     ChevronRight,
     BookOpen,
@@ -90,34 +95,34 @@ const OrgChart = () => {
                             <h4 className="font-black text-[11px] uppercase tracking-tight">Ủy ban Nhân dân TP. Hồ Chí Minh</h4>
                         </div>
                     </div>
-                    <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 -translate-x-1/2"></div>
+                    <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 dark:bg-slate-700 -translate-x-1/2"></div>
                 </div>
 
                 {/* Level 1: Giám đốc Ban */}
                 <div className="relative z-10 mb-4 group">
                     <div className="text-white px-10 py-3 rounded-xl shadow-lg border-2 border-white ring-1 ring-gray-200 text-center relative cursor-default hover:scale-105 transition-transform bg-gradient-to-br from-amber-500 to-yellow-600">
                         <h4 className="font-black text-sm uppercase tracking-tight">Giám đốc Ban</h4>
-                        <div className="w-2 h-2 bg-white rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2"></div>
+                        <div className="w-2 h-2 bg-white dark:bg-slate-800 rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2"></div>
                     </div>
-                    <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 -translate-x-1/2"></div>
+                    <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 dark:bg-slate-700 -translate-x-1/2"></div>
                 </div>
 
                 {/* Level 2: Phó GĐ + Kế toán trưởng */}
                 <div className="relative z-10 mb-6 flex justify-center gap-5">
-                    <div className="bg-white border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center">
-                        <h4 className="font-bold text-xs uppercase" style={{ color: '#B8860B' }}>Phó Giám đốc Ban</h4>
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-6 py-2 rounded-lg shadow-sm text-center">
+                        <h4 className="font-bold text-xs uppercase text-yellow-700 dark:text-amber-500">Phó Giám đốc Ban</h4>
                     </div>
-                    <div className="bg-white border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center">
-                        <h4 className="font-bold text-xs uppercase" style={{ color: '#B8860B' }}>Phó Giám đốc Ban</h4>
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-6 py-2 rounded-lg shadow-sm text-center">
+                        <h4 className="font-bold text-xs uppercase text-yellow-700 dark:text-amber-500">Phó Giám đốc Ban</h4>
                     </div>
-                    <div className="bg-white border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center">
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-6 py-2 rounded-lg shadow-sm text-center">
                         <h4 className="font-bold text-xs uppercase text-blue-700">Kế toán trưởng</h4>
                     </div>
                 </div>
 
                 {/* Connector line */}
                 <div className="relative w-full flex justify-center mb-3">
-                    <div className="absolute top-0 left-[5%] right-[5%] h-px bg-gray-300"></div>
+                    <div className="absolute top-0 left-[5%] right-[5%] h-px bg-gray-300 dark:bg-slate-700"></div>
                 </div>
 
                 {/* Level 3: Phòng chức năng */}
@@ -146,19 +151,19 @@ const OrgChart = () => {
 
                 {/* Stats */}
                 <div className="mt-6 flex gap-4">
-                    <div className="rounded-lg px-4 py-2 text-center border" style={{ background: '#FEFCE8', borderColor: '#F0D68A' }}>
-                        <p className="text-lg font-black" style={{ color: '#B8860B' }}>01</p>
-                        <p className="text-[9px] font-bold uppercase" style={{ color: '#D4A017' }}>Giám đốc Ban</p>
+                    <div className="rounded-lg px-4 py-2 text-center border bg-yellow-50 dark:bg-amber-900/30 border-yellow-200 dark:border-amber-800/50">
+                        <p className="text-lg font-black text-yellow-700 dark:text-amber-500">01</p>
+                        <p className="text-[9px] font-bold uppercase text-yellow-600 dark:text-amber-600">Giám đốc Ban</p>
                     </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-center">
+                    <div className="bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800/50 rounded-lg px-4 py-2 text-center">
                         <p className="text-lg font-black text-blue-700">02</p>
                         <p className="text-[9px] text-blue-600 font-bold uppercase">Phó Giám đốc</p>
                     </div>
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-center">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-4 py-2 text-center">
                         <p className="text-lg font-black text-emerald-700">01</p>
                         <p className="text-[9px] text-emerald-600 font-bold uppercase">Kế toán trưởng</p>
                     </div>
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-2 text-center">
+                    <div className="bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800/50 rounded-lg px-4 py-2 text-center">
                         <p className="text-lg font-black text-purple-700">11</p>
                         <p className="text-[9px] text-purple-600 font-bold uppercase">Phòng/Ban/Đơn vị</p>
                     </div>
@@ -180,7 +185,7 @@ const SubmissionProcessChart = () => {
             actor: "Chuyên viên / Phòng CM",
             desc: "Chuẩn bị hồ sơ đầy đủ, dự thảo văn bản, tờ trình.",
             icon: PenTool,
-            color: "bg-gray-100 text-gray-600 border-gray-200"
+            color: "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-700"
         },
         {
             id: 2,
@@ -212,7 +217,7 @@ const SubmissionProcessChart = () => {
             actor: "Giám đốc Ban",
             desc: "Quyết định cuối cùng đối với các vấn đề thuộc thẩm quyền.",
             icon: Gavel,
-            color: "bg-orange-50 text-orange-600 border-orange-200"
+            color: "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800/50"
         }
     ];
 
@@ -220,7 +225,7 @@ const SubmissionProcessChart = () => {
         <div className="py-6">
             <div className="relative">
                 {/* Vertical Line */}
-                <div className="absolute left-8 top-4 bottom-4 w-0.5 bg-gray-200 border-l border-dashed border-gray-300"></div>
+                <div className="absolute left-8 top-4 bottom-4 w-0.5 bg-gray-200 dark:bg-slate-800 border-l border-dashed border-gray-300 dark:border-slate-700"></div>
 
                 <div className="space-y-6">
                     {steps.map((step, idx) => (
@@ -236,12 +241,12 @@ const SubmissionProcessChart = () => {
                             )}
 
                             {/* Content Bubble */}
-                            <div className="ml-6 flex-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative">
+                            <div className="ml-6 flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow relative">
                                 {/* Triangle pointer */}
-                                <div className="absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-gray-200 transform rotate-45"></div>
+                                <div className="absolute top-6 -left-2 w-4 h-4 bg-white dark:bg-slate-800 border-l border-b border-gray-200 dark:border-slate-700 transform rotate-45"></div>
 
                                 <div className="flex justify-between items-start mb-1">
-                                    <h5 className="font-bold text-gray-800 text-sm">{step.title}</h5>
+                                    <h5 className="font-bold text-gray-800 dark:text-slate-200 text-sm">{step.title}</h5>
                                     <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded text-gray-500">{step.actor}</span>
                                 </div>
                                 <p className="text-xs text-gray-500">{step.desc}</p>
@@ -277,7 +282,7 @@ const RelationshipMap = () => {
                         <Landmark className="w-6 h-6" />
                     </div>
                     <div className="mt-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-200 text-center">
-                        <p className="text-[10px] font-bold text-gray-800 uppercase">UBND TP.HCM</p>
+                        <p className="text-[10px] font-bold text-gray-800 dark:text-slate-200 uppercase">UBND TP.HCM</p>
                         <p className="text-[8px] text-gray-500">Chỉ đạo & Giám sát</p>
                     </div>
                     {/* Connector */}
@@ -291,7 +296,7 @@ const RelationshipMap = () => {
                         <Network className="w-6 h-6" />
                     </div>
                     <div className="mt-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-200 text-center">
-                        <p className="text-[10px] font-bold text-gray-800 uppercase">Sở KH-ĐT / Sở TC</p>
+                        <p className="text-[10px] font-bold text-gray-800 dark:text-slate-200 uppercase">Sở KH-ĐT / Sở TC</p>
                         <p className="text-[8px] text-gray-500">Thẩm định & Phối hợp</p>
                     </div>
                     {/* Connector */}
@@ -304,7 +309,7 @@ const RelationshipMap = () => {
                         <HardHat className="w-6 h-6" />
                     </div>
                     <div className="mb-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-200 text-center">
-                        <p className="text-[10px] font-bold text-gray-800 uppercase">Nhà thầu / Đối tác</p>
+                        <p className="text-[10px] font-bold text-gray-800 dark:text-slate-200 uppercase">Nhà thầu / Đối tác</p>
                         <p className="text-[8px] text-gray-500">Hợp đồng kinh tế</p>
                     </div>
                     {/* Connector */}
@@ -317,7 +322,7 @@ const RelationshipMap = () => {
                         <Map className="w-6 h-6" />
                     </div>
                     <div className="mt-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-200 text-center">
-                        <p className="text-[10px] font-bold text-gray-800 uppercase">Đơn vị sử dụng</p>
+                        <p className="text-[10px] font-bold text-gray-800 dark:text-slate-200 uppercase">Đơn vị sử dụng</p>
                         <p className="text-[8px] text-gray-500">Bàn giao & Vận hành</p>
                     </div>
                     {/* Connector */}
@@ -332,7 +337,7 @@ const RelationshipMap = () => {
 const ResponsibilityList: React.FC<{ items: (string | React.ReactNode)[] }> = ({ items }) => (
     <ul className="space-y-4">
         {items.map((item, idx) => (
-            <li key={idx} className="flex gap-4 text-sm text-gray-700 leading-relaxed text-justify group">
+            <li key={idx} className="flex gap-4 text-sm text-gray-700 dark:text-slate-300 leading-relaxed text-justify group">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center text-[10px] font-bold mt-0.5 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors shadow-sm">
                     {idx + 1}
                 </span>
@@ -347,7 +352,7 @@ const Article2Visual = () => {
         {
             idx: 1,
             title: "Nguyên tắc tập trung dân chủ & Chế độ thủ trưởng",
-            content: "Ban QLDA ĐTXD DDCN làm việc theo nguyên tắc tập trung dân chủ, thực hiện chế độ thủ trưởng, đảm bảo sự chỉ đạo, điều hành thống nhất của Giám đốc Ban đối với các lĩnh vực công tác, phát huy quyền làm chủ của cán bộ, viên chức, NLĐ gắn với sự lãnh đạo của Đảng và phát huy vai trò của các tổ chức đoàn thể trong cơ quan. Mọi hoạt động của Ban QLDA ĐTXD DDCN đều phải tuân thủ quy định của pháp luật và Quy chế này."
+            content: "Ban QLDA ĐTXD DDCN làm việc theo nguyên tắc tập trung dân chủ, thực hiện chế độ thủ trưởng, đảm bảo sự chỉ đạo, điều hành thống nhất của Giám đốc Ban đối với các lĩnh vực công tác, pháthuy quyền làm chủ của cán bộ, viên chức, NLĐ gắn với sự lãnh đạo của Đảng và pháthuy vai trò của các tổ chức đoàn thể trong cơ quan. Mọi hoạt động của Ban QLDA ĐTXD DDCN đều phải tuân thủ quy định của pháp luật và Quy chế này."
         },
         {
             idx: 2,
@@ -366,8 +371,8 @@ const Article2Visual = () => {
         },
         {
             idx: 5,
-            title: "Phát huy năng lực & Phối hợp công tác",
-            content: "Bảo đảm phát huy năng lực và sở trường của VC, NLĐ, đề cao sự phối hợp công tác, trách nhiệm làm việc nhóm, phát huy trí tuệ tập thể và trao đổi thông tin trong giải quyết công việc và trong mọi hoạt động theo chức năng, nhiệm vụ, quyền hạn được pháp luật quy định;"
+            title: "Pháthuy năng lực & Phối hợp công tác",
+            content: "Bảo đảm pháthuy năng lực và sở trường của VC, NLĐ, đề cao sự phối hợp công tác, trách nhiệm làm việc nhóm, pháthuy trí tuệ tập thể và trao đổi thông tin trong giải quyết công việc và trong mọi hoạt động theo chức năng, nhiệm vụ, quyền hạn được pháp luật quy định;"
         },
         {
             idx: 6,
@@ -383,7 +388,7 @@ const Article2Visual = () => {
                     {/* Default State: Summary */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-all duration-300 group-hover:opacity-0 group-hover:scale-90">
                         <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-xl font-black text-blue-600 mb-4 border border-blue-50">{p.idx}</div>
-                        <h5 className="font-bold text-gray-800 text-sm uppercase tracking-tight leading-relaxed px-4">{p.title}</h5>
+                        <h5 className="font-bold text-gray-800 dark:text-slate-200 text-sm uppercase tracking-tight leading-relaxed px-4">{p.title}</h5>
                         <p className="text-[10px] text-gray-400 mt-4 italic flex items-center gap-1">
                             <Info className="w-3 h-3" /> Rê chuột để xem chi tiết
                         </p>
@@ -430,14 +435,14 @@ const DeptTasksLayout: React.FC<{
                 <h4 className={`font-bold ${c.text} text-sm mb-3 flex items-center gap-2`}>
                     <CheckCircle2 className="w-4 h-4" /> 1. Chức năng
                 </h4>
-                <ul className="space-y-3 text-sm text-gray-700 list-disc pl-5 leading-relaxed">
+                <ul className="space-y-3 text-sm text-gray-700 dark:text-slate-300 list-disc pl-5 leading-relaxed">
                     {functionContent.map((item, i) => <li key={i}>{item}</li>)}
                 </ul>
             </div>
 
             {/* Nhiệm vụ chi tiết - Interactive Layout */}
             <div>
-                <h4 className="font-bold text-gray-800 text-sm mb-4 px-1 flex items-center gap-2">
+                <h4 className="font-bold text-gray-800 dark:text-slate-200 text-sm mb-4 px-1 flex items-center gap-2">
                     2. Nhiệm vụ cụ thể
                     <span className="text-[10px] font-normal text-gray-400 italic bg-gray-50 px-2 py-0.5 rounded">(Rê chuột vào các mục bên dưới để xem chi tiết)</span>
                 </h4>
@@ -474,7 +479,7 @@ const DeptTasksLayout: React.FC<{
                                     <div className={`w-1 h-6 ${c.active.replace('bg-', 'bg-')} rounded-full`}></div>
                                     {task.title}
                                 </h4>
-                                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-justify font-medium">
+                                <div className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-justify font-medium">
                                     {task.full}
                                 </div>
                             </div>
@@ -554,7 +559,7 @@ const PlanningDeptDetail = () => {
 
 Tham mưu, đề xuất Giám đốc Ban QLDA phê duyệt kế hoạch giải ngân nguồn vốn, phân khai nguồn vốn giải ngân của từng nhà thầu, từng hạng mục.
 
-Thực hiện công tác lập báo cáo tháng/quý/năm về công tác giải ngân; phối hợp với Bộ, ngành Trung ương, Sở, ngành địa phương để quản lý nguồn vốn.
+Thực hiện công tác lập báo cáo tháng/quý/năm về công tác giải ngân; phối hợp với Bộ, ngành Trungương, Sở, ngành địa phương để quản lý nguồn vốn.
 
 Tổng hợp kết quả thực hiện các kết luận thanh tra, kiểm toán của Ban QLDA.`
         },
@@ -739,155 +744,211 @@ const regulationsData: Chapter[] = [
         id: "CH1",
         code: "Chương I",
         title: "NHỮNG QUY ĐỊNH CHUNG",
-        icon: Shield,
+        icon: FileText,
         articles: [
             {
                 id: "01.01",
                 code: "Điều 1",
-                title: "Phạm vi điều chỉnh và đối tượng áp dụng",
+                title: "Phạm vi, đối tượng áp dụng",
                 content: (
-                    <div className="space-y-4 text-sm leading-relaxed text-gray-700">
-                        <p><strong>1. Phạm vi điều chỉnh:</strong> Quy chế này quy định nguyên tắc làm việc; chức năng, nhiệm vụ các phòng; quyền hạn, trách nhiệm, cách thức giải quyết công việc; chế độ làm việc; mối quan hệ công tác; trình tự giải quyết công việc của Ban QLDA.</p>
-                        <p><strong>2. Đối tượng áp dụng:</strong> Quy chế này áp dụng đối với tất cả viên chức (VC), người lao động (NLĐ) của Ban QLDA.</p>
-                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-yellow-800 text-xs italic">
-                            <Info className="w-3 h-3 inline mr-1" />
-                            Các tổ chức, cá nhân bên ngoài khi đến làm việc phải chấp hành quy định của Ban QLDA.
-                        </div>
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Quy chế này quy định nguyên tắc làm việc; chế độ trách nhiệm; quan hệ công tác; phạm vi, quy trình giải quyết công việc; chương trình công tác, hoạt động và chế độ thông tin, báo cáo của Ban Qu ản lý dự án đầu tư xây dựng các công trình dân dụng và công nghiệp (sau đây gọi tắt là Ban Dân dụng và Công nghiệp).</p>
+                        <p>2. Các thành viên Ban Giám đốc, các phòng chuyên môn, Ban Điều hành dự  án (sau đây gọi tắt là các phòng, ban), viên chức, người lao động và các tổ chức, cá nhân có mối quan hệ công tác với Ban Dân dụng và Công nghiệp.</p>
                     </div>
-                ),
-                comments: [
-                    { id: "c1", user: "Phòng HC-TH", avatar: "https://i.pravatar.cc/150?u=1", content: "Đã cập nhật phạm vi áp dụng theo quyết định mới nhất 2025.", date: "10:30 AM" }
-                ]
+                )
             },
             {
                 id: "01.02",
                 code: "Điều 2",
-                title: "Nguyên tắc làm việc",
-                content: <Article2Visual />
+                title: "Nguyên tắc làm việc của Ban Dân dụng và Công nghiệp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Ban Dân dụng và Công nghiệp là đơn vị sự nghiệp công lập trực thuộc Ủy ban nhân dân Thành phố làm việc theo chế độ thủ trưởng; mọi hoạt động của Ban Dân dụng và Công nghiệp thực hiện theo quy định của pháp luật nhà nước và Thành phố, bảo đảm sự lãnh đạo của Đảng, sự chỉ đạo của Ủy ban nhân dân Thành phố.</p>
+                        <p>2. Mỗi nhiệm vụ chỉ giao cho một người chủ trì và chịu trách nhiệm. Trường hợp nhiệm vụ được giao cho nhiều đầu mối thì phân công cụ thể một đầu mối chủ trì và có trách nhiệm phối hợp với các đầu mối còn lại để hoàn thành nhiệm vụ được giao.</p>
+                        <p>3. Viên chức, người lao động chủ động giải quyết công việc đúng quy trình, thủ tục, thẩm quyền và quy định của pháp luật, Quy chế làm việc của Ban Dân dụng và Công nghiệp. Bảo đảm nguyên tắc phối hợp công tác, trao đổi thông tin, nêu ra những tình huống xử lý nhằm tạo sự thống nhất trong giải quyết công việc chung của Ban Dân dụng và Công nghiệp.</p>
+                        <p>4. Thực hiện phân công, phân cấp, ủy quyền, xác định rõ trách nhiệm của từng viên chức, người lao động gắn với hiệu quả công việc, đồng thời tăng cường công tác kiểm tra, giám sát, bảo đảm sự lãnh đạo tập trung, quản lý thống nhất, phù hợp với quy định pháp luật và thẩm quyền của Ban Dân dụng và Công nghiệp; Phát  huy  tinh  thần  chủ  động,  sáng  tạo, đổi  mới, dám nghĩ, dám làm vì lợi  ích chung của Ban Dân dụng và Công nghiệp.</p>
+                        <p>5. Bảo đảm thực hiện nghiêm kỷ luật, kỷ cương hành chính trong toàn Ban Dân dụng và Công nghiệp; đề cao tinh thần trách nhiệm cá nhân, nêu gương, và ý thức chấp hành của viên chức, người lao động. Cấp dưới có trách nhiệm tuyệt đối tuân thủ sự lãnh đạo, chỉ đạo, điều hành và phân công công tác của cấp trên; chủ động, kịp thời tổ chức triển khai thực hiện nhiệm vụ được giao, bảo đảm đúng thẩm quyền, quy trình, tiến độ và chất lượng. Trường hợp có ý kiến  khác với chỉ đạo của cấp trên, phải báo cáo, đề xuất bằng văn bản để xem xét, quyết định, trong thời gian chờ ý kiến, vẫn phải chấp hành nghiêm chỉ đạo đã được giao.</p>
+                        <p>6. Bảo đảm tuân thủ trình tự, thủ tục và thời gian giải quyết công việc theo đúng quy định của pháp luật, chương trình, kế hoạch, lịch làm việc và quy chế làm việc; bảo đảm phối hợp chặt chẽ giữa các mối quan hệ bên trong và bên ngoài Ban Dân dụng và Công nghiệp.</p>
+                        <p>7. Dân chủ, công khai, minh bạch, phòng, chống tham nhũng, lãng phí và thực hành tiết kiệm.</p>
+                    </div>
+                )
             }
         ]
     },
     {
         id: "CH2",
         code: "Chương II",
-        title: "TỔ CHỨC BỘ MÁY, CHỨC NĂNG NHIỆM VỤ",
-        icon: Layout,
-        type: 'chart',
+        title: "TRÁCH NHIỆM VÀ QUYỀN HẠN GIẢI QUYẾT CÔNG VIỆC",
+        icon: FileText,
         articles: [
             {
-                id: "02.03",
+                id: "01.03",
                 code: "Điều 3",
-                title: "Cơ cấu tổ chức Ban QLDA",
-                content: <OrgChart />,
-                type: "chart"
-            },
-            {
-                id: "02.04",
-                code: "Điều 4",
-                title: "Chức năng, nhiệm vụ và quyền hạn chung",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của Ban Dân dụng và Công nghiệp",
                 content: (
-                    <div className="space-y-4 text-sm leading-relaxed text-gray-700">
-                        <p><strong>Căn cứ pháp lý:</strong> Quyết định số 571/QĐ-UBND của UBND TP. Hồ Chí Minh về chức năng, nhiệm vụ và cơ cấu tổ chức của Ban Quản lý dự án đầu tư xây dựng các công trình Dân dụng và Công nghiệp.</p>
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                            <p className="font-bold text-blue-800 mb-2">Vị trí, chức năng:</p>
-                            <p>Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp là đơn vị trực thuộc UBND TP. Hồ Chí Minh. Có chức năng: Làm chủ đầu tư và trực tiếp tổ chức quản lý, triển khai và thực hiện các dự án đầu tư xây dựng công trình dân dụng, công nghiệp; các dự án sửa chữa, cải tạo, nâng cấp và <strong>các dự án khác</strong> trên địa bàn TP.HCM theo phân công của UBND TP.</p>
-                        </div>
-                        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
-                            <p className="font-bold text-emerald-800 mb-2">Nhiệm vụ chính:</p>
-                            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                                <li>Phối hợp triển khai lập quy hoạch xây dựng và kế hoạch đầu tư xây dựng dài hạn, trung hạn, hàng năm các công trình dân dụng và công nghiệp trên địa bàn TP.HCM.</li>
-                                <li>Chủ trì chuẩn bị thực hiện dự án: lập báo cáo chủ trương đầu tư, xây dựng kế hoạch đầu tư, giao nhận đất, đền bù GPMB.</li>
-                                <li>Thực hiện dự án ĐTXD: lập trình phê duyệt dự toán, tổ chức thiết kế, thẩm định hồ sơ mời thầu, lựa chọn nhà thầu.</li>
-                                <li>Ký kết hợp đồng, quản lý hợp đồng, tiến độ, chất lượng, vốn, chi phí, an toàn thi công.</li>
-                                <li>Tổ chức nghiệm thu, bàn giao, chuyển giao tài sản; lập báo cáo quyết toán vốn đầu tư.</li>
-                                <li>Thực hiện chế độ bảo hành, bảo trì công trình; lưu trữ hồ sơ.</li>
-                                <li>Chủ trì đấu thầu mua sắm tập trung sau khi được Sở KH-ĐT / Sở Tài chính thẩm định và UBND TP.HCM phê duyệt.</li>
-                                <li>Triển khai dự án sửa chữa, cải tạo, nâng cấp công trình trên địa bàn TP.HCM; dự án PPP.</li>
-                                <li>Quản lý đội ngũ cán bộ, công chức, viên chức; phòng chống tham nhũng, tiêu cực.</li>
-                            </ul>
-                        </div>
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Thực hiện theo quy định của pháp luật và theo chức năng, nhiệm vụ, quyền hạn được Ủy ban nhân dân Thành phố giao tại Quyết định số 1145/QĐ-UBND ngày 02 tháng 3 năm 2026.</p>
                     </div>
                 )
             },
             {
-                id: "02.05",
-                code: "Điều 5",
-                title: "Nhiệm vụ cụ thể của các phòng",
+                id: "01.04",
+                code: "Điều 4",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của các phòng, ban thuộc Ban Dân dụng và Công nghiệp",
                 content: (
-                    <div className="space-y-8">
-                        {/* TABLE OF CONTENTS - QUICK NAV */}
-                        <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <ArrowDownCircle className="w-4 h-4" /> Mục lục nhanh
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                                {[
-                                    { id: 'dept-1', label: '1. Hành chính - Tổng hợp', color: 'text-blue-600 bg-blue-50 border-blue-200' },
-                                    { id: 'dept-2', label: '2. Kế hoạch - Đấu thầu', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-                                    { id: 'dept-3', label: '3. Kỹ thuật - Thẩm định', color: 'text-purple-600 bg-purple-50 border-purple-200' },
-                                    { id: 'dept-4', label: '4. Các Phòng QLDA', color: 'text-orange-600 bg-orange-50 border-orange-200' },
-                                    { id: 'dept-5', label: '5. Phát triển dịch vụ', color: 'text-teal-600 bg-teal-50 border-teal-200' },
-                                ].map(item => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                                        className={`px-3 py-2 rounded-lg text-[10px] font-bold border transition-transform hover:-translate-y-0.5 hover:shadow-sm text-left truncate ${item.color}`}
-                                    >
-                                        {item.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 1. Phòng Hành chính Tổng hợp */}
-                        <div id="dept-1" className="border border-blue-200 rounded-3xl p-6 bg-white shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5"><Layout className="w-32 h-32" /></div>
-                            <h3 className="text-xl font-black text-blue-800 mb-6 border-b border-blue-100 pb-3 uppercase tracking-tight flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">01</div>
-                                Phòng Hành chính – Tổng hợp
-                            </h3>
-                            <AdminDeptDetail />
-                        </div>
-
-                        {/* 2. Phòng Kế hoạch - Đấu thầu */}
-                        <div id="dept-2" className="border border-emerald-200 rounded-3xl p-6 bg-white shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 text-emerald-900"><BarChart3 className="w-32 h-32" /></div>
-                            <h3 className="text-xl font-black text-emerald-800 mb-6 border-b border-emerald-100 pb-3 uppercase tracking-tight flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm">02</div>
-                                Phòng Kế hoạch - Đấu thầu
-                            </h3>
-                            <PlanningDeptDetail />
-                        </div>
-
-                        {/* 3. Phòng Kỹ thuật - Thẩm định */}
-                        <div id="dept-3" className="border border-purple-200 rounded-3xl p-6 bg-white shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 text-purple-900"><PenTool className="w-32 h-32" /></div>
-                            <h3 className="text-xl font-black text-purple-800 mb-6 border-b border-purple-100 pb-3 uppercase tracking-tight flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm">03</div>
-                                Phòng Kỹ thuật - Thẩm định
-                            </h3>
-                            <TechnicalDeptDetail />
-                        </div>
-
-                        {/* 4. Các Phòng Quản lý dự án */}
-                        <div id="dept-4" className="border border-orange-200 rounded-3xl p-6 bg-white shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 text-orange-900"><Briefcase className="w-32 h-32" /></div>
-                            <h3 className="text-xl font-black text-orange-800 mb-6 border-b border-orange-100 pb-3 uppercase tracking-tight flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center text-sm">04</div>
-                                Các Phòng Quản lý dự án
-                            </h3>
-                            <ProjectMgmtDeptDetail />
-                        </div>
-
-                        {/* 5. Phòng Phát triển dịch vụ */}
-                        <div id="dept-5" className="border border-teal-200 rounded-3xl p-6 bg-white shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 text-teal-900"><TrendingUp className="w-32 h-32" /></div>
-                            <h3 className="text-xl font-black text-teal-800 mb-6 border-b border-teal-100 pb-3 uppercase tracking-tight flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center text-sm">05</div>
-                                Phòng Phát triển dịch vụ
-                            </h3>
-                            <ServiceDevDeptDetail />
-                        </div>
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Thực hiện theo quy định của pháp luật và theo chức năng, nhiệm vụ, quyền hạn được giao tại các quyết định cụ thể như sau:</p>
+                        <p>1. Văn phòng: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số ......</p>
+                        <p>2. Phòng Kế hoạch và Đầu tư: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số....</p>
+                        <p>3. Phòng Tài chính   - Kế toán: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>4. Phòng Kỹ thuật - Chất lượng: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>5. Ban Điều hành dự án 1: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>6. Ban Điều hành dự án 2: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>7. Ban Điều hành dự án 3: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>8. Ban Điều hành dự án 4: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>9. Ban Điều hành dự án 5: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>10. Ban Điều hành dự án 6: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                        <p>11. Ban Điều hành dự án 7: Thực hiện theo chức năng, nhiệm vụ được ban hành tại Quyết định số...</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.05",
+                code: "Điều 5",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của Giám đốc",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Giám đốc là người đứng đầu Ban Dân dụng và Công nghiệp, chịu trách nhiệm lãnh đạo, chỉ đạo toàn diện và điều hành mọi hoạt động của đơn vị. Giám đốc thực hiện việc phân công, phân cấp hoặc ủy quyền cho các Phó Giám đốc phụ trách từng lĩnh vực công tác cụ thể, bảo đảm rõ trách nhiệm, thẩm quyền, nâng cao hiệu lực, hiệu quả quản lý, điều hành.</p>
+                        <p>2. Chịu trách nhiệm trước cơ quan cấp trên và trước pháp luật về toàn bộ hoạt động của Ban Dân dụng và Công nghiệp; chủ động quán triệt, lĩnh hội và tổ chức triển khai kịp thời các chủ trương, chính sách, chỉ đạo của cấp có thẩm quyền, bảo đảm mọi hoạt động của Ban Dân dụng và Công nghiệp được thực hiện đúng quy định pháp luật và phù hợp với định hướng phát triển của đơn vị.</p>
+                        <p>3. Lãnh đạo, chỉ đạo, kiểm tra hoạt động của các phòng, ban; trực tiếp chỉ đạo, điều hành các công việc quan trọng, có tính chiến lược trên các lĩnh vực công tác thuộc nhiệm vụ, quyền hạn của Ban Dân dụng và Công nghiệp.</p>
+                        <p>4. Trực tiếp phụ trách, chỉ đạo và quyết định các nội dung trọng tâm sau:</p>
+                        <p>- Là chủ tài khoản của Ban Dân dụng và Công nghiệp, chịu trách nhiệm quản lý, sử dụng tài chính, tài sản theo đúng quy định của pháp luật.</p>
+                        <p>-  Chỉ  đạo, xử  lý các vấn đề  về  công tác đối ngo ại của Ban Dân dụng và Công nghiệp.</p>
+                        <p>- Quyết định các vấn đề về chiến lược phát triển; chương trình, kế hoạch công tác dài hạn, trung hạn, ngắn hạn; đồng thời xử lý các vấn đề cấp bách, quan trọng liên quan đến các đối tác trong và ngoài nước.</p>
+                        <p>- Chỉ đạo tổ chức, kiện toàn bộ máy; sắp xếp cơ cấu tổ chức, nhân sự trong toàn Ban Dân dụng và Công nghiệp; quyết định thành lập, tổ chức lại, giải thể các đơn vị không thu ộc cơ cấu tổ chức các đơn vị cấu thành theo quyết định của cơ quan có thẩm quyền phù hợp với yêu cầu từng giai đoạn. Thực hiện công tác cán bộ theo thẩm quyền được phân cấp, bao gồm: phân công, bố trí, bổ nhiệm, miễn nhiệm, điều động, nâng lương, khen thưởng, kỷ luật; thực hiện quy chế dân chủ cơ sở, các quy định về viên chức, người lao  động; thực hành ti ết kiệm, phòng, chống tham nhũng, lãng phí và bảo đảm chế độ, chính sách đối với viên chức, người lao động theo quy định của pháp luật.</p>
+                        <p>5.  Chỉ  đạo  xây dựng,  ban hành  theo  thẩm  quyền  hoặc  trình  cấp  có thẩm quyền ban hành các quy chế, đề án, cơ chế quản lý; các chương trình phát triển, chương trình hợp tác và tổ chức thực hiện các dự án thuộc chức năng, nhiệm vụ của Ban Dân dụng và Công nghiệp.</p>
+                        <p>6. Trực tiếp xem xét, quyết định và chịu trách nhiệm đối với các nhiệm vụ được Chủ tịch Ủy ban nhân dân Thành phố phân công, phân cấp, ủy quyền.</p>
+                        <p>7. Đại diện Ban Dân dụng và Công nghiệp tham dự, báo cáo, giải trình các nội dung liên quan đến hoạt động  của đơn vị trước  Chủ  tịch Ủy ban nhân dân Thành phố, các cơ quan chuyên môn và cơ quan có thẩm quyền khi được yêu cầu.</p>
+                        <p>8. Kiến nghị Ủy ban nhân dân Thành phố xem xét, quyết định đối với các vấn đề phát sinh liên quan đến dự án trên địa bàn Thành phố trong trường hợp vượt thẩm quyền giải quyết hoặc các vấn đề còn có ý kiến khác nhau giữa các cơ quan, đơn vị có liên quan.</p>
+                        <p>9. Giám đốc Ban Dân dụng và Công nghiệp không xử lý những công việc đã phân công cho các Phó Giám đốc Ban Dân dụng và Công nghiệp; đã phân cấp, ủy quyền cho các đối tượng khác (trừ trường hợp xét thấy thật sự cần thiết do tính chất cấp bách, phức tạp, nhạy cảm của công việc, Giám đốc trực tiếp chỉ đạo giải quyết công việc đã phân công cho Phó Giám đốc hoặc công việc thuộc thẩm quyền của người đứng đầu đơn vị hoặc trong trường hợp Phó Giám đốc vắng mặt).</p>
+                        <p>10. Khi Phó Giám đốc Ban Dân dụng và Công nghiệp vắng mặt, Giám đốc trực tiếp chỉ đạo giải quyết công việc hoặc phân công Phó Giám đốc khác chỉ đạo giải quyết công việc đã phân công cho Phó Giám đốc vắng mặt.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.06",
+                code: "Điều 6",
+                title: "Trách  nhiệm  và  quyền  hạn giải  quyết  công  việc của  các Phó Giám đốc",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Các Phó Giám đốc giúp Giám đốc quản lý, điều hành công việc của Ban Dân dụng và Công nghiệp; được Giám đốc phân công phụ trách một số lĩnh vực công tác để trực tiếp giải quyết các lĩnh vực được phân công.</p>
+                        <p>2. Trong phạm vi lĩnh vực, công việc được phân công, Phó Giám đốc thay mặt Giám đốc quyết định và chịu trách nhiệm trực tiếp, toàn diện, mọi mặt trước pháp luật, trước Giám đốc về những quyết định của mình và những nhiệm vụ, lĩnh vực, phòng, ban  được phân công theo dõi, chỉ đạo, bảo đảm tiến độ, chất lượng, hiệu quả và chống tiêu cực, tham nhũng trong giải quyết công việc.</p>
+                        <p>3. Chỉ đạo các phòng, ban được phân công phụ trách thực hiện các công việc được giao quản lý, thực hiện chế độ công tác, hội họp và báo cáo sơ kết, tổng kết việc thực hiện nhiệm vụ chuyên môn và kế hoạch hằng năm theo đúng quy định.</p>
+                        <p>4. Chủ động, tích cực chủ trì họp, làm việc với lãnh đạo các cơ quan, đơn vị liên quan để phối hợp giải quyết công việc trong phạm vi lĩnh vực được Giám đốc phân công.</p>
+                        <p>5. Chủ động, tích cực chỉ đạo, theo dõi, đôn đốc, kiểm tra công việc được Giám đốc phân công; ký thay Giám đốc các văn bản thuộc thẩm quyền của Giám đốc trong phạm vi lĩnh vực, công việc được phân công;</p>
+                        <p>6. Chủ động kiểm tra, xem xét, chỉ đạo đối với các vấn đề chưa rõ hoặc còn ý kiến khác nhau gi  ữa các phòng, ban trong phạm vi lĩnh vực, công việc được phân công trước khi trình cơ quan có thẩm quyền.</p>
+                        <p>7. Các Phó Giám đốc có quyền chỉ đạo về chuyên môn, nghiệp vụ, phát sinh không thuộc phạm vi được phân công đối với các phòng, ban nhưng phải báo cáo, trao đổi xin ý kiến của Giám đốc và chịu trách nhiệm việc chỉ đạo của mình trước Giám đốc và cấp trên.</p>
+                        <p>8. Nếu có vấn đề liên quan đến lĩnh vực của Phó Giám đốc khác thì trực tiếp trao đổi, thống nhất với Phó Giám đốc đó để giải quyết. Trường hợp có ý kiến khác nhau thì Phó Giám đốc chủ trì xem xét, quyết định ho ặc trực ti ếp báo cáo Giám đốc khi cần thiết.</p>
+                        <p>9. Khi cần thiết hoặc do nhu cầu đột xuất, Giám đốc sẽ phân công, ủy quyền các nội dung công việc có liên quan đến thẩm quyền của Giám đốc cho các Phó Giám đốc thực hiện.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.07",
+                code: "Điều 7",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của các Trưởng phòng, ban thuộc Ban Dân dụng và Công nghiệp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Trưởng phòng, ban là người đứng đầu, chịu trách nhiệm lãnh đạo, chỉ đạo toàn diện và điều hành mọi hoạt động của phòng, ban; chịu trách nhiệm trước Ban Giám đốc và trước pháp luật về toàn bộ hoạt động thuộc phạm vi quản lý.</p>
+                        <p>2. Tổ chức xây dựng chương trình, kế hoạch công tác tháng, quý, năm của phòng, ban; chỉ đạo, hướng dẫn viên chức, người lao động xây dựng kế hoạch công tác cá nhân và tổ chức triển khai thực hiện.</p>
+                        <p>3. Phân công nhiệm vụ cho cấp phó và viên chức, người lao động thuộc quyền quản lý theo từng lĩnh vực cụ thể; bảo đảm rõ trách nhiệm, thẩm quyền, nâng cao hiệu lực, hiệu quả trong quản lý, điều hành.</p>
+                        <p>4. Kiểm tra, đôn đốc, điều phối việc thực hiện chương trình, kế hoạch công tác; theo dõi, đánh giá kết quả thực hiện nhiệm vụ của viên chức và người lao động thuộc phạm vi quản lý.</p>
+                        <p>5. Quyết định các công việc thuộc chức năng, nhiệm vụ, quyền hạn được giao; chủ động xử lý công việc trong phạm vi quản lý và chịu trách nhiệm về quyết định của mình; kịp thời báo cáo, xin ý kiến Ban Giám đốc đối với những nội dung vượt thẩm quyền hoặc có tính chất phức tạp.</p>
+                        <p>6. Đại diện phòng, ban trong các mối quan hệ công tác; chủ trì hoặc phối hợp với các phòng, ban, đơn vị liên quan trong quá trình thực hiện nhiệm vụ.</p>
+                        <p>7. Khi vắng mặt, thực hiện phân công cho một cấp phó điều hành, giải quyết công việc theo quy chế làm việc và chịu trách nhiệm về việc phân công.</p>
+                        <p>8. Thực hiện quản lý, sử dụng, phân công công việc đối với viên chức, người lao động thuộc thẩm quyền; theo dõi tình hình nhân sự; đề xuất đào tạo, bổ nhiệm, bổ nhiệm lại và các nội dung liên quan đến công tác cán bộ theo quy định.</p>
+                        <p>9. Tổ chức thực hiện các quy định của pháp luật, quy chế làm việc, kỷ luật, kỷ cương hành chính, bảo mật thông tin và đạo đức công vụ; xây dựng môi trường làm việc văn hóa, chuyên nghiệp.</p>
+                        <p>10. Chủ trì giải quyết các vấn đề liên phòng, ban; trường hợp đã phối hợp nhưng chưa thống nhất thì trực tiếp làm việc với các đơn vị liên quan để thống nhất; nếu vẫn còn ý kiến khác nhau thì tổng hợp, báo cáo Ban Giám đốc xem xét, quyết định.</p>
+                        <p>11. Thực hiện cải cách hành chính, ứng dụng công nghệ thông tin trong hoạt động công vụ; nâng cao chất lượng, hiệu quả thực hiện nhiệm vụ.</p>
+                        <p>12. Trả lời đầy đủ, rõ ràng, đúng thời hạn bằng văn bản đối với các nội dung thuộc chức năng, nhiệm vụ theo đề nghị của các phòng, ban, tổ chức, cá nhân có liên quan.</p>
+                        <p>13. Thực hiện các nhiệm vụ khác theo phân công của Ban Giám đốc và quy định tại các văn bản phân công nhiệm vụ cụ thể.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.08",
+                code: "Điều 8",
+                title: "Trách  nhiệm  và  quyền  hạn giải  quyết  công  việc của  các Phó Trưởng phòng, ban thuộc Ban Dân dụng và Công nghiệp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Phó Trưởng phòng, ban là cấp phó của Trưởng phòng, có trách nhiệm giúp Trưởng phòng tổ chức thực hiện các nhiệm vụ theo lĩnh vực được phân công; chịu trách nhiệm trước Trưởng phòng, Ban Giám đốc và trước pháp luật về kết quả thực hiện nhiệm vụ được giao.</p>
+                        <p>2. Trực tiếp quản lý, điều hành một hoặc một số lĩnh vực công tác của phòng, ban theo phân công; chủ động xử lý công việc trong phạm vi nhiệm vụ được giao.</p>
+                        <p>3. Tổ chức triển khai, đôn đốc và điều phối viên chức, người lao động thực hiện chương trình, kế hoạch công tác; theo dõi, kiểm tra và đánh giá tiến độ, chất lượng thực hiện nhiệm vụ của cá nhân thuộc lĩnh vực phụ trách.</p>
+                        <p>4. Tham gia kiểm tra, đánh giá tình hình thực hiện nhiệm vụ chung của phòng, ban; kịp thời đề xuất giải pháp nâng cao hiệu quả công tác.</p>
+                        <p>5. Chủ trì hoặc tham gia xử lý các công việc đột xuất trong phạm vi được giao; đối với những nội dung vượt thẩm quyền, kịp thời báo cáo, xin ý kiến chỉ đạo của Trưởng phòng.</p>
+                        <p>6. Phối hợp với các phòng, ban và cơ quan, đơn vị liên quan trong quá trình thực hiện nhiệm vụ được giao.</p>
+                        <p>7. Thực hiện chế độ thông tin, báo cáo định kỳ hoặc đột xuất về tình hình, kết quả thực hiện nhiệm vụ thuộc lĩnh vực phụ trách theo yêu cầu của Trưởng phòng hoặc Ban Giám đốc.</p>
+                        <p>8. Điều hành hoạt động của phòng, ban khi được Trưởng phòng phân công hoặc khi được Ban Giám đốc giao nhiệm vụ.</p>
+                        <p>9. Tham dự các cuộc họp, hội nghị liên quan đến lĩnh vực phụ trách theo phân công.</p>
+                        <p>10. Xây dựng và tổ chức thực hiện kế hoạch công tác (năm, quý, tháng, tuần) đối với lĩnh vực được giao phụ trách.</p>
+                        <p>11. Thực hiện các nhiệm vụ khác theo phân công của Trưởng phòng và quy định tại các văn bản phân công nhiệm vụ cụ thể.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.09",
+                code: "Điều 9",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của Kế toán trưởng",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Là người đứng đầu bộ máy kế toán, có nhiệm vụ tổ chức thực hiện công tác kế toán của Ban Dân dụng và Công nghiệp.</p>
+                        <p>2. Thực hiện các quy định của pháp luật hiện hành về kế toán tài chính.</p>
+                        <p>3. Điều hành bộ máy kế toán tại đơn vị theo đúng quy định của Luật Kế toán.</p>
+                        <p>4. Tham mưu cho Giám đốc ban hành quy trình, quy chế có liên quan đến công tác kế toán, đảm bảo tuân thủ chế độ chính sách và phù hợp với điều kiện của đơn vị.</p>
+                        <p>5. Thực hiện công khai tài chính, ngân sách theo quy định.</p>
+                        <p>6. Có quyền độc lập về chuyên môn nghiệp vụ kế toán.</p>
+                        <p>7. Có ý kiến với Giám đốc Ban về việc sử dụng người làm kế toán, thủ quỹ.</p>
+                        <p>8. Bảo lưu ý kiến chuyên môn bằng văn bản khi có ý kiến khác với ý kiến của Giám đốc Ban.</p>
+                        <p>9. Báo cáo bằng văn bản với Giám đốc Ban về những phát hiện hành vi vi phạm pháp luật về tài chính trong đơn vị.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.10",
+                code: "Điều 10",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của Giám đốc quản lý dự án.",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Giám đốc Quản lý dự án là chức danh được Giám đốc Ban Dân dụng và Công nghiệp giao nhiệm vụ quản lý, điều phối thực hiện quản lý dự án.</p>
+                        <p>2. Căn cứ tình hình thực tế, Giám đốc Ban Dân dụng và Công nghiệp có thể giao cho 01 cá nhân làm Giám đốc Quản lý dự án của một hoặc nhiều dự án và các thành viên. Giám đốc Quản lý dự án là người độc lập về chuyên môn, chịu trách nhiệm chính về dự án được giao quản lý, đồng thời Giám đốc Quản lý dự án chịu trách nhiệm trước Ban Giám đốc, trước lãnh đạo phòng, ban và trước pháp luật về dự án được giao quản lý.</p>
+                        <p>3. Chủ trì và chịu trách nhiệm chính tổ chức thực hiện đầy đủ các nhiệm vụ quản lý dự án nhằm đảm bảo chất lượng, tiến độ công việc, đối với các dự án được Giám đốc Ban Dân dụng và Công nghiệp giao làm Giám đốc Quản lý dự án.</p>
+                        <p>4. Giám đốc Quản lý dự án chịu sự quản lý của Lãnh đạo Ban Điều hành dự án, có trách nhiệm báo cáo Lãnh đạo Ban Điều hành tất cả hoạt động, các vấn đề cần xử lý, vướng mắc khó khăn thuộc dự án cần giải quyết trước khi trình Ban Giám đốc.</p>
+                        <p>5. Phối hợp, phân công các thành viên thực hiện nhiệm vụ quản lý dự án, đảm bảo chất lượng, tiến độ công việc.</p>
+                        <p>6. Tổ chức quản lý, giám sát thực hiện hợp đồng; trực tiếp kiểm tra, giám sát, nghiệm thu khối lượng, hồ sơ thanh toán, đối với các hợp đồng; tổ chức lập hồ sơ hoàn công của dự án; tổ chức nghiệm thu, bàn giao công trình hoàn thành đưa vào sử dụng cho các đơn vị quản lý; phối hợp với Phòng chuyên môn để thực hiện nhiệm vụ của Chủ đầu tư.</p>
+                        <p>7. Phối hợp, làm việc với chính quyền địa phương nơi có công trình và các cơ quan chuyên môn trong công tác thực hiện quản lý dự án.</p>
+                    </div>
+                )
+            },
+            {
+                id: "01.11",
+                code: "Điều 11",
+                title: "Trách nhiệm và quyền hạn giải quyết công việc của viên chức và người lao động",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Chấp hành nghiêm các quy định của pháp luật, nội quy, quy chế làm việc của Ban; tuân thủ sự lãnh đạo, chỉ đạo, phân công của lãnh đạo phòng, ban và sự điều động, bố trí của Giám đốc Ban.</p>
+                        <p>2. Chủ động tổ chức thực hiện nhiệm vụ được giao, bảo đảm đúng tiến độ, chất lượng, hiệu quả; thực hiện đúng quy trình, quy định, quy chế chuyên môn, nghiệp vụ; đề xuất ý kiến chuyên môn, giải pháp thực hiện nhiệm vụ</p>
+                        <p>3. Chịu trách nhiệm cá nhân trước Lãnh đạo trực tiếp và trước pháp luật về nội dung, tiến độ, chất lượng công việc; không đùn đẩy, né tránh trách nhiệm.</p>
+                        <p>4. Thực hiện chế độ báo cáo định kỳ, đột xuất theo quy định; kịp thời tham mưu, đề xuất giải pháp xử lý các khó khăn, vướng mắc phát sinh trong quá trình thực hiện nhiệm vụ.</p>
+                        <p>5. Chủ động phối hợp với các cá nhân, bộ phận liên quan; bảo đảm thông tin thông suốt, xử lý công việc kịp thời, hiệu quả, đặc biệt đối với các nhiệm vụ liên quan nhiều đơn vị.</p>
+                        <p>6. Bảo đảm tính chính xác, trung thực, đầy đủ của hồ sơ, tài liệu; chịu trách nhiệm về nội dung tham mưu, đề xuất và kết quả giải quyết công việc.</p>
+                        <p>7. Được cung cấp thông tin, tài liệu cần thiết phục vụ công tác; được tham gia ý kiến đối với các nội dung liên quan đến chức năng, nhiệm vụ của phòng, ban và Ban Dân dụng và Công nghiệp.</p>
+                        <p>8. Được từ chối thực hiện hoặc báo cáo cấp có thẩm quyền xem xét đối với các nhiệm vụ trái quy định của pháp luật hoặc vượt thẩm quyền.</p>
+                        <p>9. Được bảo đảm các điều kiện làm việc theo quy định để hoàn thành nhiệm vụ được giao.</p>
+                        <p>10. Thực hiện nghiêm kỷ luật, kỷ cương hành chính; chấp hành quy định về thời gian làm việc, quy tắcứng xử, văn hóa công sở; gi ữ  gìn đạo đức nghề nghiệp, tác phong làm việc chuyên nghiệp.</p>
+                        <p>11. Giữ gìn đoàn kết nội bộ; hỗ trợ, phối hợp, chia sẻ kinh nghiệm với đồng nghiệp để hoàn thành tốt nhiệm vụ chung.</p>
+                        <p>12. Chủ động học tập, nâng cao trình độ chuyên môn, nghiệp vụ, lý lu ận chính trị, ngoại ngữ, tin học; cập nhật kiến thức, nâng cao năng lực chuyên môn, nghiệp vụ.</p>
+                        <p>13. Thực hiện các quy định về  phòng, chống tham nhũng, lãng phí; thực hành tiết kiệm; bảo đảm an toàn, vệ sinh lao động; quản lý, sử dụng hiệu quả tài sản, trang thiết bị được giao.</p>
+                        <p>14. Tích cực tham gia các hoạt động, phong trào do cơ quan, tổ chức đoàn thể phát động, góp phần xây dựng đơn vị vững mạnh.</p>
                     </div>
                 )
             }
@@ -896,121 +957,97 @@ const regulationsData: Chapter[] = [
     {
         id: "CH3",
         code: "Chương III",
-        title: "QUYỀN HẠN, TRÁCH NHIỆM",
-        icon: Users,
+        title: "MỐI QUAN HỆ LÀM VIỆC",
+        icon: FileText,
         articles: [
             {
-                id: "03.06",
-                code: "Điều 6",
-                title: "Quyền hạn, trách nhiệm của Trưởng Ban QLDA",
-                content: <ResponsibilityList items={[
-                    "Là người đứng đầu, phụ trách chung, lãnh đạo, chỉ đạo, điều hành và quản lý toàn diện mọi hoạt động của Ban QLDA theo chức năng, nhiệm vụ, quyền hạn; chịu trách nhiệm trước UBND TP.HCM và trước pháp luật về toàn bộ hoạt động thuộc thẩm quyền của Ban.",
-                    "Chỉ đạo tổ chức triển khai tất cả các dự án được cấp có thẩm quyền giao cho Ban QLDA làm Chủ đầu tư hoặc của các Chủ đầu tư khác thông qua hợp đồng tư vấn quản lý dự án.",
-                    "Ban hành Quy chế làm việc, quy định cụ thể chức năng, nhiệm vụ, quyền hạn của các phòng trực thuộc, mối liên hệ công tác giữa các phòng và các quy chế khác đảm bảo công tác quản lý điều hành.",
-                    "Ban hành Đề án vị trí việc làm theo đúng quy định; phân công, bố trí, sắp xếp hợp lý đội ngũ cán bộ đúng cơ cấu, đảm bảo tiêu chuẩn; phân công công việc cho các cán bộ; ủy quyền cho một cán bộ điều hành hoạt động của Ban khi vắng mặt.",
-                    "Chỉ đạo, kiểm tra, giám sát và đôn đốc tổ chức, cá nhân và các Phòng trực thuộc Ban QLDA trong việc thực hiện các nhiệm vụ đã phân công.",
-                    "Phụ trách công tác quản lý tài chính; tổ chức bộ máy, nhân sự; đào tạo, thi đua - khen thưởng, kỷ luật; bảo vệ chính trị nội bộ; kế hoạch - đầu tư - đấu thầu; thanh tra, kiểm tra, kiểm toán; phòng chống tham nhũng, lãng phí; tiếp công dân và giải quyết khiếu nại, tố cáo; chiến lược phát triển chung.",
-                    "Tổ chức, chủ trì các cuộc họp định kỳ và đột xuất của Ban Quản lý dự án, đôn đốc, kiểm tra, giám sát việc thực hiện nhiệm vụ công tác của các phòng và của các thành viên Ban QLDA.",
-                    "Ký các văn bản trình UBND TP.HCM, Thường trực UBND TP. Ký các văn bản, hợp đồng xây dựng, hồ sơ liên quan đến dự án; ký chứng từ thanh toán, tạm ứng; ký hợp đồng làm việc/lao động.",
-                    "Là người phát ngôn của Ban QLDA hoặc ủy quyền cho cán bộ phát ngôn, cung cấp thông tin của đơn vị cho báo chí và các cơ quan chức năng khi có yêu cầu.",
-                    "Trực tiếp giải quyết một số công việc đã phân công cho cán bộ phụ trách trong các trường hợp: cấp bách, quan trọng; cán bộ đi vắng; hoặc vấn đề có ý kiến khác nhau.",
-                    (
-                        <div key="item-11">
-                            <strong>Những công việc cần thảo luận tập thể Lãnh đạo Ban QLDA trước khi Trưởng Ban quyết định:</strong>
-                            <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-600 font-medium">
-                                <li>Chiến lược, quy hoạch, kế hoạch phát triển Ban QLDA.</li>
-                                <li>Chương trình công tác, kế hoạch và dự thảo văn bản được UBND TP.HCM giao chủ trì.</li>
-                                <li>Kế hoạch triển khai các chủ trương, chính sách quan trọng.</li>
-                                <li>Công tác tổ chức bộ máy và nhân sự theo quy định.</li>
-                                <li>Báo cáo hàng năm về tổng kết tình hình thực hiện kế hoạch và kiểm điểm chỉ đạo điều hành.</li>
-                                <li>Những vấn đề khác mà Trưởng Ban thấy cần thiết.</li>
-                            </ul>
-                            <p className="mt-2 italic text-xs text-gray-500">Sau khi có ý kiến tập thể, Trưởng Ban là người đưa ra quyết định cuối cùng và chịu trách nhiệm.</p>
-                        </div>
-                    )
-                ]} />
-            },
-            {
-                id: "03.07",
-                code: "Điều 7",
-                title: "Nhiệm vụ của cán bộ Ban QLDA",
-                content: <ResponsibilityList items={[
-                    "Tham mưu, giúp việc cho Giám đốc Ban, được phân công phụ trách một số lĩnh vực; thay mặt Giám đốc Ban giải quyết công việc trong phạm vi được giao và chịu trách nhiệm trước Giám đốc Ban, UBND TP.HCM và pháp luật về kết quả thực hiện.",
-                    "Chủ động phân công nhiệm vụ, bố trí nhân sự cho các bộ phận được giao phụ trách; tham mưu về việc điều chuyển, xử lý kỷ luật nhân sự thuộc lĩnh vực phụ trách khi có vi phạm.",
-                    "Khi được giao QLDA: Chủ trì, chỉ đạo đề xuất nhân sự Tổ thực hiện dự án và Tổ chuyên gia đấu thầu trình Trưởng Ban thành lập.",
-                    "Tham gia các cuộc họp, đề xuất hoặc kiến nghị về các giải pháp, biện pháp cần thiết để thực hiện các nhiệm vụ của Ban Quản lý dự án.",
-                    "Giúp Trưởng Ban chỉ đạo, điều hành, hướng dẫn, đôn đốc, kiểm tra và xử lý công việc theo sự phân công; chịu trách nhiệm về việc thực hiện nhiệm vụ được giao.",
-                    "Đối với vấn đề chủ trương, nguyên tắc chưa có quy định hoặc nhạy cảm, quan trọng thì phải xin ý kiến Trưởng Ban trước khi quyết định.",
-                    "Được duyệt, ký văn bản thuộc lĩnh vực được phân công (trừ văn bản thuộc thẩm quyền Trưởng Ban); ký các văn bản, hợp đồng xây dựng, hồ sơ dự án khi được Trưởng Ban ủy quyền.",
-                    "Chủ động giải quyết công việc và phối hợp với các cán bộ khác; trường hợp còn ý kiến khác nhau hoặc nội dung quan trọng thì báo cáo Trưởng Ban quyết định.",
-                    "Thực hiện các nhiệm vụ khác khi được UBND TP.HCM giao, Giám đốc Ban giao."
-                ]} />
-            },
-            {
-                id: "03.08",
-                code: "Điều 8",
-                title: "Trách nhiệm, quyền hạn của Trưởng phòng",
-                content: <ResponsibilityList items={[
-                    "Chủ động tổ chức thực hiện công việc thuộc chức năng, nhiệm vụ của Phòng; chịu trách nhiệm trước Giám đốc, Phó Giám đốc phụ trách và pháp luật về kết quả và tiến độ công việc. Thực hiện chế độ báo cáo đầy đủ.",
-                    "Việc phát sinh vượt quá thẩm quyền phải báo cáo kịp thời xin ý kiến chỉ đạo; không chuyển việc của phòng mình sang phòng khác hoặc lên lãnh đạo Ban; không làm thay việc của phòng khác khi chưa có chỉ đạo.",
-                    "Chủ trì tham mưu xây dựng, góp ý văn bản quy phạm pháp luật, chính sách, kế hoạch chiến lược thuộc lĩnh vực phụ trách.",
-                    "Chủ động phối hợp với các Trưởng phòng khác để xử lý vấn đề liên quan và thực hiện nhiệm vụ chung của Ban.",
-                    "Chủ trì theo dõi, đôn đốc, chịu trách nhiệm thực hiện kết luận của Thanh tra, Kiểm toán tại Phòng.",
-                    "Tổ chức thực hiện công việc theo Quy chế làm việc; phân công nhiệm vụ cụ thể cho cấp phó và nhân viên.",
-                    "Khi vắng mặt 01 ngày phải được sự đồng ý của PGĐ phụ trách và ủy quyền cho cấp phó, thông báo cho Phòng HC-TH. Người được ủy quyền chịu trách nhiệm trước Trưởng phòng và Lãnh đạo Ban.",
-                    "Được phép cho nhân viên nghỉ 1/2 ngày khi có việc đột xuất; nghỉ từ 1 ngày phải báo cáo Phòng HC-TH và PGĐ phụ trách.",
-                    "Khi được ủy quyền dự họp cấp trên: Chậm nhất sau 01 ngày phải báo cáo kết quả cuộc họp với PGĐ phụ trách (và Giám đốc nếu quan trọng).",
-                    "Kiểm tra, rà soát, ký nháy và chịu trách nhiệm đối với các dự thảo văn bản của phòng trước khi trình lãnh đạo Ban.",
-                    "Thực hiện nhiệm vụ khác do Giám đốc hoặc Phó Giám đốc giao."
-                ]} />
-            },
-            {
-                id: "03.09",
-                code: "Điều 9",
-                title: "Trách nhiệm, quyền hạn của Phó Trưởng phòng",
-                content: <ResponsibilityList items={[
-                    "Trực tiếp thực hiện nhiệm vụ chuyên môn được phân công; giúp Trưởng phòng chỉ đạo, quản lý một số lĩnh vực cụ thể; chịu trách nhiệm trước Trưởng phòng và Lãnh đạo Ban về nhiệm vụ được giao.",
-                    "Thực hiện trách nhiệm, quyền hạn của Trưởng phòng khi được ủy quyền.",
-                    "Tham gia tổ chức quản lý, điều hành công tác của phòng theo phân công; hỗ trợ, đôn đốc nhân viên hoàn thành nhiệm vụ; Báo cáo Trưởng phòng kết quả thực hiện.",
-                    "Kiểm tra, soát xét, ký nháy và chịu trách nhiệm đối với các dự thảo văn bản của phòng trình Lãnh đạo Ban khi được Trưởng phòng phân công.",
-                    "Thực hiện các nhiệm vụ khác do Trưởng phòng và lãnh đạo Ban giao."
-                ]} />
-            },
-            {
-                id: "03.10",
-                code: "Điều 10",
-                title: "Quyền hạn và trách nhiệm của Kế toán trưởng",
-                content: <ResponsibilityList items={[
-                    "Tổ chức bộ máy kế toán, thực hiện nhiệm vụ, quyền hạn theo Luật Kế toán và các quy định hiện hành; trực tiếp phân công nhiệm vụ cho kế toán viên; chịu trách nhiệm chuyên môn về công tác kế toán.",
-                    "Được bảo đảm điều kiện làm việc, đào tạo nâng cao trình độ và hưởng các quyền lợi theo quy định pháp luật.",
-                    "Chịu sự quản lý, giám sát, phân công của Lãnh đạo phòng Hành chính - Tổng hợp (trừ công việc chuyên môn thuộc thẩm quyền Kế toán trưởng); chịu trách nhiệm trước Giám đốc và pháp luật về nhiệm vụ được giao."
-                ]} />
-            },
-            {
-                id: "03.11",
-                code: "Điều 11",
-                title: "Quyền, nghĩa vụ, trách nhiệm của viên chức, NLĐ",
+                id: "02.12",
+                code: "Điều 12",
+                title: "Mối quan hệ với Hội đồng nhân dân Thành phố, Ủy ban nhân dân Thành phố.",
                 content: (
-                    <div className="space-y-4">
-                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
-                            <UserCheck className="w-5 h-5 text-blue-600 mt-1" />
-                            <p className="text-sm text-blue-800 font-medium italic">
-                                Áp dụng chung cho toàn thể viên chức và người lao động làm việc tại Ban QLDA.
-                            </p>
-                        </div>
-                        <ResponsibilityList items={[
-                            "Được bảo đảm về điều kiện làm việc, được đào tạo nâng cao trình độ và hưởng các quyền lợi theo quy định pháp luật.",
-                            "Có quyền đề xuất đóng góp ý kiến, các biện pháp để thực hiện hiệu quả nhiệm vụ được giao.",
-                            "Có trách nhiệm thực hiện và hoàn thành nhiệm vụ được giao, chấp hành nghiêm quy định pháp luật và quy chế làm việc.",
-                            "Chịu trách nhiệm cá nhân trước Tổ trưởng/Lãnh đạo phòng/Ban Giám đốc và pháp luật về ý kiến đề xuất, tiến độ, chất lượng công việc được giao.",
-                            "Thực hiện các quy định của pháp luật về viên chức, hợp đồng lao động, quy định của Ban và của phòng.",
-                            "Phối hợp tốt với đồng nghiệp; xây dựng và thực hiện chương trình công tác; thường xuyên trau dồi kiến thức, rèn luyện đạo đức.",
-                            "Có trách nhiệm bảo quản, sử dụng tiết kiệm, hiệu quả tài sản của Ban QLDA.",
-                            "Bảo vệ bí mật nhà nước, bí mật công tác theo đúng quy định.",
-                            "Tuân thủ đúng nội quy, quy chế của đơn vị.",
-                            "Đối với lao động hợp đồng: Thực hiện theo điều khoản hợp đồng ký kết.",
-                            "Không được tham gia, can thiệp vào các quyết định có xung đột lợi ích với bản thân, người thân; phải báo cáo khi có nguy cơ xung đột lợi ích."
-                        ]} />
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Chịu sự chỉ đạo, kiểm tra, giám sát trực tiếp của Hội đồng nhân dân Thành phố, Ủy ban nhân dân Thành phố về thực hiện chức năng, nhiệm vụ được giao.</p>
+                        <p>2. Trình Ủy ban nhân dân Thành phố thẩm định, phê duyệt các nội dung thuộc trách nhiệm của chủ đầu tư theo nhiệm vụ được giao và theo quy định của pháp luật.</p>
+                        <p>3. Báo cáo, đề xuất và giải trình các nội dung cần thiết theo yêu cầu của Hội đồng nhân dân, Ủy ban nhân dân Thành phố.</p>
+                        <p>5. Phối hợp với các cơ quan chuyên môn thuộc Ủy ban nhân dân Thành phố trong việc thực hiện các nhiệm vụ quản lý dự án.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.13",
+                code: "Điều 13",
+                title: "Mối quan hệ với các Sở, ngành và chính quyền địa phương",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Mối quan hệ giữa Ban Dân dụng và Công nghiệp với các Sở, ngành quản lý nhà nước trong lĩnh vực y tế, văn hóa thể thao, giáo dục đào tạo, môi trường, công nghệ thông tin là quan hệ ngang cấp, có sự phối hợp chặt chẽ và thống nhất trong các mặt công tác quản lý nhà nước về lĩnh vực chuyên môn theo đúng pháp luật của Nhà nước và quy định của Bộ quản lý chuyên ngành.</p>
+                        <p>2. Mối quan hệ giữa Ban Dân dụng và Công nghiệp với các Sở, ngành Thành phố là quan hệ trao đổi thông tin và phối hợp hoạt động ngang cấp theo chức năng, nhiệm vụ, quyền hạn và trách nhiệm được Ủy ban nhân dân Thành phố quy định.</p>
+                        <p>3. Phối hợp thực hiện các thủ tục liên quan đến công tác chuẩn bị dự án, chuẩn bị xây dựng theo quy định của pháp luật. Chịu sự kiểm tra, thanh tra và hướng dẫn về chuyên môn của Bộ, ngành Trungương và địa phương theo quy định pháp luật.</p>
+                        <p>4. Phối hợp với Ủy ban nhân dân các phường, xã, đặc khu và các cơ quan, đơn vị có liên quan trong việc thực hiện công tác bồi thường hỗ trợ thiệt hại, tái định cư khi dự án có yêu cầu về thu hồi đất để đầu tư xây dựng.</p>
+                        <p>5. Phối hợp với chính quyền địa phương trong công tác quản lý hành chính, bảo đảm an ninh, trật tự, an toàn của cộng đồng trong quá trình thực hiện dự án và bàn giao công trình vào khai thác, sử dụng.</p>
+                        <p>6. Báo cáo, giải trình về tình hình thực hiện quản lý dự án khi được yêu cầu, về sự cố công trình, an toàn trong xây dựng với cơ quan nhà nước có thẩm quyền và đề xuất biện pháp phối hợp xử lý những vấn đề vượt quá thẩm quyền;</p>
+                        <p>7. Chịu sự kiểm tra, giám sát của cơ quan nhà nước có thẩm quyền theo quy định của pháp luật.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.14",
+                code: "Điều 14",
+                title: "Mối quan hệ với chủ đầu tư  khác, chủ quản lý sử dụng công trình",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Thực hiện các quyền, nghĩa vụ đối với chủ đầu tư khác theo hợp đồng tư vấn đã ký kết và theo quy định của pháp luật có liên quan; chịu sự kiểm tra, giám sát của chủ đầu tư trong quá trình thực hiện các dự án nhận thực hiện tư vấn.</p>
+                        <p>2. Tiếp nhận, quản lý sử dụng vốn đầu tư xây dựng và tạmứng, thanh toán, quyết toán với nhà thầu theo ủy quyền của chủ đầu tư.</p>
+                        <p>3. Thực hiện các nhiệm vụ quản lý dự án của chủ đầu tư theo ủy quyền và theo quy định của pháp luật có liên quan.</p>
+                        <p>4. Phối hợp với chủ quản lý sử dụng công trình khi lập, phê duyệt nhiệm vụ thiết kế xây dựng công trình, tổ chức lựa chọn nhà thầu xây dựng và nghiệm thu, bàn giao công trình hoàn thành vào vận hành, sử dụng (kể cả việc bảo hành công trình theo quy định).</p>
+                        <p>5. Bàn giao công trình hoàn thành cho chủ đầu tư hoặc đơn vị chủ quản lý sử dụng công trình theo quy định của pháp luật về xây dựng; quản lý công trình xây dựng hoàn thành trong trường hợp chưa xác định được đơn vị chủ quản sử dụng công trình hoặc theo yêu cầu của người quyết định đầu tư.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.15",
+                code: "Điều 15",
+                title: "Mối quan hệ với các nhà thầu tư vấn, nhà thầu thi công xây dựng",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Tổ chức lựa chọn nhà thầu thực hiện các gói thầu thuộc dự án do Ban Quản lý dự án đầu tư xây dựng các công trình dân dụng và công nghiệp làm chủ đầu tư; đàm phán, ký kết và thực hiện hợp đồng với nhà thầu tư vấn xây dựng, nhà thầu xây dựng và nhà thầu cung cấp dịch vụ tư vấn được lựa chọn theo quy định của pháp luật.</p>
+                        <p>2. Thực hiện các quyền, nghĩa vụ đối với nhà thầu theo quy định của hợp đồng và quy định của pháp luật có liên quan.</p>
+                        <p>3. Tiếp nhận, xử lý theo thẩm quyền hoặc kiến nghị cấp có thẩm quyền giải quyết các đề xuất, vướng mắc của nhà thầu trong quá trình thực hiện.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.16",
+                code: "Điều 16",
+                title: "Mối quan hệ giữa Ban Giám đốc với Trưởng các phòng, ban",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Giám đốc, Phó Giám đốc được giao phụ trách phòng, ban định kỳ hoặc đột xuất họp với Trưởng các phòng, ban hoặc làm việc với lãnh đạo phòng, ban và viên chức chuyên môn, nghiệp vụ được giao phụ trách lĩnh vực công tác để trực tiếp nghe báo cáo tình hình, chỉ đạo việc thực hiện chương trình, kế hoạch công tác của phòng, ban.</p>
+                        <p>2. Trưởng phòng, ban có trách nhiệm báo cáo kịp thời với Giám đốc, Phó Giám đốc phụ trách các phòng, ban về kết quả thực hiện công tác và kiến nghị các vấn đề cần giải quyết.</p>
+                        <p>3. Trưởng phòng, ban thực hiện việc báo cáo Ban Giám đốc về kết quả công tác hàng tháng, quý, 6 tháng, 9 tháng, năm của phòng, ban.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.17",
+                code: "Điều 17",
+                title: "Mối quan hệ giữa Trưởng phòng, ban với viên chức, người lao động",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Theo phân công của Ban Giám đốc, Trưởng phòng, ban có trách nhiệm phối hợp thực hiện các dự án, chương trình, kế hoạch của Ban Dân dụng và Công nghiệp. Đối với những vấn đề liên quan đến nhiều đơn vị mà vượt quá thẩm quyền giải quyết hoặc không đủ điều kiện thực hiện thì Trưởng phòng chủ trì báo cáo, đề xuất Phó Giám đốc phụ trách, Giám đốc xem xét, quyết định.</p>
+                        <p>2. Trưởng phòng, ban khi được giao chủ trì giải quyết các vấn đề có liên quan đến chức năng, nhiệm vụ, quyền hạn của phòng, ban khác phải trao đổi ý kiến với Trưởng phòng đó. Trưởng phòng được hỏi ý kiến có trách nhiệm phối hợp hoặc cử viên chức, người lao động phối hợp cung cấp hồ sơ, tài liệu liên quan, cùng giải quyết, xử lý các nội dung công việc theo đúng yêu cầu của Trưởng phòng chủ trì.</p>
+                        <p>3. Viên chức, người lao động được giao phối hợp giải quyết các vấn đề có liên quan đến lĩnh vực chuyên môn, nghiệp vụ thuộc chức năng, nhiệm vụ của phòng, ban khác hoặc của viên chức, người lao động khác có trách nhiệm chủ động phối hợp cung cấp hồ sơ, tài liệu liên quan hoặc báo cáo, xin ý kiến chỉ đạo của Trưởng phòng, ban mình, nếu nội dung công việc có tính chất phức tạp và ảnh hưởng đến thời gian, tiến độ thực hiện chức trách, nhiệm vụ được giao.</p>
+                    </div>
+                )
+            },
+            {
+                id: "02.18",
+                code: "Điều 18",
+                title: "Mối quan hệ giữa Phó Trưởng phòng, ban với viên chức, người lao động",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Phó Trưởng phòng,  ban  thực hiện nhiệm vụ theo sự phân công của Trưởng phòng, ban; có trách nhiệm trực tiếp chỉ đạo, đôn đốc, kiểm tra viên chức, người lao động trong việc thực hiện nhiệm vụ thuộc lĩnh vực được phân công phụ trách.</p>
+                        <p>2. Trong phạm vi được giao, Phó Trưởng phòng, ban chủ động hướng dẫn chuyên môn, giải quyết công việc, kịp thời thông tin, báo cáo Trưởng phòng, ban các nhiệm vụ được phân công.</p>
+                        <p>3. Viên chức, người lao động có trách nhiệm chấp hành sự phân công, hướng dẫn của Phó Trưởng phòng, ban; chủ động phối hợp, cung cấp thông tin, tài liệu và báo cáo kịp thời tình hình, kết quả thực hiện nhiệm vụ được giao.</p>
                     </div>
                 )
             }
@@ -1019,327 +1056,538 @@ const regulationsData: Chapter[] = [
     {
         id: "CH4",
         code: "Chương IV",
-        title: "TRÌNH TỰ GIẢI QUYẾT CÔNG VIỆC",
+        title: "CHƯƠNG TRÌNH, KẾ HOẠCH CÔNG TÁC",
         icon: FileText,
         articles: [
             {
-                id: "04.12",
-                code: "Điều 12",
-                title: "Cách thức giải quyết công việc",
-                content: <ResponsibilityList items={[
-                    "Lãnh đạo Ban điều hành công việc trên cơ sở chương trình, kế hoạch công tác của Ban QLDA; tình hình thực tế; yêu cầu chỉ đạo của UBND TP.HCM và các nhiệm vụ đột xuất.",
-                    "Trưởng Ban chủ trì họp, làm việc với lãnh đạo các cơ quan, tổ chức có liên quan để tham khảo ý kiến trước khi quyết định những vấn đề quan trọng hoặc còn vướng mắc chưa xử lý được ngay.",
-                    "Khi trình hồ sơ giải quyết công việc cho Lãnh đạo Ban, cán bộ thụ lý hồ sơ phải có Tờ trình/Văn bản và đầy đủ hồ sơ kèm theo; đồng thời thực hiện xử lý công việc thông qua phần mềm hồ sơ quản lý công việc (TDO).",
-                    "Lãnh đạo phòng, viên chức, người lao động chỉ được xử lý công việc sau khi lãnh đạo Ban QLDA đã có ý kiến chỉ đạo cụ thể trên phiếu trình hoặc thông qua phần mềm hồ sơ quản lý công việc."
-                ]} />
-            },
-            {
-                id: "04.13",
-                code: "Điều 13",
-                title: "Trách nhiệm của các phòng trực thuộc trong việc trình Lãnh đạo Ban",
+                id: "03.19",
+                code: "Điều 19",
+                title: "Xây dựng, thực hiện chương trình, kế hoạch công tác",
                 content: (
-                    <div className="space-y-4">
-                        {/* CHART HERE */}
-                        <SubmissionProcessChart />
-                        <p className="text-sm font-medium text-gray-700 italic">Các bộ phận chỉ trình Lãnh đạo Ban những vấn đề thuộc phạm vi giải quyết của Lãnh đạo Ban khi có đủ các hồ sơ theo quy định.</p>
-                        <ResponsibilityList items={[
-                            (
-                                <div key="item-2">
-                                    <strong>Nhiệm vụ khi trình hồ sơ:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li><span className="font-bold">Thẩm định về mặt thủ tục:</span> Kiểm tra tính đầy đủ, đúng quy định của hồ sơ. Nếu thiếu phải hướng dẫn bổ sung ngay. Trường hợp gấp, làm phiếu báo bổ sung và báo cáo Lãnh đạo Ban biết.</li>
-                                        <li><span className="font-bold">Thẩm tra về mặt nội dung:</span> Nếu nội dung chưa rõ hoặc có ý kiến khác nhau, yêu cầu giải trình thêm hoặc Phòng HC-TH tổ chức họp lấy ý kiến để báo cáo Lãnh đạo quyết định.</li>
-                                    </ul>
-                                </div>
-                            ),
-                            (
-                                <div key="item-3">
-                                    <strong>Thủ tục trình Giám đốc, Phó Giám đốc:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li><span className="font-bold">Bản giấy:</span> Áp dụng cho văn bản mật, quyết định, biên bản, hoặc theo quy định pháp luật. Phải có "ký nháy" của người soạn thảo và lãnh đạo Phòng. Cán bộ tham mưu trực tiếp trình.</li>
-                                        <li><span className="font-bold">Điện tử (TDO):</span> Trưởng phòng ký nháy trước khi trình Lãnh đạo Ban. Nếu vắng mặt, ủy quyền cho Phó phòng ký nháy.</li>
-                                    </ul>
-                                </div>
-                            ),
-                            "Quy trình xin ý kiến: Trưởng phòng báo cáo, xin ý kiến Phó Giám đốc phụ trách ký duyệt. Nếu vấn đề cần xin ý kiến Giám đốc, Phó Giám đốc phụ trách sẽ trực tiếp báo cáo Giám đốc.",
-                            (
-                                <div key="item-5">
-                                    <strong>Các quy trình thực hiện công việc:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li>Các phòng xây dựng, áp dụng và vận hành Hệ thống quản lý chất lượng theo tiêu chuẩn TCVN ISO 9001:2015.</li>
-                                        <li>Phòng HC-TH theo dõi, giám sát việc thực hiện quy trình, lập danh mục theo dõi hồ sơ trình.</li>
-                                        <li>Ứng dụng CNTT và chuyển đổi số trong quản lý, điều hành, tuân thủ quy định về bảo mật an toàn thông tin.</li>
-                                    </ul>
-                                </div>
-                            ),
-                            (
-                                <div key="item-6">
-                                    <strong>Xử lý hồ sơ trình và thông báo kết quả:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li>Lãnh đạo Ban xem xét, xử lý và ghi ý kiến vào phiếu trình hoặc trên phần mềm trong thời hạn quy định.</li>
-                                        <li>Nếu cần tham khảo ý kiến chuyên gia hoặc giải trình, phòng chuyên môn phối hợp chuẩn bị nội dung họp/làm việc.</li>
-                                        <li>Có thể ủy quyền cho Trưởng phòng chủ trì cuộc họp và báo cáo kết quả.</li>
-                                        <li>Phòng chuyên môn hoàn chỉnh dự thảo sau khi có ý kiến chỉ đạo. Phòng HC-TH ban hành văn bản thông báo kết quả nếu không cần ban hành văn bản do Lãnh đạo Ban ký.</li>
-                                    </ul>
-                                </div>
-                            )
-                        ]} />
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Hằng năm, Phòng Kế hoạch và Đầu tư căn cứ vào chức năng, nhiệm vụ được giao của các phòng, ban để dự thảo quyết định giao nhiệm vụ cụ thể cho các phòng, ban trình Giám đốc xem xét, phê duyệt ban hành.</p>
+                        <p>2. Các phòng, ban phải thực hiện xây dựng chương trình, kế hoạch công tác tháng, quý, năm của phòng, ban.</p>
+                        <p>3. Căn cứ chương trình, kế hoạch công tác của phòng, ban, viên chức, người lao động xây dựng kế hoạch công tác tuần, tháng, quý, năm và có trách nhiệm tổ chức thực hiện các nội dung đảm bảo tiến độ, chất lượng, hiệu quả.</p>
                     </div>
                 )
             },
             {
-                id: "04.14",
-                code: "Điều 14",
-                title: "Tiếp nhận, xử lý và ban hành văn bản",
-                content: <ResponsibilityList items={[
-                    "Quy trình tiếp nhận, xử lý và ban hành văn bản phải tuân thủ theo quy định pháp luật về công tác văn thư và Quy định tiếp nhận, xử lý, ban hành văn bản tại Ban QLDA.",
-                    "Các phòng chuyên môn, cán bộ Ban QLDA phải kiểm tra và chịu trách nhiệm về độ chính xác của văn bản; Đối với dự toán/dự toán điều chỉnh, báo cáo,... có file excel đính kèm, thì bắt buộc phải gửi file pdf để ban hành kèm theo.",
-                    "Trưởng bộ phận chuyên môn phải kiểm tra và chịu trách nhiệm về hình thức, thể thức, kỹ thuật trình bày và thủ tục ban hành văn bản theo đúng quy định của pháp luật, đồng thời phải ký nháy vào văn bản tham mưu ban hành."
-                ]} />
+                id: "03.20",
+                code: "Điều 20",
+                title: "Các loại Chương trình, Kế hoạch công tác",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Chương trình, kế hoạch công tác năm: chậm nhất vào ngày 15/11 hằng năm.</p>
+                        <p>2. Chương trình, kế hoạch công tác quý: chậm nhất ngày 15 của tháng cuối quý, các phòng, ban căn cứ vào chương trình, kế hoạch công tác năm đề ra để xây dựng và triển khai thực hiện chương trình, kế hoạch công tác quý.</p>
+                        <p>3. Chương trình, kế hoạch công tác tháng: chậm nhất ngày 15 hàng tháng, các phòng, ban căn cứ vào chương trình, kế hoạch công tác quý đề ra để xây dựng và triển khai thực hiện chương trình, kế hoạch công tác tháng.</p>
+                        <p>4. Chương trình, kế hoạch công tác tuần: trên cơ sở báo cáo kết quả công tác tuần và dự kiến chương trình, nhiệm vụ công tác tuần kế tiếp của các phòng, ban.</p>
+                    </div>
+                )
             },
             {
-                id: "04.15",
-                code: "Điều 15",
-                title: "Quy định về sử dụng dấu của cơ quan",
-                content: <ResponsibilityList items={[
-                    "Việc quản lý, sử dụng con dấu được thực hiện theo quy định của pháp luật về quản lý và sử dụng con dấu.",
-                    (
-                        <div key="item-2">
-                            <strong>Trách nhiệm của nhân viên văn thư:</strong>
-                            <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                <li>Không giao con dấu cho người khác khi chưa được phép bằng văn bản của người có thẩm quyền.</li>
-                                <li>Phải tự tay đóng dấu vào các văn bản của Ban QLDA ban hành.</li>
-                                <li>Chỉ được đóng dấu vào những văn bản, giấy tờ sau khi có chữ ký của người có thẩm quyền.</li>
-                            </ul>
-                        </div>
-                    )
-                ]} />
+                id: "03.21",
+                code: "Điều 21",
+                title: "Theo dõi và đánh giá kết quả thực hiện chương trình, kế hoạch công tác",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Hàng tuần, tháng, quý, 6 tháng, 9 tháng và năm: Trưởng các phòng, ban rà soát, thống kê, đánh giá việc thực hiện chương trình, kế  hoạch công tác của phòng gửi Phòng Kế hoạch và Đầu tư để tổng hợp, báo cáo Giám đốc về kết quả thực hiện công việc được giao; những việc còn tồn đọng, hướng xử lý tiếp theo; kiến nghị việc điều chỉnh, bổ sung chương trình, kế hoạch công tác (nếu có).</p>
+                        <p>2.  Phòng  Kế  hoạch và Đầu tư có trách nhiệm đôn đốc,  phối  hợp  với  các phòng, ban triển khai, thực hiện theo chương trình, kế hoạch đề ra. Báo cáo kết quả kịp thời đến Ban Giám đốc để lãnh đạo, chỉ đạo các đơn vị thực hiện đạt kết quả.</p>
+                        <p>3. Phòng Kế  hoạch và Đầu tư có trách nhiệm tham mưu Giám đốc trong việc đăng ký kế hoạch vốn của Ban Dân dụng và Công nghiệp với Sở Tài chính để tổng hợp, ghi vốn và trình  Ủy ban nhân dân Thành phố xem xét, phê duy ệt. Đồng thời, chủ trì xây dựng, dự thảo văn bản giao kế  hoạch hằng năm cho các phòng, ban, trình Giám đốc ký ban hành; tổ chức theo dõi, tổng hợp, đánh giá tình hình thực hiện kế hoạch hằng năm, tham mưu Giám đốc xem xét, quyết định.</p>
+                    </div>
+                )
             }
         ]
     },
     {
         id: "CH5",
         code: "Chương V",
-        title: "MỐI QUAN HỆ CÔNG TÁC",
-        icon: Network,
+        title: "CHẾ ĐỘ THÔNG TIN, BÁO CÁO",
+        icon: FileText,
         articles: [
             {
-                id: "05.16",
-                code: "Điều 16",
-                title: "Quan hệ công tác với UBND TP.HCM",
+                id: "04.22",
+                code: "Điều 22",
+                title: "Phó Giám đốc báo cáo Giám đốc",
                 content: (
-                    <div className="space-y-4">
-                        <RelationshipMap />
-                        <ResponsibilityList items={[
-                            "Chịu sự chỉ đạo, kiểm tra, giám sát trực tiếp của UBND TP.HCM về thực hiện chức năng, nhiệm vụ được giao.",
-                            "Trình UBND TP.HCM phê duyệt các nội dung thuộc trách nhiệm của chủ đầu tư theo nhiệm vụ được giao và theo quy định của pháp luật.",
-                            "Báo cáo định kỳ hoặc đột xuất về tình hình triển khai thực hiện các dự án được giao quản lý; đề xuất biện pháp xử lý những vấn đề vượt quá thẩm quyền giải quyết.",
-                            "Giải trình các nội dung cần thiết theo yêu cầu của UBND TP.HCM.",
-                            "Phối hợp với các Sở, ngành chức năng của TP.HCM trong việc thực hiện các nhiệm vụ quản lý dự án."
-                        ]} />
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Tình hình thực hiện những công việc thuộc lĩnh vực phòng, ban được phân công phụ trách, những việc vượt quá thẩm quyền giải quyết và những việc cần xin ý kiến Giám đốc.</p>
+                        <p>2. Nội dung và kết quả  hội nghị, cu ộc họp khi được Giám đốc  ủy quyền tham dự hoặc chủ trì các hội nghị, cuộc họp.</p>
+                        <p>3. Kết quả làm việc và những kiến nghị đối với và đối tác khác khi được cử tham gia đoàn công tác ở trong nước cũng như nước ngoài.</p>
                     </div>
                 )
             },
             {
-                id: "05.17",
-                code: "Điều 17",
-                title: "Quan hệ công tác với Sở KH-ĐT, Sở Tài chính và các Sở ngành TP.HCM",
-                content: <ResponsibilityList items={[
-                    "Khi giải quyết vấn đề thuộc thẩm quyền nhưng có liên quan đến chức năng của Sở KH-ĐT, Sở Tài chính hoặc các Sở ngành khác thì chủ động tham khảo ý kiến các đơn vị đó.",
-                    "Đối với các vấn đề vượt thẩm quyền hoặc còn ý kiến khác nhau giữa các đơn vị thì báo cáo UBND TP.HCM giải quyết.",
-                    "Báo cáo, giải trình về tình hình thực hiện dự án, sự cố công trình, an toàn xây dựng khi được yêu cầu; đề xuất biện pháp phối hợp xử lý vấn đề vượt thẩm quyền.",
-                    "Chịu sự kiểm tra, giám sát của cơ quan nhà nước có thẩm quyền. Chủ động phối hợp chặt chẽ với Sở KH-ĐT, Sở Tài chính và các đơn vị liên quan."
-                ]} />
-            },
-            {
-                id: "05.18",
-                code: "Điều 18",
-                title: "Quan hệ công tác với đơn vị sử dụng công trình",
-                content: <ResponsibilityList items={[
-                    "Giám đốc Ban làm việc trực tiếp với lãnh đạo các đơn vị sử dụng công trình để giải quyết vấn đề liên quan.",
-                    "Phối hợp thực hiện công tác bàn giao, chuyển giao tài sản, công nghệ và hướng dẫn sử dụng với đơn vị sử dụng thực tế và hồ sơ chất lượng với các bộ phận liên quan.",
-                    "Phối hợp triển khai thực hiện quy hoạch xây dựng các công trình dân dụng và công nghiệp trên địa bàn TP.HCM theo quy định của pháp luật."
-                ]} />
-            },
-            {
-                id: "05.19",
-                code: "Điều 19",
-                title: "Quan hệ với Chủ đầu tư, Chủ quản lý sử dụng công trình",
-                content: <ResponsibilityList items={[
-                    "Thực hiện quyền, nghĩa vụ đối với chủ đầu tư, chịu sự kiểm tra giám sát của chủ đầu tư theo hợp đồng và quy định pháp luật.",
-                    "Phối hợp với chủ quản lý sử dụng khi lập nhiệm vụ thiết kế, trong quá trình thực hiện dự án và khi nghiệm thu, bàn giao công trình vào sử dụng (bao gồm bảo hành).",
-                    "Bàn giao công trình hoàn thành cho chủ đầu tư hoặc đơn vị quản lý sử dụng; quản lý công trình trong thời gian chưa bàn giao.",
-                    "Thực hiện nhiệm vụ tư vấn QLDA của chủ đầu tư theo ủy quyền."
-                ]} />
-            },
-            {
-                id: "05.20",
-                code: "Điều 20",
-                title: "Quan hệ công tác với Nhà thầu",
-                content: <ResponsibilityList items={[
-                    "Tổ chức lựa chọn nhà thầu, đàm phán, ký kết và thực hiện hợp đồng với nhà thầu được lựa chọn theo quy định.",
-                    "Thực hiện quyền, nghĩa vụ của chủ đầu tư đối với nhà thầu xây dựng theo hợp đồng và pháp luật.",
-                    "Tiếp nhận, xử lý theo thẩm quyền hoặc kiến nghị giải quyết các đề xuất, vướng mắc của nhà thầu trong quá trình thực hiện."
-                ]} />
-            },
-            {
-                id: "05.22",
-                code: "Điều 22",
-                title: "Quan hệ giữa Lãnh đạo Ban với các Phòng",
-                content: <ResponsibilityList items={[
-                    "Lãnh đạo Ban định kỳ hoặc đột xuất họp/làm việc với các bộ phận để chỉ đạo thực hiện chương trình công tác.",
-                    "Các cán bộ có trách nhiệm báo cáo kết quả thực hiện, kiến nghị giải quyết khó khăn vướng mắc và đề xuất điều chỉnh cơ chế chính sách với Lãnh đạo Ban."
-                ]} />
-            },
-            {
-                id: "05.23",
+                id: "04.23",
                 code: "Điều 23",
-                title: "Quan hệ giữa các phòng trực thuộc Ban QLDA",
-                content: <ResponsibilityList items={[
-                    "Phòng chủ trì giải quyết vấn đề liên quan phải trao đổi ý kiến với các phòng khác. Phòng được xin ý kiến có trách nhiệm trả lời đúng yêu cầu.",
-                    "Các phòng có trách nhiệm phối hợp thực hiện dự án chung. Vấn đề vượt thẩm quyền hoặc không đủ điều kiện thì phòng chủ trì báo cáo Lãnh đạo Ban quyết định.",
-                    "Nguyên tắc: Việc thuộc chức năng bộ phận nào bộ phận đó chủ trì; chủ động phối hợp để thực hiện nhiệm vụ. Nếu có ý kiến khác nhau, bộ phận chủ trì báo cáo Lãnh đạo Ban.",
-                    "Tuân thủ Quy chế làm việc; phối hợp bằng văn bản hoặc trực tiếp đảm bảo chuyên môn, chất lượng và tiến độ.",
-                    "Bảo đảm kỷ luật, kỷ cương trong phối hợp, đề cao trách nhiệm cá nhân."
-                ]} />
+                title: "Các phòng, ban báo cáo Ban Giám đốc",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Trưởng phòng phải thực hiện đầy đủ chế độ thông tin báo cáo gồm:</p>
+                        <p>a) Báo cáo kết quả thực hiện nhiệm vụ công tác hàng tuần: Trong ngày thứ Hai hàng tuần tại cuộc họp giao ban.</p>
+                        <p>b) Báo cáo kết quả thực hiện nhiệm vụ hàng tháng của phòng: chậm nhất ngày 20 hàng tháng;</p>
+                        <p>c) Báo cáo kết quả  thực hiện nhiệm vụ  quý, chậm nhất vào ngày 15 của tháng cuối quý;</p>
+                        <p>d) Báo cáo 6 tháng, chậm nhất vào ngày 20/6;</p>
+                        <p>đ) Báo cáo năm chậm nhất vào ngày 15/12;</p>
+                        <p>e) Các báo cáo đột xuất khác do Ban Giám đốc yêu cầu về nội dung và thời gian thực hiện cụ thể.</p>
+                        <p>2. Các báo các định kỳ phải được thông qua Phó Giám đốc phụ trách.</p>
+                        <p>3. Ngoài việc thực hiện theo các khoản 1 và 2 Điều này, Chánh Văn phòng còn phải thực hiện các nhiệm vụ sau đây:</p>
+                        <p>a) Tổ chức cung cấp thông tin hàng ngày cho Giám đốc, Phó Giám đốc các vấn đề đã được giải quyết.</p>
+                        <p>b) Tổng hợp nội dung giao ban lãnh đạo hàng tuần, báo cáo giao ban gi ữa Ban Giám đốc với lãnh đạo các phòng, ban.</p>
+                        <p>c) Hướng dẫn, theo dõi, đôn đốc các phòng, ban thực hiện nghiêm túc chế độ thông tin báo cáo và tổ chức khai thác thông tin phục vụ sự chỉ đạo điều hành của Ban Giám đốc.</p>
+                        <p>d) Theo dõi, kiểm soát, đôn đốc, báo cáo Ban Giám đốc hàng tuần việc thực hiện nhiệm vụ của các phòng, ban.</p>
+                        <p>đ) Đề xuất và báo cáo Ban Giám đốc về những vấn đề cần xử lý qua phảnánh của báo chí, dư luận xã hội liên quan đến Ban Dân dụng và Công nghiệp.</p>
+                    </div>
+                )
+            },
+            {
+                id: "04.24",
+                code: "Điều 24",
+                title: "Cung cấp thông tin nội bộ",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Các phòng, ban có trách nhiệm thông báo bằng những hình thức thích hợp, thuận tiện để viên chức, người lao động nắm bắt được những thông tin sau đây:</p>
+                        <p>1. Chủ trương, chính sách của Đảng, Nhà nước và của Ủy ban nhân dân Thành phố, các sở, ban, ngành liên quan đến công việc của phòng, ban.</p>
+                        <p>2. Chương trình công tác của Ban Dân dụng và Công nghiệp.</p>
+                        <p>3. Kế hoạch tuyển dụng, điều động, bổ nhiệm, đào tạo, bồi dưỡng, khen thưởng, kỷ luật, thăng hạng, bổ nhiệm chức danh nghề nghiệp, nâng bậc lương, viên chức, người lao động.</p>
+                        <p>4. Văn bản kết luận về việc giải quyết khiếu nại, tố cáo trong cơ quan.</p>
+                        <p>5. Các quy chế, quy định, nội quy do Ban Dân dụng và Công nghiệp ban hành.</p>
+                        <p>6. Các vấn đề khác theo quy định pháp luật.</p>
+                    </div>
+                )
+            },
+            {
+                id: "04.25",
+                code: "Điều 25",
+                title: "Cung cấp thông tin ra bên ngoài và báo chí",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Về cung cấp thông tin ra bên ngoài</p>
+                        <p>a) Giám đốc quy định về quản lý công tác thông tin của Ban Dân dụng và Công nghiệp; bảo đảm thường xuyên cung cấp thông tin phục vụ sự chỉ đạo, điều hành của Ủy ban nhân dân Thành phố và cơ quan có thẩm quyền; tạo điều kiện cho các cơ quan thông tin đại chúng trong việc cung cấp thông tin chính xác, kịp thời về hoạt động của Ban Dân dụng và Công nghiệp.</p>
+                        <p>b) Trong cung cấp thông tin, không được để lộ lọt các thông tin thuộc danh mục bí mật Nhà nước và thông tin về những công việc nhạy cảm đang trong quá trình xử lý.</p>
+                        <p>2. Việc trả lời phỏng vấn báo chí thực hiện theo quy định của Ban Dân dụng và Công nghiêp, của pháp luật và các quy định về quản lý thông tin.</p>
+                    </div>
+                )
+            },
+            {
+                id: "04.26",
+                code: "Điều 26",
+                title: "Truyền thông tin trên mạng tin học",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Các văn bản sau đây được đăng tải trên Trang thông tin điện tử Ban Dân dụng và Công nghiệp</p>
+                        <p>a) Văn bản quy phạm pháp luật có liên quan.</p>
+                        <p>b) Các văn bản hành chính, báo cáo các lo  ại, bi ểu mẫu và văn bản khác được Giám đốc Ban Dân dụng và Công nghiệp chỉ định.</p>
+                        <p>c) Các văn bản của Nhà nước cung cấp cho các cơ quan, đơn vị trong Ban kịp thời nắm được thông tin về chính sách, pháp luật mới, dự thảo các văn bản do các phòng, ban trong Ban soạn thảo hoặc do các cơ quan khác gửi đến để tổ chức lấy ý kiến, hoàn chỉnh nội dung văn bản.</p>
+                        <p>d) Các tin bài về hoạt động của Ban (những nội được phép cung cấp) như: Tổ chức Hội nghị sơ kết, tổng kết; tuyên truy ền, phổ biến giáo dục pháp luật; hội thảo chuyên đề; tổ chức tập huấn nghiệp vụ; thực hiện công tác đào tạo, bồi dưỡng và  các  hoạt động  khác  không  nằm  trong  nội dung không được  phép  cung  cấp thông tin.</p>
+                        <p>2. Văn phòng Ban có trách nhiệm tri ển khai và phổ biến những thông tin trên Cổng thông tin điện tử hoặc Hệ thống phần mềm quản lý văn bản của Ban Dân dụng và Công nghiệp, các thông tin khác phục vụ quản lý, điều hành của Ban.</p>
+                        <p>3. Các phòng, ban khai thác và sử dụng Trang thông tin điện tử, Hệ thống phần mềm quản lý văn bản của Ban theo quy định; thường xuyên theo dõi thông tin trên Trang thông tin điện tử và Hệ thống phần mềm quản lý văn bản để kịp thời nhận văn bản chỉ đạo điều hành và các thông tin do Ban gửi để quán triệt và thực hiện.</p>
+                        <p>4. Việc cập nhật thông tin trên Trang Thông tin điện tử của Ban, mạng xã hội và các hình thức truyền thông khác phải chấp hành các quy định của pháp luật về đăng tin trên Internet và các quy định liên quan của cơ quan có thẩm quyền.</p>
+                        <p>5. Viên chức công nghệ thông tin thu ộc Văn phòng có trách nhiệm hướng dẫn, hỗ trợ các viên chức, người lao động các phòng, ban khác khai thác thông tin trên các hệ thống thông tin của Ban đang sử  dụng,  ứng dụng phục vụ  công tác chuyên môn, cập nhật các thông tin liên quan đến lĩnh vực công tác của Ban trên Trang thông tin điện tử theo quy định; viên chức, người lao động các phòng, ban có  trách  nhiệm thường  xuyên  phối  hợp  với  viên  chức  làm  công  tác  công  nghệ thông tin để được hướng dẫn.</p>
+                    </div>
+                )
             }
         ]
     },
     {
         id: "CH6",
         code: "Chương VI",
-        title: "CHẾ ĐỘ LÀM VIỆC",
-        icon: Clock,
+        title: "QUY ĐỊNH VỀ THỜI GIỜ LÀM VIỆC, THỜI GIỜ NGHỈ NGƠI",
+        icon: FileText,
         articles: [
             {
-                id: "06.25",
-                code: "Điều 25",
-                title: "Chế độ hội họp",
-                content: <ResponsibilityList items={[
-                    "Chế độ họp với UBND TP.HCM, các Sở ngành và cơ quan liên quan: Thực hiện theo quy định chung và khi cần thiết.",
-                    "Họp với đối tác (nhà thầu, tư vấn...): Tổ chức thường xuyên (ký HĐ, tiến độ, nghiệm thu, giải quyết vướng mắc...).",
-                    "Giao ban nội bộ: Định kỳ hàng tuần, tháng, quý hoặc đột xuất do Trưởng Ban (hoặc người được ủy quyền) chủ trì.",
-                    "Hội nghị sơ kết, tổng kết: Do Trưởng Ban quyết định nội dung, thành phần, thời gian.",
-                    "Cán bộ triệu tập họp chuyên môn với các bộ phận theo kế hoạch được Trưởng Ban đồng ý và báo cáo kết quả.",
-                    "Bộ phận HC-TH: Thông báo triệu tập, chuẩn bị phòng họp, ghi biên bản và thông báo kết luận."
-                ]} />
-            },
-            {
-                id: "06.26",
-                code: "Điều 26",
-                title: "Chế độ báo cáo",
-                content: (
-                    <div className="space-y-4">
-                        <ResponsibilityList items={[
-                            "Thực hiện báo cáo định kỳ/đột xuất với UBND TP.HCM và cơ quan thẩm quyền.",
-                            (
-                                <div key="internal-report">
-                                    <strong>Báo cáo nội bộ:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li>Cán bộ báo cáo Trưởng Ban: Tình hình công việc phụ trách, việc vượt thẩm quyền, kết quả họp/công tác được ủy quyền.</li>
-                                        <li>Các bộ phận báo cáo Lãnh đạo Ban: Báo cáo tháng, 6 tháng, năm, chuyên đề, đột xuất.</li>
-                                        <li>Bộ phận KH-TC: Tổng hợp báo cáo giao ban, số liệu hoạt động; theo dõi đôn đốc chế độ báo cáo.</li>
-                                        <li>Cán bộ đi họp thay Lãnh đạo: Phải báo cáo kết quả làm việc.</li>
-                                    </ul>
-                                </div>
-                            )
-                        ]} />
-                    </div>
-                )
-            },
-            {
-                id: "06.27",
+                id: "05.27",
                 code: "Điều 27",
-                title: "Chế độ kiểm tra, giám sát",
+                title: "Thời giờ làm việc",
                 content: (
-                    <div className="space-y-4">
-                        <ResponsibilityList items={[
-                            (
-                                <div key="project-monitor">
-                                    <strong>Giám sát đầu tư dự án:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li>Theo dõi toàn bộ quá trình đầu tư: Kế hoạch, tiến độ, khối lượng, chất lượng, biến động, vốn, giải ngân, quyết toán, nợ đọng.</li>
-                                        <li>Lập và cập nhật báo cáo giám sát đánh giá đầu tư lên Hệ thống thông tin quốc gia.</li>
-                                    </ul>
-                                </div>
-                            ),
-                            (
-                                <div key="internal-monitor">
-                                    <strong>Kiểm tra nội bộ:</strong>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-600">
-                                        <li>Kiểm tra việc thực hiện nội quy, quy chế, đạo đức nghề nghiệp, quy trình quản lý dự án (chất lượng, tiến độ, an toàn...).</li>
-                                        <li>Đảm bảo công khai, minh bạch, hiệu quả, chống tham nhũng lãng phí. Xử lý nghiêm sai phạm nếu có.</li>
-                                    </ul>
-                                </div>
-                            )
-                        ]} />
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Thời giờ làm việc bình thường Hàng tu ần làm việc các ngày từ  thứ  Hai đến thứ  Sáu; nghỉ  các ngày thứ Bảy, Chủ Nhật, và các ngày Lễ, Tết theo quy định. Giờ làm việc:         Buổi sáng : Từ 08 giờ 00 đến 12 giờ 00 Buổi chiều: Từ 13 giờ 00 đến 17 giờ 00</p>
+                        <p>2. Giờ làm việc ban đêm: Giờ làm việc ban đêm được tính từ 22 giờ đến 06 giờ sáng ngày hôm sau. Không áp dụng làm việc ban đêm đối với trường hợp làm trực tuyến.</p>
+                        <p>3. Làm thêm giờ.</p>
+                        <p>a) Thời gian làm thêm giờ là khoảng thời gian làm việc ngoài thời giờ làm việc bình thường theo quy định tại khoản 1 Điều này. Không áp dụng làm thêm giờ đối với trường hợp làm trực tuyến.</p>
+                        <p>b) Việc làm thêm giờ phải đápứng đầy đủ các yêu cầu sau đây:</p>
+                        <p>- Viên chức, người lao động đồng ý làm thêm giờ;</p>
+                        <p>- Bảo đảm số giờ làm thêm của viên chức, người lao động không quá 50% số giờ làm việc bình thường trong 01 ngày; tổng số giờ làm việc bình thường và số giờ làm thêm không quá 12 giờ trong 01 ngày; không quá 40 giờ trong 01 tháng;</p>
+                        <p>- Bảo đảm số giờ làm thêm của viên chức, người lao động không quá 200 giờ trong 01 năm, trừ trường hợp phải giải quyết công việc cấp bách, không thể trì hoãn do tính chất công việc hoặc hoặc để giải quyết công việc phát sinh do yếu tố khách quan không dự liệu trước (làm thêm không quá 300 giờ trong 01 năm).</p>
+                        <p>- Khi tổ chức làm thêm không quá 300 giờ trong 01 năm, Trưởng phòng, ban thông tin đến Văn phòng nhằm nắm bắt kịp thời và dự thảo văn bản trình Giám đốc ký ban hành để thông báo cho Sở Nội vụ.</p>
+                        <p>4. Hình thức làm việc:</p>
+                        <p>a)  Làm  việc  trực  tiếp:  là  hình  thức  viên  chức, người lao động  thực  hiện nhiệm vụ chuyên môn, nghiệp vụ tại trụ sở của Ban Dân dụng và Công nghiệp.</p>
+                        <p>b) Làm việc trực tuyến: là hình thức viên chức, người lao động thực hiện nhiệm vụ chuyên môn, nghiệp vụ thông qua môi trường mạng, sử dụng các nền tảng số và công cụ công nghệ thông tin để trao đổi, xử lý công việc mà không cần có mặt trực tiếp tại trụ sở cơ quan.</p>
+                        <p>5. Điều kiện làm việc trực tuyến:</p>
+                        <p>a) Viên chức, người lao động được xem xét áp dụng chế độ làm việc trực tuyến khi nhiệm vụ được giao có sản phẩm đầu ra cụ thể, rõ ràng, bảo đảm kiểm soát, đánh giá được tiến độ và chất lượng thực hiện, đápứng yêu cầu chuyên môn, đúng thời hạn và quy định pháp luật.</p>
+                        <p>b) Việc giao nhiệm vụ phải gắn với nội dung công việc, sản phẩm đầu ra, thời hạn hoàn thành và trách nhiệm của cá nhân được giao; kết quả làm việc được đánh giá trên cơ sở tiến độ và chất lượng sản phẩm. Trường hợp không đápứng yêu cầu thì xem xét dừng áp dụng chế độ làm việc trực tuyến và xử lý theo quy định.</p>
+                        <p>c) Viên chức, người lao động được làm việc trực tuyến tối đa 03 ngày/tuần theo tính chất công việc, trên cơ sở phân công của lãnh đạo phòng, ban và chịu trách nhiệm về các công việc làm việc trực tuyến của viên chức, người lao động.</p>
+                        <p>d) Việc bố trí ngày làm việc trực tuyến phải bảo đảm khôngảnh hưởng đến hoạt động chung của đơn vị, tiến độ xử lý công việc và yêu cầu phối hợp giữa các phòng, ban; đồng thời, cá nhân được giao làm việc trực tuyến phải duy trì liên lạc, sẵn sàng tham gia họp, xử lý công việc khi được yêu cầu.</p>
+                        <p>đ) Viên chức, người lao động có nhu cầu làm việc trực tuyến phải đăng ký trước với Trưởng phòng, ban (theo tuần hoặc theo từng đợt), trong đó nêu rõ thời gian, nội dung công việc và sản phẩm đầu ra dự kiến.</p>
+                        <p>e) Trưởng phòng, ban có trách nhiệm xem xét, phê duy ệt và bố trí lịch làm việc trực tuyến trên cơ sở yêu cầu nhiệm vụ, đảm bảo khôngảnh hưởng đến hoạt động chung và công tác phối hợp của phòng, ban và chịu trách nhiệm về kết quả công việc đã phân công làm việc trực tuyến.</p>
+                        <p>g) Các phòng, ban tổng hợp, theo dõi danh sách, lịch và kết quả làm việc trực tuyến của viên chức, người lao động và gửi về Văn phòng để báo cáo Ban Giám đốc.</p>
+                        <p>h) Trường hợp cần thiết, Ban Giám đốc hoặc Trưởng phòng, ban có quyền điều chỉnh, tạm dừng hoặc hủy bỏ lịch làm việc trực tuyến để đápứng yêu cầu công việc.</p>
+                        <p>i) Viên chức, người lao động phải tuân thủ lịch đã được phê duyệt; trường hợp thay đổi phải báo cáo và được chấp thuận trước khi thực hiện.</p>
                     </div>
                 )
             },
             {
-                id: "06.28",
+                id: "05.28",
                 code: "Điều 28",
-                title: "Cung cấp thông tin hoạt động nội bộ",
-                content: "Lãnh đạo Ban và các phòng có trách nhiệm thông báo các thông tin: Chủ trương chính sách mới; Công tác cán bộ (tuyển dụng, bổ nhiệm, khen thưởng, kỷ luật...); Kết luận giải quyết khiếu nại tố cáo; Nội quy, quy chế mới."
-            },
-            {
-                id: "06.29",
-                code: "Điều 29",
-                title: "Thời gian làm việc, nghỉ phép",
-                content: <ResponsibilityList items={[
-                    "Thực hiện nghiêm túc giờ hành chính (8h/ngày) theo quy định. Giữ gìn vệ sinh, bảo quản tài sản công.",
-                    "Tập trung nghiên cứu, thực hiện công việc đảm bảo tiến độ, chất lượng khi ở cơ quan.",
-                    "Chế độ nghỉ phép thực hiện theo quy định pháp luật.",
-                    "Nghỉ việc riêng: Trừ vào phép năm (trừ các ngày nghỉ riêng được hưởng nguyên lương theo Luật Lao động). Trường hợp đặc biệt do Trưởng Ban quyết định."
-                ]} />
-            },
-            {
-                id: "06.30",
-                code: "Điều 30",
-                title: "Đi công tác trong và ngoài nước",
-                content: <ResponsibilityList items={[
-                    "Lãnh đạo Ban đi công tác: Các bộ phận chuẩn bị nội dung; Bộ phận HC-TH chuẩn bị hậu cần.",
-                    "Cán bộ đi công tác: Phải có chương trình, kế hoạch (nội dung, địa điểm, thời gian) trình Trưởng Ban quyết định.",
-                    "Cử cán bộ tham gia đoàn công tác liên ngành: Phải đúng thành phần yêu cầu.",
-                    "Đi công tác nước ngoài: Thực hiện theo quy định pháp luật và quy chế đối ngoại của UBND TP.HCM.",
-                    "Chế độ công tác phí: Theo Quy chế chi tiêu nội bộ và quy định hiện hành."
-                ]} />
-            },
-            {
-                id: "06.31",
-                code: "Điều 31",
-                title: "Khen thưởng, kỷ luật & PCTN",
-                content: <ResponsibilityList items={[
-                    "Khen thưởng: Thực hiện thường xuyên, đột xuất theo Quy chế thi đua khen thưởng.",
-                    "Kỷ luật: Xử lý cán bộ vi phạm theo quy định của Nhà nước.",
-                    "Giải quyết khiếu nại, tố cáo: Lãnh đạo Ban giao bộ phận liên quan thẩm tra, xác minh, báo cáo hướng giải quyết theo luật định.",
-                    "Phòng chống tham nhũng: Thực hiện nghiêm quy định pháp luật; kê khai tài sản thu nhập; chủ động phòng ngừa, phát hiện, báo cáo hành vi tiêu cực. Bảo vệ người tố cáo."
-                ]} />
+                title: "Thời giờ nghỉ ngơi",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Nghỉ trong giờ làm việc: Viên  chức, người lao động  làm  việc  theo  thời  giờ  làm  việc quy định  tại khoản 1 Điều 24 Quy chế này, trường hợp làm việc từ 06 gi ờ trở lên trong một ngày thì được nghỉ giữa giờ ít nhất 30 phút liên tục, làm việc ban đêm thì được nghỉ giữa giờ ít nhất 45 phút liên tục.</p>
+                        <p>2. Chế độ nghỉ Lễ, Tết, nghỉ hằng năm, ngày nghỉ hằng năm tăng thêm theo thâm niên làm việc, nghỉ việc riêng, nghỉ không hưởng lương, nghỉ ốm đau, thai sản, nghỉ ra nước ngoài về việc riêng thực hiện theo quy định hiện hành của Nhà nước, theo Luật Viên chức, Bộ luật Lao động, Luật Bảo hiểm xã hội, quy định về quản lý và xét duyệt viên chức và người lao động đi nước ngoài.</p>
+                        <p>3. Thẩm quyền giải quyết chế độ nghỉ ốm đau, thai sản, nghỉ hằng năm, nghỉ việc riêng, nghỉ không hưởng lương, nghỉ ra nước ngoài về việc riêng.</p>
+                        <p>a) Giám đốc Quyết định việc nghỉ ốm đau, thai sản, nghỉ hằng năm, nghỉ ra nước ngoài về việc riêng đối  với viên chức giữ chức vụ lãnh đạo, quản lý từ cấp Trưởng phòng, ban trở lên, sau khi đã có ý kiến chấp thuận của Phó Giám đốc phụ trách. Quyết định việc nghỉ ốm đau, thai sản, nghỉ hằng năm, nghỉ ra nước ngoài về việc riêng đối với Phó Trưởng phòng, ban và viên chức, người lao động trong trường hợp nghỉ từ 06 ngày trở lên, sau khi đã có ý kiến chấp thuận của Trưởng phòng, ban và Phó Giám đốc phụ trách. Quyết định nghỉ không hưởng lương đối với toàn thể viên chức, người lao động, sau khi đã có ý kiến chấp thuận của Trưởng phòng ban và Phó Giám đốc phụ trách.</p>
+                        <p>b) Trưởng phòng, ban (trong trường hợp khuyết vị trí cấp trưởng thì cấp phó sẽ đề nghị và quyết định). Đề nghị Giám đốc, Phó Giám đốc phụ trách cho nghỉ ốm đau, thai sản, nghỉ hằng năm, nghỉ việc riêng không hưởng lương, nghỉ ra nước ngoài về việc riêng đối với viên chức, người lao động thuộc thẩm quyền quyết định của Giám đốc; Quyết định cho nghỉ ốm đau, thai sản, nghỉ hằng năm, nghỉ ra nước ngoài về việc riêng đối với viên chức, người lao động thuộc phòng, ban (trừ trường hợp thuộc thẩm quyền quyết định của Giám đốc).</p>
+                        <p>4. Thủ tục, trình tự giải quyết nghỉ hằng năm, nghỉ việc riêng, nghỉ không hưởng lương, nghỉ ốm đau, thai sản.</p>
+                        <p>a) Nghỉ hằng năm, nghỉ việc riêng có hưởng lương (theo Mẫu 01 đính kèm)</p>
+                        <p>- Nghỉ hằng năm:</p>
+                        <p>+ Số ngày nghỉ hằng năm của năm nào được giải quyết nghỉ trong năm đó (không cộng dồn các năm). Trường hợp do nhu cầu công việc không thể bố trí nghỉ hằng năm hoặc bố trí không đủ số ngày nghỉ hằng năm theo quy định, thì có thể giải quyết chế độ nghỉ hằng năm của năm đó trong phạm vi thời gian đến hết ngày 31 tháng 01 năm sau liền kề.</p>
+                        <p>+ Khi có nhu cầu nghỉ hằng năm viên chức, người lao động phải có đơn xin nghỉ phép năm gửi Trưởng phòng, ban quản lý trực tiếp xem xét, giải quyết theo thẩm quyền được quy định tại khoản 3 Điều 25 Quy chế này.</p>
+                        <p>- Nghỉ việc riêng có hưởng lương: Viên chức, người lao động được nghỉ việc riêng mà vẫn hưởng nguyên lương trong trường hợp sau đây:</p>
+                        <p>+ Kết hôn: nghỉ 03 ngày;</p>
+                        <p>+ Con đẻ, con nuôi kết hôn: nghỉ 01 ngày;</p>
+                        <p>+ Cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi; cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi của vợ hoặc chồng; vợ hoặc chồng; con đẻ, con nuôi chết: nghỉ 03 ngày.</p>
+                        <p>b) Nghỉ không hưởng lương (theo Mẫu 02 đính kèm) Nghỉ không hưởng lương được xem xét giải quyết tối đa 02 tháng trong một năm (trong trường hợp đặc biệt, Giám đốc có thể giải quyết tối đa 03 tháng). Viên chức, người lao động xin nghỉ không hưởng lương phải có lý do chính đáng, chứng minh được việc nghỉ là thật sự cần thiết; Giám đốc chỉ giải quyết các trường hợp nghỉ khôngảnh hưởng đến công việc của đơn vị. Khi xin nghỉ không hưởng lương, viên chức, người lao động phải có đơn xin nghỉ gửi Trưởng phòng, ban quản lý trực tiếp xem xét; Trưởng phòng, ban kiểm tra, xác nhận rõ nội dung, mục đích lý do xin nghỉ và đề nghị Phó Giám đốc phụ trách, Giám đốc xem xét, phê duyệt.</p>
+                        <p>c) Nghỉ ra nước ngoài về việc riêng (theo Mẫu 03 đính kèm) Viên chức, người lao động nghỉ ra nước ngoài vì việc riêng thực hiện chế độ nghỉ theo quy định của nghỉ hằng năm hoặc nghỉ không hưởng lương; có trách nhiệm thực hiện đúng các quy định của pháp luật nước Cộng hoà xã hội chủ nghĩa Việt Nam, luật pháp của nước sở tại và các quy định của Thành ủy, Ủy ban nhân dân Thành phố và của Ban Dân dụng và Công nghiệp; mọi chi phí cho chuyến đi do cá nhân tự túc và thực hiện báo cáo theo quy định. Khi có nhu cầu nghỉ ra nước ngoài về việc riêng viên chức, người lao động phải có đơn xin nghỉ ra nước ngoài về việc riêng gửi Trưởng phòng, ban quản lý trực tiếp xem xét, đồng thời thực hiện các thủ tục theo quy định về quản lý và xét duyệt  viên  chức và người lao động đi nước  ngoài  của  Ban  Dân  dụng  và  Công nghiệp. Đơn ghi rõ họ tên, chức vụ, đơn vị công tác, lý do nghỉ, thời gian nghỉ và địa điểm nơi đến. Trưởng phòng, ban quản lý trực tiếp xem xét, giải quyết theo thẩm quyền được quy định tại khoản 3 Điều 25 Quy chế này.</p>
+                        <p>d) Nghỉ thai sản (theo Mẫu 04 đính kèm) Viên chức, người lao động trước khi nghỉ thai sản phải có đơn báo cáo cấp có thẩm quyền xem xét, gửi hồ sơ hưởng chế độ thai sản (ngay sau khi có xác nhận của cơ quan chức năng) đến Văn phòng để thực hiện các thủ tục đề nghị giải quyết chế độ theo quy định.</p>
+                        <p>đ) Nghỉ ốm đau (theo Mẫu 05 đính kèm) Viên chức, người lao động gửi đơn xin nghỉ ốm đau phải gửi kèm bệnhán có chỉ định nghỉ của cơ sở y tế có thẩm quyền. Trường hợp cấp cứu sẽ gửi đơn sau nhưng phải kịp thời báo cáo Trưởng phòng, ban trực tiếp quản lý biết. Ngay sau khi có giấy xác nhận của cơ sở y tế có thẩm quyền (giấy chứng nhận nghỉ việc hưởng Bảo hiểm xã hội, giấy ra viện) gửi hồ sơ đến Văn phòng để thực hiện thủ tục hưởng chế độ ốm đau theo quy định.</p>
+                    </div>
+                )
             }
         ]
     },
     {
         id: "CH7",
         code: "Chương VII",
-        title: "ĐIỀU KHOẢN THI HÀNH",
-        icon: FileCheck,
+        title: "QUY ĐỊNH VỀ CHẾ ĐỘ SINH HOẠT, HỌP VÀ HỘI NGHỊ",
+        icon: FileText,
         articles: [
             {
-                id: "07.32",
-                code: "Điều 32",
-                title: "Hiệu lực thi hành",
+                id: "06.29",
+                code: "Điều 29",
+                title: "Chào cờ đầu tuần:",
                 content: (
-                    <div className="space-y-4">
-                        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 font-medium text-sm flex gap-3 items-center">
-                            <CheckCircle2 className="w-5 h-5" />
-                            Quy chế này có hiệu lực kể từ ngày ban hành và được phổ biến đến toàn thể cán bộ, viên chức, người lao động.
-                        </div>
-                        <ResponsibilityList items={[
-                            "Trưởng Ban, các bộ phận và toàn thể cán bộ, công chức, viên chức, NLĐ có trách nhiệm thực hiện Quy chế này.",
-                            "Trưởng Ban phân công nhiệm vụ cụ thể phù hợp với thực tiễn và quy định pháp luật.",
-                            "Trong quá trình thực hiện, nếu văn bản pháp luật mới làm thay đổi nội dung Quy chế, thì thực hiện theo văn bản mới.",
-                            "Mọi vướng mắc cần được báo cáo kịp thời cho Lãnh đạo Ban (qua Phòng HC-TH) để nghiên cứu sửa đổi, bổ sung."
-                        ]} />
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Toàn thể viên chức, người lao động của Ban Dân dụng và Công nghiệp phải dự  lễ  chào cờ  đầu tu ần vào lúc 07 gi  ờ  50 phút sáng thứ  Hai hàng tu ần. Những ngày nghỉ Lễ, nghỉ bù trùng vào ngày thứ Hai sẽ được tổ chức chào cờ vào sáng thứ Ba. Phải mặc trang phục lịch sự, đầu tóc gọn gàng, đi giày hoặc dép có quai hậu. Trang phục được quy định như sau:</p>
+                        <p>- Nam: quần tây, áo sơ mi trắng;</p>
+                        <p>- Nữ: quần tây hoặc váy với áo trắng (không mặc áo thun).</p>
+                        <p>- Đối với Đoàn Thanh niên mặc áo Đoàn và quần tây hoặc váy (đối với nữ).</p>
+                    </div>
+                )
+            },
+            {
+                id: "06.30",
+                code: "Điều 30",
+                title: "Quy định về các hội nghị và cuộc họp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Các hội nghị gồm: Hội nghị toàn Ban, hội nghị chuyên đề (triển khai nhiệm vụ; sơ kết, tổng kết thực hiện nhiệm vụ), hội nghị tập huấn công tác chuyên môn, hội nghị tuyên truyền, phổ biến pháp luật, hội  nghị  viên  chức, người  lao động thực hiện theo thời điểm thích hợp và theo quy định.</p>
+                        <p>2. Các cuộc họp của Ban do Ban Giám đốc chủ trì</p>
+                        <p>a) Họp giao ban Ban Giám đốc Giám đốc và các Phó Giám đốc Ban thực hiện chế độ giao ban mỗi tháng hai lần (02 lần/tháng) vào sáng thứ Hai của tuần đầu tiên và tuần thứ ba mỗi tháng. Trong trường hợp Ban Giám đốc bận lịch công tác thì sẽ sắp xếp, bố trí họp giao ban tuần vào thời gian thích hợp. Nội dung cuộc họp giao ban Chánh Văn phòng tổng hợp, chuẩn bị. Nội dung cuộc họp: Lãnh đạo các phòng, ban báo cáo nội dung công việc tuần của đơn vị mình, tập thể lãnh đạo lấy ý kiến tại cuộc họp giao ban. Các phòng, ban có nội dung về công tác chuyên môn cần báo cáo, trình xin ý kiến tập thể Ban Giám đốc, nếu đã hoàn thiện nội dung, quy trình thì chủ động phối hợp với Chánh Văn phòng để tổng hợp, chuẩn bị và gửi tài liệu (chậm nhất trong chiều ngày thứ Sáu) để Ban Giám đốc nghiên cứu, trước khi đưa ra thảo luận, lấy ý kiến tại cuộc họp giao ban.</p>
+                        <p>b) Họp giao ban giữa Ban Giám đốc với lãnh đạo các phòng, ban. Ban Giám đốc họp với Trưởng phòng, ban (phụ trách hoặc cấp Phó trưởng phòng, ban trong trường hợp khuyết cấp trưởng và chưa phân công phụ trách phòng, ban) thường kỳ mỗi tuần một lần (01 lần/tuần) để kiểm điểm, đánh giá tình hình thực hiện nhiệm vụ của Ban trong tuần, bàn kế hoạch triển khai nhiệm vụ công tác tuần sau. Ban Giám đốc họp với lãnh đạo các phòng, ban thường kỳ mỗi tháng một lần (01 lần/tháng) để kiểm điểm, đánh giá tình hình thực hiện nhiệm vụ của Ban trong tháng, bàn kế hoạch triển khai nhiệm vụ công tác tháng sau. Thời gian tổ chức họp được bố trí vào 01 buổi trong tuần đầu tiên của tháng.</p>
+                        <p>c) Họp toàn thể cơ quan Ban Giám đốc quyết định tổ chức cuộc họp toàn thể viên chức, người lao động của cơ quan hoặc họp đột xuất để triển khai công tác theo yêu cầu, chương trình công tác và triển khai các văn bản pháp luật mới được ban hành theo yêu cầu của công tác tuyên truyền, phổ biến pháp luật.</p>
+                        <p>d) Cuộc họp khác Trong trường hợp cần thiết do yêu cầu nhiệm vụ hoặc theo đề nghị, đề xuất của Trưởng phòng, ban nhằm thống nhất chỉ đạo thực hiện nhiệm vụ theo kế hoạch, chương trình... Giám đốc Ban quyết định triệu tập cuộc họp để chỉ đạo, triển khai và tổ chức thực hiện.</p>
+                        <p>3. Các cuộc họp do Trưởng phòng, ban (phụ trách hoặc cấp Phó trưởng phòng, ban trong trường hợp khuyết cấp trưởng và chưa phân công phụ trách phòng, ban) chủ trì</p>
+                        <p>a) Các phòng, ban tổ chức giao ban tuần để kiểm điểm, đánh giá kết quả thực hiện nhiệm vụ công tác trong tuần; thảo luận, đề xuất, xây dựng báo cáo, kế hoạch nhiệm vụ công tác tuần tiếp theo; đồng thời thông báo viên chức, người lao động nắm bắt được những thông tin sau đây: Chủ trương, chính sách của Đảng, Nhà nước và của cấp trên liên quan đến công việc của đơn vị và của Ban. Chương trình công tác của Ban và của phòng, ban. Các vấn đề liên quan đến công tác chuyên môn và các nội dung liên quan khác phát sinh (nếu có). Về hình thức giao ban: tùy vào tình hình thực tế và các nhiệm vụ phát sinh hàng tuần, phòng, ban có thể xem xét lựa chọn hình thức giao ban phù hợp như: giao ban lãnh đạo phòng, ban hoặc giao ban toàn thể phòng, ban.</p>
+                        <p>b) Trưởng phòng, ban phải ưu tiên dành thời gian cho việc họp giao ban phòng hàng tuần, hàng tháng.</p>
+                        <p>c) Trưởng phòng, ban có thể được giao chủ trì các cuộc họp, làm việc với đại diện các cơ quan, đơn vị liên quan theo phân công của Giám đốc, Phó Giám đốc phụ trách theo quy định.</p>
+                        <p>4. Họp liên tịch Ban Giám đốc cùng với C ấp ủy, Chủ tịch công đoàn, Bí thư Đoàn Thanh niên họp mỗi quý họp một lần để trao đổi công tác của Ban Dân dụng và Công nghiệp, bàn các biện pháp phối hợp, tuyên truyền, vận động thực hiện nhiệm vụ kế hoạch của Ban hoặc bàn thống nhất chỉ đạo các vấn đề liên quan đến hoạt động đoàn thể, chăm lo cải thiện đời sống của viên chức, người lao động của đơn vị.</p>
+                        <p>5. Họp đánh giá hiệu quả  công việc hàng quý, đánh giá và xếp lo ại chất lượng viên chức, người lao động, tổ công tác, hội đồng.</p>
+                        <p>a) Họp đánh giá hiệu quả công việc hàng quý, đánh giá và xếp loại chất lượng viên chức, người lao động thực hiện theo quy định của Ủy ban nhân dân Thành phố và Ban Dân dụng và Công nghiệp.</p>
+                        <p>b) Họp tổ công tác, hội đồng: Thực hiện theo quy chế của tổ và hội đồng.</p>
+                    </div>
+                )
+            },
+            {
+                id: "06.31",
+                code: "Điều 31",
+                title: "Công tác chuẩn bị Hội nghị và cuộc họp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Quyết định tổ chức hội nghị, cuộc họp</p>
+                        <p>a) Giám đốc quyết định các hội nghị, cuộc họp sau:</p>
+                        <p>- Hội nghị toàn Ban.</p>
+                        <p>- Hội nghị chuyên đề, tập huấn (thuộc lĩnh vực Giám đốc chủ trì);</p>
+                        <p>- Họp giao ban Ban Giám đốc;</p>
+                        <p>-  Họp giao ban thường kỳ  hàng tu ần, tháng (họp gi ữa Ban Giám đốc với lãnh đạo các phòng, ban);</p>
+                        <p>- Họp để giải quyết công việc chuyên môn.</p>
+                        <p>b) Phó Giám đốc quyết định chủ trương các cuộc họp thuộc lĩnh vực được phân công, phụ trách: Họp, làm việc với các sở, ngành, địa phương và các đơn vị tư vấn, nhà thầu; Hội nghị chuyên đề, tập huấn; Các cuộc họp khác để giải quyết công việc do Phó Giám đốc chủ trì.</p>
+                        <p>c) Trưởng phòng, ban quyết định các cuộc họp để giải quyết các công việc chuyên môn và các công việc khác theo chức năng, nhiệm vụ.</p>
+                        <p>2. Xây dựng kế hoạch tổ chức hội nghị, cuộc họp Khi được Ban Giám đốc giao chủ trì chuẩn bị nội dung, phòng, ban chịu trách nhiệm xây dựng kế hoạch tổ chức hội nghị, cuộc họp để xin ý kiến của Ban Giám đốc quyết định về:</p>
+                        <p>- Nội dung hội nghị, cuộc họp, phân công chu ẩn bị báo cáo;</p>
+                        <p>- Thành phần, thời gian, địa điểm tổ chức hội nghị;</p>
+                        <p>- Dự kiến chương trình hội nghị;</p>
+                        <p>- Dự trù kinh phí (nội dung chi, nguồn tài chính);</p>
+                        <p>- Dự kiến thành lập Ban Tổ chức hội nghị (nếu có);</p>
+                        <p>- Các vấn đề cần thiết khác.</p>
+                        <p>3. Chuẩn bị và thông qua báo cáo</p>
+                        <p>a) Văn phòng Ban thông báo các phòng, ban liên quan biết  các  báo  cáo chính, báo cáo tóm tắt và các tài li ệu cần chuẩn bị.</p>
+                        <p>b) Phòng, ban được phân công chu ẩn bị báo cáo dự thảo báo cáo và trình Phó Giám đốc phụ trách lĩnh vực duyệt báo cáo và các tài liệu khác trước khi trình Giám đốc.</p>
+                        <p>c) Phòng, ban được phân công dự thảo báo cáo phải trình Ban Giám đốc duyệt chậm nhất trước 02 ngày tổ chức hội nghị, cuộc họp để đảm bảo thời gian hoàn thiện, duyệt và nhân bản tài liệu, văn bản.</p>
+                        <p>4. Mời dự hội nghị, dự họp Phòng, ban được phân công chủ trì tổ chức hội nghị, cuộc họp gửi giấy mời đúng thành phần tham dự hội nghị, cuộc họp đảm bảo thời gian.</p>
+                        <p>5. Chuẩn bị các điều kiện phục vụ hội nghị, cuộc họp</p>
+                        <p>a) Các phòng, ban chịu trách nhiệm in, sao chụp các tài liệu do các phòng, ban chuẩn bị và Văn phòng có trách nhiệm chuẩn bị các điều kiện phục vụ hội nghị, cuộc họp,</p>
+                        <p>b) Phòng, ban được giao nhiệm vụ chủ trì nội dung hội nghị, cuộc họp có trách nhiệm cử viên chức, người lao động tham gia phối hợp với Văn phòng sắp xếp, phòng họp, kiểm tra, kiểm soát, đóng cuốn tài li ệu đối với những hội nghị, cuộc họp có số lượng văn bản nhiều.</p>
+                        <p>c) Chế độ cho đại biểu dự hội nghị, dự họp và kinh phí tổ chức hội nghị, cuộc họp được chi theo quy định.</p>
+                    </div>
+                )
+            },
+            {
+                id: "06.32",
+                code: "Điều 32",
+                title: "Tổ chức hội nghị, cuộc họp",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Triển khai việc tổ chức hội nghị, cuộc họp</p>
+                        <p>a) Sau khi chương trình hội nghị, cuộc họp được duyệt, phòng chủ trì tổ chức hội nghị, cuộc họp chịu trách nhiệm triển khai thực hiện, đăng ký đại biểu và nội dung tham luận để báo cáo người chủ trì hội nghị, cuộc họp và xử lý những tình huống cần thiết khác.</p>
+                        <p>b) Người chủ trì, điều hành hội nghị, cuộc họp theo chương trình dự kiến; tùy theo yêu cầu thực tế có thể quyết định điều chỉnh chương trình hội nghị, cuộc họp nhưng phải thông báo cho các thành phần tham dự biết.</p>
+                        <p>2. Biên bản, nội dung kết luận hội nghị, cuộc họp</p>
+                        <p>a) Người chủ trì hội nghị, cuộc họp cử thư ký để ghi chép di ễn biến, nội dung của hội nghị, cuộc họp; trong trường hợp cần thi ết thì tổ chức ghi âm, ghi hình cuộc họp.</p>
+                        <p>b) Người chủ trì hội nghị, cuộc họp phải kết luận rõ ràng về các nội dung, chuyên đề đã được thảo luận, trao đổi. Kết thúc hội nghị, cuộc họp phải ban hành biên bản hoặc thông báo kết luận để tổ chức thực hiện các nội dung đã được hội nghị, cuộc họp thống nhất thông qua.</p>
+                        <p>3. Báo cáo kết quả hội nghị, cuộc họp</p>
+                        <p>a) Phó Giám đốc báo cáo Giám đốc về kết quả hội nghị, cuộc họp do mình chủ trì sau khi hội nghị, cuộc họp kết thúc.</p>
+                        <p>b) Đối với những cuộc họp Ban Giám đốc phân công cho Trưởng phòng, ban chủ trì hoặc tham dự thì sau khi kết thúc, Trưởng phòng, ban phải báo cáo Giám đốc và Phó Giám đốc phụ trách về kết quả hội nghị, cuộc họp và những vấn đề vượt quá thẩm quyền để Ban Giám đốc xử lý kịp thời.</p>
+                        <p>4. Các công việc sau hội nghị, cuộc họp</p>
+                        <p>a) Thông báo kết quả hội nghị, cuộc họp Những hội nghị, cuộc họp cần thiết phải thông báo kết quả  cuộc họp thì chậm nhất sau 02 ngày làm việc kể từ khi kết thúc hội nghị, cuộc họp các phòng được giao chủ trì dự thảo thông báo kết quả hội nghị, cuộc họp trình Ban Giám đốc ký, ban hành gửi các cơ quan, đơn vị có liên quan biết, thực hiện. Văn phòng thông báo kết luận hội nghị, cuộc họp thường kỳ, đột xuất của Ban. Trước khi ban hành thông báo kết lu ận cần thông qua Giám đốc ho ặc Phó Giám đốc điều hành hội nghị, cuộc họp.</p>
+                        <p>b) Phòng chủ trì có trách nhiệm theo dõi, đôn đốc, kiểm tra và tổ chức triển khai thực hiện những nội dung, ý kiến kết luận tại hội nghị, cuộc họp báo cáo Ban Giám đốc kết quả thực hiện kết luận đó.</p>
+                        <p>5. Trách nhiệm của viên chức, người lao động tham gia hội nghị, cuộc họp</p>
+                        <p>a) Nghiên cứu tài liệu, văn bản của hội nghị, cuộc họp nhận được trước khi tham dự; chuẩn bị ý kiến phát biểu tại hội nghị cuộc họp.</p>
+                        <p>b)  Tham  dự  hội  nghị,  cuộc  họp đúng thành phần, đúng thời  gian.  Trong trường hợp có công việc đột xuất mà vắng mặt hoặc cần rời khỏi hội nghị, cuộc họp trước khi kết thúc phải có sự đồng ý của người chủ trì.</p>
+                        <p>c) Trình bày các ý ki  ến tham lu ận, th ảo lu ận tại hội nghị, cu ộc họp phải ngắn gọn đi thẳng vào vấn đề và không vượt quá thời gian mà người chủ trì cho phép.</p>
+                        <p>d) Khi tham gia các cuộc họp, phải thể hiện thái độ nghiêm túc; phát bi ểu ý kiến phải trên tinh thần xây dựng; không đọc sách, báo, sử dụng điện thoại, nói chuyện riêng, làm việc riêng trong giờ họp.</p>
+                        <p>đ) Không tiết lộ thông tin liên quan đến bí mật công tác của cơ quan và Nhà nước.</p>
+                    </div>
+                )
+            }
+        ]
+    },
+    {
+        id: "CH8",
+        code: "Chương VIII",
+        title: "QUẢN LÝ VĂN BẢN ĐI, VĂN BẢN ĐẾN",
+        icon: FileText,
+        articles: [
+            {
+                id: "07.33",
+                code: "Điều 33",
+                title: "Xử lý văn bản đến",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Văn bản đến (trừ văn bản mật) phải được làm thủ tục tiếp nhận, đăng ký và vào sổ trên Hệ thống quản lý văn bản điện tử. Sau khi vào sổ, văn thư trình Giám đốc phân công và chuyển bản điện tử văn bản đến Phó Giám đốc phụ trách hoặc Trưởng phòng, ban để phân, giao trên Hệ thống cho phòng, ban ho ặc viên chức, người lao động chủ trì xử lý. Bản gốc văn bản đến (bản giấy, nếu có) được Văn thư lưu trữ theo quy định. Văn thư Scan đầy đủ tài liệu kèm theo bản gốc văn bản.</p>
+                        <p>2. Văn bản mật được đăng ký, lưu trữ theo quy định của pháp luật về bảo vệ bí mật nhà nước.</p>
+                        <p>3. Công văn, tài liệu gửi đích danh phải được chuyển trực tiếp cho người nhận. Trường hợp công văn, tài liệu đó được gửi từ nơi đã biết thông tin có liên quan đến công việc của cơ quan cần xử lý ngay, mà người nhận vắng mặt, văn thư cơ quan phải báo cáo Chánh Văn phòng để xin ý kiến Giám đốc (hoặc Phó Giám đốc phụ trách) để quyết định việc mở phong bì hay không.</p>
+                        <p>4. Viên chức, người lao động được giao chủ trì xử lý văn bản đến có trách nhiệm nghiên cứu, giải quyết, lập hồ sơ công việc và giao nộp hồ sơ, tài liệu vào lưu trữ cơ quan đúng thời gian quy định.</p>
+                        <p>5. Thời gian giải quyết công việc: thực hiện theo quy trình, quy chế của Ban Dân dụng và Công nghiệp đối với từng lĩnh vực chuyên môn, nghiệp vụ.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.34",
+                code: "Điều 34",
+                title: "Xử lý văn bản đi",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Việc trình ký văn bản phải thực hiện thông qua Hệ thống quản lý văn bản điện tử (trừ văn bản Mật) và được khởi tạo bởi chuyên viên được giao nhiệm vụ soạn thảo văn bản, chuyển đến lãnh đạo phòng,  ban  chủ  trì so ạn th ảo văn bản. Trường hợp lãnh đạo phòng,  ban chủ trì so ạn th ảo văn bản là người khởi tạo thì chuyển trình trực tiếp đến Ban Giám đốc là người ký văn bản. Cá nhân được giao nhiệm vụ soạn thảo văn bản chịu trách nhiệm trước lãnh đạo phòng, ban và trước pháp luật về bản thảo văn bản trong phạm vi chức trách, nhiệm vụ được giao. Lãnh đạo  phòng, ban  chủ  trì  soạn th ảo văn bản đi phải  kiểm tra  và  chịu trách nhiệm trước Ban Giám đốc và trước pháp luật về nội dung, thể thức, kỹ thuật trình bày văn bản.</p>
+                        <p>2. Sau khi được Ban Giám đốc nhất trí với nội dung văn bản, ký (hoặc ký số) văn bản chuyển tới văn thư để phát hành; Văn thư cơ quan thực hiện thủ tục in, sao và phát hành văn bản đảm bảo kịp thời, đúng quy định.</p>
+                        <p>3. Trước khi thực hiện các thủ tục phát hành, văn thư cơ quan kiểm tra lần cuối về thể thức, kỹ thuật trình bày văn bản và thẩm quyền ký ban hành. Trường hợp phát hiện có sai sót, văn thư cơ quan có trách nhiệm thông báo ngay cho người khởi tạo văn bản để xử lý (theo đúng quy chế văn thư, lưu trữ của Ban Dân dụng và Công nghiệp), chỉ khi xử lý xong sai sót đó mới được phát hành văn bản.</p>
+                        <p>4. Văn bản, tài liệu mật phải được xử lý theo quy định về chế độ mật.</p>
+                        <p>5. Văn bản khẩn phải đượcưu tiên xử lý ngay.</p>
+                        <p>6. Thời gian giải quyết công việc: thực hiện theo quy chế, quy trình  của Ban Dân dụng và Công nghiệp.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.35",
+                code: "Điều 35",
+                title: "Thẩm quyền ký văn bản",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Giám đốc Các văn bản hành chính của Ban trình trực tiếp cấp trên, các văn bản về tổ chức bộ máy, tài chính, kế toán, nhân sự và các văn bản khác theo quy định của pháp luật. Các quyết định về tuyển dụng, bổ nhiệm, khen thưởng, kỷ luật, nâng bậc lương, tiếp nhận bố  trí công tác, cử  đi đào tạo, bồi dưỡng... đối với viên chức, người lao động thuộc thẩm quyền quản lý được phân cấp theo quy định của pháp luật.</p>
+                        <p>2. Phó Giám đốc Ký ban hành các văn bản, hồ sơ của Ban thuộc lĩnh vực, phòng, ban được giao phụ trách, trừ các văn bản thuộc thẩm quyền ký của Giám đốc được quy định tại khoản 1 Điều này; Giám đốc ủy quyền các Phó Giám đốc ký một số tờ trình, công văn, báo cáo, quyết định thuộc thẩm quyền ký của Giám đốc. Khi Giám đốc vắng mặt, Phó Giám đốc được Giám đốc ủy quyền, giao điều hành cơ quan thì được ký các văn bản thuộc thẩm quyền của Giám đốc.</p>
+                        <p>3. Chánh Văn phòng: Ký thừa lệnh Giám đốc một số loại văn bản gồm: Giấy mời, Giấy đi đường; Giấy giới thiệu hành chính thông thường; Giấy nghỉ phép của công chức; sao y, sao lục văn bản; biên bản làm việc và các văn bản của Ban mang tính chất thông báo nội bộ và các văn bản khác khi được Giám đốc phân công. Ký các văn bản trao đổi chuyên môn, nghiệp vụ với các phòng, ban;</p>
+                        <p>4. Phó Chánh Văn phòng: Ký thay Chánh Văn phòng các văn bản được nêu tại khoản 3 Điều 31 Quy chế này.</p>
+                        <p>5. Trưởng phòng, ban ( phụ trách ho ặc cấp Phó trưởng phòng, ban trong trường hợp khuyết cấp trưởng và chưa phân công phụ trách phòng, ban): Ký các văn bản trao đổi chuyên môn, nghiệp vụ với các phòng, ban; ký thừa ủy quyền các văn bản,  hồ  sơ của  Ban Dân dụng  và  Công  nghiệp khi được Giám đốc  ủy quyền.</p>
+                        <p>6. Phó Trưởng phòng, ban: ký thay Trưởng phòng, ban các văn bản trao đổi chuyên môn, nghiệp vụ vói các phòng, ban.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.36",
+                code: "Điều 36",
+                title: "Chế độ bảo mật, in sao, lưu trữ công văn tài liệu và sử dụng con dấu",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Viên chức, người lao động cơ quan có trách nhiệm phải chấp hành và thực hiện nghiêm túc kỷ luật phát ngôn, gi ữ gìn bảo mật công tác cơ quan theo quy định. Tài liệu làm việc phải thường xuyên sắp xếp ngăn nắp, gọn gàng và để tại cơ quan. Trường hợp cần mang tài li ệu ra ngoài cơ quan hay cung cấp cho tổ chức, cá nhân bên ngoài cơ quan phải được sự đồng ý của lãnh đạo phòng, ban (bằng văn bản). Viên chức, người lao động để mất tài li ệu hoặc vi phạm chế độ quản lý tài liệu bí mật nhà nước của cơ quan phải chịu trách nhiệm kỷ luật theo quy định của Nhà nước.</p>
+                        <p>2. Con dấu của Ban giao cho văn thư Ban có trách nhiệm quản lý và thực hiện đóng dấu theo quy định. Việc quản lý và sử dụng con dấu trong lĩnh vực văn thư được thực hiện theo quy định hiện hành của pháp luật.</p>
+                        <p>3. Chánh Văn phòng,Văn thư được  giao nhiệm vụ  quản  lý  con  dấu  phải chịu trách nhiệm trước Giám đốc và trước pháp luật về quản lý, sử dụng con dấu, thiết bị lưu khóa bí mật của cơ quan.</p>
+                        <p>4. Con dấu phải được quản lý và bảo quản tại trụ sở của cơ quan. Văn thư được  giao  quản  lý  con  dấu  có  trách  nhiệm  thực  hiện theo quy định  hiện  hành. Không giao con dấu cho người khác sử dụng khi chưa được sự đồng ý của người có thẩm quyền.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.37",
+                code: "Điều 37",
+                title: "Công tác lưu trữ",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Thực hiện theo quy chế văn thư, lưu trữ của Ban Dân dụng và Công nghiệp.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.38",
+                code: "Điều 38",
+                title: "Công tác tiếp công dân:",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Ban Giám đốc và viên chức, người lao động có trách nhiệm tổ chức thực hiện nghiêm túc quy chế tiếp công dân của Ban Dân dụng và Công nghiệp.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.39",
+                code: "Điều 39",
+                title: "Thực hiện quy chế dân chủ trong hoạt động của cơ quan",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Ban Giám đốc và viên chức, người lao động có trách nhiệm tổ chức thực hiện nghiêm túc quy chế thực hiện dân chủ trong hoạt động của cơ quan theo quy định và quy chế của Ban Dân dụng và Công nghiệp ban hành.</p>
+                        <p>2. Hằng năm, Giám đốc chủ trì, phối hợp với Công đoàn cơ sở tổ chức Hội nghị viên chức,người lao động.</p>
+                        <p>3. Thực hiện công khai tài chính và ti ến hành đánh giá, xếp loại viên chức, người lao động hàng quý và năm theo quy định.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.40",
+                code: "Điều 40",
+                title: "Văn hóa công sở",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Viên chức, người lao động Ban Dân dụng và Công nghiệp có trách nhiệm thực hiện nghiêm túc các nội dung của văn hóa công vụ, bao gồm: Tinh thần, thái độ làm việc; chuẩn mực giao ti ếp, ứng xử; chuẩn mực về đạo đức, lối sống và trang phục theo quy định.</p>
+                        <p>2. Trong quá trình thực hiện nhiệm vụ, viên chức, người lao động phải đeo thẻ theo quy định.</p>
+                        <p>3. Khi đi công tác, đi họp, đi làm việc ngoài kế hoạch đã được xác định trước, Ban Giám đốc thông báo cho Chánh Văn phòng để cập nhật lịch công tác và bố trí phương tiện, điều kiện theo quy định.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.41",
+                code: "Điều 41",
+                title: "Bài trí, quản lý công sở, phòng làm việc",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Phòng làm việc phải có biển ghi rõ tên phòng, ban; các bộ phận chuyên môn phải được bố trí, sắp xếp theo hợp lý, đảm bảo thuận tiện trong điều hành, phối hợp công tác.</p>
+                        <p>2. Việc sắp xếp, bài trí phòng làm việc phải bảo đảm gọn gàng, ngăn nắp, khoa học, hợp lý; các thiết bị trong phòng làm việc phải được bố trí gọn gàng và thuận lợi cho các thành viên trong phòng làm việc.</p>
+                        <p>3. Không được sử dụng các thiết bị đun, nấu của cá nhân trong phòng làm việc; không được để các vật liệu nổ, chất dễ cháy trong phòng làm việc.</p>
+                        <p>4. Hết giờ làm việc, các thiết bị điện phải được tắt, cửa phải được khóa; khi nghỉ làm việc từ 02 ngày trở lên, phòng làm việc phải được ngắt hết nguồn điện.</p>
+                        <p>5. Viên chức, người lao động có trách nhiệm giữ vệ sinh cơ quan đảm bảo môi trường làm việc sạch sẽ, gọn gàng, ngăn nắp; hàng ngày, các phòng, ban phải tổ chức vệ sinh, sắp xếp phòng làm việc, kiểm tra an toàn về điện và các điều kiện khác; trong trường hợp hư hỏng, mất an toàn phải thông báo cho Văn phòng để kiểm tra, sửa chữa.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.42",
+                code: "Điều 42",
+                title: "Các công tác khác",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>Ngoài những nội dung quy định trong Quy chế này, viên chức, người lao động Ban Dân dụng và Công nghiệp phải thực hiện các quy định tại các quy chế, quy định, quy trình khác được Ban Dân dụng và Công nghiệp ban hành.</p>
+                    </div>
+                )
+            },
+            {
+                id: "07.43",
+                code: "Điều 43",
+                title: "Quy định về công tác đào tạo, bồi dưỡng chuyên môn, nghiệp vụ:",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Căn cứ vào Quy ết định phê duy ệt kế hoạch đào tạo, bồi dưỡng viên chức của Thành phố hằng năm và căn cứ vào ngu ồn quy ho ạch, đề án vị trí việc làm của Ban Dân dụng và Công nghiệp, hằng năm, Chánh Văn phòng có trách nhiệm xây dựng kế hoạch đào tạo, bồi dương viên chức, người lao động trình Giám đốc Ban phê duyệt và triển khai thực hiện để tạo nguồn nhân lực và nâng cao trình độ, năng lực cho viên chức, người lao động của Ban. Khuyến khích, tạo điều kiện cho viên chức, người lao động tự học tập nâng cao trình độ, năng lực chuyên môn để đápứng yêu cầu nhiệm vụ của đơn vị.</p>
+                        <p>2. Viên chức, người lao động được cử đi đào tạo, bồi dưỡng chuyên môn, nghiệp vụ  phải phù hợp với công việc đang đảm trách, phải chấp hành nghiêm chỉnh quy định của cơ sở đào tạo.</p>
+                        <p>3. Để đảm bảo đủ tiêu chuẩn bổ nhiệm khi cần thiết, việc cử viên chức tham dự các lớp đào tạo phải đảm bảo các tiêu chuẩn quy định, phải có phẩm chất đạo đức tốt, hoàn thành xu ất sắc nhiệm vụ, được Trưởng các phòng, ban nhận xét, đề nghị, ý kiến thống nhất của Chi bộ nơi công tác và phải đảm bảo công việc không bị gián đoạn.</p>
+                    </div>
+                )
+            }
+        ]
+    },
+    {
+        id: "CH9",
+        code: "Chương IX",
+        title: "TỔ CHỨC THỰC HIỆN",
+        icon: FileText,
+        articles: [
+            {
+                id: "08.44",
+                code: "Điều 44",
+                title: "Khen thưởng và xử lý vi phạm",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Việc thực hiện các nội dung của quy chế này và các quy chế, quy định khác được Ban Dân dụng và Công nghiệp ban hành là những tiêu chí để bình xét thi đua, khen thưởng đối với tập thể các phòng, ban và cá nhân viên chức, người lao động; là một trong những điều kiện, cơ sở đánh giá hiệu quả công việc hàng quý, đánh giá, xếp loại chất lượng viên chức, người lao động hàng năm, đồng thời là cơ sở để xét nâng bậc lương thường xuyên, trước niên hạn, xếp, nâng phụ cấp thâm niên vượt khung theo quy định.</p>
+                        <p>2. Viên chức, người lao động vi phạm các quy định tại quy chế này và các quy chế, quy định khác có liên quan, tùy theo tính chất, mức độ vi phạm phải chịu các hình thức kỷ luật áp dụng theo quy định của pháp luật về xử lý kỷ luật đối với viên chức, người lao động.</p>
+                    </div>
+                )
+            },
+            {
+                id: "08.45",
+                code: "Điều 45",
+                title: "Tổ chức thực hiện",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>1. Trưởng các phòng, ban có trách nhiệm phổ biến, quán tri ệt đến toàn thể viên chức, người lao động thuộc quyền quản lý và tổ chức thực hiện quy chế này tại đơn vị mình. Trường hợp cần thiết, các phòng, ban ban hành quy chế làm việc của phòng, ban mình nhưng phải đảm bảo phù hợp với các quy định pháp luật và quy chế này.</p>
+                        <p>2. Văn phòng có trách nhiệm đôn đốc, theo dõi việc thực hiện quy chế này.</p>
+                        <p>3. Toàn thể viên chức, người lao động thuộc Ban Dân dụng và Công nghiệp có trách nhiệm thực hiện nghiêm túc quy chế làm việc này; trong quá trình tổ chức thực  hiện  nếu  có  những  nội dung chưa phù hợp  cần  sửa đổi,  bổ  sung, Trưởng phòng, ban có trách nhiệm phảnánh bằng văn bản gửi Văn phòng để tổng hợp, trình Giám đốc xem xét, quyết định./.</p>
+                    </div>
+                )
+            }
+        ]
+    },
+    {
+        id: "PHỤ LỤC",
+        code: "Phụ lục",
+        title: "BIỂU MẪU",
+        icon: FileText,
+        articles: [
+            {
+                id: "mau-01",
+                code: "Mẫu 01",
+                title: "Mẫu 01",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Thành phố Hồ Chí Minh, ngày       tháng      năm 20 GIẤY XIN NGHỈ PHÉP/GIẤY XIN NGHỈ VIỆC RIÊNG CÓ HƯỞNG LƯƠNG Kính gửi: .......................................................................................... Tên tôi là: ........................................................................................................... Ngày, tháng, năm sinh: ................................... Chức vụ/Chức danh, đơn vị công tác: .................................................................... Nay tôi làm giấy này xin phép ........................................................................... cho tôi được nghỉ phép năm/nghỉ việc riêng có hưởng lương ..........với thời gian là.............ngày (từ ngày             ......./....../........... đến hết ngày......./......./...........). Lý do nghỉ phép/nghỉ việc riêng có hưởng lương: ................................................................................................. Nơi nghỉ phép/nghỉ việc riêng có hưởng lương: .................................................................................................... Địa chỉ, điện thoại liên hệ khi cần:...................................................................... Tôi xin hứa sẽ cập nhật đầy đủ nội dung công việc sau thời gian nghỉ phép. Kính mong Lãnh đạo ...................................................xem xét giải quyết./. PHÊ DUYỆT HOẶC Ý KIẾN CỦA TRƯỞNG PHÒNG hoặc BAN NGƯỜI XIN NGHỈ PHÉP/NGHỈ VIỆC RIÊNG Ý KIẾN CỦA PHÓ GIÁM ĐỐC PHỤ TRÁCH PHÊ DUYỆT CỦA GIÁM ĐỐC Ghi chú: Mẫu này là mẫu chung, đề nghị viên chức, người lao đông áp dụng đối với từng trường hợp theo thẩm quyền. .</p>
+                    </div>
+                )
+            },
+            {
+                id: "mau-02",
+                code: "Mẫu 02",
+                title: "Mẫu 02",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Thành phố Hồ Chí Minh, ngày       tháng      năm 20 ĐƠN XIN NGHỈ KHÔNG HƯỞNG LƯƠNG Kính gửi: .......................................................................................... Tên tôi là: ............................................................................................................ Ngày, tháng, năm sinh: ................................... Chức vụ/chức danh, đơn vị công tác: ............................................................... Nay tôi làm đơn này xin phép ............................................................................. cho  tôi  được  nghỉ  không  hưởng  lương,  thời  gian  là.............ngày  (từ  ngày ......./......../........... đến hết ngày......./......./...........). Lý do xin nghỉ: .................................................................................................... Nơi nghỉ: ............................................................................................................. Địa chỉ, điện thoại liên hệ khi cần:...................................................................... Tôi đã bàn giao công việc của tôi lại cho ông (bà) ......................................., chức vụ ................................................,thay thế tôi hoàn thành tốt nhiệm vụ được giao theo quy định. Tôi xin hứa sẽ cập nhật đầy đủ nội dung công việc trong thời gian nghỉ không hưởng lương. (Gửi kèm giấy tờ chứng minh việc nghỉ là thật sự cần thiết đối với bản thân viên chức, người lao động). Kính mong Lãnh đạo .......................................................xem xét giải quyết./. Ý KIẾN CỦA TRƯỞNG PHÒNG hoặc BAN NGƯỜI LÀM ĐƠN Ý KIẾN CỦA PHÓ GIÁM ĐỐC PHỤ TRÁCH PHÊ DUYỆT CỦA GIÁM ĐỐC</p>
+                    </div>
+                )
+            },
+            {
+                id: "mau-03",
+                code: "Mẫu 03",
+                title: "Mẫu 03",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Thành phố Hồ Chí Minh, ngày       tháng      năm 20 ĐƠN XIN NGHỈ PHÉP RA NƯỚC NGOÀI VÌ VIỆC RIÊNG Kính gửi: .......................................................................................... Tên tôi là: ........................................................................................................... Ngày, tháng, năm sinh: ...................................Ngạch công chức: ..................... Chức vụ/Chức danh đơn vị công tác: .................................................. Nay tôi làm đơn này xin phép .......................................................................... cho tôi được nghỉ (phép hoặc nghỉ không hưởng lương) để ra nước ngoài với thời gian là.............ngày (từ ngày ...../...../........... đến hết ngày......./......./...........). Lý do xin nghỉ: ................................................................................................... Địa chỉ nước đến: ................................................................................................ Địa chỉ, điện thoại liên hệ khi cần:....................................................................... Tôi hứa có trách nhiệm thực hiện đúng các quy định của pháp luật nước Cộng hoà xã hội chủ nghĩa Việt Nam, luật pháp của nước sở tại và các quy định khác có liên quan. Tự chịu mọi chi phí cho chuyến đi. Kính mong Lãnh đạo ......................................................xem xét giải quyết./. Ý KIẾN CỦA TRƯỞNG PHÒNG hoặc BAN NGƯỜI LÀM ĐƠN Ý KIẾN CỦA PHÓ GIÁM ĐỐC PHỤ TRÁCH PHÊ DUYỆT CỦA GIÁM ĐỐC Ghi chú: Mẫu này là mẫu chung, đề nghị viên chức, người lao đông áp dụng đối với từng trường hợp theo thẩm quyền.</p>
+                    </div>
+                )
+            },
+            {
+                id: "mau-04",
+                code: "Mẫu 04",
+                title: "Mẫu 04",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Thành phố Hồ Chí Minh, ngày       tháng      năm 20 ĐƠN XIN NGHỈ CHẾ ĐỘ THAI SẢN Kính gửi: .......................................................................................... Tên tôi là: ...................................................................................................... Ngày, tháng, năm sinh: ................................... Chức vụ, đơn vị công tác: ................................................................................... Nay tôi làm đơn này xin phép ............................................................................. cho tôi được nghỉ chế độ thai sản thời gian là.............ngày (từ ngày         ...../...../........... đến hết ngày......./......./.............). Sau khi có hồ sơ để hưởng chế độ thai sản của cơ quan chức năng, tôi sẽ gửi kịp thời đến ....................................................để làm thủ tục hưởng chế độ thai sản theo quy định. Địa chỉ, điện thoại liên hệ khi cần:...................................................................... Kính mong Lãnh đạo .......................................................xem xét giải quyết./. Ý KIẾN CỦA TRƯỞNG PHÒNG hoặc BAN NGƯỜI LÀM ĐƠN Ý KIẾN CỦA PHÓ GIÁM ĐỐC PHỤ TRÁCH PHÊ DUYỆT CỦA GIÁM ĐỐC Ghi chú: Mẫu này là mẫu chung, đề nghị viên chức, người lao đông áp dụng đối với từng trường hợp theo thẩm quyền.</p>
+                    </div>
+                )
+            },
+            {
+                id: "mau-05",
+                code: "Mẫu 05",
+                title: "Mẫu 05",
+                content: (
+                    <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-slate-300 text-justify">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Thành phố Hồ Chí Minh, ngày       tháng      năm 20 ĐƠN XIN NGHỈ ỐM Kính gửi: .......................................................................................... Tên tôi là: ...................................................................................................... Ngày, tháng, năm sinh: ................................... Chức vụ, đơn vị công tác: ................................................................................... Nay tôi làm đơn này xin phép ............................................................................. cho tôi được nghỉ ốm thời gian là.............ngày (từ ngày ...../...../............ đến hết ngày......./......./...........). Lý do xin nghỉ: .................................................................................................... (Gửi kèm bệnhán có chỉ định nghỉ của cơ sở y tế có thẩm quyền, giấy chứng nhận nghỉ việc hưởng bảo hiểm xã hội để thực hiện các thủ tục chế độ ốm đau ) Địa chỉ, điện thoại liên hệ khi cần:....................................................................... Kính mong Lãnh đạo .........................................................xem xét giải quyết./. Ý KIẾN CỦA TRƯỞNG PHÒNG hoặc BAN NGƯỜI LÀM ĐƠN Ý KIẾN CỦA PHÓ GIÁM ĐỐC PHỤ TRÁCH PHÊ DUYỆT CỦA GIÁM ĐỐC Ghi chú: Mẫu này là mẫu chung, đề nghị viên chức, người lao đông áp dụng đối với từng trường hợp theo thẩm quyền.</p>
                     </div>
                 )
             }
@@ -1348,38 +1596,114 @@ const regulationsData: Chapter[] = [
 ];
 
 const Regulations: React.FC = () => {
-    const [selectedChapterId, setSelectedChapterId] = useState<string>("CH2");
+    const [selectedChapterId, setSelectedChapterId] = useState<string>("CH1");
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+    const [savedArticles, setSavedArticles] = useState<string[]>([]);
+    const [commentText, setCommentText] = useState("");
+
+    // --- MANUAL EDITING FEATURE ---
+    const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editContent, setEditContent] = useState("");
+    const [editedArticles, setEditedArticles] = useState<Record<string, {title: string, content: string}>>({});
+
+    useEffect(() => {
+        const saved = localStorage.getItem('editedRegulations');
+        if (saved) {
+            try { setEditedArticles(JSON.parse(saved)); } catch (e) {}
+        }
+    }, []);
+
+    const handleSaveEdit = (articleId: string) => {
+        const newEdits = { ...editedArticles, [articleId]: { title: editTitle, content: editContent } };
+        setEditedArticles(newEdits);
+        localStorage.setItem('editedRegulations', JSON.stringify(newEdits));
+        setEditingArticleId(null);
+    };
+
+    const startEdit = (article: any) => {
+        setEditTitle(editedArticles[article.id]?.title || article.title);
+        const originalContent = typeof article.content === 'string' ? article.content : "Nội dung biểu mẫu không thể sửa text.";
+        setEditContent(editedArticles[article.id]?.content || originalContent);
+        setEditingArticleId(article.id);
+    };
+    // -----------------------------
 
     const selectedChapter = regulationsData.find(c => c.id === selectedChapterId);
 
+    // Enhance filtering with raw text fallback
     const filteredChapters = useMemo(() => {
         if (!searchQuery) return regulationsData;
-        return regulationsData.filter(c =>
-            c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.articles.some(a => a.title.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
+        const lowerQ = searchQuery.toLowerCase();
+        
+        return regulationsData.map(chapter => {
+            const matchingArticles = chapter.articles.filter(a => {
+                const matchCodeAndTitle = a.title.toLowerCase().includes(lowerQ) || a.code.toLowerCase().includes(lowerQ);
+                // Simple raw text matching using JSON.stringify for the react nodes, naive but effective for filtering
+                const rawString = typeof a.content === 'string' ? a.content : JSON.stringify(a.content);
+                const matchContent = rawString.toLowerCase().includes(lowerQ);
+                return matchCodeAndTitle || matchContent;
+            });
+            
+            return {
+                ...chapter,
+                articles: matchingArticles,
+                isMatch: chapter.title.toLowerCase().includes(lowerQ) || chapter.code.toLowerCase().includes(lowerQ) || matchingArticles.length > 0
+            };
+        }).filter(c => c.isMatch);
     }, [searchQuery]);
 
+    // Active displayed chapter (could be filtered)
+    const displayChapter = filteredChapters.find(c => c.id === selectedChapterId) || filteredChapters[0];
+
+    const toggleBookmark = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSavedArticles(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
+    };
+
+    const handleScrollToArticle = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add a highlight class temporarily
+            element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+            }, 2000);
+        }
+    };
+
+    const handleDownloadOriginal = () => {
+        // Logic to download original PDF
+        alert("Đang tải xuống tài liệu gốc QĐ số 188/QĐ-BQLDA.pdf...");
+    };
+
+    const handleSubmitComment = (articleId: string) => {
+        if(!commentText.trim()) return;
+        // In real backend, we'd send to Supabase here.
+        alert("Đã gửi phản hồi / câu hỏi đến bộ phận Pháp chế.");
+        setCommentText("");
+    };
+
     return (
-        <div className="flex h-[calc(100vh-100px)] bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden font-sans">
+        <div className="flex h-[calc(100vh-100px)] bg-white dark:bg-slate-950 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden font-sans">
 
             {/* LEFT SIDEBAR - NAVIGATION */}
-            <div className="w-80 bg-gray-50/50 dark:bg-slate-800/50 border-r border-gray-200 dark:border-slate-700 flex flex-col">
-                <div className="p-5 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <div className="w-80 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 backdrop-blur-md z-10 shrink-0">
                     <h2 className="text-lg font-black text-gray-800 dark:text-slate-100 tracking-tight mb-4 flex items-center gap-2">
                         <Gavel className="w-5 h-5 text-blue-600" />
                         Quy chế Nội bộ
                     </h2>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
                         <input
                             type="text"
                             placeholder="Tìm điều khoản, quy định..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500"
                         />
                     </div>
                 </div>
@@ -1389,130 +1713,206 @@ const Regulations: React.FC = () => {
                         <button
                             key={chapter.id}
                             onClick={() => setSelectedChapterId(chapter.id)}
-                            className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${selectedChapterId === chapter.id
-                                ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 shadow-sm'
-                                : 'hover:bg-gray-100 dark:hover:bg-slate-700 border border-transparent'
+                            className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group ${(displayChapter?.id === chapter.id)
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 shadow-sm'
+                                : 'hover:bg-gray-100 dark:hover:bg-slate-800 border border-transparent'
                                 }`}
                         >
-                            <div className={`mt-0.5 p-2 rounded-lg ${selectedChapterId === chapter.id ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-500'}`}>
+                            <div className={`mt-0.5 p-2 rounded-lg ${(displayChapter?.id === chapter.id) ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-600'}`}>
                                 {chapter.icon ? <chapter.icon className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${selectedChapterId === chapter.id ? 'text-blue-600' : 'text-gray-400'}`}>
+                                <p className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${(displayChapter?.id === chapter.id) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500'}`}>
                                     {chapter.code}
                                 </p>
-                                <p className={`text-sm font-bold truncate ${selectedChapterId === chapter.id ? 'text-gray-900 dark:text-slate-100' : 'text-gray-600 dark:text-slate-400'}`}>
+                                <p className={`text-xs font-bold leading-relaxed line-clamp-2 ${(displayChapter?.id === chapter.id) ? 'text-gray-900 dark:text-slate-100' : 'text-gray-600 dark:text-slate-400'}`}>
                                     {chapter.title}
                                 </p>
+                                {searchQuery && chapter.articles.length > 0 && (
+                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-1 font-semibold">Tồn tại {chapter.articles.length} điều kiện</p>
+                                )}
                             </div>
-                            {selectedChapterId === chapter.id && <ChevronRight className="w-4 h-4 text-blue-600 self-center" />}
+                            {(displayChapter?.id === chapter.id) && <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400 self-center" />}
                         </button>
                     ))}
+                    {filteredChapters.length === 0 && (
+                        <div className="p-4 text-center mt-6">
+                            <Search className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                            <p className="text-sm font-semibold text-gray-600 dark:text-slate-400">Không tìm thấy nội dung</p>
+                        </div>
+                    )}
                 </div>
 
-                <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 backdrop-blur-md shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full">
-                            <CheckCircle2 className="w-4 h-4" />
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-full">
+                            <FileCheck2 className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase">Văn bản hiện hành</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase">VB Pháp lý</p>
+                                <span className="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Có Hiệu Lực</span>
+                            </div>
                             <p className="text-xs font-bold text-gray-800 dark:text-slate-200">QĐ số 188/QĐ-BQLDA</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* RIGHT CONTENT - DETAILS */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 overflow-hidden relative">
+            {/* MIDDLE CONTENT - DETAILS */}
+            <div className="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
                 {/* Header */}
-                <div className="h-16 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-8 bg-white dark:bg-slate-800 shrink-0 z-10 sticky top-0">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 mb-1">
+                <div className="h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-slate-950 backdrop-blur-md shrink-0 z-10 sticky top-0 shadow-sm">
+                    {displayChapter ? (
+                       <div>
+                         <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 mb-1">
                             <span>Hệ thống Quy chế</span>
                             <ChevronRight className="w-3 h-3" />
-                            <span className="font-bold text-blue-600 uppercase">{selectedChapter?.code}</span>
-                        </div>
-                        <h1 className="text-lg font-black text-gray-900 dark:text-slate-100 uppercase tracking-tight">{selectedChapter?.title}</h1>
-                    </div>
-                    <div className="flex gap-2">
-                        <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-all" title="Chia sẻ"><Share2 className="w-5 h-5" /></button>
-                        <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-all" title="Tùy chọn"><MoreHorizontal className="w-5 h-5" /></button>
+                            <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">{displayChapter?.code}</span>
+                         </div>
+                         <h1 className="text-lg font-black text-gray-900 dark:text-slate-100 uppercase tracking-tight">{displayChapter?.title}</h1>
+                       </div>
+                    ) : (
+                        <div></div>
+                    )}
+                    <div className="flex gap-2 items-center">
+                        <button 
+                            onClick={handleDownloadOriginal}
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-all border border-blue-200 dark:border-blue-800"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Tải bản gốc PDF</span>
+                        </button>
+                        <button className="p-2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Chia sẻ"><Share2 className="w-5 h-5" /></button>
                     </div>
                 </div>
 
                 {/* Content Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/30">
-                    <div className="max-w-5xl mx-auto space-y-6 pb-20">
-                        {selectedChapter?.articles.map((article, idx) => (
-                            <div key={idx} id={article.id} className="group relative transition-all duration-500 animate-in slide-in-from-bottom-2">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50 dark:bg-slate-950" id="scrollable-content">
+                    <div className="max-w-4xl mx-auto space-y-6 pb-20">
+                        {displayChapter?.articles.map((article, idx) => (
+                            <div key={idx} id={article.id} className="group relative transition-all duration-500 animate-in slide-in-from-bottom-2 scroll-mt-24">
                                 {/* Article Header Badge */}
                                 <div className="flex items-center gap-3 mb-3 ml-1">
-                                    <span className="bg-gray-800 text-white text-[10px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest">
+                                    <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 text-[10px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest whitespace-nowrap shrink-0">
                                         {article.code}
                                     </span>
-                                    <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">{article.title}</h3>
+                                    {editingArticleId === article.id ? (
+                                        <input 
+                                            value={editTitle}
+                                            onChange={(e) => setEditTitle(e.target.value)}
+                                            className="flex-1 px-2 py-1 border border-blue-300 dark:border-blue-600 rounded bg-white dark:bg-slate-800 text-lg font-bold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    ) : (
+                                        <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200">{editedArticles[article.id]?.title || article.title}</h3>
+                                    )}
                                 </div>
 
                                 {/* Content Card */}
-                                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
+                                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative z-0">
                                     {/* Action Buttons */}
-                                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                        <button
-                                            onClick={() => setActiveCommentId(activeCommentId === article.id ? null : article.id)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all text-xs font-bold ${activeCommentId === article.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' : 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-600'}`}
-                                        >
-                                            <MessageSquare className="w-3.5 h-3.5" />
-                                            {article.comments?.length || 0} Thảo luận
-                                        </button>
-                                    </div>
-
-                                    {/* Dynamic Content Rendering */}
-                                    <div className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                                        {typeof article.content === 'string' ? (
-                                            article.content.split('\n').map((line, i) => <p key={i} className="mb-2">{line}</p>)
+                                    <div className="absolute top-4 right-4 flex gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                        {editingArticleId === article.id ? (
+                                            <>
+                                                <button onClick={() => setEditingArticleId(null)} className="px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-all">Huỷ</button>
+                                                <button onClick={() => handleSaveEdit(article.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all">Lưu</button>
+                                            </>
                                         ) : (
-                                            article.content
+                                            <>
+                                                <button 
+                                                    onClick={() => startEdit(article)}
+                                                    className="p-1.5 bg-gray-50 dark:bg-slate-700 text-gray-400 hover:text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-all"
+                                                    title="Sửa điều khoản"
+                                                >
+                                                    <PenTool className="w-4 h-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => toggleBookmark(article.id, e)}
+                                                    className={`p-1.5 rounded-lg transition-all ${savedArticles.includes(article.id) ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500' : 'bg-gray-50 dark:bg-slate-800 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+                                                    title={savedArticles.includes(article.id) ? "Bỏ lưu" : "Lưu điều khoản này"}
+                                                >
+                                                    <Bookmark className="w-4 h-4" strokeWidth={savedArticles.includes(article.id) ? 3 : 2} fill={savedArticles.includes(article.id) ? "currentColor" : "none"} />
+                                                </button>
+                                                <button className="p-1.5 bg-gray-50 dark:bg-slate-700 text-gray-400 hover:text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-all" title="Sao chép liên kết">
+                                                    <Link2 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setActiveCommentId(activeCommentId === article.id ? null : article.id)}
+                                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all text-xs font-bold ${activeCommentId === article.id ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-600'}`}
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    {article.comments?.length || 0}
+                                                </button>
+                                            </>
                                         )}
                                     </div>
 
-                                    {/* Comments Section */}
+                                    {/* Dynamic Content Rendering */}
+                                    <div className="text-sm dark:prose-invert">
+                                        {editingArticleId === article.id ? (
+                                            <textarea 
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                className="w-full min-h-[200px] p-3 border border-blue-300 dark:border-blue-600 rounded-lg bg-blue-50/50 dark:bg-slate-800/50 text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs leading-relaxed"
+                                            />
+                                        ) : (
+                                            typeof (editedArticles[article.id]?.content || article.content) === 'string' ? (
+                                                (editedArticles[article.id]?.content || article.content).split('\n').map((line: string, i: number) => <p key={i} className="mb-2 text-gray-700 dark:text-slate-300 text-justify">{line}</p>)
+                                            ) : (
+                                                <div className="article-content-wrapper text-gray-700 dark:text-slate-300 text-justify">{article.content}</div>
+                                            )
+                                        )}
+                                    </div>
+
+                                    {/* Comments / QA Section */}
                                     {(activeCommentId === article.id) && (
                                         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700 animate-in fade-in">
-                                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Thảo luận nội bộ</h4>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h4 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <HelpCircle className="w-4 h-4" /> Hỏi đáp & Thảo luận
+                                                </h4>
+                                            </div>
 
-                                            <div className="space-y-4 mb-4">
+                                            <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                                                 {article.comments?.map(comment => (
                                                     <div key={comment.id} className="flex gap-3 items-start">
-                                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
+                                                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0 border border-blue-200 dark:border-blue-800">
                                                             {comment.user.charAt(0)}
                                                         </div>
-                                                        <div className="bg-gray-50 dark:bg-slate-700 rounded-2xl rounded-tl-none p-3 flex-1">
+                                                        <div className="bg-gray-50 dark:bg-slate-700/50 rounded-2xl rounded-tl-none p-3 flex-1 border border-gray-100 dark:border-slate-600/50">
                                                             <div className="flex justify-between items-center mb-1">
-                                                                <span className="text-xs font-bold text-gray-800 dark:text-slate-100">{comment.user}</span>
-                                                                <span className="text-[10px] text-gray-400">{comment.date}</span>
+                                                                <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{comment.user}</span>
+                                                                <span className="text-[10px] text-gray-400 dark:text-slate-500">{comment.date}</span>
                                                             </div>
-                                                            <p className="text-xs text-gray-600">{comment.content}</p>
+                                                            <p className="text-xs text-gray-600 dark:text-slate-300">{comment.content}</p>
                                                         </div>
                                                     </div>
                                                 ))}
                                                 {(!article.comments || article.comments.length === 0) && (
-                                                    <p className="text-xs text-gray-400 italic text-center py-2">Chưa có thảo luận nào.</p>
+                                                    <p className="text-xs text-gray-400 dark:text-slate-500 italic text-center py-4">Chưa có bình luận hay thắc mắc nào. Bạn cần làm rõ nội dung Điều khoản này?</p>
                                                 )}
                                             </div>
 
                                             {/* Add Comment Input */}
                                             <div className="flex gap-3 items-center mt-4">
-                                                <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white shrink-0">
+                                                <div className="w-8 h-8 rounded-full bg-gray-800 dark:bg-slate-600 flex items-center justify-center text-white shrink-0 shadow-sm border border-transparent dark:border-slate-500">
                                                     <User className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex-1 relative">
                                                     <input
                                                         type="text"
-                                                        placeholder="Viết ý kiến đóng góp..."
-                                                        className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
+                                                        placeholder="Viết thắc mắc để báo cáo về Phòng Pháp chế..."
+                                                        value={commentText}
+                                                        onChange={(e) => setCommentText(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleSubmitComment(article.id);
+                                                        }}
+                                                        className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500"
                                                     />
-                                                    <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors">
+                                                    <button 
+                                                        onClick={() => handleSubmitComment(article.id)}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+                                                    >
                                                         <Send className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
@@ -1524,11 +1924,11 @@ const Regulations: React.FC = () => {
                         ))}
 
                         {/* Footer Notes */}
-                        {selectedChapter?.type === 'chart' && (
-                            <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-xs text-yellow-800 flex items-start gap-3">
-                                <Info className="w-5 h-5 text-yellow-600 shrink-0" />
+                        {displayChapter?.type === 'chart' && (
+                            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800/50 rounded-xl text-xs text-yellow-800 dark:text-yellow-400 flex items-start gap-3 mt-4 shadow-sm">
+                                <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-500 shrink-0" />
                                 <div>
-                                    <p className="font-bold mb-1">Lưu ý về cơ cấu tổ chức:</p>
+                                    <p className="font-bold mb-1">Lưu ý về sơ đồ:</p>
                                     <p>Sơ đồ trên thể hiện mối quan hệ báo cáo trực tiếp. Các phòng ban có trách nhiệm phối hợp ngang hàng để giải quyết công việc chung của Ban QLDA.</p>
                                 </div>
                             </div>
@@ -1536,6 +1936,85 @@ const Regulations: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* RIGHT SIDEBAR - TOC & BOOKMARKS */}
+            <div className="w-64 bg-slate-50 dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
+                {/* Save Articles Tab */}
+                {savedArticles.length > 0 && (
+                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm">
+                        <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                            <Bookmark className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" />
+                            Đã lưu ({savedArticles.length})
+                        </h3>
+                    </div>
+                )}
+                
+                {savedArticles.length > 0 && (
+                     <div className="p-3 space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900 shrink-0 border-b border-gray-200 dark:border-slate-800">
+                        {savedArticles.map(id => {
+                            let articleMatch: any = null;
+                            for (const chap of regulationsData) {
+                                const match = chap.articles.find(a => a.id === id);
+                                if (match) { articleMatch = match; break; }
+                            }
+                            if (!articleMatch) return null;
+                            return (
+                                <button 
+                                    key={id}
+                                    onClick={() => {
+                                        // If article is not in current chapter, switch chapter then scroll
+                                        const parentChap = regulationsData.find(c => c.articles.some(a => a.id === id));
+                                        if (parentChap && selectedChapterId !== parentChap.id) {
+                                            setSelectedChapterId(parentChap.id);
+                                            setTimeout(() => handleScrollToArticle(id), 100);
+                                        } else {
+                                            handleScrollToArticle(id);
+                                        }
+                                    }}
+                                    className="w-full text-left p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-700 shadow-sm transition-all flex items-center gap-2 group"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-0.5">{articleMatch.code}</p>
+                                        <p className="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">{articleMatch.title}</p>
+                                    </div>
+                                    <ChevronRight className="w-3.5 h-3.5 text-gray-300 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 shrink-0" />
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Table of Contents */}
+                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm mt-auto md:mt-0">
+                     <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                        <Layout className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        Mục lục ({displayChapter?.code})
+                    </h3>
+                </div>
+
+                <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900">
+                    <div className="relative border-l-2 border-gray-200 dark:border-slate-700 ml-1.5 space-y-4">
+                        {displayChapter?.articles.map((article, idx) => (
+                            <div key={idx} className="relative pl-4 group">
+                                <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 group-hover:bg-blue-500 dark:group-hover:bg-blue-400 transition-colors z-10 ring-4 ring-slate-50 dark:ring-slate-900" />
+                                
+                                <button 
+                                    onClick={() => handleScrollToArticle(article.id)}
+                                    className="text-left w-full focus:outline-none"
+                                >
+                                    <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        {article.code}
+                                    </p>
+                                    <p className="text-xs font-semibold text-gray-700 dark:text-slate-300 group-hover:text-gray-900 dark:group-hover:text-slate-100 line-clamp-2 mt-0.5 leading-snug">
+                                        {article.title}
+                                    </p>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
         </div>
     );
 };

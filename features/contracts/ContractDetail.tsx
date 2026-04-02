@@ -62,7 +62,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
     const { variationOrders } = useVariationOrders(contract?.ContractID || '');
 
     // Get project tasks for milestones (must be before any early return)
-    const { data: projectTasks = [] } = useTasks({ projectId: project?.ProjectID || '' });
+    const { data: projectTasks = [] } = useTasks(project?.ProjectID || '');
 
     // 4. Real milestones from tasks
     const milestones = useMemo(() => {
@@ -74,7 +74,7 @@ const ContractDetail: React.FC<ContractDetailProps> = ({ contractId: propContrac
                 id: idx + 1,
                 name: t.Title,
                 date: t.DueDate || '',
-                status: t.Status === 'Done' ? 'Done' : t.Status === 'InProgress' ? 'In Progress' : 'Pending',
+                status: t.Status === 'done' ? 'Done' : t.Status === 'in_progress' ? 'In Progress' : 'Pending',
             }));
     }, [projectTasks]);
 

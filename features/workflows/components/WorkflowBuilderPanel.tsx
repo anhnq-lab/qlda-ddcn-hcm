@@ -102,7 +102,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             try {
                 const [wfRes, nodesRes] = await Promise.all([
                     supabase.from('workflows').select('*').eq('id', workflowId).single(),
-                    supabase.from('workflow_nodes').select('*').eq('workflow_id', workflowId).order('created_at', { ascending: true })
+                    supabase.from('workflow_nodes').select('*').eq('workflow_id', workflowId).or('is_deleted.eq.false,is_deleted.is.null').order('created_at', { ascending: true })
                 ]);
                 if (wfRes.error) throw wfRes.error;
                 setWorkflow(wfRes.data);
@@ -176,18 +176,49 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     // ─── DELETE WORKFLOW ──────────────────────────────────────
     const handleDeleteWorkflow = async () => {
         if (!workflow) return;
-        if (!window.confirm(`Xác nhận xóa quy trình "${workflow.name}"?\n\nTất cả bước nghiệp vụ liên quan sẽ bị xóa.`)) return;
+        if (!window.confirm(`Xác nhận xóa quy trình "${workflow.name}"?\n\nHệ thống sẽ xóa mạnh (hard delete) toàn bộ dữ liệu. Nếu không thể xóa do phân quyền hoặc dữ liệu đã được gán, quy trình sẽ được vô hiệu hóa. Bạn có chắc chắn?`)) return;
         
         try {
-            await supabase.from('workflow_edges').delete().eq('workflow_id', workflowId);
-            await supabase.from('workflow_nodes').delete().eq('workflow_id', workflowId);
-            const { error } = await supabase.from('workflows').delete().eq('id', workflowId);
-            if (error) throw error;
-            addToast({ title: 'Đã xóa', message: `Xóa quy trình "${workflow.name}" thành công.`, type: 'success' });
+            // Delete instances first to cascade delete workflow_tasks and bypass RESTRICT constraint
+            const { error: instanceErr } = await supabase.from('workflow_instances').delete().eq('workflow_id', workflowId);
+            if (instanceErr) {
+                console.warn('[Workflow Delete] Warning deleting instances:', instanceErr);
+            }
+
+            const { error: edgeErr } = await supabase.from('workflow_edges').delete().eq('workflow_id', workflowId);
+            if (edgeErr) console.warn('[Workflow Delete] Warning deleting edges:', edgeErr);
+
+            const { error: nodeErr } = await supabase.from('workflow_nodes').delete().eq('workflow_id', workflowId);
+            if (nodeErr) {
+                console.warn('[Workflow Delete] Warning deleting nodes (might hit FK constraint):', nodeErr);
+            }
+            
+            // Delete the workflow and return the deleted rows to check for RLS block
+            const { data: deletedData, error } = await supabase.from('workflows').delete().eq('id', workflowId).select();
+            
+            if (error || !deletedData || deletedData.length === 0) {
+                if (!error) {
+                    console.warn('[Workflow Delete] Workflow deletion returned 0 rows. Likely blocked by RLS (Not an Admin). Falling back to soft-deactivate.');
+                } else {
+                    console.error('[Workflow Delete] Failed to hard delete workflow:', error);
+                }
+                
+                // Fallback: If any error happens (like 23503 or 400), or if RLS blocks (0 rows), we softly deactivate it
+                const { error: softErr } = await supabase.from('workflows').update({ is_active: false }).eq('id', workflowId);
+                if (softErr) {
+                    console.error('[Workflow Delete] Failed to soft-deactivate workflow:', softErr);
+                    throw new Error(`Xóa thất bại toàn phần. Bạn có thể không có quyền hoặc có lỗi DB.`);
+                }
+                addToast({ title: 'Đã chuyển trạng thái', message: `Đã vô hiệu hóa quy trình "${workflow.name}" (Có thể do thiếu quyền Admin hoặc bị ràng buộc dữ liệu).`, type: 'success' });
+            } else {
+                addToast({ title: 'Đã xóa', message: `Xóa quy trình "${workflow.name}" thành công.`, type: 'success' });
+            }
+            
             if (onUpdate) onUpdate();
             onClose();
         } catch (err: any) {
-            addToast({ title: 'Lỗi xóa', message: err.message, type: 'error' });
+            console.error('Workflow deletion error:', err);
+            addToast({ title: 'Lỗi xóa quy trình', message: err.message || JSON.stringify(err), type: 'error' });
         }
     };
 
@@ -286,14 +317,32 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const deleteNode = async (nodeId: string) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa bước này?')) return;
         try {
-            const { error } = await supabase.from('workflow_nodes').delete().eq('id', nodeId);
-            if (error) throw error;
+            // Delete the node and return the deleted rows to check for RLS block
+            const { data: deletedData, error } = await supabase.from('workflow_nodes').delete().eq('id', nodeId).select();
+            
+            if (error || !deletedData || deletedData.length === 0) {
+                if (!error) {
+                    console.warn('[Node Delete] Node deletion returned 0 rows. Likely blocked by RLS (Not an Admin). Falling back to soft delete.');
+                } else {
+                    console.warn('[Node Delete] Failed hard delete, falling back to soft delete:', error);
+                }
+                
+                // Fallback to soft delete
+                const { data: softData, error: softErr } = await supabase.from('workflow_nodes').update({ is_deleted: true }).eq('id', nodeId).select();
+                if (softErr || !softData || softData.length === 0) {
+                    console.error('[Node Delete] Soft delete failed too:', softErr);
+                    throw new Error(`Khoá cứng (ràng buộc dữ liệu) hoặc phân quyền ngăn chặn xóa (hoặc thiếu quyền Admin).`);
+                }
+                addToast({ title: 'Đã ẩn bước', message: 'Bước này đã bị ẩn vì có ràng buộc. Dữ liệu lịch sử vẫn được giữ lại.', type: 'info' });
+            } else {
+                addToast({ title: 'Đã xóa', message: 'Xóa bước thành công', type: 'success' });
+            }
 
             const newNodes = nodes.filter(n => n.id !== nodeId);
             setNodes(newNodes);
             await rebuildLinearEdges(newNodes);
-            addToast({ title: 'Đã xóa', message: 'Xóa bước thành công', type: 'success' });
         } catch (err: any) {
+            console.error('[Node Delete] Final catch error:', err);
             addToast({ title: 'Lỗi xóa bước', message: err.message, type: 'error' });
         }
     };
@@ -813,9 +862,9 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700 flex justify-end gap-3 z-10">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#FCF9F2] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 z-10">
                 <button onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800 transition border border-slate-700">
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
                     Đóng
                 </button>
                 {(activeTab === 'settings' || isCreateMode) && (

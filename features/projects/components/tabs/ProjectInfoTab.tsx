@@ -152,9 +152,9 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
     const { data: taskProgressData } = useQuery<{ projectProgress: number; constructionProgress: number }>({
         queryKey: ['project-task-progress-v2', project.ProjectID],
         queryFn: async () => {
-            const { WorkflowService } = await import('../../../../services/WorkflowService');
+            const { TaskService } = await import('../../../../services/TaskService');
             // Using the new workflow engine to get tasks linked to this project's instances
-            const wfTasks = await WorkflowService.getProjectWorkflowTasks(project.ProjectID);
+            const wfTasks = await TaskService.getProjectTasks(project.ProjectID);
 
             if (!wfTasks || wfTasks.length === 0) {
                 // No tasks → dùng progress dự án, thi công = 0 (chưa có tasks thi công)
@@ -165,7 +165,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
             }
 
             // All tasks → Tiến độ dự án (overall plan progress)
-            const allProgress = wfTasks.map(t => t.progress ?? (t.status === 'completed' ? 100 : 0));
+            const allProgress = wfTasks.map(t => t.progress ?? (t.status === 'done' ? 100 : 0));
             const projectProg = allProgress.length > 0
                 ? Math.round(allProgress.reduce((a, b) => a + b, 0) / allProgress.length)
                 : 0;

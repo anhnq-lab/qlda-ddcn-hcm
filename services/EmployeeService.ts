@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { dbToEmployee, employeeToDb } from '../lib/dbMappers';
 import { Employee, EmployeeStatus, Role } from '../types';
 import type { QueryParams } from '../types/api';
+import { ServiceError, toServiceError } from './ServiceError';
 
 export class EmployeeService {
     /**
@@ -30,7 +31,7 @@ export class EmployeeService {
 
         const { data, error } = await query;
 
-        if (error) throw new Error(`Failed to fetch employees: ${error.message}`);
+        if (error) throw toServiceError(error, 'EmployeeService.getAll');
 
         // Sort by position hierarchy
         const positionOrder: Record<string, number> = {
@@ -67,7 +68,7 @@ export class EmployeeService {
 
         if (error) {
             if (error.code === 'PGRST116') return undefined; // Not found
-            throw new Error(`Failed to fetch employee: ${error.message}`);
+            throw toServiceError(error, 'EmployeeService.getById');
         }
         return data ? dbToEmployee(data) : undefined;
     }
@@ -113,11 +114,11 @@ export class EmployeeService {
 
         if (error) {
             console.error('[EmployeeService] Edge function error:', error);
-            throw new Error(`Failed to invoke create-employee-user: ${error.message}`);
+            throw toServiceError(error, 'EmployeeService.create');
         }
 
         if (data?.error) {
-            throw new Error(`Edge Function execution failed: ${data.error}`);
+            throw new ServiceError(data.error, 'UNKNOWN', 'EmployeeService.create');
         }
 
         // Return the mapped employee from the DB
@@ -137,7 +138,7 @@ export class EmployeeService {
             .select()
             .single();
 
-        if (error) throw new Error(`Failed to update employee: ${error.message}`);
+        if (error) throw toServiceError(error, 'EmployeeService.update');
 
         const employee = dbToEmployee(updated);
 
@@ -164,7 +165,7 @@ export class EmployeeService {
             .delete()
             .eq('employee_id', id);
 
-        if (error) throw new Error(`Failed to delete employee: ${error.message}`);
+        if (error) throw toServiceError(error, 'EmployeeService.delete');
     }
 
     /**

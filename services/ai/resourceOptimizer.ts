@@ -40,9 +40,9 @@ export async function analyzeResourceAllocation(): Promise<ResourceOptimizationR
 
     for (const project of activeProjects) {
         try {
-            const tasks = await TaskService.getTasksByProject(project.ProjectID);
+            const tasks = await TaskService.getProjectTasks(project.ProjectID);
             const activeTasks = tasks.filter(t =>
-                t.Status !== 'Done' && (t.ProgressPercent ?? 0) < 100
+                t.status !== 'done' && (t.progress ?? 0) < 100
             );
 
             // Calculate utilization
@@ -56,8 +56,8 @@ export async function analyzeResourceAllocation(): Promise<ResourceOptimizationR
 
             // Overdue tasks
             const overdueTasks = activeTasks.filter(t => {
-                if (!t.PlannedEndDate) return false;
-                return new Date(t.PlannedEndDate) < new Date();
+                if (!t.due_date) return false;
+                return new Date(t.due_date) < new Date();
             });
             if (overdueTasks.length > 0) {
                 bottlenecks.push(`${overdueTasks.length} công việc quá hạn`);
@@ -79,7 +79,7 @@ export async function analyzeResourceAllocation(): Promise<ResourceOptimizationR
 
             // Stale tasks
             const staleTasks = activeTasks.filter(t =>
-                (t.ProgressPercent ?? 0) > 0 && (t.ProgressPercent ?? 0) < 100
+                (t.progress ?? 0) > 0 && (t.progress ?? 0) < 100
             );
             if (staleTasks.length > 5) {
                 suggestions.push(`${staleTasks.length} công việc đang dở dang`);

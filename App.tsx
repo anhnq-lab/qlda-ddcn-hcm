@@ -52,10 +52,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ToastProvider } from './components/ui/Toast';
 
 import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
+import { reportError } from './lib/errorReporting';
 
 const mutationCache = new MutationCache({
-    onError: (error) => {
-        console.error('[Global Mutation Error]', error);
+    onError: (error, _variables, _context, mutation) => {
+        // Report to centralized error tracking
+        reportError(error instanceof Error ? error : new Error(String(error)), {
+            source: 'mutation',
+            mutationKey: mutation.options.mutationKey?.join('.') || 'unknown',
+        });
     },
 });
 

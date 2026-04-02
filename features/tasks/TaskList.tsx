@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PermissionGate from '../../components/PermissionGate';
-import { useAllWorkflowTasks, useUpdateWorkflowTask, useDeleteWorkflowTask } from '../../hooks/useWorkflowTasks';
+import { useAllTasks, useUpdateTask, useDeleteTask, useSaveTask } from '../../hooks/useWorkflowTasks';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useEmployees } from '../../hooks/useEmployees';
 import { Task, TaskStatus, TaskPriority } from '../../types';
@@ -73,18 +73,14 @@ const TaskList: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     // Data
-    const { data: rawWorkflowTasks = [], isLoading } = useAllWorkflowTasks();
+    const { data: tasks = [], isLoading } = useAllTasks();
     const { scopedProjects: projects, scopedProjectIds } = useScopedProjects();
     const { data: employees = [] } = useEmployees();
 
-    // Map workflow tasks to UI model
-    const tasks = useMemo(() => 
-        rawWorkflowTasks.map(wt => workflowTaskToTask(wt))
-    , [rawWorkflowTasks]);
-
     // Mutations
-    const updateTaskMutation = useUpdateWorkflowTask();
-    const deleteTaskMutation = useDeleteWorkflowTask();
+    const saveTaskMutation = useSaveTask();
+    const updateTaskMutation = useUpdateTask();
+    const deleteTaskMutation = useDeleteTask();
 
     // ── Filter ──
     const filteredTasks = useMemo(() => tasks.filter(task => {
@@ -185,19 +181,12 @@ const TaskList: React.FC = () => {
     };
 
     const handleBatchStatus = async (status: TaskStatus) => {
-        // Map TaskStatus back to WorkflowTaskStatus if needed, 
-        // but the service/modal now handles a lot of this.
-        // For simple status update, we can send the internal workflow status.
-        const internalStatusMap: Record<string, any> = {
-            [TaskStatus.Todo]: 'pending',
-            [TaskStatus.InProgress]: 'in_progress',
-            [TaskStatus.Done]: 'completed',
-            [TaskStatus.Review]: 'rejected'
-        };
-
         const tasksToUpdate = tasks.filter(t => selectedIds.has(t.TaskID));
         await Promise.all(tasksToUpdate.map(t =>
-            updateTaskMutation.mutateAsync({ id: t.TaskID, status: internalStatusMap[status] })
+            updateTaskMutation.mutateAsync({ 
+                taskId: t.TaskID, 
+                updates: { status: status as any } // Enum matches the DbTaskStatus
+            })
         ));
         setSelectedIds(new Set());
     };
@@ -240,39 +229,31 @@ const TaskList: React.FC = () => {
     };
 
     const handleSave = async (taskData: Partial<Task>) => {
-        // Re-map UI Task structure to Workflow Task payload for the service
-        // The service expects fields like 'name', 'progress', 'metadata' etc.
+        // Re-map UI Task structure to DbTask payload for the service
         const workflowPayload: any = {
             id: taskData.TaskID?.startsWith('NEW_') ? undefined : taskData.TaskID,
-            name: taskData.Title,
+            title: taskData.Title,
             progress: taskData.ProgressPercent,
             assignee_id: taskData.AssigneeID,
             due_date: taskData.DueDate,
-            project_id: taskData.ProjectID, // Used by service to find instance_id if new
+            project_id: taskData.ProjectID,
+            actual_start_date: taskData.ActualStartDate,
+            actual_end_date: taskData.ActualEndDate,
+            estimated_cost: taskData.EstimatedCost,
+            actual_cost: taskData.ActualCost,
             metadata: {
-                 actualStartDate: taskData.ActualStartDate,
-                 actualEndDate: taskData.ActualEndDate,
                  sub_tasks: taskData.SubTasks,
                  attachments: taskData.Attachments,
                  dependencies: taskData.Dependencies,
-                 estimated_cost: taskData.EstimatedCost,
-                 actual_cost: taskData.ActualCost,
                  estimatedDays: taskData.DurationDays,
             }
         };
 
-        // Status mapping (Task UI -> Workflow DB)
         if (taskData.Status) {
-            const statusMap: Record<string, string> = {
-                [TaskStatus.Todo]: 'pending',
-                [TaskStatus.InProgress]: 'in_progress',
-                [TaskStatus.Done]: 'completed',
-                [TaskStatus.Review]: 'rejected'
-            };
-            workflowPayload.status = statusMap[taskData.Status];
+            workflowPayload.status = taskData.Status; // Enum value matches exactly with DbTaskStatus
         }
 
-        await updateTaskMutation.mutateAsync(workflowPayload);
+        await saveTaskMutation.mutateAsync(workflowPayload);
         setIsModalOpen(false);
     };
 

@@ -1,5 +1,6 @@
 // Export all services
 export { api } from './api';
+export { ServiceError, toServiceError, type PaginatedResponse, type ServiceQueryParams } from './ServiceError';
 export { ProjectService } from './ProjectService';
 export { ContractService } from './ContractService';
 export { EmployeeService } from './EmployeeService';
@@ -8,6 +9,7 @@ export { DocumentService } from './DocumentService';
 export { PaymentService } from './PaymentService';
 export { AuthService } from './AuthService';
 export { TaskService } from './TaskService';
+export { WorkflowTemplateService } from './WorkflowTemplateService';
 export { DashboardService } from './DashboardService';
 export { CDEService } from './CDEService';
 export { CapitalService } from './CapitalService';

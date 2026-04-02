@@ -148,9 +148,9 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
 
     const getPriorityColor = (p: TaskPriority) => {
         switch (p) {
-            case 'High': case 'Urgent': return 'border-red-500 bg-red-50 text-red-700';
-            case 'Medium': return 'border-primary-500 bg-primary-50 text-primary-700';
-            case 'Low': return 'border-green-500 bg-green-50 text-green-700';
+            case 'high': case 'urgent': return 'border-red-500 bg-red-50 text-red-700';
+            case 'medium': return 'border-primary-500 bg-primary-50 text-primary-700';
+            case 'low': return 'border-green-500 bg-green-50 text-green-700';
             default: return 'border-gray-300 bg-[#F5EFE6]';
         }
     };
@@ -464,10 +464,10 @@ export const SubTaskDetailModal: React.FC<SubTaskDetailModalProps> = ({
                                             value={priority}
                                             onChange={e => setPriority(e.target.value as TaskPriority)}
                                         >
-                                            <option value="Low">Thấp</option>
-                                            <option value="Medium">Trung bình</option>
-                                            <option value="High">Cao</option>
-                                            <option value="Urgent">Khẩn cấp</option>
+                                            <option value="low">Thấp</option>
+                                            <option value="medium">Trung bình</option>
+                                            <option value="high">Cao</option>
+                                            <option value="urgent">Khẩn cấp</option>
                                         </select>
                                     </div>
                                 </div>

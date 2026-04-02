@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TaskService } from '@/services/TaskService';
 import { BarChart3, ChevronRight, CheckCircle2, Clock, AlertTriangle, Circle } from 'lucide-react';
@@ -47,33 +47,33 @@ export const GanttChartWidget: React.FC<GanttChartWidgetProps> = ({
     const { data: tasks = [], isLoading } = useQuery<GanttTask[]>({
         queryKey: ['gantt-tasks', projectId],
         queryFn: async () => {
-            const rawTasks = await TaskService.getTasksByProject(projectId);
+            const rawTasks = await TaskService.getProjectTasks(projectId);
 
             if (!rawTasks || rawTasks.length === 0) return [];
 
             const now = new Date();
             return rawTasks
-                .filter(t => t.StartDate || t.DueDate) // Only tasks with dates
+                .filter(t => t.start_date || t.due_date) // Only tasks with dates
                 .sort((a, b) => {
-                    const dateA = a.StartDate ? new Date(a.StartDate).getTime() : 0;
-                    const dateB = b.StartDate ? new Date(b.StartDate).getTime() : 0;
+                    const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+                    const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
                     return dateA - dateB;
                 })
                 .map(t => {
-                    const startDate = t.StartDate ? new Date(t.StartDate) : new Date();
-                    const endDate = t.DueDate ? new Date(t.DueDate) : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-                    const isOverdue = t.Status !== 'Done' && endDate < now;
+                    const startDate = t.start_date ? new Date(t.start_date) : new Date();
+                    const endDate = t.due_date ? new Date(t.due_date) : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+                    const isOverdue = t.status !== 'done' && endDate < now;
 
                     return {
-                        id: t.TaskID,
-                        title: t.Title,
+                        id: t.id,
+                        title: t.title,
                         startDate,
                         endDate,
-                        progress: t.ProgressPercent ?? t.Progress ?? (t.Status === 'Done' ? 100 : 0),
-                        status: isOverdue ? 'overdue' : t.Status || 'Todo',
-                        phase: t.Phase,
-                        stepCode: t.StepCode,
-                        priority: t.Priority,
+                        progress: t.progress ?? (t.status === 'done' ? 100 : 0),
+                        status: isOverdue ? 'overdue' : t.status || 'todo',
+                        phase: t.phase || undefined,
+                        stepCode: t.step_code || undefined,
+                        priority: t.priority,
                     };
                 });
         },

@@ -1,55 +1,86 @@
-// Task management types
+// Task management types — Unified schema (UUID PK)
 
-// 8.1. Tasks (Công việc)
+// Status & Priority enums (matching DB enums)
 export enum TaskStatus {
-    Todo = 'Todo',
-    InProgress = 'InProgress',
-    Review = 'Review',
-    Done = 'Done'
+    Todo = 'todo',
+    InProgress = 'in_progress',
+    Review = 'review',
+    Done = 'done'
 }
 
 export enum TaskPriority {
-    Low = 'Low',
-    Medium = 'Medium',
-    High = 'High',
-    Urgent = 'Urgent'
+    Low = 'low',
+    Medium = 'medium',
+    High = 'high',
+    Urgent = 'urgent'
 }
 
+export type TaskType = 'project' | 'internal';
+
+// Main Task interface (maps directly to DB `tasks` table)
 export interface Task {
-    TaskID: string;
+    TaskID: string;          // UUID
     Title: string;
     Description?: string;
+    TaskType: TaskType;
+    
+    // Project link (null for internal)
     ProjectID: string;
+    
+    // Workflow reference (null if created manually)
+    WorkflowID?: string;
+    WorkflowNodeID?: string;
+    
+    // Core fields
     AssigneeID: string;
-    StartDate?: string;
-    DueDate: string;
+    ApproverID?: string;
     Status: TaskStatus;
     Priority: TaskPriority;
-    Phase?: string;
-    StepCode?: string;
-    TimelineStep?: string;
-    CreatedDate?: string;
-    SortOrder?: number;
-    Progress?: number;
-    LegalBasis?: string;
-    OutputDocument?: string;
+    ProgressPercent?: number;
+    
+    // Plan dates
+    StartDate?: string;
+    DueDate: string;
     DurationDays?: number;
-    PredecessorTaskID?: string;
-    ApproverID?: string;
-    EstimatedCost?: number;
-    ActualCost?: number;
+    
+    // Actual dates
     ActualStartDate?: string;
     ActualEndDate?: string;
+    
+    // Phase/Step (for project plan tab)
+    Phase?: string;
+    StepCode?: string;
+    TimelineStep?: string;     // alias for StepCode (backward compat)
+    SortOrder?: number;
+    
+    // Cost
+    EstimatedCost?: number;
+    ActualCost?: number;
+    
+    // Legal
+    LegalBasis?: string;
+    OutputDocument?: string;
+    
+    // Relations
+    PredecessorTaskID?: string;
     SubTasks?: SubTask[];
     Dependencies?: TaskDependency[];
-    ProgressPercent?: number;
+    Attachments?: TaskAttachment[];
+    
+    // Metadata (JSONB catch-all)
+    Metadata?: Record<string, any>;
+    
+    // Flags
+    IsCritical?: boolean;
+    
+    // Audit
+    CreatedDate?: string;
+    Progress?: number;         // alias for ProgressPercent (backward compat)
+    BoardColumn?: string;
+    Slack?: number;
     PlannedStartDate?: string;
     PlannedEndDate?: string;
     Assignees?: TaskAssignment[];
-    IsCritical?: boolean;
-    Slack?: number;
-    BoardColumn?: string;
-    Attachments?: TaskAttachment[];
     SyncStatus?: {
         IsSynced: boolean;
         LastSyncDate?: string;
@@ -87,6 +118,6 @@ export interface SubTask {
     SubTaskID: string;
     Title: string;
     AssigneeID: string;
-    Status: 'Todo' | 'Done';
+    Status: 'todo' | 'done';
     DueDate?: string;
 }
