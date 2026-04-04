@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, Clock, BookOpen, Shield, Target, FileText, Plus, Trash2, GripVertical, FileSpreadsheet, Upload, Loader2, Link as LinkIcon, X } from 'lucide-react';
-import type { WorkflowNode } from '../../../types/workflow.types';
+import type { WorkflowNode, SubTask, WorkflowNodeMetadata } from '../../../types/workflow.types';
 import { useSlidePanel } from '../../../context/SlidePanelContext';
 import { useToast } from '../../../components/ui/Toast';
 import { supabase } from '../../../lib/supabase';
@@ -8,18 +8,6 @@ import { supabase } from '../../../lib/supabase';
 interface NodeDetailPanelProps {
     node: WorkflowNode;
     onSave: (nodeId: string, data: any) => Promise<void>;
-}
-
-interface SubTask {
-    id: string;
-    name: string;
-    assignee_role: string;
-    output: string;
-    template_forms: string;
-    legal_basis: string;
-    template_url?: string;
-    sla?: string;
-    sla_unit?: string;
 }
 
 const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
@@ -78,7 +66,7 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             // Auto-persist immediately
             await onSave(node.id, {
                 metadata: {
-                    ...(node.metadata as any || {}),
+                    ...(node.metadata || {}),
                     description,
                     phase,
                     sub_tasks: updatedSubTasks
@@ -112,7 +100,7 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             setSlaValue(valMatch ? valMatch[0] : '');
             setSlaUnit(unitMatch ? unitMatch[0] : 'd');
             
-            const meta = (node.metadata as any) || {};
+            const meta = node.metadata || {};
             setPhase(meta.phase || 'preparation');
             setDescription(meta.description || '');
             
@@ -168,7 +156,7 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
                 assignee_role: primarySubTask.assignee_role || '',
                 sla_formula: slaValue ? `${slaValue}${slaUnit}` : null,
                 metadata: {
-                    ...(node.metadata as any || {}),
+                    ...(node.metadata || {}),
                     description,
                     phase,
                     sub_tasks: subTasks,

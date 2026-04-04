@@ -1,23 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../components/ui/Toast';
 import { Clock, Shield, Target, FileSpreadsheet, BookOpen, Upload, Loader2, Link as LinkIcon, X, Save, Search } from 'lucide-react';
-import type { WorkflowNode } from '../../../types/workflow.types';
+import type { WorkflowNode, SubTask } from '../../../types/workflow.types';
 import { useSlidePanel } from '../../../context/SlidePanelContext';
 import LegalDocumentSearch from '../../legal-documents/LegalDocumentSearch';
 import { legalDocuments } from '../../legal-documents/legalData';
-
-export interface SubTask {
-    id: string;
-    name: string;
-    assignee_role: string;
-    output: string;
-    template_forms: string;
-    legal_basis: string;
-    template_url?: string;
-    sla?: string;
-    sla_unit?: string;
-}
+import { uploadTemplateFile, appendTemplateName, resolveLegalReference } from '../utils/workflowUtils';
 
 interface SubTaskDetailPanelProps {
     node: WorkflowNode;
@@ -38,7 +26,7 @@ export const SubTaskDetailPanel: React.FC<SubTaskDetailPanelProps> = ({ node, su
 
     useEffect(() => {
         if (node && node.metadata) {
-            const meta = node.metadata as any;
+            const meta = node.metadata;
             const subTasks: SubTask[] = meta.sub_tasks || [];
             const found = subTasks.find(st => st.id === subTaskId);
             if (found) {
@@ -56,7 +44,7 @@ export const SubTaskDetailPanel: React.FC<SubTaskDetailPanelProps> = ({ node, su
         if (!subTask || !node) return;
         setIsSaving(true);
         try {
-            const meta = (node.metadata as any) || {};
+            const meta = node.metadata || {};
             const subTasks: SubTask[] = meta.sub_tasks || [];
             
             // Apply changes
@@ -94,117 +82,55 @@ export const SubTaskDetailPanel: React.FC<SubTaskDetailPanelProps> = ({ node, su
 
         setIsUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')}`;
-            const filePath = `templates/${node.id}/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('documents')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from('documents')
-                .getPublicUrl(filePath);
-
-            const fileUrl = data.publicUrl;
-
-            // Append or fill template forms with the new file name
-            let templateName = subTask.template_forms || '';
-            const newDocName = file.name.replace(`.${fileExt}`, '');
-            if (!templateName.trim()) {
-                templateName = newDocName;
-            } else if (!templateName.includes(newDocName)) {
-                templateName = templateName + ', ' + newDocName;
-            }
+            const uploaded = await uploadTemplateFile(file, node.id);
+            const templateName = appendTemplateName(subTask.template_forms || '', uploaded.name);
 
             // Update local state
             setSubTask({
                 ...subTask,
-                template_url: fileUrl,
+                template_url: uploaded.url,
                 template_forms: templateName
             });
 
-            // Automatically save the whole node to persist this upload immediately
-            const meta = (node.metadata as any) || {};
+            // Auto-persist to node metadata
+            const meta = node.metadata || {};
             const subTasks: SubTask[] = meta.sub_tasks || [];
             const updatedSubTasks = subTasks.map(st => st.id === subTaskId ? {
                 ...st,
-                template_url: fileUrl,
+                template_url: uploaded.url,
                 template_forms: templateName
             } : st);
 
-            let updatedData: any = {
+            const updatedData: any = {
                 metadata: {
                     ...meta,
-                    sub_tasks: updatedSubTasks
+                    sub_tasks: updatedSubTasks,
+                    ...(subTasks.length > 0 && subTasks[0].id === subTaskId
+                        ? { template_forms: templateName.split(',').map(s => s.trim()) }
+                        : {})
                 }
             };
-            
-            if (subTasks.length > 0 && subTasks[0].id === subTaskId) {
-                updatedData.metadata.template_forms = templateName.split(',').map(s=>s.trim());
-            }
 
             await onSave(node.id, updatedData);
             addToast({ title: 'Đã tải lên biểu mẫu', message: 'Hệ thống đã lưu biểu mẫu thành công.', type: 'success' });
-
         } catch (err: any) {
             addToast({ title: 'Lệnh tải lên thất bại', message: err.message, type: 'error' });
         } finally {
             setIsUploading(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
     const handleOpenLegalSearch = (basisText: string) => {
-        if (!basisText || !basisText.trim()) {
-            openPanel({
-                title: 'Tra cứu pháp luật',
-                component: <LegalDocumentSearch isEmbedded />
-            });
-            return;
-        }
-
-        let foundDocId: string | undefined = undefined;
-        let foundArticleId: string | undefined = undefined;
-        
-        const lowerText = basisText.toLowerCase();
-
-        // 1. Nhận diện văn bản
-        if (lowerText.includes('luật đầu tư công') || lowerText.includes('luật số 58') || lowerText.includes('luật đtc')) {
-            foundDocId = 'luat-dau-tu-cong-2024';
-        }
-
-        // 2. Nhận diện điều khoản
-        const dieuMatch = lowerText.match(/điều\s+(\d+[a-z]?)/); // Match "điều 25", "điều 25a"
-        if (dieuMatch && foundDocId) {
-            const articleNumber = dieuMatch[1];
-            const doc = legalDocuments.find(d => d.id === foundDocId);
-            if (doc) {
-                // Find article with code containing "Điều " + articleNumber (e.g. "Điều 25.")
-                for (const chapter of doc.chapters) {
-                    const article = chapter.articles.find(a => 
-                        a.code.toLowerCase().includes(`điều ${articleNumber}.`) || 
-                        a.code.toLowerCase() === `điều ${articleNumber}`
-                    );
-                    if (article) {
-                        foundArticleId = article.id;
-                        break;
-                    }
-                }
-            }
-        }
+        const target = resolveLegalReference(basisText, legalDocuments);
 
         openPanel({
             title: 'Tra cứu pháp luật',
             component: <LegalDocumentSearch 
                 isEmbedded 
-                initialDocId={foundDocId} 
-                initialArticleId={foundArticleId} 
-                initialSearchQuery={!foundDocId ? basisText : ''} 
+                initialDocId={target.docId} 
+                initialArticleId={target.articleId} 
+                initialSearchQuery={target.searchQuery || ''} 
             />
         });
     };

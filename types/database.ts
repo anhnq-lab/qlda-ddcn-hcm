@@ -2704,6 +2704,7 @@ export type Database = {
           metadata: Json | null
           name: string
           sla_formula: string | null
+          sort_order: number | null
           type: Database["public"]["Enums"]["workflow_node_type"] | null
           updated_at: string | null
           workflow_id: string
@@ -2717,6 +2718,7 @@ export type Database = {
           metadata?: Json | null
           name: string
           sla_formula?: string | null
+          sort_order?: number | null
           type?: Database["public"]["Enums"]["workflow_node_type"] | null
           updated_at?: string | null
           workflow_id: string
@@ -2730,6 +2732,7 @@ export type Database = {
           metadata?: Json | null
           name?: string
           sla_formula?: string | null
+          sort_order?: number | null
           type?: Database["public"]["Enums"]["workflow_node_type"] | null
           updated_at?: string | null
           workflow_id?: string

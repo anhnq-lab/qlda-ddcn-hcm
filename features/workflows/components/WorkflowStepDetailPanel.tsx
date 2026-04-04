@@ -6,7 +6,7 @@ import {
   Play, Send, CheckCircle, XCircle, FolderOpen, Upload, UserPlus,
   ThumbsUp, ThumbsDown, History, File, Trash2, Download
 } from 'lucide-react';
-import { WorkflowService } from '@/services/WorkflowService';
+import { WorkflowTemplateService as WorkflowService } from '@/services/WorkflowTemplateService';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';

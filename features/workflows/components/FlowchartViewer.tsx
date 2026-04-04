@@ -17,6 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
+import { parseSla } from '../utils/workflowUtils';
 
 // ─── INTERFACES ─────────────────────────────────────────────────────────
 interface ActivityNode {
@@ -135,12 +136,6 @@ function computeDagreLayout(nodes: Node[], edges: Edge[]): { nodes: Node[]; edge
     return { nodes: layoutedNodes, edges };
 }
 
-// ─── HELPERS ────────────────────────────────────────────────────────────
-function parseSla(formula?: string): string | null {
-    if (!formula) return null;
-    const m = formula.match(/^(\d+)d$/);
-    return m ? `${m[1]} ngày` : formula;
-}
 
 function getNodeVisualConfig(
     node: ActivityNode,
@@ -297,6 +292,14 @@ const FlowchartViewer: React.FC<FlowchartViewerProps> = ({
                 >
                     <Background color="#cbd5e1" gap={16} size={1.5} />
                     <Controls className="!mb-6 !mr-6 shadow-sm border-none" showInteractive={false} />
+                    <MiniMap 
+                        nodeStrokeColor="#94a3b8"
+                        nodeColor="#e2e8f0"
+                        maskColor="rgba(0,0,0,0.08)"
+                        className="!bottom-2 !right-2 !bg-white/90 dark:!bg-slate-800/90 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700"
+                        pannable
+                        zoomable
+                    />
                 </ReactFlow>
             </div>
         </div>

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../components/ui/Toast';
-import { Save, FileText, Tag, Hash, ToggleLeft, LayoutList, Settings2, Clock, Shield, FileInput, CheckCircle2, ChevronRight, ArrowRight, PenLine, ArrowUp, ArrowDown, Trash2, Plus, X, FileSpreadsheet, ChevronDown, Download } from 'lucide-react';
+import { Save, FileText, Tag, Hash, ToggleLeft, LayoutList, Settings2, Clock, Shield, FileInput, CheckCircle2, ChevronRight, ArrowRight, PenLine, ArrowUp, ArrowDown, Trash2, Plus, X, FileSpreadsheet, ChevronDown, Download, Upload } from 'lucide-react';
 import type { Workflow, WorkflowCategory, WorkflowNode } from '../../../types/workflow.types';
 import { useSlidePanel } from '../../../context/SlidePanelContext';
 import NodeDetailPanel from './NodeDetailPanel';
 import { SubTaskDetailPanel } from './SubTaskDetailPanel';
 import LegalDocumentSearch from '../../legal-documents/LegalDocumentSearch';
 import { legalDocuments } from '../../legal-documents/legalData';
+import { parseSla, resolveLegalReference } from '../utils/workflowUtils';
 
 interface WorkflowSlidePanelProps {
     workflowId: string; // empty string = CREATE mode
@@ -37,52 +38,18 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
     const [expandedSubProcesses, setExpandedSubProcesses] = useState<Record<string, boolean>>({});
     const [isWorkflowCodeExpanded, setIsWorkflowCodeExpanded] = useState(true);
+    const importFileRef = React.useRef<HTMLInputElement>(null);
 
     const handleOpenLegalSearch = (basisText: string) => {
-        if (!basisText || !basisText.trim()) {
-            openPanel({
-                id: 'legal-search',
-                title: 'Tra cứu pháp luật',
-                component: <LegalDocumentSearch isEmbedded />
-            });
-            return;
-        }
-
-        let foundDocId: string | undefined = undefined;
-        let foundArticleId: string | undefined = undefined;
-        
-        const lowerText = basisText.toLowerCase();
-
-        if (lowerText.includes('luật đầu tư công') || lowerText.includes('luật số 58') || lowerText.includes('luật đtc')) {
-            foundDocId = 'luat-dau-tu-cong-2024';
-        }
-
-        const dieuMatch = lowerText.match(/điều\s+(\d+[a-z]?)/);
-        if (dieuMatch && foundDocId) {
-            const articleNumber = dieuMatch[1];
-            const doc = legalDocuments.find(d => d.id === foundDocId);
-            if (doc) {
-                for (const chapter of doc.chapters) {
-                    const article = chapter.articles.find(a => 
-                        a.code.toLowerCase().includes(`điều ${articleNumber}.`) || 
-                        a.code.toLowerCase() === `điều ${articleNumber}`
-                    );
-                    if (article) {
-                        foundArticleId = article.id;
-                        break;
-                    }
-                }
-            }
-        }
-
+        const target = resolveLegalReference(basisText, legalDocuments);
         openPanel({
-            id: 'legal-search-parsed',
+            id: target.docId ? 'legal-search-parsed' : 'legal-search',
             title: 'Tra cứu pháp luật',
             component: <LegalDocumentSearch 
                 isEmbedded 
-                initialDocId={foundDocId} 
-                initialArticleId={foundArticleId} 
-                initialSearchQuery={!foundDocId ? basisText : ''} 
+                initialDocId={target.docId} 
+                initialArticleId={target.articleId} 
+                initialSearchQuery={target.searchQuery || ''} 
             />
         });
     };
@@ -255,14 +222,13 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         }
     };
 
-    const reorderDatabaseCreatedDates = async (orderedNodes: WorkflowNode[]) => {
-        const now = new Date().getTime();
+    const reorderNodeSortOrders = async (orderedNodes: WorkflowNode[]) => {
+        const baseDate = new Date('2020-01-01T00:00:00Z');
         for (let i = 0; i < orderedNodes.length; i++) {
-            const newDate = new Date(now + i * 1000).toISOString();
+            const ts = new Date(baseDate.getTime() + i * 60000).toISOString();
             await supabase.from('workflow_nodes')
-                .update({ created_at: newDate })
+                .update({ created_at: ts })
                 .eq('id', orderedNodes[i].id);
-            orderedNodes[i].created_at = newDate;
         }
         return orderedNodes;
     };
@@ -274,7 +240,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         [newNodes[idx - 1], newNodes[idx]] = [newNodes[idx], newNodes[idx - 1]];
         setNodes(newNodes);
         
-        const finalNodes = await reorderDatabaseCreatedDates(newNodes);
+        const finalNodes = await reorderNodeSortOrders(newNodes);
         await rebuildLinearEdges(finalNodes);
         addToast({ title: 'Cập nhật', message: 'Đã đẩy bước lên trên', type: 'success' });
     };
@@ -286,7 +252,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         [newNodes[idx], newNodes[idx + 1]] = [newNodes[idx + 1], newNodes[idx]];
         setNodes(newNodes);
 
-        const finalNodes = await reorderDatabaseCreatedDates(newNodes);
+        const finalNodes = await reorderNodeSortOrders(newNodes);
         await rebuildLinearEdges(finalNodes);
         addToast({ title: 'Cập nhật', message: 'Đã kéo bước xuống dưới', type: 'success' });
     };
@@ -396,13 +362,6 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         });
     };
 
-    const parseSla = (f?: string | null) => {
-        if (!f) return null;
-        const val = f.match(/^(\d+)/)?.[0] || '';
-        if (f.endsWith('wd')) return `${val} ngày làm việc`;
-        if (f.endsWith('h')) return `${val} giờ`;
-        return `${val} ngày`;
-    };
 
     const nodeTypeConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
         approval: { icon: Shield, color: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30', label: 'Phê duyệt' },
@@ -423,6 +382,97 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         { value: 'asset', label: 'Tài sản' },
         { value: 'other', label: 'Khác' },
     ];
+
+    // ─── Export/Import JSON (Admin feature) ─────────────────────────
+
+    const exportWorkflowJson = () => {
+        if (!workflow) return;
+        const data = {
+            _version: 1,
+            _exported_at: new Date().toISOString(),
+            workflow: {
+                name,
+                code,
+                category,
+                description,
+                is_active: isActive,
+            },
+            nodes: nodes.map((n, idx) => ({
+                name: n.name,
+                type: n.type,
+                assignee_role: n.assignee_role,
+                sla_formula: n.sla_formula,
+                sort_order: idx,
+                metadata: n.metadata,
+            })),
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${code || 'workflow'}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        addToast({ title: 'Export thành công', message: `Đã xuất file ${code}.json`, type: 'success' });
+    };
+
+    const importWorkflowJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !workflow) return;
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            if (!json._version || !json.nodes) throw new Error('File JSON không hợp lệ');
+
+            // Update workflow metadata
+            const { error: wfErr } = await supabase.from('workflows').update({
+                name: json.workflow.name,
+                code: json.workflow.code,
+                category: json.workflow.category,
+                description: json.workflow.description,
+            }).eq('id', workflow.id);
+            if (wfErr) throw wfErr;
+
+            // Delete existing nodes then re-insert
+            await supabase.from('workflow_edges').delete().eq('workflow_id', workflow.id);
+            await supabase.from('workflow_nodes').delete().eq('workflow_id', workflow.id);
+
+            const baseDate = new Date('2020-01-01T00:00:00Z');
+            const newNodes = json.nodes.map((n: any, idx: number) => ({
+                workflow_id: workflow.id,
+                name: n.name,
+                type: n.type,
+                assignee_role: n.assignee_role || null,
+                sla_formula: n.sla_formula || null,
+                created_at: new Date(baseDate.getTime() + idx * 60000).toISOString(),
+                metadata: n.metadata || {},
+            }));
+
+            const { data: insertedNodes, error: nodesErr } = await supabase
+                .from('workflow_nodes')
+                .insert(newNodes)
+                .select();
+            if (nodesErr) throw nodesErr;
+
+            // Rebuild linear edges
+            if (insertedNodes && insertedNodes.length > 1) {
+                const edges = insertedNodes.slice(0, -1).map((n: any, i: number) => ({
+                    workflow_id: workflow.id,
+                    source_node: n.id,
+                    target_node: insertedNodes[i + 1].id,
+                }));
+                await supabase.from('workflow_edges').insert(edges);
+            }
+
+            addToast({ title: 'Import thành công', message: `Đã nhập ${json.nodes.length} bước từ file`, type: 'success' });
+            // Refresh by reloading the panel
+            onClose();
+        } catch (err: any) {
+            addToast({ title: 'Import thất bại', message: err.message, type: 'error' });
+        } finally {
+            if (importFileRef.current) importFileRef.current.value = '';
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-[#FAFAF8] dark:bg-slate-900 relative">
@@ -862,18 +912,36 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#FCF9F2] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 z-10">
-                <button onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
-                    Đóng
-                </button>
-                {(activeTab === 'settings' || isCreateMode) && (
-                    <button onClick={isCreateMode ? handleCreate : handleSave} disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 transition shadow-md flex items-center gap-2 disabled:opacity-50">
-                        {isSaving ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={15} />}
-                        {isCreateMode ? 'Tạo Quy Trình' : 'Lưu cài đặt'}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#FCF9F2]/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 flex items-center justify-between z-10">
+                <div className="flex items-center gap-2">
+                    {!isCreateMode && (
+                        <>
+                            <button onClick={exportWorkflowJson}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700"
+                                title="Xuất cấu hình JSON">
+                                <Download size={14} /> Export
+                            </button>
+                            <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700 cursor-pointer"
+                                title="Nhập cấu hình từ file JSON">
+                                <Upload size={14} /> Import
+                                <input ref={importFileRef} type="file" accept=".json" onChange={importWorkflowJson} className="hidden" />
+                            </label>
+                        </>
+                    )}
+                </div>
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
+                        Đóng
                     </button>
-                )}
+                    {(activeTab === 'settings' || isCreateMode) && (
+                        <button onClick={isCreateMode ? handleCreate : handleSave} disabled={isSaving}
+                            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 transition shadow-md flex items-center gap-2 disabled:opacity-50">
+                            {isSaving ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={15} />}
+                            {isCreateMode ? 'Tạo Quy Trình' : 'Lưu cài đặt'}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Removal of NodeEditModal Component since we are using openEditPanel slide panel */}
