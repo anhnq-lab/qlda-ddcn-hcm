@@ -795,17 +795,17 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
         <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-5 py-4">
 
             {/* ── Header ── */}
-            <div className="rounded-2xl p-5 text-white shadow-sm bg-gradient-to-br from-slate-800 via-primary-900 to-yellow-900">
+            <div className="section-card p-5">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center text-primary-600 dark:text-primary-400">
                             <Database className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-base font-black tracking-wide">
+                            <h2 className="text-base font-black text-gray-800 dark:text-slate-100 tracking-wide">
                                 TT24/2025/TT-BXD — Phụ lục III, Bảng số 01
                             </h2>
-                            <p className="text-blue-200 text-xs mt-0.5">
+                            <p className="text-gray-500 dark:text-slate-400 text-xs mt-0.5">
                                 Phần A + B — Dữ liệu dự án & thiết kế xây dựng • {getGroupLabel(projectGroup)}
                             </p>
                         </div>
@@ -813,17 +813,17 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
                     <div className="flex items-center gap-2">
                         {!editingData ? (
                             <button onClick={() => setEditingData(true)}
-                                className="px-3 py-2 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+                                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
                                 <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa dữ liệu
                             </button>
                         ) : (
                             <>
                                 <button onClick={() => { setEditingData(false); setDataEdits({}); }}
-                                    className="px-3 py-2 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl text-xs font-bold transition-all">
+                                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all">
                                     Hủy
                                 </button>
                                 <button onClick={handleSaveData} disabled={saving}
-                                    className="px-4 py-2 bg-[#FCF9F2] text-blue-700 hover:bg-blue-50 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50">
+                                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50">
                                     {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                     {saving ? 'Lưu...' : 'Lưu thay đổi'}
                                 </button>
@@ -835,11 +835,11 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
                 {/* Progress */}
                 <div className="mt-4">
                     <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs text-blue-200">Hoàn thành dữ liệu</span>
-                        <span className="text-sm font-black">{completionPct}%</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">Hoàn thành dữ liệu</span>
+                        <span className="text-sm font-black text-gray-800 dark:text-slate-100">{completionPct}%</span>
                     </div>
-                    <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full transition-all duration-700 ${completionPct >= 80 ? 'bg-emerald-400' : completionPct >= 50 ? 'bg-primary-400' : 'bg-red-400'
+                    <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all duration-700 ${completionPct >= 80 ? 'bg-emerald-500' : completionPct >= 50 ? 'bg-amber-500' : 'bg-red-500'
                             }`} style={{ width: `${completionPct}%` }} />
                     </div>
                 </div>
