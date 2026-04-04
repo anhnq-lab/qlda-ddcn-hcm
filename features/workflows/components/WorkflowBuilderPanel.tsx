@@ -283,33 +283,65 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const deleteNode = async (nodeId: string) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa bước này?')) return;
         try {
-            // Delete the node and return the deleted rows to check for RLS block
-            const { data: deletedData, error } = await supabase.from('workflow_nodes').delete().eq('id', nodeId).select();
+            // 1. Delete related edges FIRST (FK constraint: workflow_edges → workflow_nodes)
+            const { error: edgeErr } = await supabase.from('workflow_edges')
+                .delete()
+                .or(`source_node.eq.${nodeId},target_node.eq.${nodeId}`);
             
-            if (error || !deletedData || deletedData.length === 0) {
-                if (!error) {
-                    console.warn('[Node Delete] Node deletion returned 0 rows. Likely blocked by RLS (Not an Admin). Falling back to soft delete.');
-                } else {
-                    console.warn('[Node Delete] Failed hard delete, falling back to soft delete:', error);
-                }
-                
-                // Fallback to soft delete
-                const { data: softData, error: softErr } = await supabase.from('workflow_nodes').update({ is_deleted: true }).eq('id', nodeId).select();
-                if (softErr || !softData || softData.length === 0) {
-                    console.error('[Node Delete] Soft delete failed too:', softErr);
-                    throw new Error(`Khoá cứng (ràng buộc dữ liệu) hoặc phân quyền ngăn chặn xóa (hoặc thiếu quyền Admin).`);
-                }
-                addToast({ title: 'Đã ẩn bước', message: 'Bước này đã bị ẩn vì có ràng buộc. Dữ liệu lịch sử vẫn được giữ lại.', type: 'info' });
-            } else {
-                addToast({ title: 'Đã xóa', message: 'Xóa bước thành công', type: 'success' });
+            if (edgeErr) {
+                console.warn('[Node Delete] Edge cleanup failed:', edgeErr.message, edgeErr.code);
+                // Continue anyway — edges may not exist
             }
 
+            // 2. Then delete the node
+            const { data: deletedData, error } = await supabase
+                .from('workflow_nodes')
+                .delete()
+                .eq('id', nodeId)
+                .select();
+            
+            console.log('[Node Delete] Result:', { deletedData, error });
+
+            if (error) {
+                console.warn('[Node Delete] Hard delete error:', error.message, error.code, error.details);
+                // Fallback to soft delete
+                const { data: softData, error: softErr } = await supabase
+                    .from('workflow_nodes')
+                    .update({ is_deleted: true })
+                    .eq('id', nodeId)
+                    .select();
+                
+                if (softErr) {
+                    console.error('[Node Delete] Soft delete also failed:', softErr);
+                    throw new Error(`Không thể xóa: ${error.message}`);
+                }
+                
+                if (!softData || softData.length === 0) {
+                    throw new Error('Không tìm thấy bước để xóa. Có thể bước đã bị xóa trước đó.');
+                }
+                
+                addToast({ title: 'Đã ẩn bước', message: 'Bước này đã bị ẩn (soft delete).', type: 'info' });
+            } else if (!deletedData || deletedData.length === 0) {
+                // RLS might block — try soft delete
+                console.warn('[Node Delete] 0 rows returned. RLS may block DELETE. Trying soft delete...');
+                const { error: softErr } = await supabase
+                    .from('workflow_nodes')
+                    .update({ is_deleted: true })
+                    .eq('id', nodeId);
+                
+                if (softErr) throw new Error(`Soft delete failed: ${softErr.message}`);
+                addToast({ title: 'Đã ẩn bước', message: 'Bước đã bị ẩn do ràng buộc phân quyền.', type: 'info' });
+            } else {
+                addToast({ title: 'Đã xóa', message: 'Xóa bước thành công.', type: 'success' });
+            }
+
+            // 3. Update UI and rebuild remaining edges
             const newNodes = nodes.filter(n => n.id !== nodeId);
             setNodes(newNodes);
             await rebuildLinearEdges(newNodes);
         } catch (err: any) {
-            console.error('[Node Delete] Final catch error:', err);
-            addToast({ title: 'Lỗi xóa bước', message: err.message, type: 'error' });
+            console.error('[Node Delete] Final error:', err);
+            addToast({ title: 'Lỗi xóa bước', message: err.message || 'Lỗi không xác định', type: 'error' });
         }
     };
 

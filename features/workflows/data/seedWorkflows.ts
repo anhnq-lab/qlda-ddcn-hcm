@@ -751,15 +751,11 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                 category: 'project' as const,
                 description: 'Quy trình thực hiện dự án đầu tư xây dựng áp dụng thiết kế 3 bước (TKCS → TKKT → TKBVTC) dành cho dự án quy mô lớn, phức tạp (Nhóm A). Theo Sổ tay Quản lý DAĐTC Hải Dương 2025, Luật Đầu tư công 2024 và Luật Xây dựng 2014 sửa đổi.',
                 steps: [
-                    ...COMMON_PREP_STEPS,
-                    // 9. Lập dự án (BCNCKT + TKCS)
-                    { ...COMMON_PREP_LATE[0], name: '9. Lập dự án (BCNCKT + Thiết kế cơ sở)' },
-                    { ...COMMON_PREP_LATE[1], name: '10. Thẩm định dự án đầu tư (BCNCKT)' },
-                    { ...COMMON_PREP_LATE[2], name: '11. Phê duyệt dự án đầu tư' },
+                    ...WF_I_2.steps,
                     // IMPLEMENTATION
-                    { ...IMPL_KHLCNT, name: '12. Lập, thẩm định, phê duyệt KHLCNT dự án' },
+                    { ...IMPL_KHLCNT, name: '9. Lập, thẩm định, phê duyệt KHLCNT dự án' },
                     {
-                        name: '13. Nhiệm vụ khảo sát & lựa chọn NT tư vấn TK',
+                        name: '10. Nhiệm vụ khảo sát & lựa chọn NT tư vấn TK',
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '47d',
                         metadata: {
                             phase: 'execution',
@@ -770,7 +766,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '14. Lập Thiết kế kỹ thuật (TKKT)',
+                        name: '11. Lập Thiết kế kỹ thuật (TKKT)',
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '80d',
                         metadata: {
                             phase: 'execution',
@@ -781,7 +777,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '15. Thẩm định TKKT',
+                        name: '12. Thẩm định TKKT',
                         type: 'input', role: 'Sở XD / CQ chuyên môn về XD', sla: '40d',
                         metadata: {
                             phase: 'execution',
@@ -792,7 +788,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '16. Phê duyệt TKKT',
+                        name: '13. Phê duyệt TKKT',
                         type: 'approval', role: 'Chủ đầu tư', sla: '7d',
                         metadata: {
                             phase: 'execution',
@@ -803,7 +799,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '17. Lập Thiết kế bản vẽ thi công (TKBVTC) & Dự toán',
+                        name: '14. Lập Thiết kế bản vẽ thi công (TKBVTC) & Dự toán',
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '60d',
                         metadata: {
                             phase: 'execution',
@@ -814,7 +810,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '18. Thẩm định & Phê duyệt TKBVTC - Dự toán',
+                        name: '15. Thẩm định & Phê duyệt TKBVTC - Dự toán',
                         type: 'approval', role: 'CĐT / CQ chuyên môn XD', sla: '30d',
                         metadata: {
                             phase: 'execution',
@@ -824,12 +820,12 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                             output: 'BC thẩm định (Mẫu 14), QĐ phê duyệt TKBVTC-DT (Mẫu 15)',
                         }
                     },
-                    { ...IMPL_GPMB, name: '19. Bồi thường, GPMB (song song từ bước 13)' },
-                    { ...IMPL_LCNT_TC, name: '20. Lựa chọn nhà thầu Giám sát & Thi công' },
-                    { ...IMPL_THICONG, name: '21. Khởi công, Thi công & QLCL' },
-                    { ...IMPL_NGHIEMTHU, name: '22. Nghiệm thu hoàn thành CT' },
+                    { ...IMPL_GPMB, name: '16. Bồi thường, GPMB (song song từ bước 10)' },
+                    { ...IMPL_LCNT_TC, name: '17. Lựa chọn nhà thầu Giám sát & Thi công' },
+                    { ...IMPL_THICONG, name: '18. Khởi công, Thi công & QLCL' },
+                    { ...IMPL_NGHIEMTHU, name: '19. Nghiệm thu hoàn thành CT' },
                     // CLOSING
-                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${23 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
+                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${20 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
                 ]
             };
 
@@ -843,14 +839,11 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                 category: 'project' as const,
                 description: 'Quy trình thực hiện dự án đầu tư xây dựng áp dụng thiết kế 2 bước (TKCS → TKBVTC) dành cho dự án Nhóm B và Nhóm C lập Báo cáo Nghiên cứu khả thi. Theo Sổ tay ĐTCHD 2025.',
                 steps: [
-                    ...COMMON_PREP_STEPS,
-                    { ...COMMON_PREP_LATE[0], name: '9. Lập dự án (BCNCKT + Thiết kế cơ sở)' },
-                    { ...COMMON_PREP_LATE[1], name: '10. Thẩm định dự án đầu tư (BCNCKT)' },
-                    { ...COMMON_PREP_LATE[2], name: '11. Phê duyệt dự án đầu tư' },
+                    ...WF_I_2.steps,
                     // IMPLEMENTATION
-                    { ...IMPL_KHLCNT, name: '12. Lập, thẩm định, phê duyệt KHLCNT dự án' },
+                    { ...IMPL_KHLCNT, name: '9. Lập, thẩm định, phê duyệt KHLCNT dự án' },
                     {
-                        name: '13. Nhiệm vụ KSTK & lựa chọn NT tư vấn TK',
+                        name: '10. Nhiệm vụ KSTK & lựa chọn NT tư vấn TK',
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '47d',
                         metadata: {
                             phase: 'execution',
@@ -861,7 +854,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '14. Lập Thiết kế BVTC & Dự toán XD',
+                        name: '11. Lập Thiết kế BVTC & Dự toán XD',
                         type: 'input', role: 'Nhà thầu tư vấn TK', sla: '60d',
                         metadata: {
                             phase: 'execution',
@@ -872,7 +865,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '15. Thẩm định & Phê duyệt TK-DT',
+                        name: '12. Thẩm định & Phê duyệt TK-DT',
                         type: 'approval', role: 'CĐT / CQ chuyên môn XD', sla: '30d',
                         metadata: {
                             phase: 'execution',
@@ -882,12 +875,12 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                             output: 'BC thẩm định (Mẫu 14), QĐ phê duyệt TK-DT (Mẫu 15)',
                         }
                     },
-                    { ...IMPL_GPMB, name: '16. Bồi thường, GPMB (song song từ bước 13)' },
-                    { ...IMPL_LCNT_TC, name: '17. Lựa chọn nhà thầu Giám sát & Thi công' },
-                    { ...IMPL_THICONG, name: '18. Khởi công, Thi công & QLCL' },
-                    { ...IMPL_NGHIEMTHU, name: '19. Nghiệm thu hoàn thành CT' },
+                    { ...IMPL_GPMB, name: '13. Bồi thường, GPMB (song song từ bước 10)' },
+                    { ...IMPL_LCNT_TC, name: '14. Lựa chọn nhà thầu Giám sát & Thi công' },
+                    { ...IMPL_THICONG, name: '15. Khởi công, Thi công & QLCL' },
+                    { ...IMPL_NGHIEMTHU, name: '16. Nghiệm thu hoàn thành CT' },
                     // CLOSING
-                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${20 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
+                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${17 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
                 ]
             };
 
@@ -901,16 +894,10 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                 category: 'project' as const,
                 description: 'Quy trình thực hiện dự án đầu tư xây dựng áp dụng thiết kế 1 bước (TKBVTC tích hợp trong BCKT-KT) dành cho dự án Nhóm C quy mô nhỏ, đơn giản. KHÔNG cần lập thiết kế triển khai sau. Theo Sổ tay ĐTCHD 2025.',
                 steps: [
-                    COMMON_PREP_STEPS[0], // 1. Lập BCNCTKT/ Báo cáo đề xuất CTrĐT
-                    COMMON_PREP_STEPS[1], // 2. Thẩm định Báo cáo đề xuất
-                    COMMON_PREP_STEPS[2], // 3. Hoàn thiện Báo cáo
-                    COMMON_PREP_STEPS[3], // 4. Quyết định CTrĐT
-                    COMMON_PREP_STEPS[4], // 5. Giao CĐT
-                    COMMON_PREP_STEPS[5], // 6. Lập, thẩm định NV dự toán CBĐT
-                    COMMON_PREP_STEPS[6], // 7. KHLCNT bước CBĐT
-                    { ...COMMON_PREP_STEPS[7], name: '8. LCNT khảo sát, lập BCKT-KT' },
+                    ...WF_I_2.steps.slice(0, 3), // Bước 1-3: NV CBĐT, KHLCNT CBĐT, LCNT tư vấn
+                    { ...WF_I_2.steps[3], name: '4. Thi tuyển PA kiến trúc; QH chi tiết (nếu có)' },
                     {
-                        name: '9. Lập Báo cáo KT-KT (tích hợp TKBVTC + Dự toán)',
+                        name: '5. Lập Báo cáo KT-KT (tích hợp TKBVTC + Dự toán)',
                         type: 'input', role: 'CĐT / Đơn vị tư vấn', sla: '60d',
                         metadata: {
                             phase: 'execution',
@@ -921,7 +908,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '10. Thẩm định BCKT-KT',
+                        name: '6. Thẩm định BCKT-KT',
                         type: 'input', role: 'Phòng KT-HT / Sở chuyên ngành', sla: '20d',
                         metadata: {
                             phase: 'execution',
@@ -932,7 +919,7 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     {
-                        name: '11. Phê duyệt BCKT-KT (= phê duyệt dự án)',
+                        name: '7. Phê duyệt BCKT-KT (= phê duyệt dự án)',
                         type: 'approval', role: 'Chủ tịch UBND / CĐT', sla: '5d',
                         metadata: {
                             phase: 'execution',
@@ -943,14 +930,14 @@ export function getStandardWorkflowTemplates(): WorkflowTemplate[] {
                         }
                     },
                     // IMPLEMENTATION — skip TK triển khai, go straight to LCNT
-                    { ...IMPL_KHLCNT, name: '12. Lập, thẩm định, phê duyệt KHLCNT dự án' },
-                    { ...IMPL_GPMB, name: '13. Bồi thường, GPMB (nếu có)' },
-                    { ...IMPL_LCNT_TC, name: '14. Lựa chọn nhà thầu Giám sát & Thi công' },
-                    { ...IMPL_THICONG, name: '15. Khởi công, Thi công & QLCL' },
-                    { ...IMPL_NGHIEMTHU, name: '16. Nghiệm thu hoàn thành CT' },
+                    { ...IMPL_KHLCNT, name: '8. Lập, thẩm định, phê duyệt KHLCNT dự án' },
+                    { ...IMPL_GPMB, name: '9. Bồi thường, GPMB (nếu có)' },
+                    { ...IMPL_LCNT_TC, name: '10. Lựa chọn nhà thầu Giám sát & Thi công' },
+                    { ...IMPL_THICONG, name: '11. Khởi công, Thi công & QLCL' },
+                    { ...IMPL_NGHIEMTHU, name: '12. Nghiệm thu hoàn thành CT' },
                     // CLOSING
-                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${17 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
+                    ...CLOSING_STEPS.map((s, i) => ({ ...s, name: `${13 + i}. ${s.name.replace(/^\d+\.\s*/, '')}` })),
                 ]
             };
-    return [WF_I_1, WF_I_2, WF_3STEP, WF_2STEP, WF_1STEP];
+    return [WF_I_2, WF_3STEP, WF_2STEP, WF_1STEP];
 }
