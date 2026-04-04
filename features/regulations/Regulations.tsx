@@ -1687,11 +1687,11 @@ const Regulations: React.FC = () => {
     };
 
     return (
-        <div className="flex h-[calc(100vh-100px)] bg-white dark:bg-slate-950 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden font-sans">
+        <div className="flex h-[calc(100vh-100px)] bg-transparent dark:bg-slate-950 font-sans gap-4">
 
             {/* LEFT SIDEBAR - NAVIGATION */}
-            <div className="w-80 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
-                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 backdrop-blur-md z-10 shrink-0">
+            <div className="w-80 section-card flex flex-col shrink-0 overflow-hidden">
+                <div className="p-5 section-card-header z-10 shrink-0">
                     <h2 className="text-lg font-black text-gray-800 dark:text-slate-100 tracking-tight mb-4 flex items-center gap-2">
                         <Gavel className="w-5 h-5 text-blue-600" />
                         Quy chế Nội bộ
@@ -1703,7 +1703,7 @@ const Regulations: React.FC = () => {
                             placeholder="Tìm điều khoản, quy định..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 shadow-sm"
                         />
                     </div>
                 </div>
@@ -1743,7 +1743,7 @@ const Regulations: React.FC = () => {
                     )}
                 </div>
 
-                <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 backdrop-blur-md shrink-0">
+                <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900 backdrop-blur-md shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-full">
                             <FileCheck2 className="w-4 h-4" />
@@ -1760,9 +1760,9 @@ const Regulations: React.FC = () => {
             </div>
 
             {/* MIDDLE CONTENT - DETAILS */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
+            <div className="flex-1 flex flex-col section-card overflow-hidden relative">
                 {/* Header */}
-                <div className="h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-slate-950 backdrop-blur-md shrink-0 z-10 sticky top-0 shadow-sm">
+                <div className="h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 section-card-header backdrop-blur-md shrink-0 z-10 sticky top-0 shadow-sm">
                     {displayChapter ? (
                        <div>
                          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 mb-1">
@@ -1788,7 +1788,7 @@ const Regulations: React.FC = () => {
                 </div>
 
                 {/* Content Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50 dark:bg-slate-950" id="scrollable-content">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-transparent dark:bg-slate-950" id="scrollable-content">
                     <div className="max-w-4xl mx-auto space-y-6 pb-20">
                         {displayChapter?.articles.map((article, idx) => (
                             <div key={idx} id={article.id} className="group relative transition-all duration-500 animate-in slide-in-from-bottom-2 scroll-mt-24">
@@ -1809,7 +1809,7 @@ const Regulations: React.FC = () => {
                                 </div>
 
                                 {/* Content Card */}
-                                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative z-0">
+                                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 hover:shadow-md transition-shadow relative z-0" style={{ boxShadow: '0 4px 20px -2px rgba(0,0,0,0.03)' }}>
                                     {/* Action Buttons */}
                                     <div className="absolute top-4 right-4 flex gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity z-20">
                                         {editingArticleId === article.id ? (
@@ -1938,10 +1938,10 @@ const Regulations: React.FC = () => {
             </div>
 
             {/* RIGHT SIDEBAR - TOC & BOOKMARKS */}
-            <div className="w-64 bg-slate-50 dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
+            <div className="w-64 section-card flex flex-col shrink-0 overflow-hidden">
                 {/* Save Articles Tab */}
                 {savedArticles.length > 0 && (
-                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm">
+                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 section-card-header shrink-0 z-10 shadow-sm">
                         <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
                             <Bookmark className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" />
                             Đã lưu ({savedArticles.length})
@@ -1950,7 +1950,7 @@ const Regulations: React.FC = () => {
                 )}
                 
                 {savedArticles.length > 0 && (
-                     <div className="p-3 space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900 shrink-0 border-b border-gray-200 dark:border-slate-800">
+                     <div className="p-3 space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar bg-transparent dark:bg-slate-900 shrink-0 border-b border-gray-200 dark:border-slate-800">
                         {savedArticles.map(id => {
                             let articleMatch: any = null;
                             for (const chap of regulationsData) {
@@ -1985,14 +1985,14 @@ const Regulations: React.FC = () => {
                 )}
 
                 {/* Table of Contents */}
-                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm mt-auto md:mt-0">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-800 section-card-header shrink-0 z-10 shadow-sm mt-auto md:mt-0">
                      <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
                         <Layout className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         Mục lục ({displayChapter?.code})
                     </h3>
                 </div>
 
-                <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900">
+                <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-transparent dark:bg-slate-900">
                     <div className="relative border-l-2 border-gray-200 dark:border-slate-700 ml-1.5 space-y-4">
                         {displayChapter?.articles.map((article, idx) => (
                             <div key={idx} className="relative pl-4 group">
