@@ -74,6 +74,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     // Helper: Map WorkflowTask to Task
     const mappedTasks = useMemo<Task[]>(() => {
         return workflowTasks.map((wt: any) => {
+            // If already a Task object from useProjectTasks
+            if (wt.TaskID) return wt as Task;
+
             const phase = wt.workflow_nodes?.metadata?.phase || wt.metadata?.phase || wt.metadata?.groupCode || 'KH';
             let mappedStatus = TaskStatus.Todo;
             if (wt.status === 'in_progress') mappedStatus = TaskStatus.InProgress;
@@ -126,6 +129,13 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
 
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
+    
+    // Subtask expansion state
+    const [expandedMasterTasks, setExpandedMasterTasks] = useState<Record<string, boolean>>({});
+    const toggleMasterTask = (e: React.MouseEvent, taskId: string) => {
+        e.stopPropagation();
+        setExpandedMasterTasks(p => ({ ...p, [taskId]: !p[taskId] }));
+    };
 
     // Auto-expand logic: runs when phases load from DB
     useEffect(() => {
@@ -509,8 +519,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             await TaskService.createTasksFromWorkflow(
                 projectID,
                 workflowId,
-                dateRange.startDate,
-                dateRange.endDate
+                dateRange.startDate
             );
             
             showToast(`✅ Đã thiết lập kế hoạch dựa trên quy trình mẫu`, 'success');
@@ -607,7 +616,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
             queryClient.invalidateQueries({ queryKey: ['project-task-progress-v2'] });
         } catch (err: any) {
             console.error('Failed to delete all tasks:', err);
-            alert(`Lỗi khi xóa: ${err?.message || 'Không xác định'}. Vui lòng thử lại!`);
+            showToast(`❌ Lỗi khi xóa: ${err?.message || 'Không xác định'}`, 'error');
         } finally {
             setIsDeletingAll(false);
         }
@@ -782,6 +791,8 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             onQuickStatusChange={handleQuickStatusChange}
                             onDeleteTask={handleDeleteTask}
                             onSetPendingUploadTaskId={setPendingUploadTaskId}
+                            expandedMasterTasks={expandedMasterTasks}
+                            onToggleMasterTask={toggleMasterTask}
                             fileInputRef={fileInputRef}
                             navigate={navigate}
                             queryClient={queryClient}

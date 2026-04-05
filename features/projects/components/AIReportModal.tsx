@@ -127,7 +127,6 @@ export const AIReportModal: React.FC<AIReportModalProps> = ({
             saveAs(blob, fileName);
         } catch (err) {
             console.error('DOCX export error:', err);
-            alert('Lỗi khi xuất file DOCX. Vui lòng thử lại.');
         } finally {
             setExporting(false);
         }

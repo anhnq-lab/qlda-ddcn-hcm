@@ -62,6 +62,9 @@ interface ProjectPlanWBSViewProps {
     onQuickStatusChange: (e: React.MouseEvent, task: Task) => void;
     onDeleteTask: (e: React.MouseEvent, taskId: string, taskTitle: string) => void;
     onSetPendingUploadTaskId: (id: string) => void;
+    // New Props for expanding Tasks
+    expandedMasterTasks: Record<string, boolean>;
+    onToggleMasterTask: (e: React.MouseEvent, taskId: string) => void;
     
     // Refs & Utils
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -94,6 +97,8 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
     onQuickStatusChange,
     onDeleteTask,
     onSetPendingUploadTaskId,
+    expandedMasterTasks,
+    onToggleMasterTask,
     fileInputRef,
     navigate,
     queryClient
@@ -354,8 +359,8 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                                 </thead>
                                                                 <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
                                                                     {linkedTasks.map(t => (
+                                                                        <React.Fragment key={t.TaskID}>
                                                                         <tr
-                                                                            key={t.TaskID}
                                                                             onClick={() => onEditTask(t)}
                                                                             className={`cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 ${isOverdue(t) ? 'bg-red-50/50 dark:bg-red-900/20' : ''}`}
                                                                         >
@@ -380,6 +385,15 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                                                             'text-gray-700 dark:text-slate-300'
                                                                                 }`}>
                                                                                 <div className="flex items-center gap-1.5 flex-wrap">
+                                                                                    {t.SubTasks && t.SubTasks.length > 0 && (
+                                                                                        <button
+                                                                                            onClick={(e) => onToggleMasterTask(e, t.TaskID)}
+                                                                                            className="p-0.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition-colors"
+                                                                                            title={expandedMasterTasks[t.TaskID] ? "Thu gọn công việc con" : "Hiện công việc con"}
+                                                                                        >
+                                                                                            {expandedMasterTasks[t.TaskID] ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg> : <ChevronDown className="w-3 h-3" />}
+                                                                                        </button>
+                                                                                    )}
                                                                                     <span>{t.Title}</span>
                                                                                     {t.IsCritical && (
                                                                                         <span className="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[8px] rounded font-bold shrink-0">
@@ -398,17 +412,19 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                                             </td>
 
                                                                             {/* Assignee */}
-                                                                            <td className="px-2 py-2 text-gray-500 dark:text-slate-400 hidden sm:table-cell">
-                                                                                {t.AssigneeID && (
-                                                                                    <span className="flex items-center gap-1 truncate max-w-[120px]" title={employeeNameMap[t.AssigneeID] || t.AssigneeID}>
-                                                                                        <User className="w-3 h-3 shrink-0" />
-                                                                                        <span className="truncate">{employeeNameMap[t.AssigneeID] || t.AssigneeID}</span>
-                                                                                    </span>
+                                                                            <td className="px-2 py-2 text-gray-500 dark:text-slate-400 max-w-[150px]">
+                                                                                {t.AssigneeID ? (
+                                                                                    <div className="flex items-center gap-1 truncate" title={employeeNameMap[t.AssigneeID] || t.AssigneeID}>
+                                                                                        <User className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+                                                                                        <span className="truncate text-xs font-medium text-gray-700 dark:text-slate-300">{employeeNameMap[t.AssigneeID] || t.AssigneeID}</span>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span className="text-[10px] text-gray-400 italic">Chưa chỉ định</span>
                                                                                 )}
                                                                             </td>
 
                                                                             {/* Due Date + Smart Relative Time */}
-                                                                            <td className={`px-2 py-2 hidden sm:table-cell ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-500 dark:text-slate-400'}`}>
+                                                                            <td className={`px-2 py-2 ${isOverdue(t) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-500 dark:text-slate-400'}`}>
                                                                                 {t.Status === TaskStatus.Done && t.ActualEndDate ? (
                                                                                     <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium" title={`Hoàn thành: ${new Date(t.ActualEndDate).toLocaleDateString('vi-VN')}`}>
                                                                                         <CheckCircle2 className="w-3 h-3 shrink-0" />
@@ -505,6 +521,47 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                                                 </button>
                                                                             </td>
                                                                         </tr>
+                                                                        
+                                                                        {/* Subtask Row */}
+                                                                        {t.SubTasks && t.SubTasks.length > 0 && expandedMasterTasks[t.TaskID] && (
+                                                                            <tr className="bg-[#FAF8F5] dark:bg-slate-800/40 border-b border-gray-100 dark:border-slate-700/50">
+                                                                                <td></td>
+                                                                                <td colSpan={8} className="p-3">
+                                                                                    <div className="pl-4 sm:pl-8 border-l-2 border-primary-200 dark:border-slate-600">
+                                                                                        <h6 className="text-[10px] uppercase font-bold text-gray-500 dark:text-slate-400 mb-2 tracking-wider flex items-center gap-1">
+                                                                                            <ListChecks className="w-3 h-3" /> Công việc con ({t.SubTasks.length})
+                                                                                        </h6>
+                                                                                        <div className="space-y-1.5">
+                                                                                            {t.SubTasks.map(sub => (
+                                                                                                <div key={sub.SubTaskID} className="flex items-center gap-2 text-xs py-1.5 px-2 hover:bg-white dark:hover:bg-slate-700/50 rounded-lg border border-transparent hover:border-gray-100 dark:hover:border-slate-600 transition-colors">
+                                                                                                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.Status === 'Done' ? 'bg-emerald-500' : sub.Status === 'InProgress' ? 'bg-orange-500' : 'bg-gray-300 dark:bg-slate-600'}`} />
+                                                                                                    <span className={`flex-1 font-medium ${sub.Status === 'Done' ? 'text-gray-400 dark:text-slate-500 line-through' : 'text-gray-700 dark:text-slate-300'}`}>
+                                                                                                        {sub.Title}
+                                                                                                    </span>
+                                                                                                    <div className="flex items-center gap-3 shrink-0 text-[10px]">
+                                                                                                        {sub.AssigneeID ? (
+                                                                                                            <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400 max-w-[130px] truncate" title={employeeNameMap[sub.AssigneeID] || sub.AssigneeID}>
+                                                                                                                <User className="w-3 h-3 shrink-0 text-gray-400" />
+                                                                                                                {employeeNameMap[sub.AssigneeID] || sub.AssigneeID}
+                                                                                                            </span>
+                                                                                                        ) : (
+                                                                                                            <span className="text-[10px] text-gray-400 italic">Chưa chỉ định</span>
+                                                                                                        )}
+                                                                                                        {sub.DueDate && (
+                                                                                                            <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400 font-medium">
+                                                                                                                <Calendar className="w-3 h-3 shrink-0" />
+                                                                                                                {new Date(sub.DueDate).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}
+                                                                                                            </span>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        )}
+                                                                        </React.Fragment>
                                                                     ))}
                                                                 </tbody>
                                                             </table>

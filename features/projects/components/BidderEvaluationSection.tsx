@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Search, Plus, X, Users, Loader2, Building2, Save, Upload, ArrowUpDown, AlertTriangle as AlertTriangleIcon,
@@ -694,7 +694,6 @@ export const EvaluationSection: React.FC<BidderEvaluationSectionProps> = ({ pack
                     <button
                         onClick={() => {
                             if (scoredBidders.length === 0) {
-                                alert('Chưa có nhà thầu nào có điểm tổng hợp. Vui lòng nhập điểm trước.');
                                 return;
                             }
                             if (unscoredBidders.length > 0 && !confirm(`Có ${unscoredBidders.length} nhà thầu chưa có điểm. Vẫn xếp hạng?`)) return;

@@ -67,12 +67,19 @@ export const TaskService = {
 
     if (projectIds && projectIds.length > 0) {
       // Lấy cả tasks thuộc projects + internal tasks
-      query = query.or(`project_id.in.(${projectIds.join(',')}),task_type.eq.internal`);
+      query = query.or(`project_id.in.(${projectIds.join(',')}),source_module.eq.internal`);
     }
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as unknown as DbTask[];
+    
+    return (data || []).map((row: any) => ({
+      ...row,
+      metadata: row.custom_fields || {},
+      workflow_id: row.source_entity_id || row.custom_fields?.workflow_id || null,
+      workflow_node_id: row.custom_fields?.workflow_node_id || null,
+      task_type: row.source_module === 'internal' ? 'internal' : (row.custom_fields?.task_type || 'project')
+    })) as unknown as DbTask[];
   },
 
   /** Lấy tasks theo dự án */
@@ -81,11 +88,35 @@ export const TaskService = {
       .from('tasks')
       .select('*')
       .eq('project_id', projectId)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true });
+      .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    return (data || []) as unknown as DbTask[];
+    
+    // Tách master tasks và sub tasks
+    const masterTasks = (data || []).filter((r: any) => !r.parent_id);
+    const subTasks = (data || []).filter((r: any) => r.parent_id);
+
+    return masterTasks.map((row: any) => {
+      // Map sub-tasks thực tế vào metadata cho UI sử dụng dạng JSON array
+      const rowSubs = subTasks.filter((s: any) => s.parent_id === row.id).map((s: any) => ({
+        SubTaskID: s.id,
+        Title: s.title,
+        AssigneeID: s.assignee_id || s.custom_fields?.assignee_role,
+        DueDate: s.due_date,
+        Status: s.status === 'completed' ? 'Done' : (s.status === 'in_progress' ? 'InProgress' : 'Todo')
+      }));
+
+      const metadata = row.custom_fields || {};
+      metadata.sub_tasks = rowSubs;
+
+      return {
+        ...row,
+        metadata,
+        workflow_id: row.source_entity_id || metadata?.workflow_id || null,
+        workflow_node_id: metadata?.workflow_node_id || null,
+        task_type: row.source_module === 'internal' ? 'internal' : (metadata?.task_type || 'project')
+      } as unknown as DbTask;
+    });
   },
 
   /** Lấy tasks nội bộ (không thuộc dự án nào) */
@@ -93,11 +124,17 @@ export const TaskService = {
     const { data, error } = await (supabase as any)
       .from('tasks')
       .select('*')
-      .eq('task_type', 'internal')
+      .eq('source_module', 'internal')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data || []) as unknown as DbTask[];
+    return (data || []).map((row: any) => ({
+      ...row,
+      metadata: row.custom_fields || {},
+      workflow_id: row.source_entity_id || row.custom_fields?.workflow_id || null,
+      workflow_node_id: row.custom_fields?.workflow_node_id || null,
+      task_type: row.source_module === 'internal' ? 'internal' : (row.custom_fields?.task_type || 'project')
+    })) as unknown as DbTask[];
   },
 
   /** Lấy 1 task theo ID */
@@ -109,7 +146,35 @@ export const TaskService = {
       .maybeSingle();
 
     if (error) throw error;
-    return data as unknown as DbTask | null;
+    if (!data) return null;
+    
+    // Lấy sub tasks (nếu có)
+    const { data: subData } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('parent_id', taskId)
+      .order('created_at', { ascending: true });
+
+    const row = data as any;
+    const metadata = row.custom_fields || {};
+
+    if (subData && subData.length > 0) {
+      metadata.sub_tasks = subData.map((s: any) => ({
+        SubTaskID: s.id,
+        Title: s.title,
+        AssigneeID: s.assignee_id || s.custom_fields?.assignee_role,
+        DueDate: s.due_date,
+        Status: s.status === 'completed' ? 'Done' : (s.status === 'in_progress' ? 'InProgress' : 'Todo')
+      }));
+    }
+
+    return {
+      ...row,
+      metadata,
+      workflow_id: row.source_entity_id || metadata?.workflow_id || null,
+      workflow_node_id: metadata?.workflow_node_id || null,
+      task_type: row.source_module === 'internal' ? 'internal' : (metadata?.task_type || 'project')
+    } as unknown as DbTask;
   },
 
   /** Lấy sub-tasks của 1 task */
@@ -161,11 +226,20 @@ export const TaskService = {
     if (payload.assignee_id) {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(payload.assignee_id)) {
-        // Store non-UUID assignee in metadata as role name
-        payload.metadata = { ...payload.metadata, assignee_role: payload.assignee_id };
+        // Store non-UUID assignee in custom_fields as role name
+        (payload as any).custom_fields = { ...(payload as any).custom_fields, assignee_role: payload.assignee_id };
         payload.assignee_id = null;
       }
     }
+
+    // Move any metadata to custom_fields to match current DB schema
+    if (payload.metadata) {
+      (payload as any).custom_fields = { ...(payload as any).custom_fields, ...payload.metadata };
+      delete (payload as any).metadata;
+    }
+    delete (payload as any).workflow_id;
+    delete (payload as any).workflow_node_id;
+    delete (payload as any).task_type;
 
     const { data, error } = await supabase
       .from('tasks')
@@ -174,7 +248,15 @@ export const TaskService = {
       .single();
 
     if (error) throw error;
-    return data as unknown as DbTask;
+    
+    const row = data as any;
+    return {
+      ...row,
+      metadata: row.custom_fields || {},
+      workflow_id: row.source_entity_id || row.custom_fields?.workflow_id || null,
+      workflow_node_id: row.custom_fields?.workflow_node_id || null,
+      task_type: row.source_module === 'internal' ? 'internal' : (row.custom_fields?.task_type || 'project')
+    } as unknown as DbTask;
   },
 
   /** Cập nhật task */
@@ -191,10 +273,26 @@ export const TaskService = {
     // Sanitize assignee_id
     if (payload.assignee_id !== undefined) {
       if (payload.assignee_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.assignee_id)) {
-        payload.metadata = { ...(payload.metadata || {}), assignee_role: payload.assignee_id };
+        (payload as any).custom_fields = { ...((payload as any).custom_fields || {}), assignee_role: payload.assignee_id };
         payload.assignee_id = null;
       }
     }
+
+    // Separate sub_tasks from metadata so we can sync them to public.tasks
+    let subTasks: any[] | null = null;
+    if (payload.metadata) {
+      if (payload.metadata.sub_tasks !== undefined) {
+        subTasks = payload.metadata.sub_tasks;
+        delete payload.metadata.sub_tasks;
+      }
+      (payload as any).custom_fields = { ...((payload as any).custom_fields || {}), ...payload.metadata };
+      delete (payload as any).metadata;
+    }
+    delete (payload as any).workflow_id;
+    delete (payload as any).workflow_node_id;
+    delete (payload as any).task_type;
+
+    const { data: currentTask } = await supabase.from('tasks').select('project_id, source_module').eq('id', taskId).maybeSingle();
 
     const { data, error } = await supabase
       .from('tasks')
@@ -204,7 +302,58 @@ export const TaskService = {
       .single();
 
     if (error) throw error;
-    return data as unknown as DbTask;
+
+    // Sync sub-tasks if provided
+    if (subTasks !== null) {
+      // Get existing subtasks to detect deletions
+      const { data: existingSubs } = await supabase.from('tasks').select('id').eq('parent_id', taskId);
+      const existingIds = (existingSubs || []).map(s => s.id);
+      
+      const newIds: string[] = [];
+      const subsToUpsert = subTasks.map(st => {
+        // Kiểm tra xem ID có phải là UUID hợp lệ không. Nếu sinh từ UI ('SUB-xxx'), tạo UUID mới
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(st.SubTaskID);
+        const subId = isUUID ? st.SubTaskID : crypto.randomUUID();
+        newIds.push(subId);
+        
+        const isAssigneeUUID = st.AssigneeID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(st.AssigneeID);
+
+        return {
+          id: subId,
+          parent_id: taskId,
+          project_id: currentTask?.project_id,
+          source_module: currentTask?.source_module || 'project',
+          title: st.Title,
+          status: st.Status === 'Done' ? 'completed' : (st.Status === 'InProgress' ? 'in_progress' : 'pending'),
+          due_date: st.DueDate || null,
+          assignee_id: isAssigneeUUID ? st.AssigneeID : null,
+          custom_fields: isAssigneeUUID ? {} : { assignee_role: st.AssigneeID }
+        };
+      });
+
+      if (subsToUpsert.length > 0) {
+        await supabase.from('tasks').upsert(subsToUpsert);
+      }
+
+      // Xóa các subtask bị người dùng gỡ bỏ UI khỏi CSDL
+      const toDelete = existingIds.filter(id => !newIds.includes(id));
+      if (toDelete.length > 0) {
+        await supabase.from('tasks').delete().in('id', toDelete);
+      }
+    }
+    
+    const row = data as any;
+    const metadata = row.custom_fields || {};
+    // Phục hồi sub_tasks nếu UI cần ngay
+    if (subTasks !== null) metadata.sub_tasks = subTasks;
+
+    return {
+      ...row,
+      metadata,
+      workflow_id: row.source_entity_id || row.custom_fields?.workflow_id || null,
+      workflow_node_id: row.custom_fields?.workflow_node_id || null,
+      task_type: row.source_module === 'internal' ? 'internal' : (row.custom_fields?.task_type || 'project')
+    } as unknown as DbTask;
   },
 
   /** Upsert task (tạo hoặc cập nhật) */
@@ -273,13 +422,13 @@ export const TaskService = {
 
   /**
    * Tạo tasks tự động từ quy trình mẫu
-   * Lấy nodes từ workflow template, sinh ra tasks tương ứng trong bảng `tasks`
+   * Lấy nodes từ workflow_nodes theo thứ tự, cộng dồn Start/End Date từ Start Date
+   * và nối chuỗi tuyến tính (predecessor_task_id) để vẽ Gantt chuẩn.
    */
   createTasksFromWorkflow: async (
     projectId: string,
     workflowId: string,
-    startDate: string,
-    endDate: string,
+    startDate: string
   ): Promise<DbTask[]> => {
     // 1. Lấy nodes của workflow template
     const nodes = await WorkflowTemplateService.getTemplateNodes(workflowId);
@@ -287,119 +436,159 @@ export const TaskService = {
 
     if (workNodes.length === 0) return [];
 
-    // 2. Tính phân bổ thời gian
-    let totalSla = 0;
-    workNodes.forEach(n => {
-      if (n.sla_formula) {
-        const match = n.sla_formula.match(/^(\d+)d$/);
-        if (match) totalSla += parseInt(match[1]);
-      } else {
-        totalSla += 1;
+    // Helper: Cộng số ngày làm việc (Bỏ qua Thứ 7, CN)
+    const addWorkingDays = (startDateObj: Date, daysToAdd: number): Date => {
+      const date = new Date(startDateObj);
+      let added = 0;
+      while (added < daysToAdd) {
+        date.setDate(date.getDate() + 1);
+        // 0 = Sunday, 6 = Saturday
+        if (date.getDay() !== 0 && date.getDay() !== 6) {
+          added++;
+        }
       }
-    });
-    if (totalSla === 0) totalSla = 1;
+      return date;
+    };
 
-    const startMs = new Date(startDate).getTime();
-    const endMs = new Date(endDate).getTime();
-    const totalMs = endMs - startMs;
-    let currentMs = startMs;
+    let currentDate = new Date(startDate);
+    let previousTaskId: string | null = null;
+    
+    const tasksToInsert: any[] = [];
+    const subTasksToInsert: any[] = [];
+    
+    // Khởi tạo UUID helper (cho cả môi trường browser và fallback pseudo)
+    const generateUUID = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      // Fallback
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
 
-    // 3. Build task rows
-    const tasksToInsert: Partial<DbTask>[] = [];
-
-    for (const node of workNodes) {
-      let nodeSla = 1;
+    // 2. Build task rows by accumulating SLAs sequentially
+    for (let i = 0; i < workNodes.length; i++) {
+      const node = workNodes[i];
+      let nodeSla = 1; // Default
+      
       if (node.sla_formula) {
         const match = node.sla_formula.match(/^(\d+)d$/);
         if (match) nodeSla = parseInt(match[1]);
       }
 
-      const proportion = nodeSla / totalSla;
-      const allocatedMs = totalMs * proportion;
-      const nodeEndMs = currentMs + allocatedMs;
+      // Start Date = Current Tracker
+      const nodeStartDate = new Date(currentDate);
+      // End Date = currentDate + SLA (working days)
+      const nodeEndDate = addWorkingDays(currentDate, nodeSla);
 
+      const taskId = generateUUID();
       const nodeMetadata = (node.metadata || {}) as any;
-      const subTasks = nodeMetadata.sub_tasks || [];
+      const subTasksDef = nodeMetadata.sub_tasks || [];
 
-      if (subTasks.length > 0) {
-        // Có sub-tasks → sinh task cho từng sub-task
-        const subDuration = allocatedMs / subTasks.length;
-        let subCurrentMs = currentMs;
-
-        subTasks.forEach((st: any, idx: number) => {
-          const subEndMs = subCurrentMs + subDuration;
-          const stepMatch = node.name.match(/^(\d+)\./);
-          const stepNum = stepMatch ? stepMatch[1] : '?';
-          const subTaskName = st.name || st.title || `Công việc ${idx + 1}`;
-
-          tasksToInsert.push({
-            project_id: projectId,
-            workflow_id: workflowId,
-            workflow_node_id: node.id,
-            task_type: 'project',
-            title: subTaskName.length > 450 ? subTaskName.substring(0, 447) + '...' : subTaskName,
-            status: 'todo',
-            priority: 'medium',
-            progress: 0,
-            start_date: new Date(subCurrentMs).toISOString().split('T')[0],
-            due_date: new Date(subEndMs).toISOString().split('T')[0],
-            duration_days: Math.ceil(subDuration / (1000 * 60 * 60 * 24)),
-            phase: nodeMetadata.phase || 'preparation',
-            step_code: `${stepNum}.${idx + 1}`,
-            sort_order: tasksToInsert.length,
-            legal_basis: st.legal_basis || '',
-            metadata: {
-              sub_process: nodeMetadata.sub_process || '',
-              parent_step: node.name,
-              parent_node_id: node.id,
-              assignee_role: st.assignee_role || '',
-              output: st.output || '',
-              template_forms: st.template_forms || '',
-              sla_formula: node.sla_formula,
-            },
-          });
-
-          subCurrentMs = subEndMs;
-        });
-      } else {
-        // Không có sub-tasks → sinh 1 task cho node
-        tasksToInsert.push({
-          project_id: projectId,
+      // Translate into existing DB columns using custom_fields and source_module
+      tasksToInsert.push({
+        id: taskId,
+        project_id: projectId,
+        title: node.name.length > 450 ? node.name.substring(0, 447) + '...' : node.name,
+        status: 'todo',
+        source_module: 'workflow',
+        source_entity_id: workflowId,
+        priority: 'medium',
+        progress: 0,
+        start_date: nodeStartDate.toISOString().split('T')[0],
+        due_date: nodeEndDate.toISOString().split('T')[0],
+        duration_days: nodeSla,
+        phase: nodeMetadata.phase || 'preparation',
+        step_code: node.name.match(/^(\d+)\./) ? node.name.match(/^(\d+)\./)![1] : '',
+        sort_order: i,
+        predecessor_task_id: previousTaskId, // Link for Gantt
+        legal_basis: nodeMetadata.legalBasis || '',
+        custom_fields: {
           workflow_id: workflowId,
           workflow_node_id: node.id,
           task_type: 'project',
-          title: node.name.length > 450 ? node.name.substring(0, 447) + '...' : node.name,
-          status: 'todo',
-          priority: 'medium',
-          progress: 0,
-          start_date: new Date(currentMs).toISOString().split('T')[0],
-          due_date: new Date(nodeEndMs).toISOString().split('T')[0],
-          duration_days: Math.ceil(allocatedMs / (1000 * 60 * 60 * 24)),
-          phase: nodeMetadata.phase || 'preparation',
-          step_code: node.name.match(/^(\d+)\./) ? node.name.match(/^(\d+)\./)![1] : '',
-          sort_order: tasksToInsert.length,
-          legal_basis: nodeMetadata.legalBasis || '',
-          metadata: {
-            sub_process: nodeMetadata.sub_process || '',
-            sla_formula: node.sla_formula,
-          },
+          sub_process: nodeMetadata.sub_process || '',
+          sla_formula: node.sla_formula,
+          assignee_role: nodeMetadata.assignee_role || '',
+        },
+      } as any);
+
+      // Prepare Sub Tasks definitions stored directly to `tasks` table with `parent_id`
+      if (subTasksDef.length > 0) {
+        subTasksDef.forEach((st: any, idx: number) => {
+          const subTaskName = st.name || st.title || `Công việc ${idx + 1}`;
+          subTasksToInsert.push({
+            id: generateUUID(),
+            parent_id: taskId,
+            project_id: projectId,
+            title: subTaskName.length > 255 ? subTaskName.substring(0, 252) + '...' : subTaskName,
+            status: 'todo',
+            source_module: 'workflow',
+            sort_order: idx,
+            due_date: null,
+            assignee_id: null,
+            custom_fields: {
+              assignee_role: st.assignee_role || st.assignedTo || '',
+              legal_basis: st.legal_basis || st.legalBasis || '',
+              output: st.output || '',
+            }
+          });
         });
       }
 
-      currentMs = nodeEndMs;
+      // Update trackers for the next node
+      previousTaskId = taskId;
+      currentDate = new Date(nodeEndDate); // The next node starts on the day after the previous node ended (or technically same day if chain is continuous)
     }
 
-    // 4. Batch insert
+    // 3. Batch DB insertions
     if (tasksToInsert.length > 0) {
       const { data, error } = await supabase
         .from('tasks')
         .insert(tasksToInsert as any)
         .select();
 
-      if (error) throw new Error(`Tạo công việc thất bại: ${error.message}`);
-      return (data || []) as unknown as DbTask[];
+      if (error) throw new Error(`Tạo kế hoạch thất bại: ${error.message}`);
+      
+      // Batch insert sub_tasks if they exist into `tasks` table
+      if (subTasksToInsert.length > 0) {
+        const { error: subErr } = await supabase
+          .from('tasks')
+          .insert(subTasksToInsert as any);
+          
+        if (subErr) {
+          console.error("Lỗi khi tạo công việc con:", subErr);
+          // Không throw để tránh fail nguyên luồng tạo Master Plan
+        }
+      }
+
+      // Đăng ký workflow_instances để UI biết Project này đang chạy quy trình nào
+      const { error: instErr } = await supabase.from('workflow_instances').insert({
+        id: generateUUID(),
+        workflow_id: workflowId,
+        reference_id: projectId,
+        reference_type: 'project',
+        status: 'in_progress',
+        started_at: new Date().toISOString()
+      } as any);
+
+      if (instErr) {
+        console.error("Lỗi khi đăng ký workflow instance:", instErr);
+      }
+
+      // Trả lại task đã tạo
+      return (data || []).map((row: any) => ({
+        ...row,
+        metadata: row.custom_fields || {},
+        workflow_id: row.source_entity_id || row.custom_fields?.workflow_id || null,
+        workflow_node_id: row.custom_fields?.workflow_node_id || null,
+        task_type: row.source_module === 'internal' ? 'internal' : (row.custom_fields?.task_type || 'project')
+      })) as unknown as DbTask[];
     }
 
     return [];
   },
 };
+

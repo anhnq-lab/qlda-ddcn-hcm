@@ -61,7 +61,7 @@ export const BiddingImportModal: React.FC<BiddingImportModalProps> = ({
         const f = e.dataTransfer.files[0];
         if (!f) return;
         if (!f.name.match(/\.(xlsx|xls)$/i)) {
-            alert('Chỉ hỗ trợ file .xlsx hoặc .xls');
+            console.warn('Invalid file type, only .xlsx/.xls supported');
             return;
         }
         setFile(f);

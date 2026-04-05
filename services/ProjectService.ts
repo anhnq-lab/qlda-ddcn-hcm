@@ -4,42 +4,127 @@ import { dbToProject, projectToDb, dbToBiddingPackage, dbToCapitalAllocation, db
 import { Project, ProjectStatus, ProjectGroup, BiddingPackage, ProcurementPlan, CapitalAllocation, Disbursement } from '../types';
 import type { QueryParams } from '../types/api';
 import { CapitalService } from './CapitalService';
+import { ServiceError, toServiceError } from './ServiceError';
+
+/**
+ * Retry with exponential backoff for transient failures.
+ * Only retries network/timeout errors (not auth/validation).
+ */
+async function withRetry<T>(
+    fn: () => Promise<T>,
+    maxRetries = 2,
+    baseDelay = 500
+): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            const svcError = toServiceError(error);
+            // Only retry transient errors
+            if (!svcError.isNetworkError && svcError.code !== 'TIMEOUT') throw svcError;
+            if (attempt < maxRetries) {
+                await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+            }
+        }
+    }
+    throw toServiceError(lastError);
+}
 
 export class ProjectService {
     /**
-     * Get all projects with optional filtering
+     * Default page size for paginated queries
+     */
+    static readonly DEFAULT_PAGE_SIZE = 50;
+
+    /**
+     * Get all projects — LEGACY (fetches everything, used by non-list consumers)
+     * Prefer getPaginated() for list views with 200+ users.
      */
     static async getAll(params?: QueryParams): Promise<Project[]> {
         let query = supabase.from('projects').select('*');
+        query = this._applyFilters(query, params);
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw toServiceError(error, 'Không thể tải danh sách dự án');
+        return (data || []).map(dbToProject);
+    }
 
-        if (params?.search) {
+    /**
+     * Get projects with server-side pagination, filtering, and sorting.
+     * Returns paginated response with exact total count.
+     */
+    static async getPaginated(params?: QueryParams): Promise<{
+        data: Project[];
+        total: number;
+        page: number;
+        pageSize: number;
+        totalPages: number;
+    }> {
+        return withRetry(async () => {
+            const page = params?.page || 1;
+            const pageSize = params?.pageSize || this.DEFAULT_PAGE_SIZE;
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize - 1;
+
+            // Use exact count to get total without fetching all rows
+            let query = supabase.from('projects').select('*', { count: 'exact' });
+            query = this._applyFilters(query, params);
+
+            // Sort
+            const sortBy = params?.sortBy || 'created_at';
+            const sortOrder = params?.sortOrder || 'desc';
+            const sortColumnMap: Record<string, string> = {
+                name: 'project_name',
+                budget: 'total_investment',
+                progress: 'progress',
+                created: 'created_at',
+                created_at: 'created_at',
+                project_name: 'project_name',
+                total_investment: 'total_investment',
+            };
+            const dbSortColumn = sortColumnMap[sortBy] || 'created_at';
+            query = query.order(dbSortColumn, { ascending: sortOrder === 'asc' });
+
+            // Paginate
+            query = query.range(from, to);
+
+            const { data, error, count } = await query;
+            if (error) throw toServiceError(error, 'Không thể tải danh sách dự án');
+
+            const total = count || 0;
+            return {
+                data: (data || []).map(dbToProject),
+                total,
+                page,
+                pageSize,
+                totalPages: Math.ceil(total / pageSize),
+            };
+        });
+    }
+
+    /**
+     * Apply common filters to a query builder (shared between getAll and getPaginated)
+     */
+    private static _applyFilters(query: any, params?: QueryParams): any {
+        if (!params) return query;
+
+        if (params.search) {
             const s = params.search;
             query = query.or(`project_name.ilike.%${s}%,project_id.ilike.%${s}%,investor_name.ilike.%${s}%`);
         }
 
-        if (params?.filters?.status !== undefined) {
-            query = query.eq('status', params.filters.status);
+        const f = params.filters;
+        if (f) {
+            if (f.status !== undefined && f.status !== '' && f.status !== 'all') query = query.eq('status', f.status);
+            if (f.group && f.group !== 'all') query = query.eq('group_code', f.group);
+            if (f.board && f.board !== 'all') query = query.eq('management_board', f.board);
+            if (f.investmentType) query = query.eq('investment_type', f.investmentType);
+            if (f.stage) query = query.eq('stage', f.stage);
+            if (f.sector) query = query.eq('sector', f.sector);
         }
 
-        if (params?.filters?.group) {
-            query = query.eq('group_code', params.filters.group);
-        }
-
-        if (params?.filters?.investmentType) {
-            query = query.eq('investment_type', params.filters.investmentType);
-        }
-
-        if (params?.filters?.stage) {
-            query = query.eq('stage', params.filters.stage);
-        }
-
-        if (params?.filters?.sector) {
-            query = query.eq('sector', params.filters.sector);
-        }
-
-        const { data, error } = await query.order('created_at', { ascending: false });
-        if (error) throw new Error(`Failed to fetch projects: ${error.message}`);
-        return (data || []).map(dbToProject);
+        return query;
     }
 
     /**
@@ -65,9 +150,16 @@ export class ProjectService {
         }
 
         if (error) {
-            throw new Error(`Failed to fetch project: ${error.message}`);
+            throw toServiceError(error, 'Không thể tìm thấy dự án');
         }
         return data ? dbToProject(data) : undefined;
+    }
+
+    /**
+     * Get a single project by ID — with retry for transient failures
+     */
+    static async getByIdSafe(id: string): Promise<Project | undefined> {
+        return withRetry(() => this.getById(id));
     }
 
     /**
@@ -90,7 +182,12 @@ export class ProjectService {
             .select()
             .single();
 
-        if (error) throw new Error(`Failed to create project: ${error.message}`);
+        if (error) throw new ServiceError(
+            'Không thể tạo dự án. Vui lòng thử lại.',
+            'CREATE_FAILED',
+            error,
+            { projectName: projectData.ProjectName }
+        );
         return dbToProject(data);
     }
 
@@ -107,7 +204,12 @@ export class ProjectService {
             .select()
             .single();
 
-        if (error) throw new Error(`Failed to update project: ${error.message}`);
+        if (error) throw new ServiceError(
+            'Không thể cập nhật dự án. Vui lòng thử lại.',
+            'UPDATE_FAILED',
+            error,
+            { projectId: id }
+        );
         return dbToProject(updated);
     }
 
@@ -145,11 +247,12 @@ export class ProjectService {
 
             if (error) {
                 console.error("Failed to delete project:", error);
-                throw new Error(error.message);
+                throw new ServiceError('Xóa dự án thất bại', 'DELETE_FAILED', error, { projectId: id });
             }
         } catch (error: any) {
+            if (error instanceof ServiceError) throw error;
             console.error("Project deletion error:", error);
-            throw new Error(`Xóa dự án thất bại: ${error.message}`);
+            throw new ServiceError(`Xóa dự án thất bại: ${error.message}`, 'DELETE_FAILED', error, { projectId: id });
         }
     }
 

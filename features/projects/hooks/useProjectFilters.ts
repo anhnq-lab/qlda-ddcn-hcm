@@ -1,10 +1,13 @@
 /**
- * useProjectFilters — Custom hook managing filter state + URL sync + debounce search
- * Extracted from ProjectList to separate concerns and improve maintainability.
+ * useProjectFilters — Server-side filter state + URL sync + debounce search
+ *
+ * v2: No longer filters client-side. Instead builds QueryParams
+ * that get pushed to useScopedProjects → server-side Supabase query.
  */
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Project, ProjectStatus, ProjectGroup } from '../../../types';
+import { ProjectStatus, ProjectGroup } from '../../../types';
+import type { QueryParams } from '../../../types/api';
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -51,24 +54,21 @@ export interface ProjectFiltersResult {
     setSelectedBoard: (b: string) => void;
     sortBy: SortOption;
     setSortBy: (s: SortOption) => void;
+    // Pagination
+    page: number;
+    setPage: (p: number) => void;
+    pageSize: number;
     // View mode
     viewMode: 'grid' | 'list';
     setViewMode: (m: 'grid' | 'list') => void;
-    // Computed
-    filteredProjects: Project[];
-    sortedProjects: Project[];
-    /** Count per status filter option */
-    statusCounts: Record<string, number>;
-    /** Count per group filter option */
-    groupCounts: Record<string, number>;
-    /** Count per board filter option */
-    boardCounts: Record<string, number>;
+    /** QueryParams to pass to useScopedProjects — server-side filtering */
+    queryParams: QueryParams;
     // Actions
     clearFilters: () => void;
     hasActiveFilters: boolean;
 }
 
-export function useProjectFilters(projects: Project[]): ProjectFiltersResult {
+export function useProjectFilters(defaultPageSize = 50): ProjectFiltersResult {
     const [searchParams, setSearchParams] = useSearchParams();
     const isInitRef = useRef(false);
 
@@ -77,11 +77,17 @@ export function useProjectFilters(projects: Project[]): ProjectFiltersResult {
     const [selectedStatus, setSelectedStatus] = useState(searchParams.get('status') || 'all');
     const [selectedGroup, setSelectedGroup] = useState(searchParams.get('group') || 'all');
     const [selectedBoard, setSelectedBoard] = useState(searchParams.get('board') || 'all');
-    const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'name');
+    const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'created');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>((searchParams.get('view') as 'grid' | 'list') || 'grid');
+    const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
 
-    // Debounced search for filtering
+    // Debounced search for server query
     const debouncedSearch = useDebounce(searchQuery, 300);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch, selectedStatus, selectedGroup, selectedBoard, sortBy]);
 
     // ── Sync state → URL (skip on first render) ──
     useEffect(() => {
@@ -94,65 +100,25 @@ export function useProjectFilters(projects: Project[]): ProjectFiltersResult {
         if (selectedStatus !== 'all') params.set('status', selectedStatus);
         if (selectedGroup !== 'all') params.set('group', selectedGroup);
         if (selectedBoard !== 'all') params.set('board', selectedBoard);
-        if (sortBy !== 'name') params.set('sort', sortBy);
+        if (sortBy !== 'created') params.set('sort', sortBy);
         if (viewMode !== 'grid') params.set('view', viewMode);
+        if (page > 1) params.set('page', page.toString());
         setSearchParams(params, { replace: true });
-    }, [debouncedSearch, selectedStatus, selectedGroup, selectedBoard, sortBy, viewMode, setSearchParams]);
+    }, [debouncedSearch, selectedStatus, selectedGroup, selectedBoard, sortBy, viewMode, page, setSearchParams]);
 
-    // ── Counts (always computed from ALL projects, not filtered) ──
-    const statusCounts = useMemo(() => {
-        const counts: Record<string, number> = { all: projects.length };
-        projects.forEach(p => {
-            const key = p.Status.toString();
-            counts[key] = (counts[key] || 0) + 1;
-        });
-        return counts;
-    }, [projects]);
-
-    const groupCounts = useMemo(() => {
-        const counts: Record<string, number> = { all: projects.length };
-        projects.forEach(p => {
-            counts[p.GroupCode] = (counts[p.GroupCode] || 0) + 1;
-        });
-        return counts;
-    }, [projects]);
-
-    const boardCounts = useMemo(() => {
-        const counts: Record<string, number> = { all: projects.length };
-        projects.forEach(p => {
-            if (p.ManagementBoard) {
-                const key = p.ManagementBoard.toString();
-                counts[key] = (counts[key] || 0) + 1;
-            }
-        });
-        return counts;
-    }, [projects]);
-
-    // ── Filter Logic ──
-    const filteredProjects = useMemo(() => {
-        return projects.filter(p => {
-            const matchesSearch = !debouncedSearch ||
-                p.ProjectName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-                p.ProjectID.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-                (p.InvestorName && p.InvestorName.toLowerCase().includes(debouncedSearch.toLowerCase()));
-            const matchesStatus = selectedStatus === 'all' || p.Status.toString() === selectedStatus;
-            const matchesGroup = selectedGroup === 'all' || p.GroupCode === selectedGroup;
-            const matchesBoard = selectedBoard === 'all' || (p.ManagementBoard && p.ManagementBoard.toString() === selectedBoard);
-            return matchesSearch && matchesStatus && matchesGroup && matchesBoard;
-        });
-    }, [projects, debouncedSearch, selectedStatus, selectedGroup, selectedBoard]);
-
-    // ── Sort Logic ──
-    const sortedProjects = useMemo(() => {
-        return [...filteredProjects].sort((a, b) => {
-            switch (sortBy) {
-                case 'budget': return (b.TotalInvestment || 0) - (a.TotalInvestment || 0);
-                case 'progress': return (b.Progress || 0) - (a.Progress || 0);
-                case 'created': return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-                case 'name': default: return a.ProjectName.localeCompare(b.ProjectName, 'vi');
-            }
-        });
-    }, [filteredProjects, sortBy]);
+    // ── Build QueryParams for server-side query ──
+    const queryParams = useMemo((): QueryParams => ({
+        page,
+        pageSize: defaultPageSize,
+        search: debouncedSearch || undefined,
+        sortBy: sortBy,
+        sortOrder: sortBy === 'name' ? 'asc' : 'desc',
+        filters: {
+            ...(selectedStatus !== 'all' && { status: selectedStatus }),
+            ...(selectedGroup !== 'all' && { group: selectedGroup }),
+            ...(selectedBoard !== 'all' && { board: selectedBoard }),
+        },
+    }), [page, defaultPageSize, debouncedSearch, sortBy, selectedStatus, selectedGroup, selectedBoard]);
 
     // ── Actions ──
     const hasActiveFilters = debouncedSearch !== '' || selectedStatus !== 'all' || selectedGroup !== 'all' || selectedBoard !== 'all';
@@ -162,6 +128,7 @@ export function useProjectFilters(projects: Project[]): ProjectFiltersResult {
         setSelectedStatus('all');
         setSelectedGroup('all');
         setSelectedBoard('all');
+        setPage(1);
     }, []);
 
     return {
@@ -170,9 +137,10 @@ export function useProjectFilters(projects: Project[]): ProjectFiltersResult {
         selectedGroup, setSelectedGroup,
         selectedBoard, setSelectedBoard,
         sortBy, setSortBy,
+        page, setPage,
+        pageSize: defaultPageSize,
         viewMode, setViewMode,
-        filteredProjects, sortedProjects,
-        statusCounts, groupCounts, boardCounts,
+        queryParams,
         clearFilters, hasActiveFilters,
     };
 }

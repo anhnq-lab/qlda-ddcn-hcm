@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useSlidePanel } from '../../context/SlidePanelContext';
 import FlowchartViewer from './components/FlowchartViewer';
 import WorkflowBuilderPanel from './components/WorkflowBuilderPanel';
+import InternalWorkflowViewerPanel from './components/InternalWorkflowViewerPanel';
 import { WorkflowStepDetailPanel } from './components/WorkflowStepDetailPanel';
 
 const WorkflowManagerPage: React.FC = () => {
@@ -157,6 +158,21 @@ const WorkflowManagerPage: React.FC = () => {
 
     // ─── VIEW: Overview Panel ─────────────────────────────────
     const handleViewWorkflowOverview = (wf: Workflow) => {
+        const isInternalWorkflow = ['hr', 'finance', 'document', 'asset', 'other'].includes(wf.category || 'project');
+        
+        if (isInternalWorkflow) {
+            const panelId = openPanel({
+                title: "Chi tiết Quy trình Nội bộ",
+                icon: <FileText size={16} className="text-primary-500" />,
+                url: `/quy-trinh/${wf.id}`,
+                component: <InternalWorkflowViewerPanel 
+                               workflowId={wf.id} 
+                               onClose={() => closePanel(panelId)} 
+                           />
+            });
+            return;
+        }
+
         const panelId = openPanel({
             title: "Tổng quan Quy trình",
             icon: <FileText size={16} className="text-primary-500" />,
@@ -200,11 +216,13 @@ const WorkflowManagerPage: React.FC = () => {
         return matchesTab && matchesSearch;
     });
 
-    // ─── SEED: 3 Quy trình thực hiện DAXD theo Sổ tay ĐTCHD 2025 ───────────
+    // ─── SEED: Quy trình thực hiện DAXD và Quy trình Nội bộ ───────────
     const handleSeedWorkflows = async (forceQuiet = true) => {
         setIsSeeding(true);
         try {
-            const allTemplates = [...getStandardWorkflowTemplates()];
+            // Import dynamically or explicitly if already imported
+            const { getInternalWorkflowTemplates } = await import('./data/seedInternalWorkflows');
+            const allTemplates = [...getStandardWorkflowTemplates(), ...getInternalWorkflowTemplates()];
 
             // Dùng cơ chế UPSERT để tránh hoàn toàn lỗi duplicate key do race condition
             for (const wfInput of allTemplates) {
@@ -309,6 +327,18 @@ const WorkflowManagerPage: React.FC = () => {
                 </div>
                 
                 <div className="relative z-10 flex items-center gap-3 w-full md:w-auto">
+                    <button 
+                        onClick={() => handleSeedWorkflows(false)} 
+                        disabled={isSeeding} 
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-6 py-2.5 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition duration-200"
+                    >
+                        {isSeeding ? (
+                            <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            <DownloadCloud size={18} />
+                        )}
+                        Nạp Dữ Liệu Mẫu
+                    </button>
                     <button onClick={handleCreateWorkflow} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-700 transition duration-200 shadow-md shadow-primary-600/20">
                         <Plus size={18} /> Tạo Quy Trình
                     </button>

@@ -29,9 +29,9 @@ export const LegalDocumentsSection: React.FC<LegalDocumentsSectionProps> = ({
     const handleDownload = (path?: string) => {
         if (path) {
             // In production, this would trigger actual download
-            alert(`Download: ${path}`);
+            console.warn(`Download: ${path}`);
         } else {
-            alert('Chưa có file đính kèm');
+            console.warn('Chưa có file đính kèm');
         }
     };
 

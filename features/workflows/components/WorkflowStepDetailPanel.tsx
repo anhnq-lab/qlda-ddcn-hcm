@@ -206,8 +206,23 @@ export const WorkflowStepDetailPanel: React.FC<WorkflowStepDetailPanelProps> = (
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-fade-in">
-            <Section title="Mô tả công việc" icon={FileText}>
-              <p className="text-sm text-gray-700 dark:text-slate-300">{meta.description || 'Chưa có mô tả.'}</p>
+            <Section title="Mô tả công việc & SOP" icon={FileText}>
+              {meta.guidelines || meta.description ? (
+                <div className="prose prose-sm prose-slate dark:prose-invert max-w-none 
+                  prose-headings:font-bold prose-headings:text-slate-800 dark:prose-headings:text-slate-100
+                  prose-p:text-slate-600 dark:prose-p:text-slate-300
+                  prose-a:text-primary-600 prose-li:my-0.5">
+                  {(meta.guidelines || meta.description).split('\n').map((line: string, idx: number) => {
+                      let htmlLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                      htmlLine = htmlLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                      if (htmlLine.startsWith('- ')) return <li key={idx} className="ml-4 list-disc marker:text-primary-400" dangerouslySetInnerHTML={{ __html: htmlLine.substring(2) }} />;
+                      if (htmlLine.startsWith('  - ')) return <li key={idx} className="ml-8 list-[circle] marker:text-slate-400" dangerouslySetInnerHTML={{ __html: htmlLine.substring(4) }} />;
+                      return <p key={idx} className="mb-2 text-sm" dangerouslySetInnerHTML={{ __html: htmlLine }} />;
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-700 dark:text-slate-300">Chưa có mô tả.</p>
+              )}
             </Section>
             <div className="grid grid-cols-2 gap-4">
               <Section title="Căn cứ pháp lý" icon={Gavel} color="amber">

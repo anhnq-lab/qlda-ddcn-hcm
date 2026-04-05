@@ -9,6 +9,7 @@ import {
 import { generateFromImage } from '@/services/ai/geminiProxy';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/utils/format';
+import { useToast } from '@/components/ui/Toast';
 
 // ══════════════════════════════════════════════════════════════
 //  Types
@@ -409,6 +410,7 @@ const CostBreakdownDisplay: React.FC<{
 // ══════════════════════════════════════════════════════════════
 
 export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ project, onUpdate }) => {
+    const { addToast } = useToast();
     const projectGroup = (project.GroupCode as ProjectGroup) || ProjectGroup.B;
 
     // Filter rows by project group
@@ -616,7 +618,7 @@ export const ProjectComplianceTab: React.FC<ProjectComplianceTabProps> = ({ proj
             setDataEdits({});
         } catch (err) {
             console.error('Save error:', err);
-            alert('Lỗi khi lưu dữ liệu');
+            addToast({ title: 'Lỗi lưu dữ liệu', message: 'Không thể cập nhật thông tin tuân thủ', type: 'error' });
         } finally {
             setSaving(false);
         }

@@ -18,6 +18,7 @@ import {
     Printer
 } from 'lucide-react';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
+import { useToast } from '@/components/ui/Toast';
 import { Project } from '@/types';
 import {
     TemplateConfig, ExportDataContext, autoFillFields, getTemplateConfig,
@@ -61,6 +62,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
     const [loading, setLoading] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [copied, setCopied] = useState(false);
+    const { addToast } = useToast();
 
     // Get template config
     const config = useMemo(() => getTemplateConfig(templatePath), [templatePath]);
@@ -125,7 +127,7 @@ export const TemplateExportModal: React.FC<TemplateExportModalProps> = ({
             await exportTemplateAsDocx(config, formData, context);
         } catch (err) {
             console.error('Export failed:', err);
-            alert('Lỗi khi xuất file. Vui lòng thử lại.');
+            addToast({ title: 'Lỗi xuất file', message: 'Không thể xuất DOCX. Vui lòng thử lại.', type: 'error' });
         }
         setExporting(false);
     };

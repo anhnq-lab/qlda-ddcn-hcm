@@ -279,3 +279,8 @@ export interface ConstructionWork {
     DesignLevel: number;
     Address: string;
 }
+
+export interface SelectedMember {
+    employeeId: string;
+    role: string;
+}

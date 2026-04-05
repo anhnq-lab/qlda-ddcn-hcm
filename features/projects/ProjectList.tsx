@@ -2,38 +2,47 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVirtualList } from '../../hooks/useVirtualList';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
+import { useProjectsRealtime } from '../../hooks/useProjectsRealtime';
+import { useInvalidateProjects } from '../../hooks/usePaginatedProjects';
 import { ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
 import { ProjectCard } from './ProjectCard';
 import PermissionGate from '../../components/PermissionGate';
 import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { CreateProjectModal, SelectedMember } from './components/CreateProjectModal';
+import { CreateProjectModal } from './components/CreateProjectModal';
+import { SelectedMember } from '../../types';
 import ProjectService from '../../services/ProjectService';
 import { Project } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { ProjectMemberService } from '../../services/ProjectMemberService';
 import { useProjectFilters, STATUS_OPTIONS, GROUP_OPTIONS, SortOption } from './hooks/useProjectFilters';
+import { useToast } from '../../components/ui/Toast';
 
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const { addToast } = useToast();
 
-    // Data Fetching with scope
-    const { scopedProjects, isLoading } = useScopedProjects();
-    const refetch = () => { /* refetch handled by react-query */ };
+    // ── Real-time: auto-refresh when other users modify projects ──
+    useProjectsRealtime();
+    const invalidateProjects = useInvalidateProjects();
 
-    // Filter Hook (debounce, URL sync, counts)
+    // ── Filter Hook (debounce, URL sync, builds QueryParams) ──
     const {
         searchQuery, setSearchQuery,
         selectedStatus, setSelectedStatus,
         selectedGroup, setSelectedGroup,
         selectedBoard, setSelectedBoard,
         sortBy, setSortBy,
+        page, setPage,
         viewMode, setViewMode,
-        sortedProjects,
-        statusCounts, groupCounts, boardCounts,
+        queryParams,
         clearFilters, hasActiveFilters,
-    } = useProjectFilters(scopedProjects);
+    } = useProjectFilters();
+
+    // ── Data Fetching with scope + server-side pagination ──
+    const { scopedProjects, total, totalPages, isLoading, refetch } = useScopedProjects(queryParams);
 
     // Create Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,8 +56,8 @@ const ProjectList: React.FC = () => {
     }, []);
 
     const { containerRef, virtualItems, totalHeight } = useVirtualList({
-        items: sortedProjects,
-        itemHeight: isMobile ? 290 : 144, // 144px for desktop list, ~290 for mobile column
+        items: scopedProjects,
+        itemHeight: isMobile ? 290 : 144,
         overscan: 5,
     });
 
@@ -63,26 +72,27 @@ const ProjectList: React.FC = () => {
 
             // 2. Save Project Members
             if (members.length > 0) {
-                const memberRows = members.map(m => ({
-                    project_id: newProject.ProjectID,
-                    employee_id: m.employeeId,
-                    role: m.role,
-                    joined_at: new Date().toISOString(),
-                }));
-                const { error: memberError } = await supabase
-                    .from('project_members')
-                    .insert(memberRows);
-                if (memberError) console.error('Failed to save members:', memberError.message);
+                try {
+                    await ProjectMemberService.saveMembers(newProject.ProjectID, members);
+                } catch (memberError: any) {
+                    console.error('Failed to save members:', memberError.message);
+                    addToast({ title: 'Cảnh báo', message: 'Tạo dự án thành công nhưng lưu thành viên thất bại.', type: 'warning' });
+                }
             }
 
             // 3. Notify and Navigate
-            refetch();
+            invalidateProjects();
             setIsModalOpen(false);
+            addToast({ title: 'Thành công', message: `Đã tạo dự án "${newProject.ProjectName}"`, type: 'success' });
             navigate(`/projects/${newProject.ProjectID}`);
         } catch (error) {
             console.error('Error creating project:', error);
             const errObj = error as any;
-            alert(`Lỗi khi tạo dự án: ${errObj?.message || JSON.stringify(errObj) || 'Vui lòng thử lại.'}`);
+            addToast({
+                title: 'Lỗi tạo dự án',
+                message: errObj?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.',
+                type: 'error',
+            });
         }
     };
 
@@ -90,6 +100,65 @@ const ProjectList: React.FC = () => {
     const handleOpenProject = useCallback((project: Project) => {
         navigate(`/projects/${project.ProjectID}`);
     }, [navigate]);
+
+    // ── Pagination Controls ──
+    const PaginationBar = () => {
+        if (totalPages <= 1) return null;
+        const startItem = (page - 1) * 50 + 1;
+        const endItem = Math.min(page * 50, total);
+
+        return (
+            <div className="flex items-center justify-between bg-[#FCF9F2] dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2.5 mt-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    Hiển thị {startItem}-{endItem} / {total} dự án
+                </span>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page <= 1}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        aria-label="Trang trước"
+                    >
+                        <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                    </button>
+                    {/* Page buttons */}
+                    {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 7) {
+                            pageNum = i + 1;
+                        } else if (page <= 4) {
+                            pageNum = i + 1;
+                        } else if (page >= totalPages - 3) {
+                            pageNum = totalPages - 6 + i;
+                        } else {
+                            pageNum = page - 3 + i;
+                        }
+                        return (
+                            <button
+                                key={pageNum}
+                                onClick={() => setPage(pageNum)}
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                    page === pageNum
+                                        ? 'bg-primary-500 text-white shadow-sm'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
+                    <button
+                        onClick={() => setPage(Math.min(totalPages, page + 1))}
+                        disabled={page >= totalPages}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        aria-label="Trang sau"
+                    >
+                        <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="flex flex-col gap-4 animate-in fade-in duration-300 pb-20">
@@ -151,12 +220,6 @@ const ProjectList: React.FC = () => {
                                                     />
                                                     <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-sm" style={{ backgroundColor: opt.hex }}></span>
                                                     <span className={`text-sm flex-1 ${selectedStatus === opt.val ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300 font-medium'}`}>{opt.label}</span>
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedStatus === opt.val
-                                                        ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                                        }`}>
-                                                        {statusCounts[opt.val] || 0}
-                                                    </span>
                                                 </label>
                                             ))}
                                         </div>
@@ -176,12 +239,6 @@ const ProjectList: React.FC = () => {
                                                         }`}
                                                 >
                                                     <span>{g === 'all' ? 'Tất cả nhóm' : `Nhóm ${g}`}</span>
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedGroup === g
-                                                        ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                                        }`}>
-                                                        {groupCounts[g] || 0}
-                                                    </span>
                                                 </button>
                                             ))}
                                         </div>
@@ -198,12 +255,6 @@ const ProjectList: React.FC = () => {
                                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center ${selectedBoard === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                                             >
                                                 <span>Tất cả ban</span>
-                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedBoard === 'all'
-                                                    ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
-                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                                    }`}>
-                                                    {boardCounts['all'] || 0}
-                                                </span>
                                             </button>
                                             {MANAGEMENT_BOARDS.map(board => (
                                                 <button
@@ -213,12 +264,6 @@ const ProjectList: React.FC = () => {
                                                 >
                                                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: board.hex }}></span>
                                                     <span className="flex-1">{board.label}</span>
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${selectedBoard === board.value.toString()
-                                                        ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                                        }`}>
-                                                        {boardCounts[board.value.toString()] || 0}
-                                                    </span>
                                                 </button>
                                             ))}
                                         </div>
@@ -248,7 +293,7 @@ const ProjectList: React.FC = () => {
                         <div className="flex items-center gap-3 shrink-0 px-2 pb-2 md:pb-0">
                             {/* Result count */}
                             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap hidden sm:inline">
-                                {sortedProjects.length} / {scopedProjects.length} dự án
+                                {total} dự án
                             </span>
 
                             <div className="h-8 w-px bg-slate-100 dark:bg-slate-700 hidden md:block"></div>
@@ -313,7 +358,7 @@ const ProjectList: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
-                        ) : sortedProjects.length === 0 ? (
+                        ) : scopedProjects.length === 0 ? (
                             <EmptyState
                                 icon={
                                     <svg width="60" height="60" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -367,7 +412,7 @@ const ProjectList: React.FC = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {sortedProjects.map(project => (
+                                {scopedProjects.map(project => (
                                     <ProjectCard
                                         key={project.ProjectID}
                                         project={project}
@@ -378,6 +423,9 @@ const ProjectList: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination */}
+                    <PaginationBar />
                 </div>
             </div>
 

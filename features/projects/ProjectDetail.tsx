@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTabSearchParam } from '@/hooks/useTabSearchParam';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProjectService } from '@/services/ProjectService';
+import { ProjectMemberService } from '@/services/ProjectMemberService';
 import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
 import { Project, Employee, ProjectStage } from '@/types';
 import { useUpdateTask } from '@/hooks/useTasks';
@@ -22,11 +23,12 @@ import { supabase } from '@/lib/supabase';
 import { ProjectHeader } from './components/ProjectHeader';
 import { ProjectInfoTab } from './components/tabs/ProjectInfoTab';
 import { ProjectPlanTab } from './components/tabs/ProjectPlanTab';
-
 import { ProjectPackagesTab } from './components/tabs/ProjectPackagesTab';
+
 import { ProjectCapitalTab } from './components/tabs/ProjectCapitalTab';
 import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
 import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
+import { ProjectWorkflowTab } from './components/tabs/ProjectWorkflowTab';
 import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
 import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
@@ -39,6 +41,8 @@ import { AIForecastChart } from '@/components/ai/AIForecastChart';
 import { AIDocumentDrafter } from '@/components/ai/AIDocumentDrafter';
 import { AIReportModal } from './components/AIReportModal';
 import { generateMonthlyReport } from '@/services/aiService';
+import { useToast } from '@/components/ui/Toast';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // Tab definitions — extracted for reuse
 const TAB_DEFINITIONS = [
@@ -49,6 +53,7 @@ const TAB_DEFINITIONS = [
     { id: 'documents', label: 'HỒ SƠ', icon: FolderOpen },
     { id: 'inspection', label: 'THANH TRA', icon: Shield },
     { id: 'operations', label: 'VẬN HÀNH', icon: Settings2 },
+    { id: 'workflow', label: 'QUY TRÌNH', icon: GitBranch },
     { id: 'tt24', label: 'ĐỒNG BỘ CSDL', icon: Database },
 ] as const;
 
@@ -110,6 +115,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     // State
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
+    const { addToast } = useToast();
 
     // Tab state synced with URL ?tab= (persists on reload)
     const [activeTab, setActiveTab] = useTabSearchParam<TabId>('info', TAB_IDS);
@@ -153,6 +159,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const [planMounted, setPlanMounted] = useState(activeTab === 'plan');
     const [packagesMounted, setPackagesMounted] = useState(activeTab === 'packages');
     const [capitalMounted, setCapitalMounted] = useState(activeTab === 'capital');
+    const [workflowMounted, setWorkflowMounted] = useState(activeTab === 'workflow');
 
     // Mount heavy tabs on first visit
     useEffect(() => {
@@ -160,7 +167,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (activeTab === 'plan' && !planMounted) setPlanMounted(true);
         if (activeTab === 'packages' && !packagesMounted) setPackagesMounted(true);
         if (activeTab === 'capital' && !capitalMounted) setCapitalMounted(true);
-    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted]);
+        if (activeTab === 'workflow' && !workflowMounted) setWorkflowMounted(true);
+    }, [activeTab, opsMounted, planMounted, packagesMounted, capitalMounted, workflowMounted]);
 
     // Keyboard: Arrow Left/Right to switch tabs
     const activeTabRef = React.useRef(activeTab);
@@ -187,7 +195,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (activeTab === 'info' && id && !loading) {
             ProjectService.getById(id).then(data => {
                 if (data) setProject(data);
-            }).catch(() => { });
+            }).catch((err) => {
+                console.warn('ProjectDetail: refetch on info tab failed:', err?.message);
+            });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, id]);
@@ -222,39 +232,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (!project?.ProjectID) return;
         const loadMembers = async () => {
             try {
-                const { data: memberRows, error } = await supabase
-                    .from('project_members')
-                    .select('employee_id, role')
-                    .eq('project_id', project.ProjectID);
-                if (error || !memberRows || memberRows.length === 0) {
-                    setProjectMembers([]);
-                    return;
-                }
-                const empIds = memberRows.map((m: any) => m.employee_id);
-                const { data: empData } = await supabase
-                    .from('employees')
-                    .select('*')
-                    .in('employee_id', empIds);
-                if (empData && empData.length > 0) {
-                    const members: Employee[] = empData.map((e: any) => ({
-                        EmployeeID: e.employee_id,
-                        FullName: e.full_name || '',
-                        Department: e.department || '',
-                        Position: e.position || '',
-                        Role: (memberRows.find((m: any) => m.employee_id === e.employee_id)?.role || 'Thành viên') as any,
-                        Email: e.email || '',
-                        Phone: e.phone || '',
-                        JoinDate: e.join_date || '',
-                        Status: e.status || 'active',
-                        AvatarUrl: e.avatar_url || '',
-                        Username: e.username || e.full_name || '',
-                    }));
-                    setProjectMembers(members);
-                } else {
-                    setProjectMembers([]);
-                }
-            } catch (err) {
-                console.error('Failed to load project members:', err);
+                const members = await ProjectMemberService.getMembersWithDetails(project.ProjectID);
+                setProjectMembers(members);
+            } catch (error) {
+                console.error('Failed to load project members:', error);
                 setProjectMembers([]);
             }
         };
@@ -268,11 +249,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         try {
             const result = await NationalGatewayService.syncProject(project);
             setSyncResult(result);
-            if (result.success) alert(result.message);
-            else alert(`Lỗi: ${result.message}`);
+            if (result.success) addToast({ title: 'Đồng bộ thành công', message: result.message, type: 'success' });
+            else addToast({ title: 'Đồng bộ thất bại', message: result.message, type: 'error' });
         } catch (error) {
             console.error(error);
-            alert('Có lỗi xảy ra khi đồng bộ.');
+            addToast({ title: 'Lỗi đồng bộ', message: 'Có lỗi xảy ra khi đồng bộ dữ liệu.', type: 'error' });
         } finally {
             setIsSyncing(false);
         }
@@ -321,7 +302,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             setIsGeneratingReport(true);
             try {
                 const report = await NationalGatewayService.generateSettlementReport(project.ProjectID);
-                alert(`Đã trích xuất báo cáo quyết toán: ${report.id} thành công!`);
+                addToast({ title: 'Thành công', message: `Đã trích xuất báo cáo quyết toán: ${report.id}`, type: 'success' });
             } catch (error) {
                 console.error(error);
             } finally {
@@ -342,7 +323,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             navigate('/projects');
         } catch (err) {
             console.error('Delete project failed:', err);
-            alert('Xoá dự án thất bại. Vui lòng thử lại.');
+            addToast({ title: 'Xóa thất bại', message: 'Xoá dự án thất bại. Vui lòng thử lại.', type: 'error' });
         } finally {
             setIsDeleting(false);
             setShowDeleteModal(false);
@@ -502,6 +483,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                 </div>
             )}
             {activeTab === 'documents' && (
+                <ErrorBoundary>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <div className="space-y-3">
                         <AICompliancePanel projectId={project.ProjectID} />
@@ -522,8 +504,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         />
                     </div>
                 </div>
+                </ErrorBoundary>
             )}
             {activeTab === 'tt24' && (
+                <ErrorBoundary>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <div className="space-y-3">
                         <ProjectComplianceTab
@@ -534,11 +518,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         />
                     </div>
                 </div>
+                </ErrorBoundary>
             )}
             {activeTab === 'inspection' && (
+                <ErrorBoundary>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <ProjectInspectionTab projectID={project.ProjectID} />
                 </div>
+                </ErrorBoundary>
             )}
 
             {/* Heavy tabs: plan, packages, capital — lazy mounted, stay alive via CSS visibility */}
@@ -547,6 +534,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'plan' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'plan' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
+                    <ErrorBoundary>
                     <ProjectPlanTab
                         workflowTasks={workflowTasks}
                         projectID={project.ProjectID}
@@ -555,6 +543,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         isODA={project.IsODA}
                         project={project}
                     />
+                    </ErrorBoundary>
                 </div>
             )}
             {packagesMounted && (
@@ -562,12 +551,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'packages' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'packages' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
+                    <ErrorBoundary>
                     <ProjectPackagesTab
                         projectID={project.ProjectID}
                         project={project}
                         openPackageId={openPackageId}
                         initialDetailTab={initialDetailTab}
                     />
+                    </ErrorBoundary>
                 </div>
             )}
             {capitalMounted && (
@@ -580,8 +571,20 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                             projectId={project.ProjectID}
                             currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}
                         />
+                        <ErrorBoundary>
                         <ProjectCapitalTab projectID={project.ProjectID} />
+                        </ErrorBoundary>
                     </div>
+                </div>
+            )}
+            {workflowMounted && (
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'workflow' ? '' : 'absolute inset-0 pointer-events-none'}`}
+                    style={activeTab === 'workflow' ? undefined : { visibility: 'hidden', zIndex: -1 }}
+                >
+                    <ErrorBoundary>
+                    <ProjectWorkflowTab projectID={project.ProjectID} project={project} />
+                    </ErrorBoundary>
                 </div>
             )}
             {opsMounted && (
@@ -589,7 +592,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     className={`flex-1 min-h-0 ${activeTab === 'operations' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'operations' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
+                    <ErrorBoundary>
                     <ProjectOperationsTab projectID={project.ProjectID} />
+                    </ErrorBoundary>
                 </div>
             )}
 
@@ -615,56 +620,19 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         await handleEditSave(data as Partial<Project>);
                         // Save members: delete old, insert new
                         if (project) {
-                            await supabase
-                                .from('project_members')
-                                .delete()
-                                .eq('project_id', project.ProjectID);
-                            if (members.length > 0) {
-                                const memberRows = members.map(m => ({
-                                    project_id: project.ProjectID,
-                                    employee_id: m.employeeId,
-                                    role: m.role,
-                                    joined_at: new Date().toISOString(),
-                                }));
-                                const { error } = await supabase
-                                    .from('project_members')
-                                    .insert(memberRows);
-                                if (error) console.error('Failed to save members:', error.message);
-                            }
-                            // Reload members to update the overview tab
-                            const { data: updatedMembers } = await supabase
-                                .from('project_members')
-                                .select('employee_id, role')
-                                .eq('project_id', project.ProjectID);
-                            if (updatedMembers && updatedMembers.length > 0) {
-                                const empIds = updatedMembers.map((m: any) => m.employee_id);
-                                const { data: empData } = await supabase
-                                    .from('employees')
-                                    .select('*')
-                                    .in('employee_id', empIds);
-                                if (empData) {
-                                    setProjectMembers(empData.map((e: any) => ({
-                                        EmployeeID: e.employee_id,
-                                        FullName: e.full_name || '',
-                                        Department: e.department || '',
-                                        Position: e.position || '',
-                                        Role: (updatedMembers.find((m: any) => m.employee_id === e.employee_id)?.role || 'Thành viên') as any,
-                                        Email: e.email || '',
-                                        Phone: e.phone || '',
-                                        JoinDate: e.join_date || '',
-                                        Status: e.status || 'active',
-                                        AvatarUrl: e.avatar_url || '',
-                                        Username: e.username || e.full_name || '',
-                                    })));
-                                }
-                            } else {
-                                setProjectMembers([]);
+                            try {
+                                await ProjectMemberService.replaceMembers(project.ProjectID, members);
+                                // Reload members to update the overview tab
+                                const updatedMembers = await ProjectMemberService.getMembersWithDetails(project.ProjectID);
+                                setProjectMembers(updatedMembers);
+                            } catch (error) {
+                                console.error('Failed to save members:', error);
                             }
                         }
                         setShowEditModal(false);
                     } catch (error) {
                         const errObj = error as any;
-                        alert(`Lỗi khi lưu dự án: ${errObj?.message || JSON.stringify(errObj) || 'Vui lòng thử lại.'}`);
+                        addToast({ title: 'Lỗi cập nhật', message: errObj?.message || 'Vui lòng thử lại.', type: 'error' });
                         console.error('Edit error:', error);
                     }
                 }}

@@ -56,7 +56,8 @@ export default defineConfig(({ mode }) => {
             }
           }
         }
-      }
+      },
+      chunkSizeWarningLimit: 5000
     },
     worker: {
       format: 'es'

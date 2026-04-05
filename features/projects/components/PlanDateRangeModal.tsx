@@ -184,13 +184,12 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
     isLoading = false,
     showWorkflowOption = false,
 }) => {
-    const [mode, setMode] = useState<DateRangeMode>('range');
+    // Only 'range' mode is truly relevant here now, but we keep it simple since we only need Start Date for Workflow
     const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [durationDays, setDurationDays] = useState<number>(365);
     const [error, setError] = useState('');
     const [workflows, setWorkflows] = useState<any[]>([]);
     const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>('');
+    const [estimatedDays, setEstimatedDays] = useState<number>(0);
 
     // Fetch workflows when modal opens
     useEffect(() => {
@@ -211,76 +210,58 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
         fetchWorkflows();
     }, [isOpen, showWorkflowOption]);
 
+    // Fetch estimated days when workflow changes
+    useEffect(() => {
+        if (!selectedWorkflowId) {
+            setEstimatedDays(0);
+            return;
+        }
+        const fetchSLA = async () => {
+            const { data, error } = await supabase
+                .from('workflow_nodes')
+                .select('sla_formula, type')
+                .eq('workflow_id', selectedWorkflowId)
+                .eq('is_deleted', false);
+                
+            if (data && !error) {
+                const workNodes = data.filter(n => ['approval', 'input', 'automated', 'start'].includes(n.type));
+                let totalSla = 0;
+                workNodes.forEach(n => {
+                    if (n.sla_formula) {
+                        const match = n.sla_formula.match(/^(\d+)d$/);
+                        if (match) totalSla += parseInt(match[1]);
+                    } else {
+                        totalSla += 1;
+                    }
+                });
+                setEstimatedDays(totalSla);
+            }
+        };
+        fetchSLA();
+    }, [selectedWorkflowId]);
+
     // Initialize default dates when modal opens
     useEffect(() => {
         if (!isOpen) return;
         const today = defaultStartDate || new Date().toISOString().split('T')[0];
         setStartDate(today);
-        const defaultEnd = new Date(today);
-        defaultEnd.setMonth(defaultEnd.getMonth() + 12);
-        setEndDate(defaultEnd.toISOString().split('T')[0]);
-        setDurationDays(365);
         setError('');
     }, [isOpen, defaultStartDate]);
-
-    // Auto-recalculate end date from duration
-    useEffect(() => {
-        if (mode === 'duration' && startDate && durationDays > 0) {
-            const end = new Date(startDate);
-            end.setDate(end.getDate() + durationDays);
-            setEndDate(end.toISOString().split('T')[0]);
-        }
-    }, [mode, startDate, durationDays]);
-
-    // Auto-recalculate duration from end date
-    useEffect(() => {
-        if (mode === 'range' && startDate && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const diff = Math.round((end.getTime() - start.getTime()) / 86400000);
-            if (diff > 0) setDurationDays(diff);
-        }
-    }, [mode, startDate, endDate]);
 
     if (!isOpen) return null;
 
     const handleConfirm = () => {
         setError('');
         if (!startDate) { setError('Vui lòng nhập ngày bắt đầu'); return; }
-        if (!endDate) { setError('Vui lòng nhập ngày kết thúc'); return; }
-
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000);
-
-        if (totalDays <= 0) {
-            setError('Ngày kết thúc phải sau ngày bắt đầu');
-            return;
-        }
 
         if (showWorkflowOption && !selectedWorkflowId) {
             setError('Vui lòng chọn quy trình dự án');
             return;
         }
 
-        onConfirm({ startDate, endDate, totalDays }, showWorkflowOption ? selectedWorkflowId : undefined);
-    };
-
-    const presets = [
-        { label: '6 tháng', days: 180 },
-        { label: '1 năm', days: 365 },
-        { label: '2 năm', days: 730 },
-        { label: '3 năm', days: 1095 },
-        { label: '5 năm', days: 1825 },
-    ];
-
-    const applyPreset = (days: number) => {
-        setDurationDays(days);
-        if (startDate) {
-            const end = new Date(startDate);
-            end.setDate(end.getDate() + days);
-            setEndDate(end.toISOString().split('T')[0]);
-        }
+        // We only pass startDate really needed for workflow mode. 
+        // EndDate dummy is preserved for compatibility if needed.
+        onConfirm({ startDate, endDate: startDate, totalDays: estimatedDays }, showWorkflowOption ? selectedWorkflowId : undefined);
     };
 
     const fmt = (iso: string) => {
@@ -288,15 +269,24 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
         return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
+    // Calculate approximate end date based on working days
+    const calculateEndDate = (start: string, days: number) => {
+        if (!start || days === 0) return '';
+        let d = new Date(start);
+        let added = 0;
+        while (added < days) {
+            d.setDate(d.getDate() + 1);
+            if (d.getDay() !== 0 && d.getDay() !== 6) { // Skip Sunday(0) and Saturday(6)
+                added++;
+            }
+        }
+        return fmt(d.toISOString().split('T')[0]);
+    };
+
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Modal */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl shadow-sm w-full max-w-md border border-gray-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 rounded-t-2xl">
@@ -311,49 +301,13 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                             )}
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                    >
+                    <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
                         <X className="w-4 h-4 text-gray-400" />
                     </button>
                 </div>
 
                 {/* Body */}
                 <div className="px-6 py-5 space-y-5">
-                    {/* Mode Toggle */}
-                    <div className="flex rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden bg-gray-50 dark:bg-slate-900 p-1 gap-1">
-                        <button
-                            onClick={() => setMode('range')}
-                            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'range'
-                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm border border-emerald-200 dark:border-emerald-700'
-                                : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
-                            }`}
-                        >
-                            <Calendar className="w-3.5 h-3.5" />
-                            Ngày bắt đầu &amp; kết thúc
-                        </button>
-                        <button
-                            onClick={() => setMode('duration')}
-                            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'duration'
-                                ? 'bg-[#FCF9F2] dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
-                                : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
-                            }`}
-                        >
-                            <Clock className="w-3.5 h-3.5" />
-                            Ngày bắt đầu &amp; thời gian
-                        </button>
-                    </div>
-
-                    {/* Start Date — always shown */}
-                    <DateInput
-                        label="Ngày bắt đầu"
-                        required
-                        isoValue={startDate}
-                        onChange={setStartDate}
-                        colorClass="focus:ring-emerald-300 dark:focus:ring-emerald-700"
-                    />
-
                     {/* Workflow Template Selection */}
                     {showWorkflowOption && (
                         <div className="space-y-1.5">
@@ -373,58 +327,27 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         </div>
                     )}
 
-                    {/* Conditional: End Date or Duration */}
-                    {mode === 'range' ? (
-                        <DateInput
-                            label="Ngày kết thúc"
-                            required
-                            isoValue={endDate}
-                            onChange={setEndDate}
-                            minIso={startDate}
-                            colorClass="focus:ring-emerald-300 dark:focus:ring-emerald-700"
-                        />
-                    ) : (
-                        <div className="space-y-2">
-                            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300">
-                                Thời gian thực hiện (ngày) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={durationDays}
-                                min={1}
-                                max={3650}
-                                onChange={e => setDurationDays(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-full px-3 py-2.5 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-[#FCF9F2] dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 transition-shadow"
-                            />
-                            {/* Preset buttons */}
-                            <div className="flex gap-1.5 flex-wrap">
-                                {presets.map(p => (
-                                    <button
-                                        key={p.days}
-                                        onClick={() => applyPreset(p.days)}
-                                        className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-all ${durationDays === p.days
-                                            ? 'bg-blue-500 text-white border-blue-500'
-                                            : 'bg-[#FCF9F2] dark:bg-slate-700 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-600 hover:border-blue-300 hover:text-blue-600'
-                                        }`}
-                                    >
-                                        {p.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    {/* Start Date */}
+                    <DateInput
+                        label="Ngày bắt đầu dự án"
+                        required
+                        isoValue={startDate}
+                        onChange={setStartDate}
+                        colorClass="focus:ring-emerald-300 dark:focus:ring-emerald-700"
+                    />
 
                     {/* Summary Preview */}
-                    {startDate && endDate && new Date(endDate) > new Date(startDate) && (
+                    {startDate && estimatedDays > 0 && (
                         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-                            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
-                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                            <div className="flex items-start gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                                 <div>
-                                    <span className="font-semibold">Hệ thống sẽ phân bổ công việc từ </span>
-                                    <span className="font-bold">{fmt(startDate)}</span>
-                                    <span className="font-semibold"> đến </span>
-                                    <span className="font-bold">{fmt(endDate)}</span>
-                                    <span className="font-semibold"> (~{durationDays} ngày)</span>
+                                    <span className="font-semibold block mb-1">Dự kiến tiến độ thực hiện:</span>
+                                    <ul className="space-y-1 pl-1">
+                                        <li>• Tổng thời gian: <strong>{estimatedDays} ngày làm việc</strong> (SLA)</li>
+                                        <li>• Bắt đầu: <strong>{fmt(startDate)}</strong></li>
+                                        <li>• Dự kiến hoàn thành: <strong>{calculateEndDate(startDate, estimatedDays)}</strong></li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -459,7 +382,7 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
                         ) : (
                             <>
                                 <Zap className="w-4 h-4" />
-                                Tạo kế hoạch tự động
+                                Tạo kế hoạch
                             </>
                         )}
                     </button>
@@ -468,3 +391,4 @@ export const PlanDateRangeModal: React.FC<PlanDateRangeModalProps> = ({
         </div>
     );
 };
+

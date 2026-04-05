@@ -15,6 +15,7 @@ import { exportBiddingPackagesToExcel } from '../../../../utils/biddingExcelIO';
 import { supabase } from '../../../../lib/supabase';
 import { biddingPackageToDb } from '../../../../lib/dbMappers';
 import { useSlidePanel } from '../../../../context/SlidePanelContext';
+import { useToast } from '../../../../components/ui/Toast';
 import {
     Briefcase, CheckCircle2, FileText, Search, Plus,
     MoreVertical, Eye, Edit, Trash2, ExternalLink,
@@ -48,6 +49,7 @@ interface PlanGroup {
 export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectID, project, openPackageId, initialDetailTab }) => {
     const queryClient = useQueryClient();
     const { openPanel, closePanel } = useSlidePanel();
+    const { addToast } = useToast();
 
     const { data: packages, isLoading, error } = useQuery({
         queryKey: ['project-packages', projectID],
@@ -399,7 +401,7 @@ export const ProjectPackagesTab: React.FC<ProjectPackagesTabProps> = ({ projectI
         },
         onError: (err: any) => {
             console.error('Delete plan error:', err);
-            alert(`Lỗi xóa KHLCNT: ${err.message}`);
+            addToast({ title: 'Lỗi xóa KHLCNT', message: err?.message || 'Không thể xóa kế hoạch', type: 'error' });
             setDeletingPlanId(null);
         },
     });
