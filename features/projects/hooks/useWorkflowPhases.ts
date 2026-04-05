@@ -13,6 +13,9 @@ export interface PhaseItem {
     id: string;
     title: string;
     code: string; // node_id (uuid)
+    assigneeRole?: string;   // e.g., "CĐT", "CĐT / HĐTĐ"
+    slaFormula?: string;      // e.g., "30d", "82d"
+    estimatedDays?: number;   // parsed from sla_formula
 }
 
 export interface SubProcessGroup {
@@ -190,10 +193,19 @@ export function useWorkflowPhases(groupCode: string = 'C', project?: any) {
             const stepNum = nameMatch ? nameMatch[1] : String(flatPhaseItems[phase].length + 1);
             const cleanTitle = nameMatch ? node.name.replace(/^\d+\.\s*/, '') : node.name;
 
+            // Extract assignee_role from first sub_task (if available)
+            const firstSubTask = node.metadata?.sub_tasks?.[0];
+            const assigneeRole = firstSubTask?.assignee_role || undefined;
+            const slaRaw = node.sla_formula || undefined;
+            const estimatedDays = slaRaw ? parseInt(slaRaw) : undefined;
+
             const item: PhaseItem = {
                 id: stepNum,
                 title: cleanTitle,
                 code: node.id,
+                assigneeRole,
+                slaFormula: slaRaw,
+                estimatedDays: isNaN(estimatedDays as number) ? undefined : estimatedDays,
             };
 
             phaseMap[phase][subProcess].push(item);

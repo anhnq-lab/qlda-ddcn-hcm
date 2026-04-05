@@ -23,11 +23,13 @@ import { supabase } from '@/lib/supabase';
 import { findByStepCode, buildTT24Key } from '@/utils/docStepMapping';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
 import { useWorkflowPhases } from '../../hooks/useWorkflowPhases';
+import type { PhaseItem } from '../../hooks/useWorkflowPhases';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { useStepAggregates } from '../../hooks/useStepAggregates';
 import { usePlanPersist } from '../../hooks/usePlanPersist';
 import { taskKeys } from '@/hooks/useWorkflowTasks';
 import { PlanDateRangeModal, PlanDateRange } from '../PlanDateRangeModal';
+import { StepDetailModal } from '../StepDetailModal';
 
 
 interface ProjectPlanTabProps {
@@ -193,6 +195,16 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     const [planModalTitle, setPlanModalTitle] = useState('');
     const [planModalDesc, setPlanModalDesc] = useState('');
     const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+
+    // ── Step Detail Modal State ──
+    const [stepDetailOpen, setStepDetailOpen] = useState(false);
+    const [stepDetailItem, setStepDetailItem] = useState<PhaseItem | null>(null);
+    const [stepDetailAgg, setStepDetailAgg] = useState<any>(null);
+    const handleStepClick = (item: PhaseItem, agg: any) => {
+        setStepDetailItem(item);
+        setStepDetailAgg(agg);
+        setStepDetailOpen(true);
+    };
 
     // Slide Panel context
     const { openPanel } = useSlidePanel();
@@ -791,6 +803,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                             onQuickStatusChange={handleQuickStatusChange}
                             onDeleteTask={handleDeleteTask}
                             onSetPendingUploadTaskId={setPendingUploadTaskId}
+                            onStepClick={handleStepClick}
                             expandedMasterTasks={expandedMasterTasks}
                             onToggleMasterTask={toggleMasterTask}
                             fileInputRef={fileInputRef}
@@ -960,6 +973,26 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                 isLoading={planModalLoading}
                 showWorkflowOption={planTrigger?.type === 'all'}
             />
+
+            {/* Step Detail Modal */}
+            {stepDetailItem && (
+                <StepDetailModal
+                    isOpen={stepDetailOpen}
+                    onClose={() => setStepDetailOpen(false)}
+                    item={stepDetailItem}
+                    stepAgg={stepDetailAgg}
+                    tasks={filteredTasks}
+                    employeeNameMap={employeeNameMap}
+                    onAddTask={(stepName, stepCode) => {
+                        setSelectedStep({ name: stepName || '', code: stepCode || '' });
+                        setEditingTask({} as Task);
+                        setIsTaskModalOpen(true);
+                    }}
+                    onEditTask={handleEditTask}
+                    onDeleteTask={handleDeleteTask}
+                    onQuickStatusChange={handleQuickStatusChange}
+                />
+            )}
         </div>
 
     );

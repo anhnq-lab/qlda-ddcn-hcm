@@ -3,32 +3,17 @@ import {
     ChevronDown, ChevronRight, Plus, Clock, AlignLeft, 
     Upload, Paperclip, ExternalLink, Trash2, Play, 
     CheckCircle2, ListChecks, Users, Layers, Circle, 
-    Calendar, Flag, User, AlertCircle, X, ListPlus, FileText
+    Calendar, Flag, User, AlertCircle, X, ListPlus, FileText,
+    Building2, Timer, Eye
 } from 'lucide-react';
 import { ProgressBadge } from '../ProgressSlider';
 import { LegalReferenceLink } from '@/components/common/LegalReferenceLink';
 import { PhaseProgressCard } from '../PhaseProgressCard';
 import { Task, TaskStatus } from '@/types';
+import { getPriorityColor, isOverdue, getStatusConfig, formatDateShort } from '../../utils/taskHelpers';
+import type { PhaseItem } from '../../hooks/useWorkflowPhases';
 
-// Helper functions (Pure)
-const getPriorityColor = (priority?: string) => {
-    switch (priority) {
-        case 'High': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700';
-        case 'Medium': return 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-700';
-        case 'Low': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700';
-        default: return 'text-gray-600 dark:text-gray-400 bg-[#F5EFE6] dark:bg-slate-700 border-gray-200 dark:border-slate-600';
-    }
-};
-
-const isOverdue = (task: Task) => {
-    if (task.Status === TaskStatus.Done) return false;
-    if (!task.DueDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(task.DueDate);
-    dueDate.setHours(0, 0, 0, 0);
-    return dueDate < today;
-};
+// Helpers imported from shared utils/taskHelpers.ts
 
 // You might need to adjust Enum import if getGroupLabel is needed
 // Since it's passed as prop, no need to import Enum here
@@ -62,6 +47,7 @@ interface ProjectPlanWBSViewProps {
     onQuickStatusChange: (e: React.MouseEvent, task: Task) => void;
     onDeleteTask: (e: React.MouseEvent, taskId: string, taskTitle: string) => void;
     onSetPendingUploadTaskId: (id: string) => void;
+    onStepClick?: (item: PhaseItem, stepAgg: any) => void;
     // New Props for expanding Tasks
     expandedMasterTasks: Record<string, boolean>;
     onToggleMasterTask: (e: React.MouseEvent, taskId: string) => void;
@@ -97,6 +83,7 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
     onQuickStatusChange,
     onDeleteTask,
     onSetPendingUploadTaskId,
+    onStepClick,
     expandedMasterTasks,
     onToggleMasterTask,
     fileInputRef,
@@ -292,13 +279,13 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                             ) : parentStatus === TaskStatus.Review ? (
                                                                 <AlertCircle className="w-5 h-5 text-primary-500" />
                                                             ) : parentStatus === TaskStatus.InProgress ? (
-                                                                <Clock className="w-5 h-5 text-orange-500 animate-pulse" />
+                                                                <Clock className="w-5 h-5 text-blue-500 animate-pulse" />
                                                             ) : (
                                                                 <Circle className="w-5 h-5 text-gray-300 dark:text-slate-600" />
                                                             )}
                                                         </div>
 
-                                                        {/* Title + Meta */}
+                                                        {/* Title */}
                                                         <div className="flex-1 min-w-0">
                                                             <h5 className={`text-sm font-medium ${isParentDone ? 'text-gray-900 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
                                                                 {item.id}. {item.title}
@@ -308,16 +295,6 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                         {/* Progress Badge */}
                                                         {agg && agg.progress > 0 && (
                                                             <ProgressBadge value={agg.progress} size="sm" />
-                                                        )}
-
-                                                        {/* Date Range Badge */}
-                                                        {(agg?.startDate || agg?.dueDate) && (
-                                                            <span className="hidden sm:flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 bg-[#F5EFE6] dark:bg-slate-700 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600 shrink-0">
-                                                                <Calendar className="w-3 h-3" />
-                                                                {agg.startDate && new Date(agg.startDate).toLocaleDateString('vi-VN')}
-                                                                {agg.startDate && agg.dueDate && ' → '}
-                                                                {agg.dueDate && new Date(agg.dueDate).toLocaleDateString('vi-VN')}
-                                                            </span>
                                                         )}
 
                                                         {/* Task Count Badge */}
@@ -330,6 +307,18 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                             {completedCount}/{linkedTasks.length} việc
                                                         </span>
 
+                                                        {/* View Step Detail Button */}
+                                                        {onStepClick && (
+                                                            <button
+                                                                onClick={() => onStepClick(item, agg)}
+                                                                className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded border border-gray-200 dark:border-slate-600 flex items-center gap-1 shrink-0"
+                                                                title="Xem chi tiết kế hoạch"
+                                                            >
+                                                                <Eye className="w-3 h-3" />
+                                                                Chi tiết
+                                                            </button>
+                                                        )}
+
                                                         {/* Add Task Button */}
                                                         <button
                                                             onClick={() => onAddTask(item.title, item.code)}
@@ -339,6 +328,48 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                             Thêm
                                                         </button>
                                                     </div>
+
+                                                    {/* Meta Info Row — Đơn vị, Ngày, Thời gian, Trạng thái */}
+                                                    {(() => {
+                                                        const statusCfg = getStatusConfig(parentStatus);
+                                                        const hasMetaData = item.assigneeRole || agg?.startDate || agg?.dueDate || item.estimatedDays || parentStatus !== TaskStatus.Todo;
+                                                        if (!hasMetaData && linkedTasks.length === 0) return null;
+                                                        return (
+                                                            <div className="flex items-center gap-2 mt-2 ml-8 flex-wrap">
+                                                                {/* Đơn vị thực hiện */}
+                                                                {item.assigneeRole && (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700">
+                                                                        <Building2 className="w-3 h-3" />
+                                                                        {item.assigneeRole}
+                                                                    </span>
+                                                                )}
+
+                                                                {/* Ngày bắt đầu → Ngày kết thúc */}
+                                                                {(agg?.startDate || agg?.dueDate) && (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-[#F5EFE6] dark:bg-slate-700 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600">
+                                                                        <Calendar className="w-3 h-3 text-gray-400" />
+                                                                        {formatDateShort(agg.startDate)} → <strong>{formatDateShort(agg.dueDate)}</strong>
+                                                                    </span>
+                                                                )}
+
+                                                                {/* Thời gian dự kiến */}
+                                                                {item.estimatedDays && (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700">
+                                                                        <Timer className="w-3 h-3" />
+                                                                        {item.estimatedDays} ngày
+                                                                    </span>
+                                                                )}
+
+                                                                {/* Trạng thái */}
+                                                                {linkedTasks.length > 0 && (
+                                                                    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded ${statusCfg.bg} ${statusCfg.color} border ${statusCfg.border}`}>
+                                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                                                                        {statusCfg.label}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })()}
 
                                                     {/* Task Table (Compact) */}
                                                     {linkedTasks.length > 0 && (

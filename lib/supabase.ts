@@ -8,6 +8,22 @@ if (!supabaseUrl || !supabaseKey) {
     console.warn('⚠️ Supabase environment variables not set. Backend features will be unavailable.');
 }
 
+// In-memory lock to avoid navigator.locks getting stuck in some browser states
+let lockPromise = Promise.resolve();
+const memoryLock = async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
+    let resolver: () => void;
+    const nextLock = new Promise<void>((resolve) => { resolver = resolve; });
+    const prevLock = lockPromise;
+    lockPromise = nextLock;
+
+    try {
+        await prevLock;
+        return await fn();
+    } finally {
+        resolver!();
+    }
+};
+
 export const supabase: SupabaseClient<Database> = createClient<Database>(
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseKey || 'placeholder-key',
@@ -17,11 +33,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: false,
-            // Disable Navigator Lock API to prevent Vite HMR deadlocks
-            // The lock mechanism causes "NavigatorLockAcquireTimeoutError" during rapid auth state changes
-            lock: async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
-                return await fn();
-            },
+            lock: memoryLock,
         },
     }
 );
