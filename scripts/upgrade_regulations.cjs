@@ -1,0 +1,397 @@
+const fs = require('fs');
+
+const filePath = 'features/regulations/Regulations.tsx';
+let content = fs.readFileSync(filePath, 'utf-8');
+
+// 1. Strip hardcoded text-gray-700 and text-gray-800 from the data to allow dark mode cascade
+content = content.replace(/text-gray-700/g, 'text-gray-700 dark:text-slate-300');
+content = content.replace(/text-gray-800/g, 'text-gray-800 dark:text-slate-200');
+
+// 2. We will replace the entire Regulations component with the upgraded one.
+const componentStartIdx = content.indexOf('const Regulations: React.FC = () => {');
+if (componentStartIdx === -1) {
+    console.error("Could not find component start!");
+    process.exit(1);
+}
+
+const headerPart = content.substring(0, componentStartIdx);
+
+// Add missing lucide-react imports if not present
+let newHeaderPart = headerPart;
+const missingIcons = ['Bookmark', 'Download', 'Link2', 'HelpCircle', 'FileCheck2'];
+missingIcons.forEach(icon => {
+    if (!newHeaderPart.includes(`\n    ${icon},`) && !newHeaderPart.includes(`${icon} `) && !newHeaderPart.includes(` ${icon}`)) {
+        newHeaderPart = newHeaderPart.replace('import {', `import {\n    ${icon},`);
+    }
+});
+
+const newComponent = `const Regulations: React.FC = () => {
+    const [selectedChapterId, setSelectedChapterId] = useState<string>("CH2");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+    const [savedArticles, setSavedArticles] = useState<string[]>([]);
+    const [commentText, setCommentText] = useState("");
+
+    const selectedChapter = regulationsData.find(c => c.id === selectedChapterId);
+
+    // Enhance filtering with raw text fallback
+    const filteredChapters = useMemo(() => {
+        if (!searchQuery) return regulationsData;
+        const lowerQ = searchQuery.toLowerCase();
+        
+        return regulationsData.map(chapter => {
+            const matchingArticles = chapter.articles.filter(a => {
+                const matchCodeAndTitle = a.title.toLowerCase().includes(lowerQ) || a.code.toLowerCase().includes(lowerQ);
+                // Simple raw text matching using JSON.stringify for the react nodes, naive but effective for filtering
+                const rawString = typeof a.content === 'string' ? a.content : JSON.stringify(a.content);
+                const matchContent = rawString.toLowerCase().includes(lowerQ);
+                return matchCodeAndTitle || matchContent;
+            });
+            
+            return {
+                ...chapter,
+                articles: matchingArticles,
+                isMatch: chapter.title.toLowerCase().includes(lowerQ) || chapter.code.toLowerCase().includes(lowerQ) || matchingArticles.length > 0
+            };
+        }).filter(c => c.isMatch);
+    }, [searchQuery]);
+
+    // Active displayed chapter (could be filtered)
+    const displayChapter = filteredChapters.find(c => c.id === selectedChapterId) || filteredChapters[0];
+
+    const toggleBookmark = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSavedArticles(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
+    };
+
+    const handleScrollToArticle = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add a highlight class temporarily
+            element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+            }, 2000);
+        }
+    };
+
+    const handleDownloadOriginal = () => {
+        // Logic to download original PDF
+        alert("Đang tải xuống tài liệu gốc QĐ số 188/QĐ-BQLDA.pdf...");
+    };
+
+    const handleSubmitComment = (articleId: string) => {
+        if(!commentText.trim()) return;
+        // In real backend, we'd send to Supabase here.
+        alert("Đã gửi phản hồi / câu hỏi đến bộ phận Pháp chế.");
+        setCommentText("");
+    };
+
+    return (
+        <div className="flex h-[calc(100vh-100px)] bg-white dark:bg-[#0F172A] rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden font-sans">
+
+            {/* LEFT SIDEBAR - NAVIGATION */}
+            <div className="w-80 bg-gray-50/50 dark:bg-slate-900/50 border-r border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 shrink-0">
+                    <h2 className="text-lg font-black text-gray-800 dark:text-slate-100 tracking-tight mb-4 flex items-center gap-2">
+                        <Gavel className="w-5 h-5 text-blue-600" />
+                        Quy chế Nội bộ
+                    </h2>
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
+                        <input
+                            type="text"
+                            placeholder="Tìm điều khoản, quy định..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+                    {filteredChapters.map(chapter => (
+                        <button
+                            key={chapter.id}
+                            onClick={() => setSelectedChapterId(chapter.id)}
+                            className={\`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group \${(displayChapter?.id === chapter.id)
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 shadow-sm'
+                                : 'hover:bg-gray-100 dark:hover:bg-slate-800 border border-transparent'
+                                }\`}
+                        >
+                            <div className={\`mt-0.5 p-2 rounded-lg \${(displayChapter?.id === chapter.id) ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 group-hover:bg-white dark:group-hover:bg-slate-600'}\`}>
+                                {chapter.icon ? <chapter.icon className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className={\`text-[10px] font-bold uppercase tracking-wider mb-0.5 \${(displayChapter?.id === chapter.id) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500'}\`}>
+                                    {chapter.code}
+                                </p>
+                                <p className={\`text-sm font-bold truncate \${(displayChapter?.id === chapter.id) ? 'text-gray-900 dark:text-slate-100' : 'text-gray-600 dark:text-slate-400'}\`}>
+                                    {chapter.title}
+                                </p>
+                                {searchQuery && chapter.articles.length > 0 && (
+                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-1 font-semibold">Tồn tại {chapter.articles.length} điều kiện</p>
+                                )}
+                            </div>
+                            {(displayChapter?.id === chapter.id) && <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400 self-center" />}
+                        </button>
+                    ))}
+                    {filteredChapters.length === 0 && (
+                        <div className="p-4 text-center mt-6">
+                            <Search className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                            <p className="text-sm font-semibold text-gray-600 dark:text-slate-400">Không tìm thấy nội dung</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-full">
+                            <FileCheck2 className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase">VB Pháp lý</p>
+                                <span className="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Có Hiệu Lực</span>
+                            </div>
+                            <p className="text-xs font-bold text-gray-800 dark:text-slate-200">QĐ số 188/QĐ-BQLDA</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* MIDDLE CONTENT - DETAILS */}
+            <div className="flex-1 flex flex-col bg-white dark:bg-[#0F172A] overflow-hidden relative">
+                {/* Header */}
+                <div className="h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-slate-900 shrink-0 z-10 sticky top-0 shadow-sm">
+                    {displayChapter ? (
+                       <div>
+                         <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 mb-1">
+                            <span>Hệ thống Quy chế</span>
+                            <ChevronRight className="w-3 h-3" />
+                            <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">{displayChapter?.code}</span>
+                         </div>
+                         <h1 className="text-lg font-black text-gray-900 dark:text-slate-100 uppercase tracking-tight">{displayChapter?.title}</h1>
+                       </div>
+                    ) : (
+                        <div></div>
+                    )}
+                    <div className="flex gap-2 items-center">
+                        <button 
+                            onClick={handleDownloadOriginal}
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-all border border-blue-200 dark:border-blue-800"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Tải bản gốc PDF</span>
+                        </button>
+                        <button className="p-2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Chia sẻ"><Share2 className="w-5 h-5" /></button>
+                    </div>
+                </div>
+
+                {/* Content Scroll Area */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/50" id="scrollable-content">
+                    <div className="max-w-4xl mx-auto space-y-6 pb-20">
+                        {displayChapter?.articles.map((article, idx) => (
+                            <div key={idx} id={article.id} className="group relative transition-all duration-500 animate-in slide-in-from-bottom-2 scroll-mt-24">
+                                {/* Article Header Badge */}
+                                <div className="flex items-center gap-3 mb-3 ml-1">
+                                    <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 text-[10px] font-black px-2 py-1 rounded shadow-sm uppercase tracking-widest">
+                                        {article.code}
+                                    </span>
+                                    <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200">{article.title}</h3>
+                                </div>
+
+                                {/* Content Card */}
+                                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative z-0">
+                                    {/* Action Buttons */}
+                                    <div className="absolute top-4 right-4 flex gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                        <button 
+                                            onClick={(e) => toggleBookmark(article.id, e)}
+                                            className={\`p-1.5 rounded-lg transition-all \${savedArticles.includes(article.id) ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500' : 'bg-gray-50 dark:bg-slate-700 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-600'}\`}
+                                            title={savedArticles.includes(article.id) ? "Bỏ lưu" : "Lưu điều khoản này"}
+                                        >
+                                            <Bookmark className="w-4 h-4" strokeWidth={savedArticles.includes(article.id) ? 3 : 2} fill={savedArticles.includes(article.id) ? "currentColor" : "none"} />
+                                        </button>
+                                        <button className="p-1.5 bg-gray-50 dark:bg-slate-700 text-gray-400 hover:text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-all" title="Sao chép liên kết">
+                                            <Link2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveCommentId(activeCommentId === article.id ? null : article.id)}
+                                            className={\`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all text-xs font-bold \${activeCommentId === article.id ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-600'}\`}
+                                        >
+                                            <MessageSquare className="w-3.5 h-3.5" />
+                                            {article.comments?.length || 0}
+                                        </button>
+                                    </div>
+
+                                    {/* Dynamic Content Rendering */}
+                                    <div className="text-sm dark:prose-invert">
+                                        {typeof article.content === 'string' ? (
+                                            article.content.split('\\n').map((line, i) => <p key={i} className="mb-2 text-gray-700 dark:text-slate-300">{line}</p>)
+                                        ) : (
+                                            <div className="article-content-wrapper text-gray-700 dark:text-slate-300">{article.content}</div>
+                                        )}
+                                    </div>
+
+                                    {/* Comments / QA Section */}
+                                    {(activeCommentId === article.id) && (
+                                        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700 animate-in fade-in">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h4 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <HelpCircle className="w-4 h-4" /> Hỏi đáp & Thảo luận
+                                                </h4>
+                                            </div>
+
+                                            <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                                {article.comments?.map(comment => (
+                                                    <div key={comment.id} className="flex gap-3 items-start">
+                                                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0 border border-blue-200 dark:border-blue-800">
+                                                            {comment.user.charAt(0)}
+                                                        </div>
+                                                        <div className="bg-gray-50 dark:bg-slate-700/50 rounded-2xl rounded-tl-none p-3 flex-1 border border-gray-100 dark:border-slate-600/50">
+                                                            <div className="flex justify-between items-center mb-1">
+                                                                <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{comment.user}</span>
+                                                                <span className="text-[10px] text-gray-400 dark:text-slate-500">{comment.date}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-600 dark:text-slate-300">{comment.content}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {(!article.comments || article.comments.length === 0) && (
+                                                    <p className="text-xs text-gray-400 dark:text-slate-500 italic text-center py-4">Chưa có bình luận hay thắc mắc nào. Bạn cần làm rõ nội dung Điều khoản này?</p>
+                                                )}
+                                            </div>
+
+                                            {/* Add Comment Input */}
+                                            <div className="flex gap-3 items-center mt-4">
+                                                <div className="w-8 h-8 rounded-full bg-gray-800 dark:bg-slate-600 flex items-center justify-center text-white shrink-0 shadow-sm border border-transparent dark:border-slate-500">
+                                                    <User className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1 relative">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Viết thắc mắc để báo cáo về Phòng Pháp chế..."
+                                                        value={commentText}
+                                                        onChange={(e) => setCommentText(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleSubmitComment(article.id);
+                                                        }}
+                                                        className="w-full pl-4 pr-10 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500"
+                                                    />
+                                                    <button 
+                                                        onClick={() => handleSubmitComment(article.id)}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+                                                    >
+                                                        <Send className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Footer Notes */}
+                        {displayChapter?.type === 'chart' && (
+                            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800/50 rounded-xl text-xs text-yellow-800 dark:text-yellow-400 flex items-start gap-3 mt-4 shadow-sm">
+                                <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-500 shrink-0" />
+                                <div>
+                                    <p className="font-bold mb-1">Lưu ý về sơ đồ:</p>
+                                    <p>Sơ đồ trên thể hiện mối quan hệ báo cáo trực tiếp. Các phòng ban có trách nhiệm phối hợp ngang hàng để giải quyết công việc chung của Ban QLDA.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* RIGHT SIDEBAR - TOC & BOOKMARKS */}
+            <div className="w-64 bg-slate-50 dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex flex-col shrink-0">
+                {/* Save Articles Tab */}
+                {savedArticles.length > 0 && (
+                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm">
+                        <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                            <Bookmark className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" />
+                            Đã lưu ({savedArticles.length})
+                        </h3>
+                    </div>
+                )}
+                
+                {savedArticles.length > 0 && (
+                     <div className="p-3 space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900 shrink-0 border-b border-gray-200 dark:border-slate-800">
+                        {savedArticles.map(id => {
+                            let articleMatch: any = null;
+                            for (const chap of regulationsData) {
+                                const match = chap.articles.find(a => a.id === id);
+                                if (match) { articleMatch = match; break; }
+                            }
+                            if (!articleMatch) return null;
+                            return (
+                                <button 
+                                    key={id}
+                                    onClick={() => {
+                                        // If article is not in current chapter, switch chapter then scroll
+                                        const parentChap = regulationsData.find(c => c.articles.some(a => a.id === id));
+                                        if (parentChap && selectedChapterId !== parentChap.id) {
+                                            setSelectedChapterId(parentChap.id);
+                                            setTimeout(() => handleScrollToArticle(id), 100);
+                                        } else {
+                                            handleScrollToArticle(id);
+                                        }
+                                    }}
+                                    className="w-full text-left p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-700 shadow-sm transition-all flex items-center gap-2 group"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-0.5">{articleMatch.code}</p>
+                                        <p className="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">{articleMatch.title}</p>
+                                    </div>
+                                    <ChevronRight className="w-3.5 h-3.5 text-gray-300 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 shrink-0" />
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Table of Contents */}
+                <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm mt-auto md:mt-0">
+                     <h3 className="text-xs font-black text-gray-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                        <Layout className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        Mục lục ({displayChapter?.code})
+                    </h3>
+                </div>
+
+                <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900">
+                    <div className="relative border-l-2 border-gray-200 dark:border-slate-700 ml-1.5 space-y-4">
+                        {displayChapter?.articles.map((article, idx) => (
+                            <div key={idx} className="relative pl-4 group">
+                                <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 group-hover:bg-blue-500 dark:group-hover:bg-blue-400 transition-colors z-10 ring-4 ring-slate-50 dark:ring-slate-900" />
+                                
+                                <button 
+                                    onClick={() => handleScrollToArticle(article.id)}
+                                    className="text-left w-full focus:outline-none"
+                                >
+                                    <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        {article.code}
+                                    </p>
+                                    <p className="text-xs font-semibold text-gray-700 dark:text-slate-300 group-hover:text-gray-900 dark:group-hover:text-slate-100 line-clamp-2 mt-0.5 leading-snug">
+                                        {article.title}
+                                    </p>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+export default Regulations;
+`;
+
+const finalFileContent = newHeaderPart + newComponent;
+fs.writeFileSync(filePath, finalFileContent);
+console.log("Upgraded Regulations.tsx successfully!");

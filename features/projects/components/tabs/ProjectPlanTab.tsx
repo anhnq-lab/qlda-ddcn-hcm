@@ -207,7 +207,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     };
 
     // Slide Panel context
-    const { openPanel } = useSlidePanel();
+    const { openPanel, closePanel } = useSlidePanel();
 
     // Toast notifications
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -431,6 +431,9 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
     };
 
     const handleEditTask = (task: Task) => {
+        // Đóng Step Modal nếu đang mở để tránh ghi đè z-index với Slide Panel
+        setStepDetailOpen(false);
+        
         openPanel({
             title: task.Title,
             icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />,
@@ -448,6 +451,15 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         });
     };
 
+    const handleUpdateStepMeta = (stepCode: string, updates: { assigneeRole?: string }) => {
+        const masterTask = tasks.find(t => t.TimelineStep === stepCode && !t.ParentID);
+        if (masterTask) {
+             handleSaveTask({
+                 ...masterTask,
+                 AssigneeID: updates.assigneeRole || masterTask.AssigneeID,
+             } as any);
+        }
+    };
     const handleSaveTask = async (taskData: Partial<Task>) => {
         // ── Auto-derive status from progress ──
         const progress = taskData.ProgressPercent ?? (taskData as any).Progress ?? 0;
@@ -521,6 +533,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
         }
 
         setIsTaskModalOpen(false);
+        closePanel(); // Automatically close slide panel on successful save
     };
 
     // ── Bulk create ALL tasks via Workflow Engine (Phương án 1) ──
@@ -991,6 +1004,7 @@ export const ProjectPlanTab: React.FC<ProjectPlanTabProps> = ({
                     onEditTask={handleEditTask}
                     onDeleteTask={handleDeleteTask}
                     onQuickStatusChange={handleQuickStatusChange}
+                    onUpdateStepMeta={handleUpdateStepMeta}
                 />
             )}
         </div>

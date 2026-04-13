@@ -6,15 +6,23 @@ import { Lock, User, Eye, EyeOff, LayoutDashboard, BrainCircuit, ShieldCheck, Sm
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('Admin');
-    const [password, setPassword] = useState('123456');
+    const [password, setPassword] = useState('@Abc123456');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Auto-redirect if already authenticated (e.g. via Dev Auto Login or persistent session)
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            const from = (location.state as any)?.from || '/';
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

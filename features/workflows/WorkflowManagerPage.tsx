@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { GitBranch, Plus, AlertCircle, FileText, DownloadCloud, ArrowLeft, LayoutGrid, List as ListIcon, Search, Trash2 } from 'lucide-react';
+import { GitBranch, Plus, AlertCircle, FileText, DownloadCloud, ArrowLeft, LayoutGrid, List as ListIcon, Search, Trash2, PenLine, FileSpreadsheet } from 'lucide-react';
 import { getStandardWorkflowTemplates } from './data/seedWorkflows';
 
 import type { Workflow, WorkflowNode, WorkflowEdge } from '../../types/workflow.types';
@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useSlidePanel } from '../../context/SlidePanelContext';
 import FlowchartViewer from './components/FlowchartViewer';
 import WorkflowBuilderPanel from './components/WorkflowBuilderPanel';
+import WorkflowProcessTable from './components/WorkflowProcessTable';
 import InternalWorkflowViewerPanel from './components/InternalWorkflowViewerPanel';
 import { WorkflowStepDetailPanel } from './components/WorkflowStepDetailPanel';
 
@@ -59,16 +60,7 @@ const WorkflowManagerPage: React.FC = () => {
 
     const hasAutoSeeded = useRef(false);
 
-    useEffect(() => {
-        // Auto-seed: nếu DB trống hoặc thiếu QT-TK1B → tự động seed
-        if (!isLoading && !isSeeding && !hasAutoSeeded.current) {
-            const hasStandard = workflows.some(w => w.code === 'QT-TK1B');
-            if (!hasStandard) {
-                hasAutoSeeded.current = true;
-                handleSeedWorkflows(true);
-            }
-        }
-    }, [workflows, isLoading, isSeeding]);
+    // Auto-seed disabled. Users can manually seed data via the UI if needed.
 
     const fetchWorkflows = async () => {
         setIsLoading(true);
@@ -156,30 +148,16 @@ const WorkflowManagerPage: React.FC = () => {
         }
     };
 
-    // ─── VIEW: Overview Panel ─────────────────────────────────
+    // ─── VIEW: Overview Panel (uses WorkflowProcessTable as default) ──
     const handleViewWorkflowOverview = (wf: Workflow) => {
-        const isInternalWorkflow = ['hr', 'finance', 'document', 'asset', 'other'].includes(wf.category || 'project');
-        
-        if (isInternalWorkflow) {
-            const panelId = openPanel({
-                title: "Chi tiết Quy trình Nội bộ",
-                icon: <FileText size={16} className="text-primary-500" />,
-                url: `/quy-trinh/${wf.id}`,
-                component: <InternalWorkflowViewerPanel 
-                               workflowId={wf.id} 
-                               onClose={() => closePanel(panelId)} 
-                           />
-            });
-            return;
-        }
-
-        const panelId = openPanel({
-            title: "Tổng quan Quy trình",
+        let panelId: string;
+        panelId = openPanel({
+            title: wf.name,
             icon: <FileText size={16} className="text-primary-500" />,
             url: `/quy-trinh/${wf.id}`,
-            component: <WorkflowBuilderPanel 
-                           workflowId={wf.id} 
-                           initialTab="overview"
+            component: <WorkflowProcessTable 
+                           workflowId={wf.id}
+                           isAdmin={true}
                            onClose={() => closePanel(panelId)} 
                            onViewFlowchart={() => {
                                setSelectedWorkflow(wf);
@@ -187,6 +165,27 @@ const WorkflowManagerPage: React.FC = () => {
                                    if (res) setViewMode('flowchart');
                                });
                                closePanel(panelId);
+                           }}
+                           onEdit={() => {
+                               closePanel(panelId);
+                               let editPanelId: string;
+                               editPanelId = openPanel({
+                                   title: 'Chỉnh sửa: ' + wf.name,
+                                   icon: <PenLine size={16} className="text-primary-500" />,
+                                   component: <WorkflowBuilderPanel 
+                                                  workflowId={wf.id} 
+                                                  initialTab="overview"
+                                                  onClose={() => closePanel(editPanelId)} 
+                                                  onViewFlowchart={() => {
+                                                      setSelectedWorkflow(wf);
+                                                      loadWorkflowDetails(wf).then(res => {
+                                                          if (res) setViewMode('flowchart');
+                                                      });
+                                                      closePanel(editPanelId);
+                                                  }}
+                                                  onUpdate={fetchWorkflows} 
+                                              />
+                               });
                            }}
                            onUpdate={fetchWorkflows} 
                        />
@@ -326,7 +325,16 @@ const WorkflowManagerPage: React.FC = () => {
                     <p className="text-slate-500 font-medium pl-14">Quản lý và thiết kế luồng công việc tự động cho toàn Ban QLDA.</p>
                 </div>
                 
-                <div className="relative z-10 flex items-center gap-3 w-full md:w-auto">
+                <div className="relative z-10 flex items-center gap-3 w-full md:w-auto flex-wrap md:flex-nowrap">
+                    <a 
+                        href="/templates/Template_KhaiBao_QuyTrinh.xlsx"
+                        download
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition duration-200"
+                        title="Tải mẫu Excel khai báo quy trình"
+                    >
+                        <FileSpreadsheet size={18} />
+                        Template Excel
+                    </a>
                     <button 
                         onClick={() => handleSeedWorkflows(false)} 
                         disabled={isSeeding} 

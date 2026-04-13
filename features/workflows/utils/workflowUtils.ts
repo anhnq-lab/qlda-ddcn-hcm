@@ -1,15 +1,99 @@
-export const parseSla = (sla: string): number => {
-    return parseInt(sla) || 0;
-};
+// ─── Workflow Shared Utilities ─────────────────────────────────
+// Centralized helpers to eliminate code duplication across:
+// NodeDetailPanel, SubTaskDetailPanel, WorkflowBuilderPanel, FlowchartViewer
 
-export const uploadTemplateFile = async (file: File): Promise<string> => {
-    return "uploaded_url";
-};
+import { supabase } from '../../../lib/supabase';
 
-export const appendTemplateName = (name: string): string => {
-    return name + " Template";
-};
+// ─── SLA Parser ────────────────────────────────────────────────
+// Was duplicated in FlowchartViewer.parseSla() and WorkflowBuilderPanel.parseSla()
+export function parseSla(formula?: string | null): string | null {
+    if (!formula) return null;
+    const val = formula.match(/^(\d+)/)?.[0] || '';
+    if (formula.endsWith('wd')) return `${val} ngày làm việc`;
+    if (formula.endsWith('h')) return `${val} giờ`;
+    return `${val} ngày`;
+}
 
-export const resolveLegalReference = (ref: string): any => {
-    return null;
-};
+// ─── Legal Reference Resolver ──────────────────────────────────
+// Was copy-pasted 100% in WorkflowBuilderPanel and SubTaskDetailPanel
+export interface LegalSearchTarget {
+    docId?: string;
+    articleId?: string;
+    searchQuery?: string;
+}
+
+export function resolveLegalReference(
+    basisText: string,
+    legalDocuments: Array<{ id: string; chapters: Array<{ articles: Array<{ id: string; code: string }> }> }>
+): LegalSearchTarget {
+    if (!basisText || !basisText.trim()) {
+        return {};
+    }
+
+    let foundDocId: string | undefined = undefined;
+    let foundArticleId: string | undefined = undefined;
+    
+    const lowerText = basisText.toLowerCase();
+
+    // 1. Nhận diện văn bản
+    if (lowerText.includes('luật đầu tư công') || lowerText.includes('luật số 58') || lowerText.includes('luật đtc')) {
+        foundDocId = 'luat-dau-tu-cong-2024';
+    }
+
+    // 2. Nhận diện điều khoản
+    const dieuMatch = lowerText.match(/điều\s+(\d+[a-z]?)/);
+    if (dieuMatch && foundDocId) {
+        const articleNumber = dieuMatch[1];
+        const doc = legalDocuments.find(d => d.id === foundDocId);
+        if (doc) {
+            for (const chapter of doc.chapters) {
+                const article = chapter.articles.find(a => 
+                    a.code.toLowerCase().includes(`điều ${articleNumber}.`) || 
+                    a.code.toLowerCase() === `điều ${articleNumber}`
+                );
+                if (article) {
+                    foundArticleId = article.id;
+                    break;
+                }
+            }
+        }
+    }
+
+    return {
+        docId: foundDocId,
+        articleId: foundArticleId,
+        searchQuery: !foundDocId ? basisText : undefined,
+    };
+}
+
+// ─── Template File Upload ──────────────────────────────────────
+// Was duplicated between NodeDetailPanel.handleFileUpload and SubTaskDetailPanel.handleFileUpload
+export async function uploadTemplateFile(
+    file: File,
+    nodeId: string,
+): Promise<{ url: string; name: string }> {
+    const fileExt = file.name.split('.').pop() || '';
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+    const filePath = `templates/${nodeId}/${Date.now()}_${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+    const docName = file.name.replace(`.${fileExt}`, '');
+    return { url: data.publicUrl, name: docName };
+}
+
+// ─── Template Forms Name Helper ────────────────────────────────
+// Appends a new document name to the existing comma-separated template_forms string
+export function appendTemplateName(existing: string, newName: string): string {
+    if (!existing.trim()) return newName;
+    if (existing.includes(newName)) return existing;
+    return existing + ', ' + newName;
+}

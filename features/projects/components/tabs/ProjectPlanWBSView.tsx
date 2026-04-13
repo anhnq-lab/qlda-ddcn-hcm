@@ -286,90 +286,106 @@ export const ProjectPlanWBSView: React.FC<ProjectPlanWBSViewProps> = ({
                                                         </div>
 
                                                         {/* Title */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <h5 className={`text-sm font-medium ${isParentDone ? 'text-gray-900 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
-                                                                {item.id}. {item.title}
-                                                            </h5>
-                                                        </div>
-
-                                                        {/* Progress Badge */}
-                                                        {agg && agg.progress > 0 && (
-                                                            <ProgressBadge value={agg.progress} size="sm" />
-                                                        )}
-
-                                                        {/* Task Count Badge */}
-                                                        <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded font-medium ${linkedTasks.length === 0
-                                                            ? 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
-                                                            : completedCount === linkedTasks.length
-                                                                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'
-                                                                : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'
-                                                            }`}>
-                                                            {completedCount}/{linkedTasks.length} việc
-                                                        </span>
-
-                                                        {/* View Step Detail Button */}
-                                                        {onStepClick && (
-                                                            <button
-                                                                onClick={() => onStepClick(item, agg)}
-                                                                className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded border border-gray-200 dark:border-slate-600 flex items-center gap-1 shrink-0"
-                                                                title="Xem chi tiết kế hoạch"
-                                                            >
-                                                                <Eye className="w-3 h-3" />
-                                                                Chi tiết
-                                                            </button>
-                                                        )}
-
-                                                        {/* Add Task Button */}
-                                                        <button
-                                                            onClick={() => onAddTask(item.title, item.code)}
-                                                            className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded border border-blue-200 dark:border-blue-800 flex items-center gap-1 shrink-0"
-                                                        >
-                                                            <Plus className="w-3 h-3" />
-                                                            Thêm
-                                                        </button>
-                                                    </div>
-
-                                                    {/* Meta Info Row — Đơn vị, Ngày, Thời gian, Trạng thái */}
-                                                    {(() => {
-                                                        const statusCfg = getStatusConfig(parentStatus);
-                                                        const hasMetaData = item.assigneeRole || agg?.startDate || agg?.dueDate || item.estimatedDays || parentStatus !== TaskStatus.Todo;
-                                                        if (!hasMetaData && linkedTasks.length === 0) return null;
-                                                        return (
-                                                            <div className="flex items-center gap-2 mt-2 ml-8 flex-wrap">
-                                                                {/* Đơn vị thực hiện */}
-                                                                {item.assigneeRole && (
-                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700">
-                                                                        <Building2 className="w-3 h-3" />
-                                                                        {item.assigneeRole}
-                                                                    </span>
-                                                                )}
-
-                                                                {/* Ngày bắt đầu → Ngày kết thúc */}
-                                                                {(agg?.startDate || agg?.dueDate) && (
-                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-[#F5EFE6] dark:bg-slate-700 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600">
-                                                                        <Calendar className="w-3 h-3 text-gray-400" />
-                                                                        {formatDateShort(agg.startDate)} → <strong>{formatDateShort(agg.dueDate)}</strong>
-                                                                    </span>
-                                                                )}
-
-                                                                {/* Thời gian dự kiến */}
-                                                                {item.estimatedDays && (
-                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700">
-                                                                        <Timer className="w-3 h-3" />
-                                                                        {item.estimatedDays} ngày
-                                                                    </span>
-                                                                )}
-
-                                                                {/* Trạng thái */}
-                                                                {linkedTasks.length > 0 && (
-                                                                    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded ${statusCfg.bg} ${statusCfg.color} border ${statusCfg.border}`}>
-                                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
-                                                                        {statusCfg.label}
-                                                                    </span>
+                                                        <div className="flex-1 min-w-0 pr-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <h5 className={`text-sm font-medium ${isParentDone ? 'text-gray-900 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300'}`}>
+                                                                    {item.id}. {item.title}
+                                                                </h5>
+                                                                {/* Progress Badge inline if needed */}
+                                                                {agg && agg.progress > 0 && (
+                                                                    <ProgressBadge value={agg.progress} size="sm" />
                                                                 )}
                                                             </div>
-                                                        );
-                                                    })()}
+                                                            {/* Assignee & Meta under title */}
+                                                            {item.assigneeRole && (
+                                                                <div className="mt-1.5 flex items-center gap-2">
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700">
+                                                                        <Building2 className="w-3 h-3 text-amber-500" />
+                                                                        {item.assigneeRole}
+                                                                    </span>
+                                                                    {item.estimatedDays && (
+                                                                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700">
+                                                                            <Timer className="w-3 h-3" />
+                                                                            {item.estimatedDays} ngày
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Tabular Meta Container (Right Aligned) */}
+                                                        <div className="hidden lg:flex items-center gap-6 shrink-0 text-xs font-medium text-gray-500 dark:text-slate-400 mr-2">
+                                                            {/* Count Badge */}
+                                                            <div className="w-24 flex justify-center">
+                                                                <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded font-medium ${linkedTasks.length === 0
+                                                                    ? 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                                                                    : completedCount === linkedTasks.length
+                                                                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'
+                                                                        : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'
+                                                                    }`}>
+                                                                    {completedCount}/{linkedTasks.length} việc
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Dates */}
+                                                            <div className="w-28 text-center truncate" title={agg?.startDate ? formatDateShort(agg.startDate) : 'Chưa xác định'}>
+                                                                {agg?.startDate ? formatDateShort(agg.startDate) : <span className="text-gray-400 dark:text-slate-500">--/--</span>}
+                                                            </div>
+                                                            <div className="w-28 text-center truncate" title={agg?.dueDate ? formatDateShort(agg.dueDate) : 'Chưa xác định'}>
+                                                                {agg?.dueDate ? formatDateShort(agg.dueDate) : <span className="text-gray-400 dark:text-slate-500">--/--</span>}
+                                                            </div>
+
+                                                            {/* Status */}
+                                                            <div className="w-32 flex justify-start">
+                                                                {(() => {
+                                                                    const statusCfg = getStatusConfig(parentStatus);
+                                                                    return linkedTasks.length > 0 ? (
+                                                                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded ${statusCfg.bg} ${statusCfg.color} border ${statusCfg.border}`}>
+                                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                                                                            {statusCfg.label}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
+                                                                            <Circle className="w-2.5 h-2.5" />
+                                                                            Chưa tạo việc
+                                                                        </span>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Mobile Meta Backup */}
+                                                        <div className="lg:hidden flex flex-col gap-1 shrink-0 text-right mr-2">
+                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium inline-block w-fit ml-auto ${linkedTasks.length === 0 ? 'bg-gray-100 text-gray-500' : completedCount === linkedTasks.length ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                                {completedCount}/{linkedTasks.length} việc
+                                                            </span>
+                                                            {(agg?.startDate || agg?.dueDate) && (
+                                                                <span className="text-[10px] text-gray-500">{formatDateShort(agg.startDate)} - {formatDateShort(agg.dueDate)}</span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Action Buttons */}
+                                                        <div className="flex items-center gap-1.5 shrink-0">
+                                                            {onStepClick && (
+                                                                <button
+                                                                    onClick={() => onStepClick(item, agg)}
+                                                                    className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded border border-gray-200 dark:border-slate-600 flex items-center gap-1"
+                                                                    title="Xem chi tiết kế hoạch"
+                                                                >
+                                                                    <Eye className="w-3 h-3" />
+                                                                    <span className="hidden sm:inline">Chi tiết</span>
+                                                                </button>
+                                                            )}
+
+                                                            <button
+                                                                onClick={() => onAddTask(item.title, item.code)}
+                                                                className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded border border-blue-200 dark:border-blue-800 flex items-center gap-1"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                                <span className="hidden sm:inline">Thêm</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
 
                                                     {/* Task Table (Compact) */}
                                                     {linkedTasks.length > 0 && (

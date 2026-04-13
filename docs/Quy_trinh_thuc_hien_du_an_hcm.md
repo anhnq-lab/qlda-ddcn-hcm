@@ -1,57 +1,20 @@
-# Sổ tay Đầu tư công Hải Dương - Quy trình Dự án Đầu tư Xây dựng
+# Quy trình Thực hiện Dự án HCM
 
-> **Nguồn:** Sổ tay quản lý dự án đầu tư công tỉnh Hải Dương 2025
-> **Mục đích:** Làm cơ sở dữ liệu cho 3 quy trình dự án (1 bước, 2 bước, 3 bước thiết kế)
+> **Mục đích:** Làm cơ sở dữ liệu cho 3 quy trình dự án (1 bước, 2 bước, 3 bước thiết kế) của Ban QLDA HCM (quy trình bắt đầu từ giai đoạn sau khi đã được phê duyệt chủ trương đầu tư).
 
 ---
 
 ## SƠ ĐỒ TỔNG QUÁT
 
 ```
-Chuẩn bị dự án → Thực hiện dự án → Kết thúc dự án
+Chuẩn bị đầu tư và dự án → Thực hiện dự án → Kết thúc dự án
 ```
 
 ---
 
 ## I. GIAI ĐOẠN CHUẨN BỊ DỰ ÁN
 
-### I.1. Quyết định chủ trương đầu tư (CTrĐT)
-
-> Áp dụng: DA nhóm A, B, C sử dụng vốn ĐTC do địa phương quản lý
-
-| Bước | Tên bước | SLA quy định | SLA phấn đấu |
-|------|----------|-------------|--------------|
-| 1 | Lập BCNCTKT / Báo cáo đề xuất CTrĐT | BC đề xuất: 20 ngày; BC NCTKT: 30 ngày | - |
-| 2 | Thẩm định BCNCTKT, nguồn vốn & khả năng cân đối vốn | Nhóm A: 45 ngày; Nhóm B,C: 30 ngày | Nhóm A: 23 ngày; Nhóm B,C: 15 ngày |
-| 3 | Hoàn chỉnh BCNCTKT / Báo cáo đề xuất CTrĐT | - | - |
-| 4 | Quyết định CTrĐT | - | - |
-| 5 | Giao Chủ đầu tư dự án | - | - |
-
-#### Chi tiết các bước:
-
-**Bước 1: Lập BCNCTKT / Báo cáo đề xuất CTrĐT**
-1. Giao đơn vị trực thuộc lập BCNCTKT/Báo cáo đề xuất CTrĐT (Chủ tịch UBND các cấp)
-2. Lập BCNCTKT/Báo cáo đề xuất CTrĐT, thành phần hồ sơ gồm: Tờ trình đề nghị cấp có thẩm quyền quyết định CTrĐT; BCNCTKT/CTrĐT; Các tài liệu khác
-
-**Bước 2: Thẩm định BCNCTKT, nguồn vốn & khả năng cân đối vốn**
-1. Thành lập Hội đồng thẩm định hoặc giao đơn vị có chức năng thẩm định
-2. Hồ sơ trình thẩm định BCNCTKT/Báo cáo đề xuất CTrĐT
-3. Tiếp nhận và tổ chức thẩm định (phân theo nhóm A/B/C)
-4. Thời gian thẩm định theo quy định
-
-**Bước 3: Hoàn chỉnh BCNCTKT / Báo cáo đề xuất CTrĐT**
-1. Hoàn thiện theo ý kiến của HĐ thẩm định/đơn vị có chức năng
-
-**Bước 4: Quyết định CTrĐT**
-1. Trình duyệt quyết định CTrĐT (thành phần hồ sơ đầy đủ)
-2. Tổng hợp báo cáo UBND các cấp xem xét quyết định
-
-**Bước 5: Giao CĐT dự án**
-1. Giao CĐT dự án (Người quyết định đầu tư)
-
----
-
-### I.2. Chuẩn bị đầu tư, chuẩn bị dự án
+### I.1. Chuẩn bị đầu tư, chuẩn bị dự án
 
 | Bước | Tên bước | SLA |
 |------|----------|-----|
@@ -60,16 +23,14 @@ Chuẩn bị dự án → Thực hiện dự án → Kết thúc dự án
 | 3 | LCNT khảo sát, tư vấn lập QH, thiết kế XD, tư vấn thẩm tra | Theo Phụ lục số 1 |
 | 4 | Thi tuyển PA kiến trúc; Lập, thẩm định, phê duyệt QH chi tiết (nếu có) | Thi tuyển: 82 ngày |
 | 5 | Lập, thẩm định, phê duyệt BCNCKT và BCKT-KT ĐTXD | Nhóm A: 80 ngày; Nhóm B,C: 60 ngày |
-| 6 | Điều chỉnh CTrĐT dự án (nếu có) | - |
+| 6 | Điều chỉnh dự án (nếu có) | - |
 | 7 | Phê duyệt dự án | Nhóm A: 7 ngày; Nhóm B,C: 5 ngày |
 | 8 | Thẩm định, phê duyệt điều chỉnh BCNCKT/BCKT-KT (nếu có) | - |
 
 #### Chi tiết bước quan trọng:
 
 **Bước 1: Lập, thẩm định, phê duyệt NV, dự toán chi phí CBĐT, CBDA**
-- *Loại 1:* DA ĐTC không có cấu phần xây dựng (1.1→1.2→1.3)
-- *Loại 2:* DA ĐTC có cấu phần xây dựng (2.1→2.2→2.3)
-- *Loại 3:* Dự toán thuê tư vấn nước ngoài (3.1→3.2)
+- Dự án ĐTC có cấu phần xây dựng (2.1→2.2→2.3)
 
 **Bước 4: Thi tuyển PA kiến trúc (nếu có) - 82 ngày**
 1. Xác định công trình phải thi tuyển PA kiến trúc
@@ -257,20 +218,20 @@ Chuẩn bị dự án → Thực hiện dự án → Kết thúc dự án
 ### Quy trình 1 bước thiết kế (BCKT-KT)
 > Áp dụng: Dự án chỉ lập Báo cáo Kinh tế - Kỹ thuật (công trình quy mô nhỏ)
 
-- **Giai đoạn Chuẩn bị**: CTrĐT → Chuẩn bị đầu tư (chỉ lập BCKT-KT, TKBVTC gộp chung)
+- **Giai đoạn Chuẩn bị**: Chuẩn bị đầu tư (chỉ lập BCKT-KT, TKBVTC gộp chung)
 - **Giai đoạn Thực hiện**: LCNT → Thi công → Giám sát → Thanh toán
 - **Giai đoạn Kết thúc**: Nghiệm thu → Bàn giao → Quyết toán → Bảo hành
 
 ### Quy trình 2 bước thiết kế (TKCS → TKBVTC)
 > Áp dụng: Dự án thông thường
 
-- **Giai đoạn Chuẩn bị**: CTrĐT → Chuẩn bị đầu tư → Lập BCNCKT (có TKCS) → Phê duyệt DA
+- **Giai đoạn Chuẩn bị**: Chuẩn bị đầu tư → Lập BCNCKT (có TKCS) → Phê duyệt DA
 - **Giai đoạn Thực hiện**: Lập TKBVTC sau TKCS → LCNT → GPMB → Thi công → Giám sát → Thanh toán
 - **Giai đoạn Kết thúc**: Nghiệm thu → Bàn giao → Quyết toán → Bảo hành
 
 ### Quy trình 3 bước thiết kế (TKCS → TKKT → TKBVTC)
 > Áp dụng: Dự án lớn, phức tạp (nhóm A hoặc công trình cấp đặc biệt, cấp I)
 
-- **Giai đoạn Chuẩn bị**: CTrĐT → Chuẩn bị đầu tư → Lập BCNCKT (có TKCS) → Phê duyệt DA
+- **Giai đoạn Chuẩn bị**: Chuẩn bị đầu tư → Lập BCNCKT (có TKCS) → Phê duyệt DA
 - **Giai đoạn Thực hiện**: Lập TKKT → Thẩm định TKKT → Lập TKBVTC → LCNT → GPMB → Thi công → Giám sát → Thanh toán
 - **Giai đoạn Kết thúc**: Nghiệm thu → Bàn giao → Quyết toán → Bảo hành

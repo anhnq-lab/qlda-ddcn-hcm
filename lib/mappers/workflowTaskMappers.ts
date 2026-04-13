@@ -58,8 +58,8 @@ export const workflowTaskToTask = (wt: DbTask | any, projectId?: string): Task =
         ActualEndDate: metadata.actualEndDate || wt.completed_at || '',
         
         // Workflow/Step reference
-        TimelineStep: wt.workflow_node_id || wt.node_id || metadata.step_code || '',
-        StepCode: wt.workflow_node_id || wt.node_id || metadata.step_code || '',
+        TimelineStep: wt.step_code || metadata.step_code || wt.workflow_node_id || wt.node_id || '',
+        StepCode: wt.step_code || metadata.step_code || wt.workflow_node_id || wt.node_id || '',
         Phase: metadata.phase || (wt as any).workflow_nodes?.metadata?.phase || '',
         LegalBasis: metadata.legalBasis || (wt as any).workflow_nodes?.metadata?.legalBasis || '',
         IsCritical: metadata.isCritical || false,
@@ -93,6 +93,7 @@ export const taskToDbTask = (task: Partial<Task>, projectId?: string): Partial<D
         assignee_id: task.AssigneeID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(task.AssigneeID)
             ? task.AssigneeID : null,
         workflow_node_id: task.TimelineStep || task.StepCode || null,
+        step_code: task.TimelineStep || task.StepCode || null,
         task_type: 'project' as any,
         metadata: {
             ui_status: task.Status,

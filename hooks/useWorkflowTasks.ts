@@ -127,7 +127,7 @@ export const useCreateTasksFromWorkflow = () => {
       workflowId: string;
       startDate: string;
       endDate: string;
-    }) => TaskService.createTasksFromWorkflow(projectId, workflowId, startDate, endDate),
+    }) => TaskService.createTasksFromWorkflow(projectId, workflowId, startDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },

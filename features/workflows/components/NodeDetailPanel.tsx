@@ -104,8 +104,21 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             setPhase(meta.phase || 'preparation');
             setDescription(meta.description || '');
             
-            // Transform legacy fields to first sub-task if needed, or just load sub_tasks
-            const loadedSubTasks: SubTask[] = meta.sub_tasks || [];
+            const generateSafeId = () => {
+                if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+                return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            };
+
+            // Ensure uniqueness of loaded sub-tasks
+            const seenIds = new Set<string>();
+            const loadedSubTasks: SubTask[] = (meta.sub_tasks || []).map((st: any) => {
+                let currentId = st.id;
+                if (!currentId || seenIds.has(currentId)) {
+                    currentId = generateSafeId();
+                }
+                seenIds.add(currentId);
+                return { ...st, id: currentId };
+            });
             
             // Migration logic: If no sub-tasks exist but legacy data does, create one
             if (loadedSubTasks.length === 0 && (node.assignee_role || meta.output || meta.legal_basis || meta.template_forms)) {
@@ -116,8 +129,10 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
                     tfName = meta.template_forms;
                 }
                 
+                const newId = generateSafeId();
+                seenIds.add(newId);
                 loadedSubTasks.push({
-                    id: crypto.randomUUID(),
+                    id: newId,
                     name: meta.description || 'Nhiệm vụ chính',
                     assignee_role: node.assignee_role || '',
                     output: meta.output || '',
@@ -129,7 +144,7 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             // Require at least one sub task
             if (loadedSubTasks.length === 0) {
                 loadedSubTasks.push({
-                    id: crypto.randomUUID(),
+                    id: generateSafeId(),
                     name: 'Nhiệm vụ mới',
                     assignee_role: '',
                     output: '',
@@ -142,6 +157,11 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
             setSubTasks(loadedSubTasks);
         }
     }, [node]);
+
+    const generateSafeId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    };
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -177,7 +197,7 @@ const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({ node, onSave }) => {
 
     const addSubTask = () => {
         setSubTasks([...subTasks, {
-            id: crypto.randomUUID(),
+            id: generateSafeId(),
             name: '',
             assignee_role: '',
             output: '',

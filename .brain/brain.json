@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "3.3.0"
+  },
+  "project": {
+    "name": "qlda-ddcn-hcm",
+    "type": "ERP/PMS - Public Investment Management",
+    "status": "Active Development"
+  },
+  "tech_stack": {
+    "frontend": {
+      "framework": "React 19 (Vite)",
+      "styling": "Tailwind CSS + Vanilla CSS",
+      "state_management": "TanStack Query v5",
+      "ui_components": "Radix UI + Lucide React + Framer Motion",
+      "routing": "React Router 6"
+    },
+    "visualizations": {
+      "workflows": "@xyflow/react + dagre",
+      "charts": "recharts",
+      "bim": "three.js + web-ifc + @thatopen/components",
+      "maps": "leaflet"
+    },
+    "backend": {
+      "database": "Supabase (PostgreSQL)",
+      "auth": "Supabase Auth",
+      "functions": "Supabase Edge Functions"
+    },
+    "exports": [
+      "docx-js",
+      "jspdf",
+      "exceljs",
+      "xlsx"
+    ]
+  },
+  "features": [
+    {
+      "name": "Workflow Management",
+      "description": "Investment process standardizing (1-step, 2-step, 3-step design) aligned with Hai Duong Handbook.",
+      "critical_files": [
+        "features/workflows/data/seedWorkflows.ts",
+        "features/workflows/components/WorkflowBuilderPanel.tsx",
+        "services/WorkflowTemplateService.ts"
+      ]
+    },
+    {
+      "name": "Internal Regulations (Quy chế)",
+      "description": "Structured storage and presentation of internal office regulations.",
+      "docs": "docs/authorization_specification.md"
+    },
+    {
+      "name": "HR & Admin Booking",
+      "description": "Resource booking system for meeting rooms, vehicles, and leave management."
+    }
+  ],
+  "conventions": {
+    "ui": "Sand palette (#FCF9F2), gradient-btn utility, clean modern aesthetics.",
+    "database": "snake_case tables, RLS enabled, sort_order for sequencing (pending migration)."
+  }
+}

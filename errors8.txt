@@ -1,0 +1,137 @@
+﻿components/common/NotificationCenter.tsx(41,26): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+components/common/NotificationCenter.tsx(42,47): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+components/common/NotificationCenter.tsx(48,47): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+components/common/NotificationCenter.tsx(51,38): error TS2339: Property 'TaskID' does not exist on type 'DbTask'.
+components/common/NotificationCenter.tsx(56,35): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+components/common/NotificationCenter.tsx(61,42): error TS2339: Property 'TaskID' does not exist on type 'DbTask'.
+features/contracts/ContractDetail.tsx(65,50): error TS2345: Argument of type '{ projectId: string; }' is not assignable to parameter of type 'string'.
+features/contracts/ContractDetail.tsx(71,28): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/contracts/ContractDetail.tsx(71,65): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/contracts/ContractDetail.tsx(71,107): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/contracts/ContractDetail.tsx(75,25): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+features/contracts/ContractDetail.tsx(76,25): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/contracts/ContractDetail.tsx(77,27): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/contracts/ContractDetail.tsx(77,58): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/dashboard/PersonalDashboard.tsx(45,36): error TS2551: Property 'AssigneeID' does not exist on type 'DbTask'. Did you mean 'assignee_id'?
+features/employees/EmployeeDetail.tsx(73,56): error TS2551: Property 'AssigneeID' does not exist on type 'DbTask'. Did you mean 'assignee_id'?
+features/employees/EmployeeList.tsx(166,50): error TS2551: Property 'AssigneeID' does not exist on type 'DbTask'. Did you mean 'assignee_id'?
+features/employees/EmployeeList.tsx(167,59): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/employees/EmployeeList.tsx(169,64): error TS2551: Property 'ProjectID' does not exist on type 'DbTask'. Did you mean 'project_id'?
+features/employees/EmployeeSlideContent.tsx(82,56): error TS2551: Property 'AssigneeID' does not exist on type 'DbTask'. Did you mean 'assignee_id'?
+features/projects/components/GanttChartWidget.tsx(50,48): error TS2339: Property 'getTasksByProject' does not exist on type '{ getAllTasks: (projectIds?: string[]) => Promise<DbTask[]>; getProjectTasks: (projectId: string) => Promise<DbTask[]>; getInternalTasks: () => Promise<DbTask[]>; ... 10 more ...; createTasksFromWorkflow: (projectId: string, workflowId: string, startDate: string, endDate: string) => Promise<...>; }'.
+features/projects/components/KanbanBoardView.tsx(123,18): error TS2678: Type '"High"' is not comparable to type 'TaskPriority'.
+features/projects/components/KanbanBoardView.tsx(124,18): error TS2678: Type '"Urgent"' is not comparable to type 'TaskPriority'.
+features/projects/components/KanbanBoardView.tsx(126,18): error TS2678: Type '"Medium"' is not comparable to type 'TaskPriority'.
+features/projects/components/KanbanBoardView.tsx(128,18): error TS2678: Type '"Low"' is not comparable to type 'TaskPriority'.
+features/projects/components/ProjectTaskModal.tsx(272,55): error TS2345: Argument of type 'Task' is not assignable to parameter of type '{ taskId: string; updates: Partial<DbTask>; }'.
+  Type 'Task' is missing the following properties from type '{ taskId: string; updates: Partial<DbTask>; }': taskId, updates
+features/projects/components/ProjectTaskModal.tsx(282,51): error TS2345: Argument of type 'Task' is not assignable to parameter of type '{ taskId: string; updates: Partial<DbTask>; }'.
+  Type 'Task' is missing the following properties from type '{ taskId: string; updates: Partial<DbTask>; }': taskId, updates
+features/projects/components/ProjectTaskModal.tsx(295,51): error TS2345: Argument of type 'Task' is not assignable to parameter of type '{ taskId: string; updates: Partial<DbTask>; }'.
+  Type 'Task' is missing the following properties from type '{ taskId: string; updates: Partial<DbTask>; }': taskId, updates
+features/projects/components/ProjectTaskModal.tsx(305,51): error TS2345: Argument of type 'Task' is not assignable to parameter of type '{ taskId: string; updates: Partial<DbTask>; }'.
+  Type 'Task' is missing the following properties from type '{ taskId: string; updates: Partial<DbTask>; }': taskId, updates
+features/projects/components/ProjectTaskModal.tsx(313,51): error TS2345: Argument of type 'Task' is not assignable to parameter of type '{ taskId: string; updates: Partial<DbTask>; }'.
+  Type 'Task' is missing the following properties from type '{ taskId: string; updates: Partial<DbTask>; }': taskId, updates
+features/projects/components/SubTaskDetailModal.tsx(151,18): error TS2678: Type '"High"' is not comparable to type 'TaskPriority'.
+features/projects/components/SubTaskDetailModal.tsx(151,31): error TS2678: Type '"Urgent"' is not comparable to type 'TaskPriority'.
+features/projects/components/SubTaskDetailModal.tsx(152,18): error TS2678: Type '"Medium"' is not comparable to type 'TaskPriority'.
+features/projects/components/SubTaskDetailModal.tsx(153,18): error TS2678: Type '"Low"' is not comparable to type 'TaskPriority'.
+features/projects/components/tabs/ProjectCapitalTab.tsx(80,36): error TS2339: Property 'getTasksByProject' does not exist on type '{ getAllTasks: (projectIds?: string[]) => Promise<DbTask[]>; getProjectTasks: (projectId: string) => Promise<DbTask[]>; getInternalTasks: () => Promise<DbTask[]>; ... 10 more ...; createTasksFromWorkflow: (projectId: string, workflowId: string, startDate: string, endDate: string) => Promise<...>; }'.
+features/projects/components/tabs/ProjectInfoTab.tsx(157,51): error TS2339: Property 'getProjectWorkflowTasks' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/projects/ProjectDetail.tsx(9,10): error TS2724: '"@/hooks/useWorkflowTasks"' has no exported member named 'useProjectWorkflowTasks'. Did you mean 'useWorkflowTasks'?
+features/regulations/Regulations.tsx(113,69): error TS17001: JSX elements cannot have multiple attributes with the same name.
+features/regulations/Regulations.tsx(116,69): error TS17001: JSX elements cannot have multiple attributes with the same name.
+features/regulations/Regulations.tsx(155,59): error TS17001: JSX elements cannot have multiple attributes with the same name.
+features/regulations/Regulations.tsx(156,71): error TS17001: JSX elements cannot have multiple attributes with the same name.
+features/reports/ReportCenter.tsx(44,55): error TS2345: Argument of type '{ projects: Project[]; payments: Payment[]; tasks: DbTask[]; }' is not assignable to parameter of type 'ReportDataSource'.
+  Types of property 'tasks' are incompatible.
+    Type 'DbTask[]' is not assignable to type 'Task[]'.
+      Type 'DbTask' is missing the following properties from type 'Task': TaskID, Title, TaskType, ProjectID, and 4 more.
+features/reports/ReportCenter.tsx(47,57): error TS2345: Argument of type '{ projects: Project[]; payments: Payment[]; tasks: DbTask[]; }' is not assignable to parameter of type 'ReportDataSource'.
+  Types of property 'tasks' are incompatible.
+    Type 'DbTask[]' is not assignable to type 'Task[]'.
+      Type 'DbTask' is missing the following properties from type 'Task': TaskID, Title, TaskType, ProjectID, and 4 more.
+features/reports/ReportCenter.tsx(50,51): error TS2345: Argument of type '{ projects: Project[]; payments: Payment[]; tasks: DbTask[]; }' is not assignable to parameter of type 'ReportDataSource'.
+  Types of property 'tasks' are incompatible.
+    Type 'DbTask[]' is not assignable to type 'Task[]'.
+      Type 'DbTask' is missing the following properties from type 'Task': TaskID, Title, TaskType, ProjectID, and 4 more.
+features/tasks/TaskDetail.tsx(79,62): error TS2551: Property 'ProjectID' does not exist on type 'DbTask'. Did you mean 'project_id'?
+features/tasks/TaskDetail.tsx(80,65): error TS2551: Property 'AssigneeID' does not exist on type 'DbTask'. Did you mean 'assignee_id'?
+features/tasks/TaskDetail.tsx(81,65): error TS2551: Property 'ApproverID' does not exist on type 'DbTask'. Did you mean 'approver_id'?
+features/tasks/TaskDetail.tsx(110,44): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/tasks/TaskDetail.tsx(111,48): error TS2551: Property 'Priority' does not exist on type 'DbTask'. Did you mean 'priority'?
+features/tasks/TaskDetail.tsx(112,43): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/tasks/TaskDetail.tsx(113,43): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/tasks/TaskDetail.tsx(114,27): error TS2339: Property 'ProgressPercent' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(114,52): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/tasks/TaskDetail.tsx(115,49): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(116,43): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(117,28): error TS2551: Property 'Status' does not exist on type 'DbTask'. Did you mean 'status'?
+features/tasks/TaskDetail.tsx(117,63): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(117,88): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(120,46): error TS2353: Object literal may only specify known properties, and 'Status' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(120,109): error TS2339: Property 'ProgressPercent' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(123,72): error TS2339: Property 'TaskID' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(131,64): error TS2339: Property 'Attachments' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(134,38): error TS2551: Property 'ProjectID' does not exist on type 'DbTask'. Did you mean 'project_id'?
+features/tasks/TaskDetail.tsx(134,62): error TS2339: Property 'TaskID' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(150,50): error TS2353: Object literal may only specify known properties, and 'Attachments' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(161,31): error TS2339: Property 'Attachments' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(162,46): error TS2353: Object literal may only specify known properties, and 'Attachments' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(165,45): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(165,64): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+features/tasks/TaskDetail.tsx(190,113): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+features/tasks/TaskDetail.tsx(210,169): error TS2339: Property 'TaskID' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(211,43): error TS2339: Property 'IsCritical' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(223,129): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+features/tasks/TaskDetail.tsx(293,74): error TS2551: Property 'Description' does not exist on type 'DbTask'. Did you mean 'description'?
+features/tasks/TaskDetail.tsx(310,51): error TS2551: Property 'LegalBasis' does not exist on type 'DbTask'. Did you mean 'legal_basis'?
+features/tasks/TaskDetail.tsx(317,51): error TS2551: Property 'OutputDocument' does not exist on type 'DbTask'. Did you mean 'output_document'?
+features/tasks/TaskDetail.tsx(333,116): error TS2551: Property 'DurationDays' does not exist on type 'DbTask'. Did you mean 'duration_days'?
+features/tasks/TaskDetail.tsx(333,139): error TS2551: Property 'DurationDays' does not exist on type 'DbTask'. Did you mean 'duration_days'?
+features/tasks/TaskDetail.tsx(339,51): error TS2339: Property 'Dependencies' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(339,72): error TS2339: Property 'Dependencies' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(340,54): error TS2339: Property 'Dependencies' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(360,119): error TS2551: Property 'Title' does not exist on type 'DbTask'. Did you mean 'title'?
+features/tasks/TaskDetail.tsx(403,47): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(403,71): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(420,47): error TS2551: Property 'EstimatedCost' does not exist on type 'DbTask'. Did you mean 'estimated_cost'?
+features/tasks/TaskDetail.tsx(420,146): error TS2551: Property 'EstimatedCost' does not exist on type 'DbTask'. Did you mean 'estimated_cost'?
+features/tasks/TaskDetail.tsx(439,40): error TS2339: Property 'SubTasks' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(445,40): error TS2339: Property 'SubTasks' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(449,83): error TS2339: Property 'SubTasks' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(451,86): error TS2353: Object literal may only specify known properties, and 'SubTasks' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(475,83): error TS2339: Property 'SubTasks' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(476,90): error TS2353: Object literal may only specify known properties, and 'SubTasks' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(497,73): error TS2339: Property 'Attachments' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(554,40): error TS2339: Property 'Attachments' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(560,52): error TS2339: Property 'Attachments' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(632,50): error TS2339: Property 'SubTasks' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(638,66): error TS2353: Object literal may only specify known properties, and 'SubTasks' does not exist in type '{ taskId: string; updates: Partial<DbTask>; }'.
+features/tasks/TaskDetail.tsx(644,35): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(646,51): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(651,55): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(656,59): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(666,59): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(670,60): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(671,60): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(678,74): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(707,47): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(710,39): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(713,95): error TS2551: Property 'DueDate' does not exist on type 'DbTask'. Did you mean 'due_date'?
+features/tasks/TaskDetail.tsx(736,37): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(736,78): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/tasks/TaskDetail.tsx(737,36): error TS2339: Property 'TimelineStep' does not exist on type 'DbTask'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(42,64): error TS2339: Property 'getInstanceDetails' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(89,49): error TS2339: Property 'getInstanceTimeline' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(100,46): error TS2339: Property 'getOrCreateTaskFolder' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(104,31): error TS2339: Property 'startTask' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(116,31): error TS2339: Property 'submitTask' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+features/workflows/components/WorkflowStepDetailPanel.tsx(128,29): error TS2339: Property 'processApproval' does not exist on type '{ getTemplates: (category?: string) => Promise<Workflow[]>; getTemplateDetail: (workflowId: string) => Promise<{ workflow: Workflow; nodes: WorkflowNode[]; edges: WorkflowEdge[]; }>; ... 4 more ...; seedTemplate: (workflow: any, nodes: any[], edges: any[]) => Promise<...>; }'.
+hooks/index.ts(6,29): error TS2305: Module '"./useTasks"' has no exported member 'useTaskStatistics'.
+services/ai/resourceOptimizer.ts(43,45): error TS2339: Property 'getTasksByProject' does not exist on type '{ getAllTasks: (projectIds?: string[]) => Promise<DbTask[]>; getProjectTasks: (projectId: string) => Promise<DbTask[]>; getInternalTasks: () => Promise<DbTask[]>; ... 10 more ...; createTasksFromWorkflow: (projectId: string, workflowId: string, startDate: string, endDate: string) => Promise<...>; }'.
+services/TaskService.ts(93,35): error TS2589: Type instantiation is excessively deep and possibly infinite.
+services/TaskService.ts(247,37): error TS2589: Type instantiation is excessively deep and possibly infinite.
+services/taskTemplates.ts(360,5): error TS2322: Type '{ TaskID: string; ProjectID: string; Title: string; Description: string; Status: TaskStatus.Todo; Priority: TaskPriority; AssigneeID: string; DueDate: string; TimelineStep: string; ... 5 more ...; PredecessorTaskID: string; }[]' is not assignable to type 'Task[]'.
+  Property 'TaskType' is missing in type '{ TaskID: string; ProjectID: string; Title: string; Description: string; Status: TaskStatus.Todo; Priority: TaskPriority; AssigneeID: string; DueDate: string; TimelineStep: string; ... 5 more ...; PredecessorTaskID: string; }' but required in type 'Task'.

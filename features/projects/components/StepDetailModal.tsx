@@ -106,12 +106,31 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors shrink-0"
-                        >
-                            <X className="w-5 h-5 text-gray-500" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {linkedTasks.length > 0 ? (
+                                <button
+                                    onClick={() => onEditTask(linkedTasks.find(t => !t.ParentID) || linkedTasks[0])}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 text-xs font-semibold text-gray-700 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-400 border border-gray-200 dark:border-slate-600 hover:border-amber-200 dark:hover:border-amber-700 rounded-lg shadow-sm transition-colors"
+                                >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    Sửa nội dung kế hoạch
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => onAddTask(item.title, item.code)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white rounded-lg shadow-sm transition-colors"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    Tạo công việc
+                                </button>
+                            )}
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors shrink-0"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

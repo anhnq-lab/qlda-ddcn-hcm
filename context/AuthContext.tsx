@@ -210,7 +210,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.log('[Auth] 🔧 Local Dev: Auto-logging in as Admin...');
                         const demoLogin = await supabase.auth.signInWithPassword({
                             email: 'admin@bqlddcn.gov.vn',
-                            password: '123456',
+                            password: '@Abc123456',
                         });
                         
                         if (demoLogin.data?.session) {

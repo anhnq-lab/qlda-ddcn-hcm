@@ -501,7 +501,7 @@ export const TaskService = {
         due_date: nodeEndDate.toISOString().split('T')[0],
         duration_days: nodeSla,
         phase: nodeMetadata.phase || 'preparation',
-        step_code: node.name.match(/^(\d+)\./) ? node.name.match(/^(\d+)\./)![1] : '',
+        step_code: nodeMetadata.step_code || (node.name.match(/^(\d+)\./) ? node.name.match(/^(\d+)\./)![1] : (i + 1).toString()),
         sort_order: i,
         predecessor_task_id: previousTaskId, // Link for Gantt
         legal_basis: nodeMetadata.legalBasis || '',

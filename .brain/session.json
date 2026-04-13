@@ -1,0 +1,51 @@
+{
+  "updated_at": "2026-04-04T13:32:00Z",
+  "working_on": {
+    "feature": "Workflow Refactor & Standardization",
+    "task": "Align 1-step, 2-step, 3-step designs with Hai Duong handbook",
+    "status": "Completed & Pushed",
+    "files": [
+      "features/workflows/data/seedWorkflows.ts",
+      "features/workflows/components/WorkflowBuilderPanel.tsx"
+    ],
+    "notes": "Removing I.1 step and fixing node deletion logic."
+  },
+  "recent_changes": [
+    {
+      "timestamp": "2026-04-04T06:28:00Z",
+      "type": "Refactor",
+      "description": "Removed I.1 phase and renumbered steps in QT-TK1B, QT-TK2B, QT-TK3B.",
+      "files": ["features/workflows/data/seedWorkflows.ts"]
+    },
+    {
+      "timestamp": "2026-04-04T05:40:00Z",
+      "type": "Fix",
+      "description": "Fixed node deletion logic and workflow builder stability.",
+      "files": ["features/workflows/components/WorkflowBuilderPanel.tsx"]
+    }
+  ],
+  "decisions_made": [
+    {
+      "decision": "Use created_at for node ordering temporarily.",
+      "reason": "Missing sort_order column in workflow_nodes table; migration needed."
+    },
+    {
+      "decision": "Remove I.1 phase entirely.",
+      "reason": "Regulatory alignment with Sổ tay Đầu tư công Hải Dương."
+    },
+    {
+      "decision": "Cleanup edges before nodes in deletion logic.",
+      "reason": "Avoid foreign key constraint violations."
+    }
+  ],
+  "pending_tasks": [
+    {
+      "task": "Database Migration: Add sort_order to workflow_nodes table.",
+      "priority": "High"
+    },
+    {
+      "task": "Update ordering logic to use sort_order after migration.",
+      "priority": "High"
+    }
+  ]
+}
