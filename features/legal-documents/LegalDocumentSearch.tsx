@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { legalDocuments, searchDocuments, getDocStats, deepSearchArticles, DocType } from './legalData';
+import { DocType } from '../../services/LegalDocumentService';
+import {
+    useDocumentList,
+    useDocumentDetail,
+    useLegalStats,
+    useDeepSearch,
+    useDebounce,
+    usePrefetchDocument,
+    convertToLegacyDoc,
+} from './useLegalDocuments';
 import { useBookmarks, useRecentlyViewed, useReadingPrefs, useLegalEditStore } from './useLegalStorage';
 import { LegalHeader } from './components/LegalHeader';
 import { LegalSidebar } from './components/LegalSidebar';
@@ -31,9 +40,9 @@ const LegalDocumentSearch: React.FC<LegalDocumentSearchProps> = ({
 
     // 1. Shared State
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
-    const [selectedDocId, setSelectedDocId] = useState<string>(initialDocId || urlDocId || legalDocuments[0]?.id || '');
-    const [filterType, setFilterType] = useState<DocType | 'all'>('all');
+    const debouncedSearchQuery = useDebounce(searchQuery, 300);
+    const [selectedDocId, setSelectedDocId] = useState<string>(initialDocId || urlDocId || '');
+    const [filterType, setFilterType] = useState<DocType | ''>('');
 
     // UI State
     const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
@@ -64,33 +73,45 @@ const LegalDocumentSearch: React.FC<LegalDocumentSearchProps> = ({
         }
     }, [selectedDocId, addView]);
 
-    // Update debounced search
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
-        }, 300);
-        return () => clearTimeout(handler);
-    }, [searchQuery]);
+    // ---- Supabase data fetching ----
+    const { data: listResult, isLoading: isListLoading } = useDocumentList({
+        searchQuery: debouncedSearchQuery,
+        type: filterType,
+        pageSize: 100,
+    });
+    const { data: statsData } = useLegalStats();
+    const { data: selectedDocRaw, isLoading: isDetailLoading } = useDocumentDetail(selectedDocId || null);
+    const { data: deepSearchRaw } = useDeepSearch(selectedDocId || null, debouncedSearchQuery);
+    const prefetchDocument = usePrefetchDocument();
 
-    // Data Processing
-    const stats = useMemo(() => getDocStats(), []);
-
-    const filteredDocs = useMemo(() => {
-        let docs = searchDocuments(debouncedSearchQuery);
-        if (filterType !== 'all') {
-            docs = docs.filter(d => d.type === filterType);
-        }
-        return docs;
-    }, [debouncedSearchQuery, filterType]);
-
+    // Legacy adapters (keeps sub-components unchanged)
+    const filteredDocs = useMemo(() => (listResult?.documents ?? []).map(convertToLegacyDoc), [listResult]);
+    const selectedDoc = useMemo(() => selectedDocRaw ? convertToLegacyDoc(selectedDocRaw) : null, [selectedDocRaw]);
+    const stats = useMemo(() => ({
+        total: statsData?.total ?? 0,
+        byType: statsData?.byType ?? {},
+        byStatus: statsData?.byStatus ?? {},
+    }), [statsData]);
     const deepSearchResults = useMemo(() => {
-        if (debouncedSearchQuery.length < 2) return [];
-        return deepSearchArticles(debouncedSearchQuery).slice(0, 10);
-    }, [debouncedSearchQuery]);
+        if (!deepSearchRaw || debouncedSearchQuery.length < 2) return [];
+        return deepSearchRaw.slice(0, 10).map(art => ({
+            docId: art.document_id,
+            chapterId: art.chapter_id,
+            articleId: art.id,
+            articleCode: art.code,
+            articleTitle: art.title,
+            snippet: art.summary ?? art.content?.slice(0, 200) ?? '',
+        }));
+    }, [deepSearchRaw, debouncedSearchQuery]);
 
-    const selectedDoc = useMemo(() =>
-        legalDocuments.find(d => d.id === selectedDocId) || null
-        , [selectedDocId]);
+    // Auto-select first document when list loads and nothing selected
+    useEffect(() => {
+        if (!selectedDocId && filteredDocs.length > 0) {
+            setSelectedDocId(filteredDocs[0].id);
+        }
+    }, [filteredDocs, selectedDocId]);
+
+    const isLoading = isListLoading || isDetailLoading;
 
     // Set default expanded content on doc change and handle initial deep link
     useEffect(() => {
@@ -205,6 +226,20 @@ const LegalDocumentSearch: React.FC<LegalDocumentSearchProps> = ({
                     fromPath.includes('/bidding') ? 'Đấu thầu' :
                         'Trang trước'
     ) : null;
+
+    if (isLoading && filteredDocs.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-[calc(100vh-140px)]">
+                <div className="flex flex-col items-center gap-3 text-gray-500 dark:text-gray-400">
+                    <svg className="w-8 h-8 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span className="text-sm font-medium">Đang tải văn bản pháp luật...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`flex flex-col ${readingMode ? 'fixed inset-0 z-50 bg-[#FCF9F2] dark:bg-slate-900 p-4' : (isEmbedded ? 'h-full' : 'h-[calc(100vh-140px)]')} animate-in fade-in duration-300`}>
