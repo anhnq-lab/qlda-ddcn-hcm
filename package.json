@@ -84,6 +84,7 @@
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.5.207",
     "pdfreader": "^3.0.8",
+    "pg": "^8.20.0",
     "postcss": "^8.5.8",
     "pptxgenjs": "^4.0.1",
     "prettier": "^3.8.1",

@@ -41,7 +41,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
     const importFileRef = React.useRef<HTMLInputElement>(null);
 
     const handleOpenLegalSearch = (basisText: string) => {
-        const target = resolveLegalReference(basisText, legalDocuments);
+        const target = resolveLegalReference(basisText, (legalDocuments as any));
         openPanel({
             id: target.docId ? 'legal-search-parsed' : 'legal-search',
             title: 'Tra cứu pháp luật',
@@ -148,32 +148,21 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
         try {
             // Delete instances first to cascade delete workflow_tasks and bypass RESTRICT constraint
             const { error: instanceErr } = await supabase.from('workflow_instances').delete().eq('workflow_id', workflowId);
-            if (instanceErr) {
-                console.warn('[Workflow Delete] Warning deleting instances:', instanceErr);
-            }
+            if (instanceErr) { /* non-fatal: cascade may already handle this */ }
 
             const { error: edgeErr } = await supabase.from('workflow_edges').delete().eq('workflow_id', workflowId);
-            if (edgeErr) console.warn('[Workflow Delete] Warning deleting edges:', edgeErr);
+            if (edgeErr) { /* non-fatal */ }
 
             const { error: nodeErr } = await supabase.from('workflow_nodes').delete().eq('workflow_id', workflowId);
-            if (nodeErr) {
-                console.warn('[Workflow Delete] Warning deleting nodes (might hit FK constraint):', nodeErr);
-            }
+            if (nodeErr) { /* non-fatal: will fallback to soft-deactivate */ }
             
             // Delete the workflow and return the deleted rows to check for RLS block
             const { data: deletedData, error } = await supabase.from('workflows').delete().eq('id', workflowId).select();
             
             if (error || !deletedData || deletedData.length === 0) {
-                if (!error) {
-                    console.warn('[Workflow Delete] Workflow deletion returned 0 rows. Likely blocked by RLS (Not an Admin). Falling back to soft-deactivate.');
-                } else {
-                    console.error('[Workflow Delete] Failed to hard delete workflow:', error);
-                }
-                
                 // Fallback: If any error happens (like 23503 or 400), or if RLS blocks (0 rows), we softly deactivate it
                 const { error: softErr } = await supabase.from('workflows').update({ is_active: false }).eq('id', workflowId);
                 if (softErr) {
-                    console.error('[Workflow Delete] Failed to soft-deactivate workflow:', softErr);
                     throw new Error(`Xóa thất bại toàn phần. Bạn có thể không có quyền hoặc có lỗi DB.`);
                 }
                 addToast({ title: 'Đã chuyển trạng thái', message: `Đã vô hiệu hóa quy trình "${workflow.name}" (Có thể do thiếu quyền Admin hoặc bị ràng buộc dữ liệu).`, type: 'success' });
@@ -184,7 +173,6 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             if (onUpdate) onUpdate();
             onClose();
         } catch (err: any) {
-            console.error('Workflow deletion error:', err);
             addToast({ title: 'Lỗi xóa quy trình', message: err.message || JSON.stringify(err), type: 'error' });
         }
     };
@@ -288,10 +276,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                 .delete()
                 .or(`source_node.eq.${nodeId},target_node.eq.${nodeId}`);
             
-            if (edgeErr) {
-                console.warn('[Node Delete] Edge cleanup failed:', edgeErr.message, edgeErr.code);
-                // Continue anyway — edges may not exist
-            }
+            if (edgeErr) { /* non-fatal: edges may not exist */ }
 
             // 2. Then delete the node
             const { data: deletedData, error } = await supabase
@@ -300,10 +285,7 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                 .eq('id', nodeId)
                 .select();
             
-            console.log('[Node Delete] Result:', { deletedData, error });
-
             if (error) {
-                console.warn('[Node Delete] Hard delete error:', error.message, error.code, error.details);
                 // Fallback to soft delete
                 const { data: softData, error: softErr } = await supabase
                     .from('workflow_nodes')
@@ -312,7 +294,6 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                     .select();
                 
                 if (softErr) {
-                    console.error('[Node Delete] Soft delete also failed:', softErr);
                     throw new Error(`Không thể xóa: ${error.message}`);
                 }
                 
@@ -323,7 +304,6 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
                 addToast({ title: 'Đã ẩn bước', message: 'Bước này đã bị ẩn (soft delete).', type: 'info' });
             } else if (!deletedData || deletedData.length === 0) {
                 // RLS might block — try soft delete
-                console.warn('[Node Delete] 0 rows returned. RLS may block DELETE. Trying soft delete...');
                 const { error: softErr } = await supabase
                     .from('workflow_nodes')
                     .update({ is_deleted: true })
@@ -340,7 +320,6 @@ const WorkflowSlidePanel: React.FC<WorkflowSlidePanelProps> = ({
             setNodes(newNodes);
             await rebuildLinearEdges(newNodes);
         } catch (err: any) {
-            console.error('[Node Delete] Final error:', err);
             addToast({ title: 'Lỗi xóa bước', message: err.message || 'Lỗi không xác định', type: 'error' });
         }
     };

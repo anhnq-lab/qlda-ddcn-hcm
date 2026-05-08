@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python fix_encoding.py)",
+      "Bash(python3 fix_encoding.py)",
+      "Bash(py fix_encoding.py)",
+      "Bash(py -3 fix_encoding.py)",
+      "Bash(node fix_encoding.js)",
+      "Bash(node fix_encoding.cjs)",
+      "Bash(node -e ' *)",
+      "Bash(node debug_encoding.cjs)",
+      "Bash(node --input-type=commonjs)",
+      "Bash(del fix_encoding.cjs debug_encoding.cjs)",
+      "Bash(npm run *)",
+      "Bash(not exist *)",
+      "Bash(ls \"D:\\\\QuocAnh\\\\2026\\\\01.Project\\\\qlda-ddcn-hcm\\\\.claude\" 2>/dev/null || mkdir -p \"D:\\\\QuocAnh\\\\2026\\\\01.Project\\\\qlda-ddcn-hcm\\\\.claude\")",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

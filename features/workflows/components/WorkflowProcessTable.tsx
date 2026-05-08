@@ -309,7 +309,7 @@ const WorkflowProcessTable: React.FC<WorkflowProcessTableProps> = ({
 
     // ─── Panel openers ───────────────────────────────────────
     const handleOpenLegalSearch = (basisText: string) => {
-        const target = resolveLegalReference(basisText, legalDocuments);
+        const target = resolveLegalReference(basisText, (legalDocuments as any));
         openPanel({
             id: target.docId ? 'legal-search-parsed' : 'legal-search',
             title: 'Tra cứu pháp luật',

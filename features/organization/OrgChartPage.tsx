@@ -1,270 +1,453 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+    ReactFlow,
+    Background,
+    Controls,
+    MiniMap,
+    useNodesState,
+    useEdgesState,
+    addEdge,
+    BackgroundVariant,
+    type Node,
+    type Edge,
+    type Connection,
+    Handle,
+    Position,
+    NodeProps,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { useEmployees } from '../../hooks/useEmployees';
 import {
-    Network, Users, Building2, Briefcase, Award, UserCheck,
-    Phone, Mail, ChevronRight, Landmark, Crown
+    Network, Users, Building2, ChevronRight,
+    Landmark, Crown, UserCheck, Award,
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════
-// Ban DDCN TP.HCM — Org Chart Page
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// Types & Constants
+// ══════════════════════════════════════════════════
 
-// Department color map
-const DEPT_COLORS: Record<string, { bg: string; text: string; border: string; gradientStyle: string }> = {
-    'Văn phòng': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-    'Phòng Kế hoạch – Đầu tư': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'bg-gradient-to-r from-emerald-500 to-emerald-600' },
-    'Phòng Tài chính – Kế toán': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'bg-gradient-to-r from-violet-500 to-violet-600' },
-    'Phòng Chính sách – Pháp chế': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'bg-gradient-to-r from-rose-500 to-rose-600' },
-    'Phòng Kỹ thuật – Chất lượng': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', gradientStyle: 'bg-gradient-to-r from-purple-500 to-purple-600' },
-    'Ban Điều hành dự án 1': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', gradientStyle: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-    'Ban Điều hành dự án 2': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', gradientStyle: 'bg-gradient-to-r from-emerald-500 to-emerald-600' },
-    'Ban Điều hành dự án 3': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', gradientStyle: 'bg-gradient-to-r from-violet-500 to-violet-600' },
-    'Ban Điều hành dự án 4': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', gradientStyle: 'bg-gradient-to-r from-orange-500 to-orange-600' },
-    'Ban Điều hành dự án 5': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', gradientStyle: 'bg-gradient-to-r from-rose-500 to-rose-600' },
-    'Ban Điều hành dự án 6': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', gradientStyle: 'bg-gradient-to-r from-teal-500 to-teal-600' },
-    'Ban Điều hành dự án 7': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', gradientStyle: 'bg-gradient-to-r from-yellow-500 to-yellow-600' },
-    'Trung tâm Dịch vụ tư vấn': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', gradientStyle: 'bg-gradient-to-r from-sky-500 to-sky-600' },
+type NodeData = {
+    label: string;
+    subtitle?: string;
+    type: 'root' | 'director' | 'deputy' | 'dept' | 'unit';
+    count?: number;
+    color?: string;
+    gradient?: string;
 };
 
-const defaultColor = { bg: 'bg-[#F5EFE6]', text: 'text-slate-700', border: 'border-slate-200', gradientStyle: 'bg-gradient-to-r from-slate-500 to-slate-600' };
+const DEPT_CONFIG: Record<string, { gradient: string; color: string; icon: string }> = {
+    'Văn phòng':                    { gradient: 'from-blue-500 to-blue-700',    color: '#3b82f6', icon: '🏛' },
+    'Phòng Kế hoạch – Đầu tư':     { gradient: 'from-emerald-500 to-emerald-700', color: '#10b981', icon: '📊' },
+    'Phòng Tài chính – Kế toán':    { gradient: 'from-violet-500 to-violet-700', color: '#8b5cf6', icon: '💰' },
+    'Phòng Chính sách – Pháp chế':  { gradient: 'from-rose-500 to-rose-700',   color: '#f43f5e', icon: '⚖' },
+    'Phòng Kỹ thuật – Chất lượng':  { gradient: 'from-purple-500 to-purple-700', color: '#a855f7', icon: '🔧' },
+    'Ban Điều hành dự án 1':         { gradient: 'from-sky-500 to-sky-700',     color: '#0ea5e9', icon: '🏗' },
+    'Ban Điều hành dự án 2':         { gradient: 'from-teal-500 to-teal-700',   color: '#14b8a6', icon: '🏗' },
+    'Ban Điều hành dự án 3':         { gradient: 'from-indigo-500 to-indigo-700', color: '#6366f1', icon: '🏗' },
+    'Ban Điều hành dự án 4':         { gradient: 'from-orange-500 to-orange-700', color: '#f97316', icon: '🏗' },
+    'Ban Điều hành dự án 5':         { gradient: 'from-pink-500 to-pink-700',   color: '#ec4899', icon: '🏗' },
+    'Ban Điều hành dự án 6':         { gradient: 'from-cyan-500 to-cyan-700',   color: '#06b6d4', icon: '🏗' },
+    'Ban Điều hành dự án 7':         { gradient: 'from-lime-500 to-lime-700',   color: '#84cc16', icon: '🏗' },
+    'Trung tâm Dịch vụ tư vấn':     { gradient: 'from-amber-500 to-amber-700', color: '#f59e0b', icon: '🎯' },
+};
 
-const OrgChartPage: React.FC = () => {
-    const navigate = useNavigate();
-    const { data: employees = [] } = useEmployees();
+// ══════════════════════════════════════════════════
+// Custom Node Components
+// ══════════════════════════════════════════════════
 
-    // Group employees by department
-    const deptGroups = useMemo(() => {
-        const groups: Record<string, typeof employees> = {};
-        employees.forEach(emp => {
-            if (!groups[emp.Department]) groups[emp.Department] = [];
-            groups[emp.Department].push(emp);
-        });
-        return groups;
-    }, [employees]);
+const RootNode: React.FC<NodeProps> = ({ data }) => (
+    <div className="relative">
+        <Handle type="source" position={Position.Bottom} className="!bg-red-400" />
+        <div className="bg-gradient-to-br from-red-700 to-red-800 text-white px-8 py-3 rounded-2xl shadow-xl border-2 border-red-400/30 ring-4 ring-red-700/20 min-w-[240px] text-center">
+            <div className="flex items-center justify-center gap-2">
+                <Landmark className="w-4 h-4 opacity-80" />
+                <span className="font-black text-xs uppercase tracking-wide">{(data as NodeData).label}</span>
+            </div>
+            {(data as NodeData).subtitle && (
+                <p className="text-[10px] opacity-60 mt-0.5">{(data as NodeData).subtitle}</p>
+            )}
+        </div>
+    </div>
+);
 
-    // Extract leadership
-    const leadership = useMemo(() => {
-        const gd = employees.find(e => e.Position === 'Giám đốc Ban');
-        const pgds = employees.filter(e => e.Position === 'Phó Giám đốc Ban');
-        const kt = employees.find(e => e.Position === 'Kế toán trưởng');
-        return { gd, pgds, kt };
-    }, [employees]);
+const DirectorNode: React.FC<NodeProps> = ({ data }) => (
+    <div className="relative">
+        <Handle type="target" position={Position.Top} className="!bg-primary-400" />
+        <Handle type="source" position={Position.Bottom} className="!bg-primary-400" />
+        <div className="bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white px-8 py-4 rounded-2xl shadow-xl border-2 border-primary-400/40 ring-4 ring-primary-500/20 min-w-[220px] text-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_20%,white,transparent_60%)]" />
+            <div className="flex items-center justify-center gap-2 mb-1">
+                <Crown className="w-4 h-4 opacity-90" />
+                <span className="font-black text-sm uppercase tracking-tight">{(data as NodeData).label}</span>
+            </div>
+            {(data as NodeData).subtitle && (
+                <p className="text-[11px] opacity-75 font-medium">{(data as NodeData).subtitle}</p>
+            )}
+        </div>
+    </div>
+);
 
-    const departments = [
-        'Văn phòng',
-        'Phòng Kế hoạch – Đầu tư',
-        'Phòng Tài chính – Kế toán',
-        'Phòng Chính sách – Pháp chế',
-        'Phòng Kỹ thuật – Chất lượng',
-        'Ban Điều hành dự án 1',
-        'Ban Điều hành dự án 2',
-        'Ban Điều hành dự án 3',
-        'Ban Điều hành dự án 4',
-        'Ban Điều hành dự án 5',
-        'Ban Điều hành dự án 6',
-        'Ban Điều hành dự án 7',
-        'Trung tâm Dịch vụ tư vấn',
-    ];
+const DeputyNode: React.FC<NodeProps> = ({ data }) => (
+    <div className="relative">
+        <Handle type="target" position={Position.Top} className="!bg-orange-400" />
+        <Handle type="source" position={Position.Bottom} className="!bg-orange-400" />
+        <div className="bg-white dark:bg-slate-800 border-2 border-orange-200 dark:border-orange-700 px-5 py-3 rounded-xl shadow-md hover:shadow-lg transition-all min-w-[160px] text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                <Award className="w-3.5 h-3.5 text-orange-500" />
+                <span className="text-[11px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-tight">{(data as NodeData).label}</span>
+            </div>
+            {(data as NodeData).subtitle && (
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{(data as NodeData).subtitle}</p>
+            )}
+        </div>
+    </div>
+);
 
+const DeptNode: React.FC<NodeProps> = ({ data }) => {
+    const d = data as NodeData;
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Page Header */}
-            <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-sm">
-                    <Network className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800 dark:text-white">Sơ đồ tổ chức</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp TP.HCM</p>
-                </div>
-            </div>
-
-            {/* ══════ VISUAL ORG CHART ══════ */}
-            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 overflow-x-auto">
-                <div className="flex flex-col items-center min-w-[900px]">
-
-                    {/* Level 0: UBND TP.HCM */}
-                    <div className="relative z-10 mb-4 group">
-                        <div className="bg-red-700 text-white px-10 py-2.5 rounded-xl shadow-sm border-2 border-white ring-1 ring-red-200 text-center cursor-default hover:scale-105 transition-transform">
-                            <div className="flex items-center gap-2 justify-center">
-                                <Landmark className="w-4 h-4" />
-                                <h4 className="font-black text-[11px] uppercase tracking-tight">Ủy ban Nhân dân TP. Hồ Chí Minh</h4>
-                            </div>
-                        </div>
-                        <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 -translate-x-1/2" />
+        <div className="relative">
+            <Handle type="target" position={Position.Top} className="!bg-slate-400" />
+            <div
+                className="text-white px-4 py-3 rounded-xl shadow-lg border border-white/20 min-w-[130px] max-w-[150px] text-center transition-transform hover:scale-105 cursor-pointer"
+                style={{ background: `linear-gradient(135deg, ${d.color}dd, ${d.color})` }}
+            >
+                <p className="text-[10px] font-black uppercase leading-tight tracking-tight">{d.label}</p>
+                {d.count !== undefined && (
+                    <div className="mt-1.5 inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
+                        <Users className="w-2.5 h-2.5" />
+                        <span className="text-[9px] font-bold">{d.count}</span>
                     </div>
-
-                    {/* Level 1: Giám đốc Ban */}
-                    <div className="relative z-10 mb-4 group">
-                        <div className="px-10 py-3 rounded-xl shadow-sm border-2 border-white ring-1 ring-primary-200 text-center relative cursor-default hover:scale-105 transition-transform text-white bg-gradient-to-br from-primary-500 to-primary-600">
-                            <div className="flex items-center gap-2 justify-center">
-                                <Crown className="w-4 h-4" />
-                                <h4 className="font-black text-sm uppercase tracking-tight">Giám đốc Ban</h4>
-                            </div>
-                            {leadership.gd && (
-                                <p className="text-[10px] mt-0.5 opacity-80">{leadership.gd.FullName}</p>
-                            )}
-                            <div className="w-2 h-2 bg-[#FCF9F2] rounded-full absolute -bottom-1 left-1/2 -translate-x-1/2" />
-                        </div>
-                        <div className="absolute top-full left-1/2 w-px h-5 bg-gray-300 -translate-x-1/2" />
-                    </div>
-
-                    {/* Level 2: Phó GĐ + Kế toán trưởng */}
-                    <div className="relative z-10 mb-6 w-full flex justify-center gap-6">
-                        {leadership.pgds.map((pgd, idx) => (
-                            <div key={idx} className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
-                                onClick={() => navigate(`/employees/${pgd.EmployeeID}`)}>
-                                <h4 className="font-bold text-xs uppercase" style={{ color: '#ea580c' }}>Phó Giám đốc Ban</h4>
-                                <p className="text-[10px] text-gray-500">{pgd.FullName}</p>
-                            </div>
-                        ))}
-                        {leadership.kt && (
-                            <div className="bg-[#FCF9F2] border border-gray-200 px-6 py-2 rounded-lg shadow-sm text-center relative z-10 hover:shadow-md transition-all cursor-pointer"
-                                onClick={() => navigate(`/employees/${leadership.kt!.EmployeeID}`)}>
-                                <h4 className="font-bold text-xs uppercase text-blue-700">Kế toán trưởng</h4>
-                                <p className="text-[10px] text-gray-500">{leadership.kt.FullName}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Connector line */}
-                    <div className="relative w-full flex justify-center mb-4">
-                        <div className="absolute top-0 left-[8%] right-[8%] h-px bg-gray-300" />
-                    </div>
-
-                    {/* Level 3: Phòng chức năng (5 phòng) */}
-                    <div className="w-full mb-6">
-                        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-3">
-                            Các phòng chức năng
-                        </h3>
-                        <div className="grid grid-cols-5 gap-3">
-                            {departments.slice(0, 5).map((dept) => {
-                                const color = DEPT_COLORS[dept] || defaultColor;
-                                const count = deptGroups[dept]?.length || 0;
-                                return (
-                                    <div key={dept} className={`${color.bg} border ${color.border} p-3 rounded-xl text-center hover:shadow-md transition-all cursor-default`}>
-                                        <p className={`text-[11px] font-bold leading-tight uppercase ${color.text}`}>{dept}</p>
-                                        <p className="text-[10px] text-gray-500 mt-1">{count} người</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Level 4: Ban ĐH DA + TT DV Tư vấn */}
-                    <div className="w-full">
-                        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-3">
-                            Các Ban Điều hành dự án & Trung tâm
-                        </h3>
-                        <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
-                            {departments.slice(5).map((dept) => {
-                                const color = DEPT_COLORS[dept] || defaultColor;
-                                const count = deptGroups[dept]?.length || 0;
-                                return (
-                                    <div key={dept} className={`${color.bg} border ${color.border} p-3 rounded-xl text-center hover:shadow-md transition-all cursor-default`}>
-                                        <p className={`text-[11px] font-bold leading-tight uppercase ${color.text}`}>{dept}</p>
-                                        <p className="text-[10px] text-gray-500 mt-1">{count} người</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="mt-8 flex gap-4">
-                        <div className="rounded-lg px-5 py-2 text-center border" style={{ background: '#FEFCE8', borderColor: '#F0D68A' }}>
-                            <p className="text-lg font-black" style={{ color: '#ea580c' }}>01</p>
-                            <p className="text-[9px] font-bold uppercase" style={{ color: '#f97316' }}>Giám đốc Ban</p>
-                        </div>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg px-5 py-2 text-center">
-                            <p className="text-lg font-black text-blue-700">{leadership.pgds.length}</p>
-                            <p className="text-[9px] text-blue-600 font-bold uppercase">Phó Giám đốc</p>
-                        </div>
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-5 py-2 text-center">
-                            <p className="text-lg font-black text-emerald-700">01</p>
-                            <p className="text-[9px] text-emerald-600 font-bold uppercase">Kế toán trưởng</p>
-                        </div>
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg px-5 py-2 text-center">
-                            <p className="text-lg font-black text-purple-700">11</p>
-                            <p className="text-[9px] text-purple-600 font-bold uppercase">Phòng/Ban/Đơn vị</p>
-                        </div>
-                        <div className="bg-slate-100 border border-slate-200 rounded-lg px-5 py-2 text-center">
-                            <p className="text-lg font-black text-slate-700">{employees.length}</p>
-                            <p className="text-[9px] text-slate-600 font-bold uppercase">Tổng nhân sự</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 text-[10px] text-gray-400 italic text-center max-w-lg">
-                        * Theo Quyết định số 571/QĐ-UBND của UBND TP.HCM về thành lập Ban QLDA ĐTXD các công trình Dân dụng & Công nghiệp
-                    </div>
-                </div>
-            </div>
-
-            {/* ══════ DEPARTMENT DETAIL GRID ══════ */}
-            <div>
-                <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                    <Building2 className="w-5 h-5" style={{ color: '#f97316' }} />
-                    Nhân sự theo phòng ban
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {departments.map(dept => {
-                        const members = deptGroups[dept] || [];
-                        const color = DEPT_COLORS[dept] || defaultColor;
-                        const leader = members.find(m =>
-                            m.Position.includes('Trưởng') || m.Position.includes('Chánh') || m.Position.includes('Giám đốc')
-                        );
-
-                        return (
-                            <div key={dept} className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-all">
-                                <div className={`px-5 py-3 text-white ${color.gradientStyle}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-bold text-sm">{dept}</h3>
-                                            {leader && <p className="text-[10px] opacity-80 mt-0.5">Phụ trách: {leader.FullName}</p>}
-                                        </div>
-                                        <div className="bg-white/20 px-2 py-1 rounded-lg">
-                                            <span className="text-xs font-black">{members.length}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Members List */}
-                                <div className="divide-y divide-slate-50 dark:divide-slate-700">
-                                    {members.map(emp => (
-                                        <div
-                                            key={emp.EmployeeID}
-                                            onClick={() => navigate(`/employees/${emp.EmployeeID}`)}
-                                            className="px-5 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer group transition-colors"
-                                        >
-                                            <img
-                                                src={emp.AvatarUrl}
-                                                alt={emp.FullName}
-                                                className="w-8 h-8 rounded-full ring-2 ring-white shadow-sm object-cover"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 transition-colors">
-                                                    {emp.FullName}
-                                                </p>
-                                                <p className="text-[10px] text-slate-400">{emp.Position}</p>
-                                            </div>
-                                            <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </div>
-                                    ))}
-                                    {members.length === 0 && (
-                                        <div className="px-5 py-4 text-center text-xs text-slate-400 italic">
-                                            Chưa có nhân sự
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                )}
             </div>
         </div>
     );
 };
 
-export default OrgChartPage;
+const nodeTypes = {
+    root: RootNode,
+    director: DirectorNode,
+    deputy: DeputyNode,
+    dept: DeptNode,
+};
 
+// ══════════════════════════════════════════════════
+// Layout builder
+// ══════════════════════════════════════════════════
+
+function buildFlowElements(
+    employees: ReturnType<typeof useEmployees>['data'] extends undefined ? never[] : NonNullable<ReturnType<typeof useEmployees>['data']>,
+    deptGroups: Record<string, typeof employees>
+): { nodes: Node[]; edges: Edge[] } {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+
+    const gd = employees.find(e => e.Position === 'Giám đốc Ban');
+    const pgds = employees.filter(e => e.Position === 'Phó Giám đốc Ban');
+    const kt = employees.find(e => e.Position === 'Kế toán trưởng');
+
+    const funcDepts = ['Văn phòng', 'Phòng Kế hoạch – Đầu tư', 'Phòng Tài chính – Kế toán', 'Phòng Chính sách – Pháp chế', 'Phòng Kỹ thuật – Chất lượng'];
+    const unitDepts = ['Ban Điều hành dự án 1', 'Ban Điều hành dự án 2', 'Ban Điều hành dự án 3', 'Ban Điều hành dự án 4', 'Ban Điều hành dự án 5', 'Ban Điều hành dự án 6', 'Ban Điều hành dự án 7', 'Trung tâm Dịch vụ tư vấn'];
+
+    const CX = 600; // center x
+
+    // Level 0: UBND
+    nodes.push({ id: 'ubnd', type: 'root', position: { x: CX - 120, y: 0 }, data: { label: 'Ủy ban Nhân dân TP. Hồ Chí Minh', type: 'root' } });
+
+    // Level 1: Giám đốc
+    nodes.push({ id: 'gd', type: 'director', position: { x: CX - 110, y: 130 }, data: { label: 'Giám đốc Ban', subtitle: gd?.FullName, type: 'director' } });
+    edges.push({ id: 'ubnd-gd', source: 'ubnd', target: 'gd', type: 'smoothstep', style: { stroke: '#dc2626', strokeWidth: 2 }, animated: false });
+
+    // Level 2: Deputies
+    const level2Total = pgds.length + (kt ? 1 : 0);
+    const level2StartX = CX - (level2Total * 190) / 2;
+
+    pgds.forEach((pgd, i) => {
+        const id = `pgd-${i}`;
+        nodes.push({ id, type: 'deputy', position: { x: level2StartX + i * 190, y: 270 }, data: { label: 'Phó Giám đốc', subtitle: pgd.FullName, type: 'deputy' } });
+        edges.push({ id: `gd-${id}`, source: 'gd', target: id, type: 'smoothstep', style: { stroke: '#f97316', strokeWidth: 1.5 } });
+    });
+
+    if (kt) {
+        const ktId = 'kt';
+        nodes.push({ id: ktId, type: 'deputy', position: { x: level2StartX + pgds.length * 190, y: 270 }, data: { label: 'Kế toán trưởng', subtitle: kt.FullName, type: 'deputy' } });
+        edges.push({ id: `gd-kt`, source: 'gd', target: ktId, type: 'smoothstep', style: { stroke: '#3b82f6', strokeWidth: 1.5 } });
+    }
+
+    // Level 3: Functional departments (5)
+    const funcGap = 165;
+    const funcStartX = CX - (funcDepts.length * funcGap) / 2;
+    funcDepts.forEach((dept, i) => {
+        const cfg = DEPT_CONFIG[dept];
+        const id = `dept-func-${i}`;
+        nodes.push({
+            id, type: 'dept',
+            position: { x: funcStartX + i * funcGap, y: 430 },
+            data: { label: dept, count: deptGroups[dept]?.length ?? 0, type: 'dept', color: cfg?.color ?? '#64748b' }
+        });
+        edges.push({ id: `gd-${id}`, source: 'gd', target: id, type: 'smoothstep', style: { stroke: cfg?.color ?? '#64748b', strokeWidth: 1.5, opacity: 0.7 } });
+    });
+
+    // Level 4: Units (8)
+    const unitGap = 155;
+    const unitStartX = CX - (unitDepts.length * unitGap) / 2 + 20;
+    unitDepts.forEach((dept, i) => {
+        const cfg = DEPT_CONFIG[dept];
+        const id = `dept-unit-${i}`;
+        nodes.push({
+            id, type: 'dept',
+            position: { x: unitStartX + i * unitGap, y: 590 },
+            data: { label: dept, count: deptGroups[dept]?.length ?? 0, type: 'unit', color: cfg?.color ?? '#64748b' }
+        });
+        edges.push({ id: `gd-${id}`, source: 'gd', target: id, type: 'smoothstep', style: { stroke: cfg?.color ?? '#64748b', strokeWidth: 1.5, opacity: 0.6 } });
+    });
+
+    return { nodes, edges };
+}
+
+// ══════════════════════════════════════════════════
+// Main Component
+// ══════════════════════════════════════════════════
+
+const DEPARTMENTS = [
+    'Văn phòng',
+    'Phòng Kế hoạch – Đầu tư',
+    'Phòng Tài chính – Kế toán',
+    'Phòng Chính sách – Pháp chế',
+    'Phòng Kỹ thuật – Chất lượng',
+    'Ban Điều hành dự án 1',
+    'Ban Điều hành dự án 2',
+    'Ban Điều hành dự án 3',
+    'Ban Điều hành dự án 4',
+    'Ban Điều hành dự án 5',
+    'Ban Điều hành dự án 6',
+    'Ban Điều hành dự án 7',
+    'Trung tâm Dịch vụ tư vấn',
+];
+
+const OrgChartPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { data: employees = [] } = useEmployees();
+    const [activeTab, setActiveTab] = useState<'flow' | 'grid'>('flow');
+
+    const deptGroups = useMemo(() => {
+        const g: Record<string, typeof employees> = {};
+        employees.forEach(emp => {
+            if (!g[emp.Department]) g[emp.Department] = [];
+            g[emp.Department].push(emp);
+        });
+        return g;
+    }, [employees]);
+
+    const { nodes: initialNodes, edges: initialEdges } = useMemo(
+        () => buildFlowElements(employees, deptGroups),
+        [employees, deptGroups]
+    );
+
+    const [nodes, , onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const onConnect = useCallback((params: Connection) => setEdges(eds => addEdge(params, eds)), [setEdges]);
+
+    const leadership = useMemo(() => ({
+        gd: employees.find(e => e.Position === 'Giám đốc Ban'),
+        pgds: employees.filter(e => e.Position === 'Phó Giám đốc Ban'),
+        kt: employees.find(e => e.Position === 'Kế toán trưởng'),
+    }), [employees]);
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500">
+
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg">
+                        <Network className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-slate-800 dark:text-white">Sơ đồ tổ chức</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Ban QLDA ĐTXD các công trình Dân dụng và Công nghiệp TP.HCM
+                        </p>
+                    </div>
+                </div>
+
+                {/* Stats badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    {[
+                        { label: 'Giám đốc', val: 1, color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700' },
+                        { label: 'Phó Giám đốc', val: leadership.pgds.length, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-700' },
+                        { label: 'Phòng/Ban/Đơn vị', val: 13, color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700' },
+                        { label: 'Tổng nhân sự', val: employees.length, color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700' },
+                    ].map(s => (
+                        <div key={s.label} className={`border rounded-xl px-4 py-2 text-center ${s.color}`}>
+                            <p className="text-xl font-black leading-none">{s.val}</p>
+                            <p className="text-[9px] font-bold uppercase mt-0.5 tracking-wide">{s.label}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── Tab switcher ── */}
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+                {(['flow', 'grid'] as const).map(tab => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                            activeTab === tab
+                                ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        }`}
+                    >
+                        {tab === 'flow' ? '🔗 Sơ đồ cây' : '👥 Nhân sự theo phòng'}
+                    </button>
+                ))}
+            </div>
+
+            {/* ── Tab: Flow ── */}
+            {activeTab === 'flow' && (
+                <div className="bg-[#f8f6f1] dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden" style={{ height: 680 }}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        nodeTypes={nodeTypes}
+                        fitView
+                        fitViewOptions={{ padding: 0.15 }}
+                        minZoom={0.3}
+                        maxZoom={2}
+                        attributionPosition="bottom-left"
+                        proOptions={{ hideAttribution: true }}
+                    >
+                        <Background
+                            variant={BackgroundVariant.Dots}
+                            gap={20}
+                            size={1}
+                            color="#d1c9b8"
+                        />
+                        <Controls className="!bg-white dark:!bg-slate-800 !border-slate-200 dark:!border-slate-700 !rounded-xl !shadow-md" />
+                        <MiniMap
+                            className="!bg-white dark:!bg-slate-800 !border-slate-200 dark:!border-slate-700 !rounded-xl"
+                            nodeColor={n => {
+                                const d = n.data as NodeData;
+                                if (d.type === 'root') return '#dc2626';
+                                if (d.type === 'director') return '#7c3aed';
+                                if (d.type === 'deputy') return '#f97316';
+                                return (d.color as string) ?? '#64748b';
+                            }}
+                            maskColor="rgba(241,237,230,0.5)"
+                        />
+                    </ReactFlow>
+
+                    {/* Legend */}
+                    <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-sm pointer-events-none">
+                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Chú giải</p>
+                        {[
+                            { color: 'bg-red-600', label: 'UBND TP.HCM' },
+                            { color: 'bg-primary-600', label: 'Giám đốc Ban' },
+                            { color: 'bg-orange-500', label: 'Lãnh đạo' },
+                            { color: 'bg-blue-500', label: 'Phòng chức năng' },
+                            { color: 'bg-teal-500', label: 'Ban ĐH / Trung tâm' },
+                        ].map(l => (
+                            <div key={l.label} className="flex items-center gap-2 mb-1">
+                                <div className={`w-3 h-3 rounded-full ${l.color}`} />
+                                <span className="text-[10px] text-slate-600 dark:text-slate-300">{l.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Tab: Grid ── */}
+            {activeTab === 'grid' && (
+                <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {DEPARTMENTS.map(dept => {
+                            const members = deptGroups[dept] || [];
+                            const cfg = DEPT_CONFIG[dept];
+                            const leader = members.find(m =>
+                                m.Position.includes('Trưởng') || m.Position.includes('Chánh') || m.Position.includes('Giám đốc')
+                            );
+
+                            return (
+                                <div key={dept} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-all duration-200 group">
+                                    {/* Header */}
+                                    <div
+                                        className="px-5 py-4 text-white relative overflow-hidden"
+                                        style={{ background: `linear-gradient(135deg, ${cfg?.color ?? '#64748b'}cc, ${cfg?.color ?? '#64748b'})` }}
+                                    >
+                                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_80%_-20%,white,transparent_60%)]" />
+                                        <div className="flex items-start justify-between relative">
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-sm leading-tight">{dept}</h3>
+                                                {leader && (
+                                                    <p className="text-[10px] opacity-75 mt-0.5 flex items-center gap-1">
+                                                        <UserCheck className="w-3 h-3" />
+                                                        {leader.FullName}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="bg-white/25 px-2.5 py-1 rounded-lg ml-3">
+                                                <span className="text-sm font-black">{members.length}</span>
+                                                <span className="text-[9px] opacity-75 ml-0.5">người</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Members */}
+                                    <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                        {members.slice(0, 6).map(emp => (
+                                            <div
+                                                key={emp.EmployeeID}
+                                                onClick={() => navigate(`/employees/${emp.EmployeeID}`)}
+                                                className="px-5 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors group/row"
+                                            >
+                                                <img
+                                                    src={emp.AvatarUrl}
+                                                    alt={emp.FullName}
+                                                    className="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-700 shadow-sm object-cover flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover/row:text-primary-600 dark:group-hover/row:text-primary-400 transition-colors">
+                                                        {emp.FullName}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{emp.Position}</p>
+                                                </div>
+                                                <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 opacity-0 group-hover/row:opacity-100 transition-opacity flex-shrink-0" />
+                                            </div>
+                                        ))}
+                                        {members.length > 6 && (
+                                            <div className="px-5 py-2.5 text-center">
+                                                <button
+                                                    onClick={() => navigate('/employees')}
+                                                    className="text-xs text-primary-600 dark:text-primary-400 font-semibold hover:underline cursor-pointer"
+                                                >
+                                                    +{members.length - 6} người khác →
+                                                </button>
+                                            </div>
+                                        )}
+                                        {members.length === 0 && (
+                                            <div className="px-5 py-5 text-center text-xs text-slate-400 dark:text-slate-500 italic">
+                                                Chưa có nhân sự
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Footer note */}
+                    <p className="mt-6 text-center text-[11px] text-slate-400 dark:text-slate-500 italic">
+                        * Theo Quyết định số 571/QĐ-UBND của UBND TP.HCM về thành lập Ban QLDA ĐTXD các công trình Dân dụng & Công nghiệp
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default OrgChartPage;

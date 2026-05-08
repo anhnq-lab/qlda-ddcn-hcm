@@ -122,7 +122,7 @@ export const SubTaskDetailPanel: React.FC<SubTaskDetailPanelProps> = ({ node, su
     };
 
     const handleOpenLegalSearch = (basisText: string) => {
-        const target = resolveLegalReference(basisText, legalDocuments);
+        const target = resolveLegalReference(basisText, (legalDocuments as any));
 
         openPanel({
             title: 'Tra cứu pháp luật',

@@ -1,9 +1,16 @@
-/**
- * LegalDocumentService — Replaces static legalData.ts (2.1MB)
+﻿/**
+ * LegalDocumentService â€” Replaces static legalData.ts (2.1MB)
  * All legal document data is now fetched from Supabase.
  */
 
 import { supabase } from '../lib/supabase';
+
+// TS2589 workaround: the project schema has 45+ tables which causes
+// "Type instantiation is excessively deep" for any new table.
+// Using `any`-cast client scoped ONLY to legal-document queries.
+// All return types are explicitly annotated so type safety is preserved.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 export type DocType = 'luat' | 'nghi-dinh' | 'thong-tu' | 'qcvn' | 'quyet-dinh';
 export type DocStatus = 'hieu-luc' | 'het-hieu-luc' | 'sap-hieu-luc';
@@ -67,17 +74,17 @@ export interface LegalDocumentSearchResult {
 }
 
 export const DOC_TYPE_LABELS: Record<DocType, string> = {
-    'luat': 'Luật',
-    'nghi-dinh': 'Nghị định',
-    'thong-tu': 'Thông tư',
+    'luat': 'Luáº­t',
+    'nghi-dinh': 'Nghá»‹ Ä‘á»‹nh',
+    'thong-tu': 'ThÃ´ng tÆ°',
     'qcvn': 'QCVN/TCVN',
-    'quyet-dinh': 'Quyết định',
+    'quyet-dinh': 'Quyáº¿t Ä‘á»‹nh',
 };
 
 export const DOC_STATUS_LABELS: Record<DocStatus, string> = {
-    'hieu-luc': 'Còn hiệu lực',
-    'het-hieu-luc': 'Hết hiệu lực',
-    'sap-hieu-luc': 'Sắp có hiệu lực',
+    'hieu-luc': 'CÃ²n hiá»‡u lá»±c',
+    'het-hieu-luc': 'Háº¿t hiá»‡u lá»±c',
+    'sap-hieu-luc': 'Sáº¯p cÃ³ hiá»‡u lá»±c',
 };
 
 export const DOC_TYPE_COLORS: Record<DocType, { bg: string; text: string; border: string; darkBg: string; darkText: string; darkBorder: string }> = {
@@ -103,7 +110,7 @@ export const LegalDocumentService = {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = supabase
+        let query = db
             .from('legal_documents')
             .select('*', { count: 'exact' })
             .order('issued_date', { ascending: false })
@@ -137,7 +144,7 @@ export const LegalDocumentService = {
      * Get a single document with its chapters and articles.
      */
     async getDocumentById(id: string): Promise<LegalDocumentDB | null> {
-        const { data: doc, error: docErr } = await supabase
+        const { data: doc, error: docErr } = await db
             .from('legal_documents')
             .select('*')
             .eq('id', id)
@@ -145,7 +152,7 @@ export const LegalDocumentService = {
 
         if (docErr || !doc) return null;
 
-        const { data: chapters, error: chapErr } = await supabase
+        const { data: chapters, error: chapErr } = await db
             .from('legal_chapters')
             .select('*')
             .eq('document_id', id)
@@ -153,7 +160,7 @@ export const LegalDocumentService = {
 
         if (chapErr) throw new Error(`Failed to fetch chapters: ${chapErr.message}`);
 
-        const { data: articles, error: artErr } = await supabase
+        const { data: articles, error: artErr } = await db
             .from('legal_articles')
             .select('*')
             .eq('document_id', id)
@@ -176,7 +183,7 @@ export const LegalDocumentService = {
      * Get documents related to a given document ID.
      */
     async getRelatedDocuments(docId: string): Promise<LegalDocumentDB[]> {
-        const { data: doc } = await supabase
+        const { data: doc } = await db
             .from('legal_documents')
             .select('related_doc_ids')
             .eq('id', docId)
@@ -184,7 +191,7 @@ export const LegalDocumentService = {
 
         if (!doc || !doc.related_doc_ids?.length) return [];
 
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('legal_documents')
             .select('id, code, title, short_title, type, status, issued_date')
             .in('id', doc.related_doc_ids);
@@ -197,7 +204,7 @@ export const LegalDocumentService = {
      * Search within articles of a document (for inline search).
      */
     async searchArticles(documentId: string, query: string): Promise<LegalArticleDB[]> {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('legal_articles')
             .select('*')
             .eq('document_id', documentId)
@@ -212,7 +219,7 @@ export const LegalDocumentService = {
      * Get document stats (count by type/status).
      */
     async getStats(): Promise<{ byType: Record<DocType, number>; byStatus: Record<DocStatus, number>; total: number }> {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('legal_documents')
             .select('type, status');
 
