@@ -4,8 +4,9 @@ import {
     Briefcase, FileText, CreditCard,
     Search, ChevronRight, Clock, ChevronDown,
     CheckCircle2, Circle, AlertTriangle, XCircle,
-    Building2, DollarSign, TrendingUp, BarChart3, Bell, Globe, Eye, Filter, Download
+    Building2, DollarSign, TrendingUp, BarChart3, Bell, Globe, Eye, Filter, Download, RefreshCw
 } from 'lucide-react';
+import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { exportBiddingReportBieu01A } from '../../utils/exportBiddingReport';
 import { useAllBiddingPackages } from '../../hooks/useAllBiddingPackages';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
@@ -186,18 +187,36 @@ const BiddingContractPage: React.FC = () => {
             {/* Tab Content */}
             {activeTab === 'packages' && <BiddingPackagesTab projectFilter={projectFilter} />}
             {activeTab === 'contracts' && (
-                <React.Suspense fallback={<TabLoadingFallback />}>
-                    <ContractList projectFilter={projectFilter} />
-                </React.Suspense>
+                <ErrorBoundary fallback={<TabErrorFallback />}>
+                    <React.Suspense fallback={<TabLoadingFallback />}>
+                        <ContractList projectFilter={projectFilter} />
+                    </React.Suspense>
+                </ErrorBoundary>
             )}
             {activeTab === 'payments' && (
-                <React.Suspense fallback={<TabLoadingFallback />}>
-                    <PaymentList projectFilter={projectFilter} />
-                </React.Suspense>
+                <ErrorBoundary fallback={<TabErrorFallback />}>
+                    <React.Suspense fallback={<TabLoadingFallback />}>
+                        <PaymentList projectFilter={projectFilter} />
+                    </React.Suspense>
+                </ErrorBoundary>
             )}
         </div>
     );
 };
+
+// ── Error fallback for lazy tabs ──
+const TabErrorFallback: React.FC = () => (
+    <div className="flex flex-col items-center justify-center py-20 bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 gap-3">
+        <AlertTriangle className="w-8 h-8 text-amber-500" />
+        <p className="text-sm font-semibold text-gray-600 dark:text-slate-300">Không thể tải nội dung. Vui lòng tải lại trang.</p>
+        <button
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+        >
+            <RefreshCw className="w-3.5 h-3.5" /> Tải lại
+        </button>
+    </div>
+);
 
 // ── Loading fallback ──
 const TabLoadingFallback: React.FC = () => (

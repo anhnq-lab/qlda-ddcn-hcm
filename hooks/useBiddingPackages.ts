@@ -10,6 +10,8 @@ export const useBiddingPackages = (projectId: string) => {
         queryKey: ['project-packages', projectId],
         queryFn: () => ProjectService.getPackagesByProject(projectId),
         enabled: !!projectId,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
     });
 };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTabSearchParam } from '@/hooks/useTabSearchParam';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { ProjectService } from '@/services/ProjectService';
 import { ProjectMemberService } from '@/services/ProjectMemberService';
 import { NationalGatewayService, SyncResult } from '@/services/NationalGatewayService';
@@ -21,28 +21,30 @@ export interface ProjectDetailProps {
 }
 import { supabase } from '@/lib/supabase';
 import { ProjectHeader } from './components/ProjectHeader';
+// Always-visible on initial load — static imports
 import { ProjectInfoTab } from './components/tabs/ProjectInfoTab';
-import { ProjectPlanTab } from './components/tabs/ProjectPlanTab';
-import { ProjectPackagesTab } from './components/tabs/ProjectPackagesTab';
-
-import { ProjectCapitalTab } from './components/tabs/ProjectCapitalTab';
-import { ProjectDocumentsTab } from './components/tabs/ProjectDocumentsTab';
-import { ProjectComplianceTab } from './components/tabs/ProjectComplianceTab';
-import { ProjectWorkflowTab } from './components/tabs/ProjectWorkflowTab';
-import { ProjectOperationsTab } from './components/tabs/ProjectOperationsTab';
-import { ProjectInspectionTab } from './components/tabs/ProjectInspectionTab';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { TableSkeleton } from '@/components/ui';
 import { Info, CalendarCheck, Briefcase, FolderOpen, Landmark, Database, Settings2, Sparkles, Shield, X, ArrowLeft, Pencil, MoreVertical, Trash2, GitBranch } from 'lucide-react';
-import { AISummaryWidget } from '@/components/ai/AISummaryWidget';
-import { AICompliancePanel } from '@/components/ai/AICompliancePanel';
-import { AIForecastChart } from '@/components/ai/AIForecastChart';
-import { AIDocumentDrafter } from '@/components/ai/AIDocumentDrafter';
 import { AIReportModal } from './components/AIReportModal';
 import { generateMonthlyReport } from '@/services/aiService';
 import { useToast } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+// Lazy-loaded: only fetched when user navigates to that tab or opens the modal
+const ProjectPlanTab = React.lazy(() => import('./components/tabs/ProjectPlanTab').then(m => ({ default: m.ProjectPlanTab })));
+const ProjectPackagesTab = React.lazy(() => import('./components/tabs/ProjectPackagesTab').then(m => ({ default: m.ProjectPackagesTab })));
+const ProjectCapitalTab = React.lazy(() => import('./components/tabs/ProjectCapitalTab').then(m => ({ default: m.ProjectCapitalTab })));
+const ProjectDocumentsTab = React.lazy(() => import('./components/tabs/ProjectDocumentsTab').then(m => ({ default: m.ProjectDocumentsTab })));
+const ProjectComplianceTab = React.lazy(() => import('./components/tabs/ProjectComplianceTab').then(m => ({ default: m.ProjectComplianceTab })));
+const ProjectWorkflowTab = React.lazy(() => import('./components/tabs/ProjectWorkflowTab').then(m => ({ default: m.ProjectWorkflowTab })));
+const ProjectOperationsTab = React.lazy(() => import('./components/tabs/ProjectOperationsTab').then(m => ({ default: m.ProjectOperationsTab })));
+const ProjectInspectionTab = React.lazy(() => import('./components/tabs/ProjectInspectionTab').then(m => ({ default: m.ProjectInspectionTab })));
+const AISummaryWidget = React.lazy(() => import('@/components/ai/AISummaryWidget').then(m => ({ default: m.AISummaryWidget })));
+const AICompliancePanel = React.lazy(() => import('@/components/ai/AICompliancePanel').then(m => ({ default: m.AICompliancePanel })));
+const AIForecastChart = React.lazy(() => import('@/components/ai/AIForecastChart').then(m => ({ default: m.AIForecastChart })));
+const AIDocumentDrafter = React.lazy(() => import('@/components/ai/AIDocumentDrafter').then(m => ({ default: m.AIDocumentDrafter })));
 
 // Tab definitions — extracted for reuse
 const TAB_DEFINITIONS = [
@@ -112,9 +114,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    // State
-    const [project, setProject] = useState<Project | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Project fetch — React Query for caching (re-visits skip DB round-trip)
+    const { data: project = null, isLoading: loading, refetch: refetchProject } = useQuery({
+        queryKey: ['project-detail', id],
+        queryFn: () => ProjectService.getById(id!),
+        enabled: !!id,
+        staleTime: 2 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
     const { addToast } = useToast();
 
     // Tab state synced with URL ?tab= (persists on reload)
@@ -193,46 +200,26 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
     // Refetch project when switching to info tab (picks up DB-trigger stage/progress changes)
     useEffect(() => {
         if (activeTab === 'info' && id && !loading) {
-            ProjectService.getById(id).then(data => {
-                if (data) setProject(data);
-            }).catch((err) => {
-                console.warn('ProjectDetail: refetch on info tab failed:', err?.message);
-            });
+            refetchProject();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, id]);
 
-    // Initial Data Fetch
-    useEffect(() => {
-        const fetchProject = async () => {
-            if (!id) return;
-            setLoading(true);
-            try {
-                const data = await ProjectService.getById(id);
-                setProject(data || null);
-            } catch (error) {
-                console.error("Failed to fetch project", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProject();
-    }, [id]);
-
-    // Derived Data
-    const { data: workflowTasks = [] } = useProjectTasks(project?.ProjectID);
+    // Derived Data — use `id` from URL directly so these fire in parallel with the project fetch,
+    // not after it (project?.ProjectID === id — same value, no need to wait for DB round trip)
+    const { data: workflowTasks = [] } = useProjectTasks(id);
     const { mutate: saveTask } = useUpdateTask();
 
     // Get bidding packages for this project
-    const { data: packages = [] } = useBiddingPackages(project?.ProjectID || '');
+    const { data: packages = [] } = useBiddingPackages(id || '');
 
-    // Get project members from project_members table
+    // Get project members — also starts in parallel with project fetch
     const [projectMembers, setProjectMembers] = useState<Employee[]>([]);
     useEffect(() => {
-        if (!project?.ProjectID) return;
+        if (!id) return;
         const loadMembers = async () => {
             try {
-                const members = await ProjectMemberService.getMembersWithDetails(project.ProjectID);
+                const members = await ProjectMemberService.getMembersWithDetails(id);
                 setProjectMembers(members);
             } catch (error) {
                 console.error('Failed to load project members:', error);
@@ -240,7 +227,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             }
         };
         loadMembers();
-    }, [project?.ProjectID]);
+    }, [id]);
 
     // ─── Handlers ───
     const handleSync = useCallback(async () => {
@@ -281,9 +268,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     TotalInvestment: project.TotalInvestment,
                     PhysicalProgress: project.PhysicalProgress,
                     FinancialProgress: project.FinancialProgress,
-                    DisbursedAmount: project.DisbursedAmount,
-                    PlannedDisbursement: project.PlannedDisbursement,
-                    ContractEndDate: project.ContractEndDate,
+                    DisbursedAmount: (project as any).DisbursedAmount,
+                    PlannedDisbursement: (project as any).PlannedDisbursement,
+                    ContractEndDate: (project as any).ContractEndDate,
                     Duration: project.Duration,
                     CapitalSource: project.CapitalSource,
                     ManagementForm: project.ManagementForm,
@@ -334,16 +321,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
         if (!project) return;
         try {
             await ProjectService.update(project.ProjectID, data);
-            // Refresh project data
-            const updated = await ProjectService.getById(project.ProjectID);
-            if (updated) setProject(updated);
-            // Invalidate caches
+            await queryClient.invalidateQueries({ queryKey: ['project-detail', id] });
             await queryClient.invalidateQueries({ queryKey: ['projects'] });
         } catch (err) {
             console.error('Update project failed:', err);
             throw err;
         }
-    }, [project, queryClient]);
+    }, [project, queryClient, id]);
 
     // ─── Render ───
     if (loading) return <ProjectDetailSkeleton />;
@@ -457,12 +441,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                                     'Completion': 3,
                                 };
                                 const newStatus = stageToStatus[newStage] || 1;
-                                setProject(prev => prev ? {
+                                queryClient.setQueryData(['project-detail', id], (prev: Project | undefined) => prev ? {
                                     ...prev,
                                     Stage: newStage,
                                     Status: newStatus as any,
-                                    StageHistory: [...(prev.StageHistory || []), entry]
-                                } : null);
+                                    StageHistory: [...((prev as any).StageHistory || []), entry]
+                                } : prev);
                                 try {
                                     await ProjectService.update(project.ProjectID, {
                                         Stage: newStage,
@@ -473,7 +457,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                                 }
                             }}
                             onHistoryUpdate={(history) => {
-                                setProject(prev => prev ? { ...prev, StageHistory: history } : null);
+                                queryClient.setQueryData(['project-detail', id], (prev: Project | undefined) => prev ? { ...prev, StageHistory: history } : prev);
                             }}
                             canEditLifecycle={true}
                             onEditProject={() => setShowEditModal(true)}
@@ -484,6 +468,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             )}
             {activeTab === 'documents' && (
                 <ErrorBoundary>
+                <React.Suspense fallback={<div className="flex-1 p-4"><TableSkeleton columns={4} rows={8} /></div>}>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <div className="space-y-3">
                         <AICompliancePanel projectId={project.ProjectID} />
@@ -491,7 +476,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                             <button
                                 onClick={() => setShowDrafter(true)}
                                 className="flex items-center gap-2 px-4 py-2 text-white text-sm font-bold rounded-xl shadow-sm transition-all"
-                                
                             >
                                 <Sparkles className="w-4 h-4" /> Soạn văn bản AI
                             </button>
@@ -504,37 +488,43 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         />
                     </div>
                 </div>
+                </React.Suspense>
                 </ErrorBoundary>
             )}
             {activeTab === 'tt24' && (
                 <ErrorBoundary>
+                <React.Suspense fallback={<div className="flex-1 p-4"><TableSkeleton columns={4} rows={8} /></div>}>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <div className="space-y-3">
                         <ProjectComplianceTab
                             project={project}
                             onUpdate={(updated) => {
-                                setProject(prev => prev ? { ...prev, ...updated } : null);
+                                queryClient.setQueryData(['project-detail', id], (prev: Project | undefined) => prev ? { ...prev, ...updated } : prev);
                             }}
                         />
                     </div>
                 </div>
+                </React.Suspense>
                 </ErrorBoundary>
             )}
             {activeTab === 'inspection' && (
                 <ErrorBoundary>
+                <React.Suspense fallback={<div className="flex-1 p-4"><TableSkeleton columns={4} rows={8} /></div>}>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <ProjectInspectionTab projectID={project.ProjectID} />
                 </div>
+                </React.Suspense>
                 </ErrorBoundary>
             )}
 
-            {/* Heavy tabs: plan, packages, capital — lazy mounted, stay alive via CSS visibility */}
+            {/* Heavy tabs: plan, packages, capital — lazy mounted + lazy imported, stay alive via CSS visibility */}
             {planMounted && (
                 <div
                     className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'plan' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'plan' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ErrorBoundary>
+                    <React.Suspense fallback={<TableSkeleton columns={5} rows={10} />}>
                     <ProjectPlanTab
                         workflowTasks={workflowTasks}
                         projectID={project.ProjectID}
@@ -543,6 +533,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                         isODA={project.IsODA}
                         project={project}
                     />
+                    </React.Suspense>
                     </ErrorBoundary>
                 </div>
             )}
@@ -552,12 +543,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     style={activeTab === 'packages' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ErrorBoundary>
+                    <React.Suspense fallback={<TableSkeleton columns={5} rows={10} />}>
                     <ProjectPackagesTab
                         projectID={project.ProjectID}
                         project={project}
                         openPackageId={openPackageId}
                         initialDetailTab={initialDetailTab}
                     />
+                    </React.Suspense>
                     </ErrorBoundary>
                 </div>
             )}
@@ -566,15 +559,17 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     className={`flex-1 min-h-0 overflow-y-auto px-4 py-3 ${activeTab === 'capital' ? '' : 'absolute inset-0 pointer-events-none'}`}
                     style={activeTab === 'capital' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
+                    <ErrorBoundary>
+                    <React.Suspense fallback={<TableSkeleton columns={4} rows={8} />}>
                     <div className="space-y-3">
                         <AIForecastChart
                             projectId={project.ProjectID}
                             currentDisbursementRate={project.PaymentProgress || project.FinancialProgress || 0}
                         />
-                        <ErrorBoundary>
                         <ProjectCapitalTab projectID={project.ProjectID} />
-                        </ErrorBoundary>
                     </div>
+                    </React.Suspense>
+                    </ErrorBoundary>
                 </div>
             )}
             {workflowMounted && (
@@ -583,7 +578,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     style={activeTab === 'workflow' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ErrorBoundary>
+                    <React.Suspense fallback={<TableSkeleton columns={4} rows={8} />}>
                     <ProjectWorkflowTab projectID={project.ProjectID} project={project} />
+                    </React.Suspense>
                     </ErrorBoundary>
                 </div>
             )}
@@ -593,7 +590,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                     style={activeTab === 'operations' ? undefined : { visibility: 'hidden', zIndex: -1 }}
                 >
                     <ErrorBoundary>
+                    <React.Suspense fallback={<TableSkeleton columns={4} rows={8} />}>
                     <ProjectOperationsTab projectID={project.ProjectID} />
+                    </React.Suspense>
                     </ErrorBoundary>
                 </div>
             )}
@@ -640,12 +639,16 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
             />
 
             {/* ─── AI Document Drafter Modal ─── */}
-            <AIDocumentDrafter
-                projectId={project.ProjectID}
-                projectName={project.ProjectName}
-                isOpen={showDrafter}
-                onClose={() => setShowDrafter(false)}
-            />
+            {showDrafter && (
+                <React.Suspense fallback={null}>
+                    <AIDocumentDrafter
+                        projectId={project.ProjectID}
+                        projectName={project.ProjectName}
+                        isOpen={showDrafter}
+                        onClose={() => setShowDrafter(false)}
+                    />
+                </React.Suspense>
+            )}
 
             {/* ─── AI Monthly Report Modal ─── */}
             <AIReportModal
@@ -672,7 +675,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId: propProjectId,
                             </button>
                         </div>
                         <div className="p-5 overflow-y-auto">
-                            <AISummaryWidget projectId={project.ProjectID} />
+                            <React.Suspense fallback={<div className="py-6 text-center text-sm text-slate-400">Đang tải...</div>}>
+                                <AISummaryWidget projectId={project.ProjectID} />
+                            </React.Suspense>
                         </div>
                     </div>
                 </div>

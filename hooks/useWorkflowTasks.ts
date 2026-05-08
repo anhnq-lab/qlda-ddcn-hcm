@@ -29,6 +29,8 @@ export const useProjectTasks = (projectId?: string) => {
       return data.map(wt => workflowTaskToTask(wt));
     },
     enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 };
 

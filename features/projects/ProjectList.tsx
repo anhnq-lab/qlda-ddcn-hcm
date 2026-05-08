@@ -4,8 +4,11 @@ import { useVirtualList } from '../../hooks/useVirtualList';
 import { useScopedProjects } from '../../hooks/useScopedProjects';
 import { useProjectsRealtime } from '../../hooks/useProjectsRealtime';
 import { useInvalidateProjects } from '../../hooks/usePaginatedProjects';
-import { ProjectGroup, MANAGEMENT_BOARDS } from '../../types';
-import { ProjectCard } from './ProjectCard';
+import { ProjectGroup, MANAGEMENT_BOARDS, ProjectStatus } from '../../types';
+import { ProjectCard, STATUS_CONFIG } from './ProjectCard';
+import { ProgressBar } from '../../components/ui';
+import { formatShortCurrency as formatCurrency } from '../../utils/format';
+import { getGroupGradient } from '../../utils/projectCompliance';
 import PermissionGate from '../../components/PermissionGate';
 import { Search, Plus, LayoutGrid, List as ListIcon, Filter, Layers, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -42,7 +45,7 @@ const ProjectList: React.FC = () => {
     } = useProjectFilters();
 
     // ── Data Fetching with scope + server-side pagination ──
-    const { scopedProjects, total, totalPages, isLoading, refetch } = useScopedProjects(queryParams);
+    const { scopedProjects, total, totalPages, pageSize, isLoading, isFetching, refetch } = useScopedProjects(queryParams);
 
     // Create Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -346,8 +349,15 @@ const ProjectList: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Pagination fetch indicator — thin bar shown during page/filter changes */}
+                    {isFetching && !isLoading && (
+                        <div className="h-0.5 w-full rounded-full overflow-hidden bg-primary-100 dark:bg-primary-900/30">
+                            <div className="h-full w-2/5 bg-primary-500 rounded-full animate-pulse" />
+                        </div>
+                    )}
+
                     {/* Content */}
-                    <div className="min-h-[400px]">
+                    <div className={`min-h-[400px] transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-60' : 'opacity-100'}`}>
                         {isLoading ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[1, 2, 3, 4, 5, 6].map(i => (
@@ -397,17 +407,114 @@ const ProjectList: React.FC = () => {
                                 )}
                             </EmptyState>
                         ) : viewMode === 'list' ? (
-                            <div ref={containerRef} className="h-[calc(100vh-220px)] overflow-y-auto pr-2 custom-scrollbar relative bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-2 lg:p-4">
-                                <div style={{ height: totalHeight, position: 'relative' }}>
-                                    {virtualItems.map(({ item: project, index, style }) => (
-                                        <div key={project.ProjectID} style={style} className="pb-3 w-full">
-                                            <ProjectCard
-                                                project={project}
-                                                onClick={() => handleOpenProject(project)}
-                                                layout="list"
-                                            />
-                                        </div>
-                                    ))}
+                            <div className="bg-[#FCF9F2] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm border-collapse">
+                                        <thead>
+                                            <tr className="bg-[#F0E8DA] dark:bg-slate-700/80 border-b border-slate-200 dark:border-slate-600">
+                                                <th className="px-3 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10">#</th>
+                                                <th className="px-3 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[280px]">Tên dự án</th>
+                                                <th className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-20">Nhóm</th>
+                                                <th className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Ban QLDA</th>
+                                                <th className="px-3 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Giai đoạn</th>
+                                                <th className="px-3 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Tiến độ</th>
+                                                <th className="px-3 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Giải ngân</th>
+                                                <th className="px-3 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Tổng mức ĐT</th>
+                                                <th className="px-3 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[160px]">Nguồn vốn</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {scopedProjects.map((project, index) => {
+                                                const status = STATUS_CONFIG[project.Status] || { label: 'N/A', hex: '#9CA3AF' };
+                                                const board = project.ManagementBoard
+                                                    ? MANAGEMENT_BOARDS.find(b => b.value === project.ManagementBoard)
+                                                    : null;
+                                                const rowNum = (page - 1) * pageSize + index + 1;
+                                                return (
+                                                    <tr
+                                                        key={project.ProjectID}
+                                                        onClick={() => handleOpenProject(project)}
+                                                        className="border-b border-slate-100 dark:border-slate-700 hover:bg-primary-50/60 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group"
+                                                    >
+                                                        {/* # */}
+                                                        <td className="px-3 py-3 text-xs text-slate-400 dark:text-slate-500 tabular-nums">{rowNum}</td>
+
+                                                        {/* Tên dự án */}
+                                                        <td className="px-3 py-3">
+                                                            <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
+                                                                {project.ProjectName}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-1 rounded">
+                                                                    #{(project.ProjectID || '').slice(-5)}
+                                                                </span>
+                                                                {project.LocationCode && (
+                                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[220px]">
+                                                                        {project.LocationCode}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Nhóm */}
+                                                        <td className="px-3 py-3 text-center">
+                                                            <span className={`inline-flex items-center justify-center text-[10px] font-bold px-2 py-0.5 rounded-full ${getGroupGradient(project.GroupCode)}`}>
+                                                                Nhóm {project.GroupCode}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Ban QLDA */}
+                                                        <td className="px-3 py-3 text-center">
+                                                            {board ? (
+                                                                <span className="inline-flex items-center justify-center text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: board.hex }}>
+                                                                    Ban {board.value}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-slate-300 dark:text-slate-600">—</span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Giai đoạn */}
+                                                        <td className="px-3 py-3">
+                                                            <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full text-white whitespace-nowrap" style={{ backgroundColor: status.hex }}>
+                                                                {status.label}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Tiến độ */}
+                                                        <td className="px-3 py-3">
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 tabular-nums">{project.Progress || 0}%</span>
+                                                                <ProgressBar value={project.Progress || 0} color="blue" size="sm" className="w-20" />
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Giải ngân */}
+                                                        <td className="px-3 py-3">
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{project.PaymentProgress || 0}%</span>
+                                                                <ProgressBar value={project.PaymentProgress || 0} color="emerald" size="sm" className="w-20" />
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Tổng mức ĐT */}
+                                                        <td className="px-3 py-3 text-right">
+                                                            <span className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums">
+                                                                {formatCurrency(project.TotalInvestment)}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Nguồn vốn */}
+                                                        <td className="px-3 py-3">
+                                                            <span className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+                                                                {project.CapitalSource || <span className="text-slate-300 dark:text-slate-600">—</span>}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         ) : (

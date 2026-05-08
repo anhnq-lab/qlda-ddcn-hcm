@@ -13,7 +13,6 @@
  */
 import { useMemo } from 'react';
 import { usePaginatedProjects } from './usePaginatedProjects';
-import { useProjects } from './useProjects';
 import { useAuth } from '../context/AuthContext';
 import { useImpersonation } from '../context/ImpersonationContext';
 import { usePermissionCheck } from './usePermissionCheck';
@@ -50,8 +49,10 @@ export interface ScopedProjectsResult {
     isGlobalScope: boolean;
     /** The Ban number of the effective user (null if global) */
     banNumber: number | null;
-    /** Loading state */
+    /** Loading state (initial load) */
     isLoading: boolean;
+    /** Fetching state (includes pagination refetch) */
+    isFetching: boolean;
     /** Refetch trigger */
     refetch: () => void;
 }
@@ -83,7 +84,7 @@ export function useScopedProjects(params?: QueryParams): ScopedProjectsResult {
     }, [params, isGlobalScope, systemRole, banNumber]);
 
     // Paginated fetch from server
-    const { projects, total, page, pageSize, totalPages, isLoading, refetch } = usePaginatedProjects(serverParams);
+    const { projects, total, page, pageSize, totalPages, isLoading, isFetching, refetch } = usePaginatedProjects(serverParams);
 
     // Contractor: client-side filter by allowed IDs (small set, OK client-side)
     const scopedProjects = useMemo(() => {
@@ -111,6 +112,7 @@ export function useScopedProjects(params?: QueryParams): ScopedProjectsResult {
         isGlobalScope,
         banNumber,
         isLoading,
+        isFetching,
         refetch,
     };
 }

@@ -15,7 +15,7 @@ interface ProjectCardProps {
 // CONSTANTS — extracted outside component to avoid re-creation
 // ═══════════════════════════════════════════════════════════════
 
-const STATUS_CONFIG: Record<number, { label: string; hex: string }> = {
+export const STATUS_CONFIG: Record<number, { label: string; hex: string }> = {
     [ProjectStatus.Preparation]: { label: 'Chuẩn bị DA', hex: '#3B82F6' },
     [ProjectStatus.Execution]: { label: 'Thực hiện DA', hex: '#F97316' },
     [ProjectStatus.Completion]: { label: 'Kết thúc XD', hex: '#10B981' },

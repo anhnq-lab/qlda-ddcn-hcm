@@ -90,11 +90,23 @@ export function usePermissionCheck(): PermissionCheckResult {
             return;
         }
 
+        // super_admin bypasses all permission checks in can() — no DB query needed
+        if (systemRole === 'super_admin') {
+            setState(prev => ({ ...prev, loading: false, loaded: true }));
+            return;
+        }
+
         try {
-            const { data, error } = await (supabase as any)
+            const queryPromise = (supabase as any)
                 .from('user_permissions')
                 .select('resource, actions')
                 .eq('user_id', userId);
+
+            const timeoutPromise = new Promise<{ data: null; error: Error }>(resolve =>
+                setTimeout(() => resolve({ data: null, error: new Error('Permission load timeout') }), 5000)
+            );
+
+            const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
             if (error) throw error;
 
