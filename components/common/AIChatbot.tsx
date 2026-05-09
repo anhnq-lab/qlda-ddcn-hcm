@@ -3,6 +3,27 @@ import { MessageCircle, X, Send, Minimize2, Maximize2, Bot, User, Sparkles, Data
 import { sendMessageToGemini, ChatMessage, isAIAvailable } from '../../services/aiService';
 import { QUICK_SUGGESTIONS } from '../../services/ai/aiTools';
 
+const CHAT_STORAGE_KEY = 'qlda_ai_chat_history';
+const MAX_STORED_MESSAGES = 50;
+
+function loadChatHistory(): ChatMessage[] {
+    try {
+        const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (!stored) return [];
+        const parsed = JSON.parse(stored) as ChatMessage[];
+        return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
+    } catch {
+        return [];
+    }
+}
+
+function saveChatHistory(messages: ChatMessage[]) {
+    try {
+        const toStore = messages.slice(-MAX_STORED_MESSAGES);
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore));
+    } catch { /* ignore quota errors */ }
+}
+
 // Simple markdown-ish renderer for AI responses
 function renderMessageText(text: string) {
     // Split by lines and process
@@ -98,15 +119,19 @@ export const AIChatbot: React.FC = () => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isQuerying, setIsQuerying] = useState(false);
-    const [showSuggestions, setShowSuggestions] = useState(true);
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            id: '1',
-            text: 'Xin chào! Tôi là trợ lý ảo QLDA, được tích hợp AI thông minh. Tôi có thể:\n\n- 📊 Tra cứu dữ liệu dự án, hợp đồng, thanh toán **trực tiếp từ hệ thống**\n- ⚠️ Phân tích rủi ro và cảnh báo\n- 📋 Tư vấn quy trình, quy định pháp luật\n- 📝 Hỗ trợ soạn thảo văn bản\n\nHãy thử hỏi tôi!',
-            sender: 'ai',
-            timestamp: new Date(),
-        },
-    ]);
+
+    const WELCOME_MSG: ChatMessage = {
+        id: 'welcome',
+        text: 'Xin chào! Tôi là trợ lý ảo QLDA, được tích hợp AI thông minh. Tôi có thể:\n\n- 📊 Tra cứu dữ liệu dự án, hợp đồng, thanh toán **trực tiếp từ hệ thống**\n- ⚠️ Phân tích rủi ro và cảnh báo\n- 📅 Nhắc deadline, HĐ sắp hết hạn\n- 📋 Tư vấn quy trình, quy định pháp luật\n- 📝 Hỗ trợ soạn thảo văn bản\n\nHãy thử hỏi tôi!',
+        sender: 'ai',
+        timestamp: new Date(),
+    };
+
+    const storedHistory = loadChatHistory();
+    const [messages, setMessages] = useState<ChatMessage[]>(
+        storedHistory.length > 0 ? storedHistory : [WELCOME_MSG]
+    );
+    const [showSuggestions, setShowSuggestions] = useState(storedHistory.length === 0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = useCallback(() => {
@@ -116,6 +141,13 @@ export const AIChatbot: React.FC = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
+
+    // Persist chat history to localStorage (skip welcome-only state)
+    useEffect(() => {
+        if (messages.length > 1 || (messages.length === 1 && messages[0].id !== 'welcome')) {
+            saveChatHistory(messages);
+        }
+    }, [messages]);
 
     const handleSend = async (text?: string) => {
         const msgText = text || input.trim();
@@ -135,7 +167,13 @@ export const AIChatbot: React.FC = () => {
         setShowSuggestions(false);
 
         try {
-            const responseText = await sendMessageToGemini(messages, msgText);
+            const TIMEOUT_MS = 30_000;
+            const responseText = await Promise.race([
+                sendMessageToGemini(messages, msgText),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Hết thời gian chờ (30s). Vui lòng thử lại.')), TIMEOUT_MS)
+                ),
+            ]);
             const aiMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 text: responseText,
@@ -176,14 +214,8 @@ export const AIChatbot: React.FC = () => {
     };
 
     const handleClearChat = () => {
-        setMessages([
-            {
-                id: Date.now().toString(),
-                text: 'Đã xóa lịch sử. Tôi sẵn sàng hỗ trợ bạn!',
-                sender: 'ai',
-                timestamp: new Date(),
-            },
-        ]);
+        localStorage.removeItem(CHAT_STORAGE_KEY);
+        setMessages([{ ...WELCOME_MSG, id: Date.now().toString(), timestamp: new Date() }]);
         setShowSuggestions(true);
     };
 
@@ -359,7 +391,7 @@ export const AIChatbot: React.FC = () => {
                 </div>
                 <div className="text-center mt-2">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                        Powered by Gemini AI — Kết nối dữ liệu thực
+                        Powered by DeepSeek AI — Kết nối dữ liệu thực
                     </span>
                 </div>
             </div>

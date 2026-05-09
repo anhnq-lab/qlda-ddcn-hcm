@@ -157,7 +157,7 @@ export async function getDashboardSummary(forceRefresh = false): Promise<string>
 }
 
 /**
- * Tóm tắt 1 dự án
+ * Tóm tắt 1 dự án — bao gồm contracts, payments, tasks
  */
 export async function getProjectSummary(projectId: string, forceRefresh = false): Promise<string> {
     const cacheKey = `project-${projectId}`;
@@ -170,14 +170,40 @@ export async function getProjectSummary(projectId: string, forceRefresh = false)
         const project = await ProjectService.getById(projectId);
         if (!project) return '❌ Không tìm thấy dự án';
 
-        let capitalInfo;
-        try {
-            capitalInfo = await ProjectService.getCapitalInfo(projectId);
-        } catch { /* ignore */ }
+        // Fetch enriched data in parallel
+        const [capitalInfo, contractsRaw, tasksRaw] = await Promise.allSettled([
+            ProjectService.getCapitalInfo(projectId),
+            supabase.from('contracts').select('contract_id, contract_name, value, status, end_date').eq('project_id', projectId).limit(10),
+            supabase.from('tasks').select('title, status, due_date, priority').eq('project_id', projectId).is('parent_id', null).neq('status', 'done').order('due_date', { ascending: true }).limit(5),
+        ]);
+
+        const contracts = contractsRaw.status === 'fulfilled' ? (contractsRaw.value.data || []) : [];
+        const pendingTasks = tasksRaw.status === 'fulfilled' ? (tasksRaw.value.data || []) : [];
+
+        // Upcoming contract expirations
+        const today = new Date().toISOString().split('T')[0];
+        const in30days = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+        const expiringContracts = contracts.filter((c: any) => c.end_date && c.end_date >= today && c.end_date <= in30days);
 
         const data = {
             project,
-            capitalInfo,
+            capitalInfo: capitalInfo.status === 'fulfilled' ? capitalInfo.value : null,
+            contracts: contracts.map((c: any) => ({
+                name: c.contract_name,
+                value: c.value,
+                status: c.status,
+                endDate: c.end_date,
+            })),
+            expiringContracts: expiringContracts.map((c: any) => ({
+                name: c.contract_name,
+                endDate: c.end_date,
+            })),
+            pendingTasks: pendingTasks.map((t: any) => ({
+                title: t.title,
+                status: t.status,
+                dueDate: t.due_date,
+                priority: t.priority,
+            })),
             currentDate: new Date().toISOString(),
         };
 

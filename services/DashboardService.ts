@@ -210,33 +210,73 @@ export const DashboardService = {
         return risks.slice(0, 8);
     },
 
-    /** Monthly Briefing for Flag Salute Meeting (Mocked for now) */
+    /** Monthly Briefing — real Supabase queries */
     getMonthlyBriefingStats: async (month: number, year: number): Promise<MonthlyBriefingStats> => {
-        // MOCK DATA since this requires complex aggregations
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        const [disbursedRes, capitalRes, projectsRes, issuesRes] = await Promise.all([
+            supabase.from('disbursements').select('amount').gte('date', startDate).lte('date', endDate),
+            supabase.from('capital_plans').select('amount').eq('year', year),
+            supabase.from('projects').select('project_id, project_name, status, progress, start_date'),
+            supabase.from('package_issues').select('issue_id, title, severity')
+                .eq('status', 'Open')
+                .order('reported_date', { ascending: false })
+                .limit(5),
+        ]);
+
+        const disbursedThisMonth = (disbursedRes.data || []).reduce((s, d) => s + Number(d.amount), 0);
+        const yearlyTarget = (capitalRes.data || []).reduce((s, p) => s + Number(p.amount), 0);
+        const disbursedTarget = Math.round(yearlyTarget / 12);
+
+        const allProjects = projectsRes.data || [];
+        const newProjectsStarted = allProjects.filter(p => {
+            if (!p.start_date) return false;
+            return p.start_date >= startDate && p.start_date <= endDate;
+        }).length;
+        const projectsCompleted = allProjects.filter(p => p.status === 3).length;
+
+        // Key achievements — auto-generated from data
+        const keyAchievements: { id: string; content: string }[] = [];
+        if (disbursedThisMonth > 0) {
+            const bill = Math.round(disbursedThisMonth / 1e9 * 10) / 10;
+            const rate = disbursedTarget > 0 ? Math.round((disbursedThisMonth / disbursedTarget) * 100) : 0;
+            keyAchievements.push({ id: 'disbursed', content: `Giải ngân ${bill} tỷ đồng trong tháng, đạt ${rate}% kế hoạch tháng.` });
+        }
+        if (newProjectsStarted > 0) {
+            keyAchievements.push({ id: 'new-proj', content: `Khởi công ${newProjectsStarted} dự án mới trong tháng.` });
+        }
+        if (projectsCompleted > 0) {
+            keyAchievements.push({ id: 'completed', content: `Hoàn thành ${projectsCompleted} dự án trong kỳ báo cáo.` });
+        }
+
+        // Roadblocks — from open issues
+        const roadblocks = (issuesRes.data || []).map(i => ({
+            id: String(i.issue_id),
+            content: i.title,
+            severity: (i.severity === 'High' ? 'high' : i.severity === 'Medium' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+        }));
+
+        // Upcoming plans — generic defaults based on data
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const upcomingPlans = [
+            { id: '1', content: `Đẩy mạnh giải ngân vốn đầu tư công tháng ${nextMonth}/${nextYear}, phấn đấu đạt và vượt kế hoạch.` },
+            { id: '2', content: 'Tăng cường kiểm tra, giám sát tiến độ thi công các gói thầu đang triển khai.' },
+            { id: '3', content: 'Đôn đốc nhà thầu hoàn thiện hồ sơ nghiệm thu, thanh toán đúng hạn.' },
+        ];
+
         return {
-            month,
-            year,
-            disbursedThisMonth: 125000000000, // 125 tỷ
-            disbursedTarget: 150000000000,    // 150 tỷ
-            newProjectsStarted: 2,
-            projectsCompleted: 1,
-            docsApproved: 18,
-            keyAchievements: [
-                { id: '1', content: 'Khởi công Gói thầu số 5 - Dự án Bệnh viện Nhi Đồng.' },
-                { id: '2', content: 'Phê duyệt thiết kế bản vẽ thi công dự án Trường THPT chuyên Lê Hồng Phong.' },
-                { id: '3', content: 'Giải ngân 125 tỷ đồng, đạt 83.3% kế hoạch tháng.' },
-                { id: '4', content: 'Hoàn thành và bàn giao đưa vào sử dụng hạng mục nhà thi đấu Phú Thọ.' },
-            ],
-            roadblocks: [
-                { id: '1', content: 'Dự án chống ngập gặp khó khăn trong công tác GPMB tại Q.Bình Thạnh.', severity: 'high' },
-                { id: '2', content: 'Chậm trễ trong thẩm định hồ sơ mời thầu Gói số 2 (do thiếu nhân sự).', severity: 'medium' },
-                { id: '3', content: 'Một số nhà thầu chậm nộp báo cáo tiến độ tuần theo hợp đồng.', severity: 'low' },
-            ],
-            upcomingPlans: [
-                { id: '1', content: 'Tập trung đẩy mạnh giải ngân vốn đầu tư công, đạt mức 200 tỷ.' },
-                { id: '2', content: 'Tổ chức nghiệm thu khối lượng giai đoạn 2 - Dự án Rạp xiếc Phú Thọ.' },
-                { id: '3', content: 'Họp với hội đồng đền bù GPMB Q.Bình Thạnh để giải quyết vướng mắc.' },
-            ]
+            month, year,
+            disbursedThisMonth,
+            disbursedTarget,
+            newProjectsStarted,
+            projectsCompleted,
+            docsApproved: 0,
+            keyAchievements: keyAchievements.slice(0, 5),
+            roadblocks,
+            upcomingPlans,
         };
     },
 };

@@ -1,30 +1,44 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-    Calendar, TrendingUp, CheckCircle2, AlertTriangle, 
-    FileBox, CalendarDays, Target, FileText, AlertCircle, Sparkles, Building2, Download
+import {
+    Calendar, TrendingUp, CheckCircle2, AlertTriangle,
+    CalendarDays, Target, FileText, AlertCircle, Sparkles, Building2, Download
 } from 'lucide-react';
 import { formatCurrency } from '../../../utils/format';
 import { DashboardService } from '../../../services/DashboardService';
+import { MonthlyReportModal } from './MonthlyReportModal';
 
 export const MonthlyBriefingTab: React.FC = () => {
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+    const [showReportModal, setShowReportModal] = useState(false);
 
-    const { data: stats, isLoading } = useQuery({
+    const { data: stats, isLoading, error, refetch } = useQuery({
         queryKey: ['dashboard', 'monthlyBriefing', selectedMonth, selectedYear],
         queryFn: () => DashboardService.getMonthlyBriefingStats(selectedMonth, selectedYear),
         staleTime: 5 * 60 * 1000,
+        retry: 1,
     });
 
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const years = [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1];
 
-    if (isLoading || !stats) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+            </div>
+        );
+    }
+
+    if (error || !stats) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-500">
+                <p className="text-sm font-medium text-red-500">
+                    {error instanceof Error ? error.message : 'Không thể tải dữ liệu'}
+                </p>
+                <button onClick={() => refetch()} className="btn btn-outline text-sm">Thử lại</button>
             </div>
         );
     }
@@ -34,7 +48,7 @@ export const MonthlyBriefingTab: React.FC = () => {
         : 0;
 
     return (
-        <div className="space-y-6 animate-fade-in fade-in-up">
+        <><div className="space-y-6 animate-fade-in fade-in-up">
             {/* ── Toolbar ── */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FCF9F2] dark:bg-slate-800 p-4 rounded-xl border border-[#ece7de] dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -59,11 +73,17 @@ export const MonthlyBriefingTab: React.FC = () => {
                 </div>
                 
                 <div className="flex gap-2">
-                    <button className="btn btn-outline border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 flex items-center gap-2">
+                    <button
+                        onClick={() => setShowReportModal(true)}
+                        className="btn btn-outline border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 flex items-center gap-2"
+                    >
                         <Sparkles className="w-4 h-4" /> AI Soạn báo cáo
                     </button>
-                    <button className="btn btn-primary flex items-center gap-2">
-                        <Download className="w-4 h-4" /> Xuất PDF/PPTX
+                    <button
+                        onClick={() => setShowReportModal(true)}
+                        className="btn btn-primary flex items-center gap-2"
+                    >
+                        <Download className="w-4 h-4" /> Xuất DOCX
                     </button>
                 </div>
             </div>
@@ -196,5 +216,15 @@ export const MonthlyBriefingTab: React.FC = () => {
 
             </div>
         </div>
+
+        {showReportModal && stats && (
+            <MonthlyReportModal
+                month={selectedMonth}
+                year={selectedYear}
+                stats={stats}
+                onClose={() => setShowReportModal(false)}
+            />
+        )}
+        </>
     );
 };
